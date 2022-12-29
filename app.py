@@ -5,6 +5,11 @@ import json
 from pypdf import PdfReader
 from dotenv import load_dotenv, find_dotenv
 import csv
+from pptx import Presentation
+import glob
+import numpy as np
+import docx2txt
+
 
 
 load_dotenv(find_dotenv())
@@ -14,7 +19,9 @@ load_dotenv(find_dotenv())
 ## open AI api, 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-practice_list = '1. Greenhouse gas emissions:  Gases that trap heat in the atmosphere. \n 2. Climate change: A long term shift in global weather patterns \n 3. Natural gas: A fossil fuel composed mainly of methane.'
+## different prompts available to pass through
+prompt_standard = "Extract as many uncommon or technical terms as possible from the following text and provide a definition for each in a non numbered list: "
+
 
 def main():
         
@@ -26,23 +33,31 @@ def main():
     
     if file_prompt.endswith('.pdf'):
         prompt = extract_from_pdf(file_prompt)
-        temp = []
-        for item in prompt:
-            response = extract_terms(item)
-            x = response.choices[0]["text"]
-            ls.append(x)
-        terms = "".join(temp)
+        terms = large_extract_terms(prompt)
         terms = terms_to_dict(terms)
         
-    else:
-        ##checks if file has been selected, if not expected text to be entered manually
-        if file_prompt == "":
-            prompt = input("Enter text here: ")
-        else:
+    elif file_prompt.endswith('.pptx'):
+        prompt = extract_from_pptx(file_prompt)
+        terms = extract_terms(prompt)
+        terms = terms_to_dict(terms)
+        
+    elif file_prompt.endswith('.txt'):
             prompt = []
             with open(file_prompt) as file:
                 prompt = file.read()
-            ## extract terms    
+                response = extract_terms(prompt)
+                terms = response.choices[0]["text"]
+                terms = (terms_to_dict(terms))
+                
+    elif file_prompt.endswith('.docx'):
+        prompt = extract_from_docx(file_prompt)
+        terms = large_extract_terms(prompt)
+        terms = terms_to_dict(terms)
+        
+    
+    else:
+        ##checks if file has been selected, if not expected text to be entered manually
+        prompt = input("Enter text here: ")  
         response = extract_terms(prompt)
         terms = response.choices[0]["text"]
         terms = (terms_to_dict(terms))
@@ -51,12 +66,14 @@ def main():
     write_to_csv(terms, file_name)
 
 
+
+
     ## extract_terms 
 def extract_terms(text: str):
-    prompt = ("Extract as many uncommon or technical terms as possible from the following text and provide a definition for each in a non numbered list: " + text)
+    prompt = (prompt_standard + text)
     ## experiment with temprature = ,top_p =, frequency_penalty =, presence_penalty =, stop= ,
     response = openai.Completion.create(
-        engine="text-davinci-003", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001
+        engine="text-ada-001", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001
         temperature = 0,
         prompt=prompt,
         max_tokens=100)
@@ -77,7 +94,7 @@ def terms_to_dict(terms: str) -> dict:
     return(terms_dict)
     
     
-def extract_from_pdf(pdf_file) -> [str]:
+def extract_from_pdf(pdf_file):
 
     reader = PdfReader(pdf_file)
     total_pages = len(reader.pages)
@@ -90,13 +107,49 @@ def extract_from_pdf(pdf_file) -> [str]:
         
     return text
     
+
+
+def extract_from_pptx(ppt_file):
     
+    prs = Presentation(ppt_file)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text_runs.append(shape.text)
+                
+    return text_runs
+
+def extract_from_docx(docx_file):            
+    text = docx2txt.process(docx_file)
+    text = text.replace("\n", " ")          
+    return text
+
+
+                
+## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
+def large_extract_terms(prompt):
+        temp = []
+        for item in prompt:
+            response = extract_terms(item)
+            x = response.choices[0]["text"]
+            temp.append(x)
+        terms = "".join(temp)
+        return terms
+
+
+
+
+
+
 def write_to_csv(definitions: str, filename: str):
     
     with open(filename, 'w', encoding="utf-8", newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=' ')
         for key, value in definitions.items():
             writer.writerow([key, value])
+
+
 
 if __name__ == "__main__":
     main()
