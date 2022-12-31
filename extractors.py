@@ -11,11 +11,6 @@ import numpy as np
 import docx2txt
 
    
-   
-   
-   
-   
-   
     ## extract_terms 
 def extract_terms(text: str):
     prompt = (prompt_standard + text)
@@ -56,7 +51,6 @@ def extract_from_pdf(pdf_file):
     return text
     
 
-
 def extract_from_pptx(ppt_file):
     
     prs = Presentation(ppt_file)
@@ -72,7 +66,6 @@ def extract_from_docx(docx_file):
     text = docx2txt.process(docx_file)
     text = text.replace("\n", " ")          
     return text
-
 
                 
 ## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
