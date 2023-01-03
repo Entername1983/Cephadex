@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "flashcards",
+			"path": "flashcards"
+		}
+	],
+	"settings": {
+		"editor.tabCompletion": "on",
+		"diffEditor.codeLens": true
+	}
+}

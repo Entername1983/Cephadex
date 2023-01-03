@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %} Login {% endblock %}
+
+{% block main_0 %}
+
+
+<form method="POST" action="">
+    <ul>{{ form.hidden_tag() }}</ul>
+    <ul>{{ form.username (class="w-50 p-3" )}} </ul>
+    <ul>{{ form.password (class="w-50 p-3" )}}</ul>
+
+    <ul>{{ form.submit (class="w-50 p-3" )}}</ul>
+
+
+</form> 
+
+<ul> {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for msg in messages %}
+        <p>{{msg}}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+</ul>
+{% endblock %}

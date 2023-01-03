@@ -1,22 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %} Register {% endblock %}
+
+
 {% block main_0 %}
+<div class="d-flex justify-content-center">
 
-<form action="/register" method="post">
-    <div class="mb-3">
-        <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
-    </div>
-    <div class="mb-3">
-        <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password">
-    </div>
-    <div class="mb-3">
-        <input class="form-control mx-auto w-auto" id="confirmation" name="confirmation" placeholder="Confirm password" type="password">
-    </div>
-    <div class="mb-3">
-        <input class="form-control mx-auto w-auto" id="email" name="email" placeholder="E-mail" type="text">
-    </div>    
-    <div class="mb-3">
-        <input class="form-control mx-auto w-auto" id="email_conf" name="email_conf" placeholder="Confirm E-mail" type="text">
-    </div>
-    <button class="btn btn-primary" type="submit">Register</button>
+<div class="col-md-6">
+<form method="POST" action="">
+
+
+    <ul>{{ form.hidden_tag()}}</ul>
+    <ul>{{ form.first_name (class="w-50 p-3" )}}</ul>
+    <ul>{{ form.last_name (class="w-50 p-3" )}} </ul> 
+    <ul>{{ form.username (class="w-50 p-3" )}}</ul>
+    <ul>{{ form.password (class="w-50 p-3" )}}</ul>
+    <ul>{{ form.conf_password (class="w-50 p-3" ) }}</ul>
+    <ul>{{ form.email (class="w-50 p-3" )}} </ul>
+    <ul>{{ form.conf_email (class="w-50 p-3" )}}</ul>
+
+    <ul>{{ form.submit (class="w-50 p-3" )}}</ul>
 </form>
+</div>
+</div>
 
-{% end block %}
+<div>
+<ul> {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for msg in messages %}
+        <p>{{msg}}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+</ul>
+</div>
+
+{% endblock %}

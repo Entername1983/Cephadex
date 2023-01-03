@@ -1,22 +1,19 @@
-import os 
+
 import openai 
-from flask import Flask, redirect, render_template, request, url_for
-import json
 from pypdf import PdfReader
 from dotenv import load_dotenv, find_dotenv
-import csv
 from pptx import Presentation
-import glob
 import numpy as np
 import docx2txt
 
-   
+prompt_standard = "Extract as many uncommon or technical terms as possible from the following text and provide a definition for each in a non numbered list: "
+  
     ## extract_terms 
 def extract_terms(text: str):
     prompt = (prompt_standard + text)
     ## experiment with temprature = ,top_p =, frequency_penalty =, presence_penalty =, stop= ,
     response = openai.Completion.create(
-        engine="text-ada-001", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001
+        engine="text-davinci-001", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001.  HAVE TO USE DA VINCI TO GET PROPER FORMATTING
         temperature = 0,
         prompt=prompt,
         max_tokens=100)

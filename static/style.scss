@@ -1,0 +1,42 @@
+
+// Pastel set
+//blue
+$blue: #7A9CC6;
+//light blue
+$lblue: #9FBBCC;
+//green
+$green: #B3D2B2;
+//light green
+$lgreen: #BDE4A7;
+//yellow
+$yellow: #FFFD98;
+
+$btn-white-space: nowrap;
+
+body {
+    background-color: $lblue !important;
+}
+
+
+#text_input
+{
+    height:200px;
+    width: 200px;
+    font-size:10pt;
+}
+
+.btn-primary:hover {
+    background-color: $yellow !important;
+}
+
+.btn-primary, .btn-primary:visited {
+    background-color: $lgreen !important;
+    color: $blue !important;
+    border-color: $blue !important;
+}
+
+
+.btn-primary:active {
+    background-color: $yellow !important;
+}
+

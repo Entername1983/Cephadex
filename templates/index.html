@@ -1,0 +1,30 @@
+{% extends "layout.html" %} 
+
+{% block title %} Extractor {% endblock %} 
+
+
+
+{% block main_0 %}
+
+<p> Welcome to Edu-MC-8</p> 
+
+    <form action="/quote" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" required autofocus class="form-control mx-auto w-auto" id="text_input" name="text_input" placeholder="input text here" type="text">
+        </div>
+        <button class="btn btn-primary" type="submit">Extract keywords</button>
+    </form>
+
+    <div>
+        <ul> {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                <p>{{msg}}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        </ul>
+        </div>
+
+
+{% endblock %}
