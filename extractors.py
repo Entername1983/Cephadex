@@ -28,7 +28,10 @@ def terms_to_dict(terms: str) -> dict:
         term = ''.join([i for i in term if not i.isdigit()])
         term = term.strip(' .-')
         term = term.split(': ')
+
         if len(term) > 1:
+            term[0] = term[0].capitalize()
+            term[1] = term[1].capitalize()
             terms_dict.update({term[0]: term[1]})
         
     return(terms_dict)

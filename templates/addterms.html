@@ -1,0 +1,48 @@
+{% extends "layout.html" %} {% block title %} Card Editor {% endblock %} {%
+block head %} {% endblock %} {% block main_0 %}
+
+
+
+<div class = "container box_0 flex my-5">
+    <div class = "d-flex justify-content-end my-2">
+        <a href="/study/{{deck.id}}" class="btn btn-primary box_study m-1"> Study this deck</a>
+        <a href="/currentdeck/{{deck.id}}" class="btn btn-primary box_save m-1"> Return to deck</a>
+        <a href="/delete/{{deck.id}}" class="btn btn-primary box_warning m-1"> Delete this deck</a>
+        </div>
+<div class="row box_0 flex m-2 p-2">
+  <form method="POST" action="">
+<div class="m-3">
+        <h3> Add new cards to deck: </h3>
+          {{ form.hidden_tag()}}
+          <h5 class=" border-0 form-control form-control-lg">
+            Term: {{form.term (class="btn-lg border btn-block my-1 box_1" )}}
+          </h5>
+          <p class=" border-0 form-control form-control-lg">
+            Content: {{form.content(class=" btn-lg border btn-block my-1 box_1" )}}
+          </p>
+          <div class = "col justify-content-end">
+          {{form.submit (class="btn btn-success primary box_save d-flex")}}
+        </div>
+        
+  </form>
+  </div>
+</div>
+<div class="row">
+  {% for card in cards%}
+  <div class="col-sm-6">
+    <div class="card m-2 bg-light">
+      <div class="card-body">
+        <h5 class="card-title border-0 input_0 form-control form-control-lg">
+          {{card.term }}
+        </h5>
+        <p class="card-text border-0 input_0 form-control form-control-lg">
+          {{card.content }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  {% endfor %}
+</div>
+{% endblock %}
+</div>

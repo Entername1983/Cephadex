@@ -3,11 +3,10 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file
 from flask_session import Session
 from tempfile import mkdtemp
 from sqlalchemy_utils import database_exists, create_database
-from helpers import apology, login_required
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from wtforms import StringField, PasswordField, SubmitField
 from flask_wtf.file import FileField, FileRequired
@@ -55,6 +54,13 @@ def load_user(user_id):
 
 # Create database
 
+# relational database cards & decks
+cards = db.Table("cards", 
+                 db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
+                 db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),
+                 )
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
@@ -63,23 +69,37 @@ class User(db.Model, UserMixin):
     email_confirmed_at = db.Column(db.DateTime())
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
-    
-class Cards(db.Model):
+    decks = db.relationship("Deck", backref=db.backref("user", lazy="joined"), lazy="select")
+
+
+class Card(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False) 
-    description = db.Column(db.String(255), nullable=False)
-    decks = relationship("Decks", back_populates="cards")
+    term = db.Column(db.String(50), nullable=False) 
+    content = db.Column(db.String(255), nullable=False)
+    
+    def to_json(self):
+        return {
+            "id": self.id,
+            "term": self.term,
+            "content": self.content,            
+        }
 
-
-class Decks(db.Model):
+class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(255), nullable=False) 
-    cards = db.relationship('Cards', back_populates="decks")
     user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
+    cards = db.relationship('Card', secondary=cards, backref="decks", lazy="select")
 
-
-
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "user_id": self.user_id,
+            "cards": [card.to_json() for card in self.cards]
+        }
 
 class RegisterForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
@@ -121,8 +141,28 @@ class ChangePassForm(FlaskForm):
     
 class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
-    submit = SubmitField("Upload File")
+    name = StringField("Deck name", validators=[InputRequired()])
+    description = StringField("Description")
+    submit = SubmitField("Extract")
 
+    
+class EditCard(FlaskForm):
+    term = StringField()
+    content = StringField()
+    submit = SubmitField("Save")
+    
+class EditDeck(FlaskForm):
+    name = StringField()
+    description = StringField()
+    submit = SubmitField("Save")
+    
+    
+class AddTermForm(FlaskForm):
+    term = StringField(validators=[InputRequired(), Length(min=1, max=50)])
+    content = StringField(validators=[InputRequired(), Length(min=1, max=50)])
+    submit = SubmitField("Save")
+    
+    
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template('index.html')
@@ -175,21 +215,24 @@ def logout():
 def change_pass():
     form = ChangePassForm()
     if form.validate_on_submit():
-        if form.validate_on_submit():
-            user = User.query.filter_by(username=form.username.data).first()
-            if user:
-                if bcrypt.check_password_hash(user.password, form.password.data):
-                    hashed_password = bcrypt.generate_password_hash(form.new_password.data)
-                    user.password = hashed_password
-                    db.session.commit()
+        user = User.query.filter_by(username=form.username.data).first()
+        if user:
+            if bcrypt.check_password_hash(user.password, form.password.data):
+                hashed_password = bcrypt.generate_password_hash(form.new_password.data)
+                user.password = hashed_password
+                db.session.commit()
     flash('Your password has been updated!')
     return redirect(url_for('index'))
 
 
 @app.route("/viewdecks", methods = ["GET", "POST"])
 @login_required
-def view_decks():
-    return render_template("viewdecks.html", title="View Decks")
+def viewdecks():
+    
+    decks = Deck.query.all()
+    return render_template('viewdecks.html', decks=decks)
+
+
 
 @app.route("/createdeck", methods = ["GET", "POST"])
 @login_required
@@ -210,26 +253,122 @@ def study():
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract_page():
-
     form = UploadFileForm()
+
     if form.validate_on_submit():
+
+        deck_name = form.name.data
+        deck_description = form.description.data
         file = form.file.data
-        filename = secure_filename(file.filename)
+        #filename = secure_filename(file.filename)
         file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
         file.save(file_loc)
-       
         terms = card_creator(file_loc)
-        #terms = ({'key1': 'value1'}, {'key2': 'value2'})
-    
-    
-        return render_template("cards.html", title="Cards", terms=terms)
+        # initialize deck1 object
+        deck = Deck(name=deck_name, description=deck_description)
+        db.session.add(deck)        
+
+        #session['deck_name'] = deck1
+        #deck2 = deck1.to_json()
+        ## add deck1 to session
+
+        # set deck1 object user_id to current user's id
+        deck.user_id = current_user.id
+        for key, value in terms.items():
+            # initialize a card
+            entry = Card(term=key, content=value)
+            # add card to session
+            db.session.add(entry)
+            # append to deck1's cards
+            deck.cards.append(entry)
+        # commit all to database    
+        db.session.commit()
+#return render_template("cards.html", title="Cards", terms=terms)
+      
+        return redirect('/currentdeck/{deck.id}'.format(deck = deck))
     
     return render_template("extract.html", title="Extract", form=form)
 
+
+    
+
+@app.route("/currentdeck/<deck_id>", methods = ["POST", "GET"])
+def currentdeck(deck_id):
+    deck = Deck.query.filter_by(id=deck_id).first()
+    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+
+    if request.method == 'POST':
+        
+        term = request.form['term'] ## new term for card
+        content = request.form['content'] ## new content for card
+        id = request.form['id'] ## id of card to be edited
+        card = Card.query.filter_by(id=id).first()
+        if term != "":
+            card.term = term
+        if content != "":
+            card.content = content
+        db.session.commit()
+
+
+    
+    return render_template("currentdeck.html", title="Card Editor", deck=deck, cards=cards)
+                             
+    
+@app.route("/delete/<int:id>", methods = ["POST", "GET"])
+def delete(id):
+    deck_to_delete = Deck.query.get_or_404(id)
+    db.session.delete(deck_to_delete)
+    db.session.commit()
+    return redirect(url_for('viewdecks'))
+
+    
 @app.route("/account", methods = ["POST", "GET"])
 @login_required
 def account():
     return render_template("account.html", title="Account")
 
+
+@app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
+def deletecard(card_id, deck_id):
+    id = card_id
+    card_to_delete = Card.query.get_or_404(id)
+    db.session.delete(card_to_delete)
+    db.session.commit()
+    deck = deck_id
+    return redirect(("/currentdeck/{deck}").format(deck=deck))  
+
+
+@app.route("/addterms/<int:deck_id>", methods = ["POST", "GET"])
+def addterms(deck_id):
+    form = AddTermForm()
+    deck = Deck.query.filter_by(id=deck_id).first()
+    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+
+    if form.validate_on_submit():
+        key = form.term.data
+        value = form.content.data
+        entry = Card(term=key, content=value)
+        db.session.add(entry)
+        deck.cards.append(entry)  
+        db.session.commit()
+
+        
+    
+    return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
+
+
+@app.route("/downloadascsv/<int:deck_id>", methods = ["POST", "GET"])
+def downloadascsv(deck_id):
+    deck = Deck.query.filter_by(id=deck_id).first()
+    cards = Card.query.filter(Card.decks.any(id=deck_id)).all()
+    termsstrings = []
+    for card in cards:
+        string = card.term + "," + card.content + "\n"
+        termsstrings.append(string)            
+    csvstring = "".join(termsstrings)            
+    return Response(csvstring, mimetype="text/csv")
+
+
+ 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

@@ -1,0 +1,26 @@
+{% extends "layout.html" %} 
+
+{% block title %} Edit card {% endblock %} 
+
+{% block main_0 %}
+<div class="container">
+
+
+
+<form method="POST" action="">
+    <ul>{{ form.hidden_tag() }}</ul>
+    <ul>{{card.term}}: {{ form.term (class="w-50 p-3")}} </ul>
+    <ul>{{card.content}}: {{ form.content (class="w-50 p-3") }}</ul>
+
+    <ul>{{ form.submit (class="w-50 p-3" )}}</ul>
+
+
+</form> 
+<div> 
+    <a href = "/viewdecks/{{deck_id}}"> Click here to return to deck </a>
+</div>
+
+</div>
+
+
+{% endblock %}

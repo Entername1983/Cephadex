@@ -1,28 +1,45 @@
-{% extends "layout.html" %} 
+{% extends "layout.html" %} {% block title %} Extractor {% endblock %} {% block
+main_0 %}
 
-{% block title %} Extractor {% endblock %} 
+<div class="container mt-5">
+  
+    <div class="col-2"></div>
 
-
-
-{% block main_0 %}
-
-<div class="container">
+    <div class="col-8 mx-auto box_0 p-5">
     <div class="row">
-
-<a href="/viewdecks" class="btn btn-primary btn-md border btn-block" role="button">View Decks</a>
+      <a
+        href="/viewdecks"
+        class="btn btn-primary btn-lg border btn-block p-4 my-2 box_1"
+        role="button"
+        >View Decks</a
+      >
     </div>
     <div class="row">
-<a href="/createdeck" class="btn btn-primary btn-md border btn-block" role="button">Create Deck</a>
+      <a
+        href="/createdeck"
+        class="btn btn-primary btn-lg border btn-block p-4 my-2 box_1"
+        role="button"
+        >Create Deck</a
+      >
     </div>
     <div class="row">
-<a href="/accountsettings" class="btn btn-primary btn-md border btn-block" role="button">Account Settings</a>
+      <a
+        href="/accountsettings"
+        class="btn btn-primary btn-lg border btn-block p-4 my-2 box_1"
+        role="button"
+        >Account Settings</a
+      >
     </div>
     <div class="row">
-<a href="/logout" class="btn btn-primary btn-md border btn-block" role="button">Log Out</a>
+      <a
+        href="/logout"
+        class="btn btn-primary btn-lg border btn-block p-4 my-2 box_1"
+        role="button"
+        >Log Out</a
+      >
     </div>
-       
-
+  </div>
+  <div class="col-2"></div>
 </div>
-
 
 {% endblock %}

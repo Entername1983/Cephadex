@@ -1,26 +1,23 @@
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block title %} Login {% endblock %} {% block
+main_0 %}
 
-{% block title %} Login {% endblock %}
+<div class="container mt-5" >
+  <div class="col-2"></div>
 
-{% block main_0 %}
+  <div class="col-8 mx-auto box_0 p-5">
+    <form method="POST" action="">
+<div class = "row">
+        {{ form.hidden_tag() }}
+    </div><div class = "row">
+        {{ form.username (class="btn btn-primary btn-lg border btn-block p-4 my-2 box_1" )}}
+        <div class = "row"></div>
+        {{ form.password (class="btn btn-primary btn-lg border btn-block p-4 my-2 box_1" )}}
+        </div><div class = "row">
+        {{ form.submit (class="btn btn-primary btn-lg border btn-block p-4 my-2 box_1" )}}
+    </div>
+    </form>
+  </div>
+  <div class="col-2"></div>
+</div>
 
-
-<form method="POST" action="">
-    <ul>{{ form.hidden_tag() }}</ul>
-    <ul>{{ form.username (class="w-50 p-3" )}} </ul>
-    <ul>{{ form.password (class="w-50 p-3" )}}</ul>
-
-    <ul>{{ form.submit (class="w-50 p-3" )}}</ul>
-
-
-</form> 
-
-<ul> {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for msg in messages %}
-        <p>{{msg}}</p>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
-</ul>
 {% endblock %}

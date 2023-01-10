@@ -1,0 +1,40 @@
+{% extends "layout.html" %} 
+
+{% block title %} View Decks {% endblock %} 
+
+{% block main_0 %}
+
+
+<table class="table">
+<th>
+    <td scope="col" > Term </td>
+    <td scope="col" > Content </td>
+    <td scope="col" > Last accessed </td>
+    <td scope="col"  > Date created </td>
+    <td scope="col"  > Actions </td>
+</th>
+<tbody>
+{% for card in cards%}
+
+<tr>
+    <th scope="col" >{{card.id }} </th>
+    <td> {{card.term }} </td>
+    <td> {{card.content }} </td>
+    <td> TBD </td>
+    <td> TBD </td>
+    <td> <a href = "/editcard/{{deck_id}}/{{card.id}}">Edit card</a>
+        <a href = "/deletecard/{{deck_id}}/{{card.id}}">Delete card</a>
+    </td>
+</tr>
+  {% endfor %}  
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+{% endblock %}

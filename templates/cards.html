@@ -1,33 +1,26 @@
-{% extends "layout.html" %} 
-
-{% block title %} Cards {% endblock %} 
-
-
+{% extends "layout.html" %} {% block title %} Cards {% endblock %} 
 
 {% block main_0 %}
 
 
-<table>
-<thead>
-    <tr> 
-        <th>Term</th> 
-        <th>Definition</th>
-</thead>
+    <div class="container border rounded">
+      <div class="col-8 mx-auto">
+        {% for key, value in terms.items() %}
+        <div class="row px-2">
+          <div class="card rounded border my-2">
+            <div class="card-body">
+              <h5 class="card-title border rounded py-4 px-2">
+                Term: {{ key }}
+              </h5>
+              <p class="card-text border rounded py-4 px-2">
+                Definition: {{ value }}
+              </p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
 
-<tbody>
+    {% endblock %}
 
-{% for key, value in terms.items() %}
-<tr>
-    <td>{{ key }}</td>
-    <td>{{ value }}</td>
-</tr>
-{% endfor %}
-
-
-</tbody>
-
-</table>
-
-    
-
-{% endblock %}

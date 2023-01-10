@@ -1,5 +1,44 @@
 body {
-  background-color: #9FBBCC !important;
+  background-color: #D8D5DB !important;
+  background-image: url("background_4.png") !important;
+  background-size: cover;
+}
+
+.navbar {
+  background-color: #2D3142 !important;
+  font-size: 70px !important;
+  color: #EAE8FF !important;
+}
+
+.nav-link {
+  color: #EAE8FF !important;
+}
+
+.input_0 {
+  background-color: #FFFD98;
+  color: black;
+}
+
+.txtedit {
+  background-color: #D8D5DB !important;
+  border: none;
+  size: 50;
+}
+
+.card {
+  background-color: #D8D5DB !important;
+}
+
+.card-body {
+  background-color: #D8D5DB !important;
+}
+
+.card-title {
+  background-color: #D8D5DB !important;
+}
+
+.card-text {
+  background-color: #D8D5DB !important;
 }
 
 #text_input {
@@ -9,15 +48,73 @@ body {
 }
 
 .btn-primary:hover {
-  background-color: #FFFD98 !important;
+  background-color: #B0D7FF !important;
 }
 
-.btn-primary, .btn-primary:visited {
-  background-color: #BDE4A7 !important;
-  color: #7A9CC6 !important;
+.btn-primary {
+  background-color: #D8D5DB !important;
+  color: #2D3142 !important;
   border-color: #7A9CC6 !important;
 }
 
 .btn-primary:active {
-  background-color: #FFFD98 !important;
+  background-color: #D8D5DB !important;
+}
+
+.box_0 {
+  border: 10px solid !important;
+  align-content: center !important;
+  background-color: #2D3142 !important;
+  border-width: 5px !important;
+  border-radius: 20px !important;
+  border-color: #D8D5DB !important;
+  align-self: center !important;
+  color: #EAE8FF !important;
+}
+
+.box_1 {
+  border-radius: 15px !important;
+  color: #2D3142 !important;
+  background-color: #D8D5DB !important;
+}
+
+.box_warning {
+  border: 10px solid !important;
+  align-content: center !important;
+  background-color: #B55E5E !important;
+  border-width: 1px !important;
+  border-radius: 5px !important;
+  border-color: black !important;
+  align-self: center !important;
+  color: #EAE8FF !important;
+}
+
+.box_save {
+  border: 10px solid !important;
+  align-content: center !important;
+  background-color: #739F5F !important;
+  border-width: 1px !important;
+  border-radius: 5px !important;
+  border-color: black !important;
+  align-self: center !important;
+  color: #EAE8FF !important;
+}
+
+.box_study {
+  border: 10px solid !important;
+  align-content: center !important;
+  background-color: #9FBBCC !important;
+  border-width: 1px !important;
+  border-radius: 5px !important;
+  border-color: black !important;
+  align-self: center !important;
+  color: #EAE8FF !important;
+}
+
+.calign {
+  align-self: center !important;
+}
+
+.table_0 {
+  color: #EAE8FF;
 }/*# sourceMappingURL=style.css.map */

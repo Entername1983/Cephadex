@@ -1,0 +1,58 @@
+{% extends "layout.html" %} {% block title %} Card Editor {% endblock %} {%
+block head %} {% endblock %} {% block main_0 %}
+
+
+<div class = "container-md box_0 flex my-5">
+<div class = "d-flex justify-content-end my-2">
+<a href="/study/{{deck.id}}" class="btn btn-primary box_study m-1"> Study this deck</a>
+<a href="/addterms/{{deck.id}}" class="btn btn-primary box_save m-1"> Add cards to this deck</a>
+<a href="/delete/{{deck.id}}" class="btn btn-primary box_warning m-1"> Delete this deck</a>
+</div>
+
+
+<div class="row">
+  {% for card in cards %}
+
+  <div class="col-sm-6">
+    <div class="card m-2 bg-light">
+      <div class="card-body">
+        <form action="" method="post">
+          <input
+            name="id"
+            type="hidden"
+            id="card.id"
+            value="{{ card.id }}"
+            placeholder="{{ card.id }}"
+          />
+          <div class = "row">
+          <input
+            name="term"
+            class="card-title border-0 input_0 form-control form-control-lg"
+            type="text"
+            id="card.id"
+            placeholder="{{ card.term }}"
+          />
+        </div>
+        <div class = "row">
+          <textarea
+            name="content"
+            class="form-control card-text border-0 input_0 form-control form-control-lg"
+            type="text"
+            id="card.id"
+            rows ="3"
+            placeholder="{{ card.content }}"
+          ></textarea>
+        </div>
+          <div class = "col"> 
+          <input  class="btn box_save" type="submit" value="Save changes" />
+          <a href="/deletecard/{{deck.id}}/{{card.id}}" class="btn box_warning">Delete card</a>
+        </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+</div>
+{% endblock %}

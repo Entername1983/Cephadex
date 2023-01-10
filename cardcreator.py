@@ -40,7 +40,7 @@ def card_creator(file):
         
     elif file.endswith('.pptx'):
         prompt = extract_from_pptx(file)
-        terms = extract_terms(prompt)
+        terms = large_extract_terms(prompt)
         terms = terms_to_dict(terms)
         
     elif file.endswith('.txt'):
@@ -50,7 +50,9 @@ def card_creator(file):
                 response = extract_terms(prompt)
                 terms = response.choices[0]["text"]
                 terms = (terms_to_dict(terms))
-                
+     
+     
+     ## issue with this function, making too many calls to open ai api.  Why?           
     elif file.endswith('.docx'):
         prompt = extract_from_docx(file)
         terms = large_extract_terms(prompt)
@@ -75,5 +77,6 @@ def write_to_csv(definitions: str, filename: str):
     with open(filename, 'w', encoding="utf-8", newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=' ')
         for key, value in definitions.items():
-            writer.writerow([key, value])
+            if key != "" and value != "":
+                writer.writerow([key, value])
 

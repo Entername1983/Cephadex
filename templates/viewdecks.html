@@ -2,8 +2,43 @@
 
 {% block title %} View Decks {% endblock %} 
 
-
-
 {% block main_0 %}
+
+<div class="col-10 mx-auto box_0 my-5 py-5">
+<table class="table table_0">
+<th>
+    <td scope="col" > Deck name </td>
+    <td scope="col" > Description</td>
+    <td scope="col" > Number of cards </td>
+    <td scope="col"  > Cards due </td>
+    <td scope="col"  > Actions </td>
+</th>
+<tbody>
+{% for deck in decks%}
+
+<tr>
+    <th scope="col" >{{deck.id }} </th>
+    <td> {{deck.name }} </td>
+    <td> {{deck.description }} </td>
+    <td> TBD </td>
+    <td> TBD </td>
+    <td> <a href = "/currentdeck/{{deck.id}}" class="btn btn-primary box_study m-1">View Deck</a>
+        <a href = "/study/{{deck.id}}" class="btn btn-primary box_study m-1">Study Deck </a>
+        
+        <a href ="/downloadascsv/{{deck.id}}" class="btn btn-primary box_study m-1">Download CSV file</a>
+<a href = "/delete/{{deck.id}}" class="btn btn-primary box_warning m-1">Delete Deck</a>
+
+    </td>
+</tr>
+  {% endfor %}  
+</tbody>
+</table>
+</div>
+
+
+
+
+
+
 
 {% endblock %}
