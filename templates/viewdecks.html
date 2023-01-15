@@ -3,31 +3,45 @@
 {% block title %} View Decks {% endblock %} 
 
 {% block main_0 %}
+<div class="col-10-md box_0 mx-2 my-5 py-5">
+<table class="table table_0 mobile-optimised">
 
-<div class="col-10 mx-auto box_0 my-5 py-5">
-<table class="table table_0">
-<th>
-    <td scope="col" > Deck name </td>
-    <td scope="col" > Description</td>
-    <td scope="col" > Number of cards </td>
-    <td scope="col"  > Cards due </td>
-    <td scope="col"  > Actions </td>
-</th>
+<thead>
+    <tr>
+        <th>Deck Name: </th>
+        <th>Description: </th>
+        <th>Number of cards: </th>
+        <th>Cards due: </th>
+        <th>Actions</th>
+    </tr>
+</thead>
 <tbody>
 {% for deck in decks%}
 
 <tr>
-    <th scope="col" >{{deck.id }} </th>
-    <td> {{deck.name }} </td>
-    <td> {{deck.description }} </td>
-    <td> TBD </td>
-    <td> TBD </td>
-    <td> <a href = "/currentdeck/{{deck.id}}" class="btn btn-primary box_study m-1">View Deck</a>
-        <a href = "/study/{{deck.id}}" class="btn btn-primary box_study m-1">Study Deck </a>
-        
-        <a href ="/downloadascsv/{{deck.id}}" class="btn btn-primary box_study m-1">Download CSV file</a>
-<a href = "/delete/{{deck.id}}" class="btn btn-primary box_warning m-1">Delete Deck</a>
-
+    <td data-th="Deck Name:"><h4 class="table-heading"></h4>{{deck.name}}</td>
+    <td data-th="Description:">{{ deck.description }}</td>
+    <td data-th="Number of Cards:"> {{ deck.quantity_cards() }} </td>
+    <td data-th="Cards Due:"> TBD </td>
+    <td data-th="Actions:"> 
+        <button class="btn btn-primary box_study box_study btn-max-1" type="button " data-bs-toggle="collapse" data-bs-target="#collapse{{deck.id}}" aria-expanded="false" aria-label="Toggle navigation">Actions<span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse" id="collapse{{deck.id}}">
+                <div class ="column">
+                    <div class ="btn-group"></div>
+                    <div class ="row">
+        <a href = "/currentdeck/{{deck.id}}" class="btn btn-primary box_study m-1 btn-block btn-max-1">View Deck</a>
+       </div> <div class ="row">
+        <a href = "/study/{{deck.id}}" class="btn btn-primary box_study m-1 btn-block btn-max-1">Study Deck </a>
+     </div>   <div class ="row">
+        <a href ="/downloadascsv/{{deck.id}}" class="btn btn-primary box_study m-1 btn-block btn-max-1">Download CSV file</a>
+       </div> <div class ="row">
+<a href = "/delete/{{deck.id}}" class="btn btn-primary box_warning m-1 btn-block btn-max-1">Delete Deck</a>
+       </td>
+</div>
+</div>
+            </div>
+        </div>
     </td>
 </tr>
   {% endfor %}  

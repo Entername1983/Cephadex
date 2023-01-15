@@ -8,14 +8,21 @@ from flask_session import Session
 from tempfile import mkdtemp
 from sqlalchemy_utils import database_exists, create_database
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, RadioField
 from flask_wtf.file import FileField, FileRequired
+from wtforms_sqlalchemy.fields import QuerySelectField
 from wtforms.validators import InputRequired, Length, ValidationError, EqualTo
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
-from cardcreator import card_creator, write_to_csv
+from cardcreator import card_creator, write_to_csv, card_creator2
+from extractors import Regenerate_def
 import sys
+import DateTime
+from sqlalchemy.sql import func
+import logging
+import logging.handlers
+
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -23,10 +30,17 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
+
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database1.db'
 app.config['SECRET_KEY'] = 'whynot'
 app.config['UPLOAD_FOLDER'] = 'static\\files'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
+
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.setLevel(logging.INFO)
+
+
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx'}
 
@@ -60,7 +74,6 @@ cards = db.Table("cards",
                  db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),
                  )
 
-
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
@@ -70,13 +83,16 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     decks = db.relationship("Deck", backref=db.backref("user", lazy="joined"), lazy="select")
-
-
 class Card(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     term = db.Column(db.String(50), nullable=False) 
     content = db.Column(db.String(255), nullable=False)
+    #mem_v = db.column(db.Float)
+    #time_created = db.Column(DateTime(timezone=True), server_default=func.now())
+    #time_updated = db.Column(DateTime(timezone=True), onupdate=func.now())
+    ## category
+    
     
     def to_json(self):
         return {
@@ -84,6 +100,36 @@ class Card(db.Model):
             "term": self.term,
             "content": self.content,            
         }
+        
+    def forgotten(self):
+        return {
+            self.mem_v == self.mem_v - 1
+        }
+        
+    def remembered(self):
+        return {
+            self.mem_v == self.mem_v + 1
+        }
+        
+    def edit_card(self, term, content):
+        self.term = term
+        self.content = content
+        db.session.commit()
+    
+    def delete_card(self):
+        db.session.delete(self)
+        db.session.commit()
+        
+    def regen_def(self):
+        self.content = Regenerate_def(self.term)
+        db.session.commit()
+    
+    def copy_card(self, deck):
+        new_card = Card(term=self.term, content=self.content)
+        deck.cards.append(new_card)
+        db.session.add(new_card)            
+        db.session.commit()
+        
 
 class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -100,7 +146,42 @@ class Deck(db.Model):
             "user_id": self.user_id,
             "cards": [card.to_json() for card in self.cards]
         }
-
+        
+    def quantity_cards(self):
+        return len(self.cards)
+    
+    def add_card(self, card):
+        self.cards.append(card)            
+        db.session.commit()
+        
+    def remove_card(self, card):
+        self.cards.remove(card)            
+        db.session.commit()
+        
+    def rename_deck(self, new_name):
+        Deck.name = new_name
+        db.session.commit()            
+        
+    def delete_deck(self):
+        db.session.delete(self)            
+        db.session.commit()
+    
+    def copy_deck(self, new_deck_name):
+        new_deck = Deck(name=self.name, description=self.description, user_id=self.user_id)  
+        new_deck.name = new_deck_name                      
+        db.session.add(new_deck)            
+        db.session.commit()
+    
+    def assign_deck(self, user):
+        pass
+    
+    def export_deck_csv(self):
+        pass
+    
+    def import_deck_csv(self):
+        pass
+    
+    
 class RegisterForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
     password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "Password"})
@@ -120,43 +201,47 @@ class RegisterForm(FlaskForm):
         existing_user_email = User.query.filter_by(email=email.data).first()
         if existing_user_email:
             raise ValidationError("Email is already taken")
-            
-
+        
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
     password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "Password"})
     submit = SubmitField('Login')
-    
-
 class ChangePassForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
     password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "Password"})
     new_password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "New Password"})
     conf_new_password = PasswordField(validators=[InputRequired(), EqualTo('new_password', message = 'passwords must match'), Length(min=8, max=80)], render_kw={"placeholder": "Confirm New Password"})
     submit = SubmitField('Change Password')
-    
+        
     def confirm_new_pass(self, new_password, conf_new_password):
         if new_password.data != conf_new_password.data:
             raise ValidationError("Passwords must match")
-    
 class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
-    name = StringField("Deck name", validators=[InputRequired()])
+    name = StringField("Deck name")
     description = StringField("Description")
     submit = SubmitField("Extract")
-
+    deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name')
+    prompt = RadioField('Prompt', choices=['Definitions', 'Translate', 'Rhyme', 'People', 'Theories'])
     
+    def validate_select(self, name, deck_list):
+        if name == '' and deck_list == '':            
+            raise ValidationError("You must select an existing deck OR enter a name for a new deck")
+        elif name != '' and deck_list != '':            
+            raise ValidationError("You must select an existing deck OR enter a name for a new deck")
+        
+    def validate_name(self, name):
+        deck_object = Deck.query.filter_by(name=name.data).first()
+        if deck_object:
+            raise ValidationError("Deck name already exists")
 class EditCard(FlaskForm):
     term = StringField()
     content = StringField()
     submit = SubmitField("Save")
-    
 class EditDeck(FlaskForm):
     name = StringField()
     description = StringField()
     submit = SubmitField("Save")
-    
-    
 class AddTermForm(FlaskForm):
     term = StringField(validators=[InputRequired(), Length(min=1, max=50)])
     content = StringField(validators=[InputRequired(), Length(min=1, max=50)])
@@ -183,10 +268,8 @@ def register():
         user = User(username=form.username.data, email=form.email.data, password=hashed_password, first_name=form.first_name.data, last_name=form.last_name.data)
         db.session.add(user)
         db.session.commit()
-        
         flash("Your account has been created! You are now able to log in", "info")
         return redirect(url_for("login"))
-    
     return render_template("register.html", title="Register", form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -210,7 +293,6 @@ def logout():
     flash('You have been logged out!')
     return redirect(url_for('login'))
 
-
 @app.route("/change_password", methods=["GET", "POST"])
 def change_pass():
     form = ChangePassForm()
@@ -224,15 +306,11 @@ def change_pass():
     flash('Your password has been updated!')
     return redirect(url_for('index'))
 
-
 @app.route("/viewdecks", methods = ["GET", "POST"])
 @login_required
 def viewdecks():
-    
-    decks = Deck.query.all()
+    decks = Deck.query.filter(Deck.user_id == current_user.id).all()
     return render_template('viewdecks.html', decks=decks)
-
-
 
 @app.route("/createdeck", methods = ["GET", "POST"])
 @login_required
@@ -254,51 +332,34 @@ def study():
 @login_required
 def extract_page():
     form = UploadFileForm()
-
     if form.validate_on_submit():
-
-        deck_name = form.name.data
-        deck_description = form.description.data
+        if form.deck_list.data != None:
+            deck = form.deck_list.data
+        else:
+            deck_name = form.name.data
+            deck_description = form.description.data
+            deck = Deck(name=deck_name, description=deck_description)
+            db.session.add(deck)   
         file = form.file.data
-        #filename = secure_filename(file.filename)
         file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
         file.save(file_loc)
-        terms = card_creator(file_loc)
-        # initialize deck1 object
-        deck = Deck(name=deck_name, description=deck_description)
-        db.session.add(deck)        
-
-        #session['deck_name'] = deck1
-        #deck2 = deck1.to_json()
-        ## add deck1 to session
-
-        # set deck1 object user_id to current user's id
+        prompt = form.prompt.data
+        terms = card_creator(file_loc, prompt)
         deck.user_id = current_user.id
         for key, value in terms.items():
-            # initialize a card
             entry = Card(term=key, content=value)
-            # add card to session
             db.session.add(entry)
-            # append to deck1's cards
             deck.cards.append(entry)
-        # commit all to database    
         db.session.commit()
-#return render_template("cards.html", title="Cards", terms=terms)
-      
         return redirect('/currentdeck/{deck.id}'.format(deck = deck))
-    
     return render_template("extract.html", title="Extract", form=form)
 
-
-    
-
 @app.route("/currentdeck/<deck_id>", methods = ["POST", "GET"])
+@login_required
 def currentdeck(deck_id):
-    deck = Deck.query.filter_by(id=deck_id).first()
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-
     if request.method == 'POST':
-        
         term = request.form['term'] ## new term for card
         content = request.form['content'] ## new content for card
         id = request.form['id'] ## id of card to be edited
@@ -308,42 +369,35 @@ def currentdeck(deck_id):
         if content != "":
             card.content = content
         db.session.commit()
-
-
-    
-    return render_template("currentdeck.html", title="Card Editor", deck=deck, cards=cards)
-                             
+    return render_template("currentdeck.html", title="Card Editor", deck=deck, cards=cards)                           
     
 @app.route("/delete/<int:id>", methods = ["POST", "GET"])
+@login_required
 def delete(id):
     deck_to_delete = Deck.query.get_or_404(id)
     db.session.delete(deck_to_delete)
     db.session.commit()
     return redirect(url_for('viewdecks'))
-
     
 @app.route("/account", methods = ["POST", "GET"])
 @login_required
 def account():
     return render_template("account.html", title="Account")
 
-
 @app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
+@login_required
 def deletecard(card_id, deck_id):
-    id = card_id
-    card_to_delete = Card.query.get_or_404(id)
+    card_to_delete = Card.query.get_or_404(card_id)
     db.session.delete(card_to_delete)
     db.session.commit()
-    deck = deck_id
-    return redirect(("/currentdeck/{deck}").format(deck=deck))  
-
+    return redirect(("/currentdeck/{deck}").format(deck=deck_id))  
 
 @app.route("/addterms/<int:deck_id>", methods = ["POST", "GET"])
+@login_required
 def addterms(deck_id):
     form = AddTermForm()
-    deck = Deck.query.filter_by(id=deck_id).first()
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-
     if form.validate_on_submit():
         key = form.term.data
         value = form.content.data
@@ -351,13 +405,14 @@ def addterms(deck_id):
         db.session.add(entry)
         deck.cards.append(entry)  
         db.session.commit()
+        deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+        cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+        return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
 
-        
-    
     return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
 
-
 @app.route("/downloadascsv/<int:deck_id>", methods = ["POST", "GET"])
+@login_required
 def downloadascsv(deck_id):
     deck = Deck.query.filter_by(id=deck_id).first()
     cards = Card.query.filter(Card.decks.any(id=deck_id)).all()
@@ -368,7 +423,13 @@ def downloadascsv(deck_id):
     csvstring = "".join(termsstrings)            
     return Response(csvstring, mimetype="text/csv")
 
+@app.route("/regen_def/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
+@login_required
+def regenerate_def(deck_id, card_id):
+    card = Card.query.filter(Card.id==card_id).first()
+    card.regen_def()           
+    return redirect(("/currentdeck/{deck}").format(deck=deck_id))
 
- 
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,26 +1,48 @@
-{% extends "layout.html" %} 
-
-{% block title %} Extractor {% endblock %} 
-
-
-
-{% block main_0 %}
-
-<h1> Welcome to Edu-MC-8</h1> 
-
-<h2> Our goal is to save students and teachers time by allowing them to create incredible study material easily</h2>
-<h4> Thanks to our product it takes only seconds to create flashcards from any pdf, pptx, doc, youtube link and more!
-</h4>
-    <div>
-        <ul> {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for msg in messages %}
-                <p>{{msg}}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        </ul>
-        </div>
+{% extends "layout.html" %} {% block title %} Elephant Brains {% endblock %} {% block
+main_0 %}
+<div class="container-md mt-5">
+  
 
 
-{% endblock %}
+    <div class="col-8-md mx-auto p-5">
+        
+  <div class="row box_0 my-2 p-2">
+    <h1>        Welcome to Elephant Brain, the premier ed-tech platform that provides educational tools to students and teachers everywhere!</h1>
+  </div>
+  <div class = "row">
+    <img src="\static\Logo2.png" alt = "logo" class="responsive navbar-brand px-2">
+
+  </div>
+  <div class="row">
+
+    <div class="col-md-5 box_0  m-2 my-1 p-1">
+      <h2>
+Our innovative platform enables you to easily create study material from existing documents, youtube videos and webpages!
+      </h2>
+    </div>
+
+    <div class="col-md-5 m-2">
+        <div class ="row box_0 my-1 p-1">
+      <h4>
+        
+
+        For students, Elephant Brain allows you to be a lot more efficient with your study time
+    </h4>
+</div>
+<div class ="row box_0 my-1 p-1">
+    <h4>For teachers, Elephant Brain takes the pain out of content creation while delivering detailed analytics, allowing you to spend more of your time on the meaningful parts of teaching.
+    </h4>
+</div>
+    <div class ="row box_0 my-1 p-1">
+    <h4>
+        
+        So don’t wait any longer! <a href="/join">Join the Elephant Brain</a> community today and open up a world of educational possibilities!
+      </h4>
+    </div>
+    </div>
+
+  </div>
+  </div>
+</div>
+  {% endblock %}
+</div>

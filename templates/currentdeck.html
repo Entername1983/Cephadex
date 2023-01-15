@@ -3,13 +3,18 @@ block head %} {% endblock %} {% block main_0 %}
 
 
 <div class = "container-md box_0 flex my-5">
-<div class = "d-flex justify-content-end my-2">
-<a href="/study/{{deck.id}}" class="btn btn-primary box_study m-1"> Study this deck</a>
-<a href="/addterms/{{deck.id}}" class="btn btn-primary box_save m-1"> Add cards to this deck</a>
-<a href="/delete/{{deck.id}}" class="btn btn-primary box_warning m-1"> Delete this deck</a>
+<div class = "row mt-3"> 
+    <div class = "col-lg d-flex justify-content-center">
+    <h2> {{deck.name}} ({{ deck.quantity_cards() }}) </h2>
+   </div> <div class = "col-lg">
+<div class = "d-flex justify-content-end my-2 btn-group">
+<a href="/study/{{deck.id}}" class="btn btn-primary box_study m-1"> Study</a>
+<a href="/addterms/{{deck.id}}" class="btn btn-primary box_save m-1"> Add cards</a>
+<a href="/viewdecks" class="btn btn-primary box_study m-1"> Return to decks</a>
+<a href="/delete/{{deck.id}}" class="btn btn-primary box_warning m-1"> Delete</a>
 </div>
-
-
+</div>
+</div>
 <div class="row">
   {% for card in cards %}
 
@@ -45,6 +50,7 @@ block head %} {% endblock %} {% block main_0 %}
         </div>
           <div class = "col"> 
           <input  class="btn box_save" type="submit" value="Save changes" />
+          <a href="/regen_def/{{deck.id}}/{{card.id}}" class="btn box_study">Regenerate Definition</a>
           <a href="/deletecard/{{deck.id}}/{{card.id}}" class="btn box_warning">Delete card</a>
         </div>
 

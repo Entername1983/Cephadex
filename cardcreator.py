@@ -5,7 +5,7 @@ from dotenv import load_dotenv, find_dotenv
 import csv
 from pptx import Presentation
 import numpy as np
-from extractors import extract_from_pdf, large_extract_terms, terms_to_dict, extract_from_pptx, extract_terms, extract_from_docx
+from extractors import extract_from_pdf, large_extract_terms, large_extract_terms2, terms_to_dict, extract_from_pptx, extract_terms, extract_from_docx
 
 
 
@@ -22,53 +22,37 @@ prompt_standard = "Extract as many uncommon or technical terms as possible from 
 
 
 
-def card_creator(file):
+def card_creator(file, prompt):
     
     ## text_input is input id, cards output id
 
     ##input("file: ")
     
     if file.endswith('.pdf'):
-        print("checked pdf)")
-        prompt = extract_from_pdf(file)
-        
+        items = extract_from_pdf(file)
         ## problem is that terms is only returning terms, not definitions seperated by a semi colon
-        terms = large_extract_terms(prompt)
-
+        terms = large_extract_terms(items, prompt)
 ## issue with terms to dict
         terms = terms_to_dict(terms)
         
     elif file.endswith('.pptx'):
-        prompt = extract_from_pptx(file)
-        terms = large_extract_terms(prompt)
+        items = extract_from_pptx(file)
+        terms = large_extract_terms(items, prompt)
         terms = terms_to_dict(terms)
         
     elif file.endswith('.txt'):
-            prompt = []
+            items = []
             with open(file) as file:
-                prompt = file.read()
-                response = extract_terms(prompt)
+                items = file.read()
+                response = extract_terms(items, prompt)
                 terms = response.choices[0]["text"]
                 terms = (terms_to_dict(terms))
      
-     
      ## issue with this function, making too many calls to open ai api.  Why?           
     elif file.endswith('.docx'):
-        prompt = extract_from_docx(file)
-        terms = large_extract_terms(prompt)
+        items = extract_from_docx(file)
+        terms = large_extract_terms(items, prompt)
         terms = terms_to_dict(terms)
-        
-    
-    #else:
-        ##checks if file has been selected, if not expected text to be entered manually
-        #prompt = input("Enter text here: ")  
-        #response = extract_terms(prompt)
-        #terms = response.choices[0]["text"]
-        #terms = (terms_to_dict(terms))
-    
-    
-    #write_to_csv(terms, file_name)
-    
     return terms
 
 
@@ -80,3 +64,14 @@ def write_to_csv(definitions: str, filename: str):
             if key != "" and value != "":
                 writer.writerow([key, value])
 
+
+def card_creator2(file, prompt):
+    
+    ## text_input is input id, cards output id
+    ##input("file: ")
+    
+    if file.endswith('.pdf'):
+        items = extract_from_pdf(file)
+        ## problem is that terms is only returning terms, not definitions seperated by a semi colon
+        terms = large_extract_terms2(items, prompt)
+        return terms
