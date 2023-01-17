@@ -2,7 +2,7 @@ import openai
 import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, relationship, Interval
 from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file
 from flask_session import Session
 from tempfile import mkdtemp
@@ -87,18 +87,37 @@ class Card(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     term = db.Column(db.String(50), nullable=False) 
+    # content == Back of card 1
     content = db.Column(db.String(255), nullable=False)
-    #mem_v = db.column(db.Float)
-    #time_created = db.Column(DateTime(timezone=True), server_default=func.now())
-    #time_updated = db.Column(DateTime(timezone=True), onupdate=func.now())
-    ## category
-    
+    boc_2 = db.Column(db.string(255), nullable=True) 
+    boc_3 = db.Column(db.string(255), nullable=True) 
+    img = db.Column(db.String(255), nullable=True) 
+    sound = db.Column(db.String(255), nullable=True) 
+    boc_id = db.Column(db.float(10), nullable=True)
+    box_id = db.Column(db.float(10), nullable=True)
+    interval = db.Column(Interval)
+    time_updated = db.Column(DateTime(timezone=True), onupdate=func.now())
+    times_asked = db.Column(db.Integer, default=0)
+    times_correct = db.Column(db.Integer, default=0)
+    times_correct_row = db.Column(db.Integer, default=0)
+    create_method = db.Column(db.String(255), nullable=True)
+    time_created = db.Column(DateTime(timezone=True), server_default=func.now())
+    category = db.Column(db.string(255), nullable=True)
+    edited = db.Column(bool)
+    diff_lvl = db.Column(db.float(100), default=1)
+    # unused
+    data_1 = db.Column(db.float(100), nullable = True)
+    data_2 = db.Column(db.float(100), nullable = True)
+    data_3 = db.Column(db.float(100), nullable = True)
+    data_time = db.Column(db.Interval, nullable = True)
     
     def to_json(self):
         return {
             "id": self.id,
             "term": self.term,
-            "content": self.content,            
+            "content": self.content, 
+            "content 2": self.boc_2,
+            "content 3": self.boc_3,                    
         }
         
     def forgotten(self):

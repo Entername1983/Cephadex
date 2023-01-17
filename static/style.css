@@ -20,8 +20,12 @@ footer {
 
 body {
   background-color: #D8D5DB !important;
-  background-image: url("background_4.png") !important;
   background-size: cover;
+  background-color: #B0D7FF !important;
+}
+
+.row {
+  --mdb-gutter-x: 0.5rem !important;
 }
 
 .navbar {
@@ -101,7 +105,7 @@ body {
 .box_warning {
   border: 10px solid !important;
   align-content: center !important;
-  background-color: #B55E5E !important;
+  background-color: #B97375 !important;
   border-width: 1px !important;
   border-radius: 5px !important;
   border-color: black !important;
@@ -109,10 +113,10 @@ body {
   color: #EAE8FF !important;
 }
 
-.box_save {
+.box_s {
   border: 10px solid !important;
   align-content: center !important;
-  background-color: #739F5F !important;
+  background-color: #86B03F !important;
   border-width: 1px !important;
   border-radius: 5px !important;
   border-color: black !important;
@@ -123,7 +127,7 @@ body {
 .box_study {
   border: 10px solid !important;
   align-content: center !important;
-  background-color: #9FBBCC !important;
+  background-color: #5F7470 !important;
   border-width: 1px !important;
   border-radius: 5px !important;
   border-color: black !important;
@@ -162,6 +166,16 @@ footer {
   font-size: large;
 }
 
+.eq_buttons_div {
+  display: flex !important;
+  justify-content: space-around !important;
+}
+
+.eq_buttons {
+  width: 100%;
+  margin: 3px; /* or whatever */
+}
+
 @media screen and (max-width: 540px) {
   table.mobile-optimised {
     word-wrap: break-word;
@@ -179,6 +193,7 @@ footer {
     padding: 10px 5px;
     box-sizing: border-box;
     font-size: 1rem;
+    margin-left: 10px;
   }
   table.mobile-optimised tbody,
 table.mobile-optimised tr {

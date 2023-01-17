@@ -28,6 +28,7 @@ $btn-white-space: nowrap;
 footer{
     background-image: url("footer_0.png") !important;
     background-size: cover;
+
 }
 
 .full-width {
@@ -42,9 +43,15 @@ footer{
 
 body {
     background-color: #D8D5DB !important;
-    background-image: url("background_4.png") !important;
+    //background-image: url("background_4.png") !important;
     background-size: cover;
+    background-color: $pblue !important;
   }
+
+.row {
+    --mdb-gutter-x: 0.5rem !important;
+}
+
   
 .navbar {
     background-color: $dark !important;
@@ -126,7 +133,7 @@ body {
 .box_warning {
     border: 10px solid !important;
     align-content: center !important;
-    background-color: #B55E5E !important;
+    background-color: #B97375 !important;
     border-width:1px !important;
     border-radius: 5px !important;
     border-color: black !important;
@@ -134,10 +141,10 @@ body {
     color: $lpink !important;
 }
 
-.box_save {
+.box_s {
     border: 10px solid !important;
     align-content: center !important;
-    background-color: #739F5F !important;
+    background-color: #86B03F !important;
     border-width:1px !important;
     border-radius: 5px !important;
     border-color: black !important;
@@ -148,7 +155,7 @@ body {
 .box_study {
     border: 10px solid !important;
     align-content: center !important;
-    background-color: $lblue !important;
+    background-color: #5F7470 !important;
     border-width:1px !important;
     border-radius: 5px !important;
     border-color: black !important;
@@ -192,6 +199,17 @@ footer {
     font-size: large;
 }
 
+.eq_buttons_div{
+    display:flex !important;
+    justify-content:space-around !important;
+}
+
+.eq_buttons {
+    width: 100%;
+    margin: 3px; /* or whatever */
+  }
+
+
 // TABLE REFORMATTING
 
 @media screen and (max-width: 540px) {
@@ -211,6 +229,7 @@ footer {
       padding: 10px 5px;
       box-sizing: border-box;
       font-size: 1rem;
+      margin-left: 10px;
     }
     table.mobile-optimised tbody,
     table.mobile-optimised tr {

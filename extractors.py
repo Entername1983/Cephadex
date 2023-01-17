@@ -11,7 +11,7 @@ import sys
 prompt_standard = 'Extract all the key terms and provide a definition for each.  Return the result in JSON format.  {"Definition": "", "Content": "",}'
 
 prompt_choices = {
-    'Definitions': 'Extract all the key terms and provide a definition for each. ',
+    'Definitions': 'Extract as many uncommon or technical terms as possible from the following text and provide a definition for each. ',
     "Translate": "Extract as many uncommon or technical terms as possible from the following text and provide an English, French, Spanish and German translation for each in a non numbered list: ",
     "Rhyme": "Identify as many uncommon or technical terms as possible from the following text and provide a four verse poem for each in a non numbered list: ",
     "People": "Identify important people from the following text and write a short biography for each in a non numbered list: ",
@@ -115,4 +115,11 @@ def Regenerate_def(term):
         prompt=prompt1,
         max_tokens=100)
         x = response.choices[0]["text"].strip()
+        z = [term, ":"]
+        y = "".join(z)
+        if x.startswith(term):
+            x = x.replace(term, "", 1)
+        if x.startswith(y):
+            x = x.replace(y, "", 1)
+        x = x.strip()
         return x
