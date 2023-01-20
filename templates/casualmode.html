@@ -1,0 +1,109 @@
+{% extends "layout.html" %} {% block title %} Study {% endblock %} {% block head
+    %}
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    
+    <script>
+      var jq = $.noConflict();
+    
+      jq(document).ready(function() {
+          var cardList;
+          var currentCard;
+          var currentCardIndex = 0;
+          var deckId = {{deck}};
+    
+          jq.ajax({
+              type: 'GET',
+              url: '/forcestudy/' + deckId,
+              dataType: 'json',
+              success: function(data) {
+                  cardList = data;
+                  if (cardList === null || cardList === undefined) {
+                      console.log("no cards")
+                      alert('This deck is empty!')
+                  }
+                  else {
+                  currentCard = cardList[currentCardIndex];
+                  jq('#card-term').html(currentCard.term);
+                  jq('#card-id').html(currentCard.id);
+                  jq('#card-content').html(currentCard.content);
+                  jq('#card-boc_2').html(currentCard.boc_2);
+                  jq('#card-boc_3').html(currentCard.boc_3);
+                  }
+              },
+          });
+    
+          jq('#forgot-btn').click(function() {
+              jq('#card-extra-content').show();
+          });
+    
+          jq('#remember-btn').click(function() {
+              jq('#card-extra-content').show();
+          });
+    
+          jq('#next-btn').on('click', function() {
+              var card_id = currentCard.id;
+              var csrf_token = jq("input[name='csrf_token']").val();
+    
+              jq('#card-extra-content').hide();
+    
+              currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
+    
+              if(cardList.length === 0){
+                  alert("No more cards due!")
+                  return;
+    
+              } else {
+                  currentCard = cardList[currentCardIndex];
+                  jq('#card-term').html(currentCard.term);
+                  jq('#card-id').html(currentCard.id);
+                  jq('#card-content').html(currentCard.content);
+                  jq('#card-boc_2').html(currentCard.boc_2);
+                  jq('#card-boc_3').html(currentCard.boc_3);
+              }
+          });
+    
+
+      });
+    </script>
+    
+    {% endblock %} {% block main_0 %}
+    <p id="no-cards"></p>
+    <a href = "/casualmode/{{deck}}}" id="force-study" style="display: none">Study anyway</a>
+    <div class="container mt-5">
+      <div class="col-8-md mx-auto box_0 p-5">
+        <div class="card box_1">
+          <div id="card-container">
+            <div class="card-body">
+              <h5 class="card-title" id="card-term"></h5>
+              <div id="card-id" style="display: none"></div>
+              <!-- Card term will be inserted here -->
+            </div>
+          </div>
+          <ul id="card-extra-content" style="display: none">
+            <p id="card-content"></p>
+            <p id="card-boc_2"></p>
+            <p id="card-boc_3"></p>
+          </ul>
+          <div class="card-body">
+            <button id="forgot-btn">Lost it</button>
+            <button id="remember-btn">Got it</button>
+            <button id="next-btn">Next</button>
+          </div>
+          <div>
+            <a href="/viewdecks"> Return to decks</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {% endblock %} 
+    
+    // implement later for mobile //on swipe left //card.interval
+    should be decremented by 50%, card.time_updated should be updated to current
+    time, card.content, card.boc_2, card.box_3 should be displayed //on swipe right
+    //card.interval should be incremented by 100%, card.time_updated should be
+    updated to current time, card.content, card.boc_2, card.box_3 should be
+    displayed //on double click or double tap //the existing card should be removed
+    from the list and a new one should be loaded
+    

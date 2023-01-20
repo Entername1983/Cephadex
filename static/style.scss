@@ -26,7 +26,6 @@ $btn-white-space: nowrap;
   }
 
 footer{
-    background-image: url("footer_0.png") !important;
     background-size: cover;
 
 }
@@ -208,6 +207,21 @@ footer {
     width: 100%;
     margin: 3px; /* or whatever */
   }
+
+// DISPLAY CARD IN STUDY
+/* CSS to style the card container */
+#card-container {
+    width: 500px;
+    height: 300px;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+/* CSS to hide the extra content by default */
+#card-extra-content {
+    display: none;
+}
+
 
 
 // TABLE REFORMATTING

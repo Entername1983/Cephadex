@@ -2,8 +2,8 @@ import openai
 import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship, Interval
-from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file
+from sqlalchemy.orm import sessionmaker, relationship
+from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
 from flask_session import Session
 from tempfile import mkdtemp
 from sqlalchemy_utils import database_exists, create_database
@@ -18,11 +18,10 @@ from werkzeug.utils import secure_filename
 from cardcreator import card_creator, write_to_csv, card_creator2
 from extractors import Regenerate_def
 import sys
-import DateTime
 from sqlalchemy.sql import func
 import logging
 import logging.handlers
-
+from datetime import datetime, timedelta
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -73,7 +72,7 @@ cards = db.Table("cards",
                  db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
                  db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),
                  )
-
+## external auth + external type + external
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
@@ -83,52 +82,47 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     decks = db.relationship("Deck", backref=db.backref("user", lazy="joined"), lazy="select")
+
+
 class Card(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     term = db.Column(db.String(50), nullable=False) 
     # content == Back of card 1
     content = db.Column(db.String(255), nullable=False)
-    boc_2 = db.Column(db.string(255), nullable=True) 
-    boc_3 = db.Column(db.string(255), nullable=True) 
+    boc_2 = db.Column(db.String(255), nullable=True) 
+    boc_3 = db.Column(db.String(255), nullable=True) 
     img = db.Column(db.String(255), nullable=True) 
     sound = db.Column(db.String(255), nullable=True) 
-    boc_id = db.Column(db.float(10), nullable=True)
-    box_id = db.Column(db.float(10), nullable=True)
-    interval = db.Column(Interval)
-    time_updated = db.Column(DateTime(timezone=True), onupdate=func.now())
+    boc_id = db.Column(db.Float(10), nullable=True)
+    box_id = db.Column(db.Float(10), nullable=True, default=0)
+    interval = db.Column(db.Integer, default=1)
+    time_updated = db.Column(db.DateTime, default=datetime.utcnow)
     times_asked = db.Column(db.Integer, default=0)
     times_correct = db.Column(db.Integer, default=0)
     times_correct_row = db.Column(db.Integer, default=0)
     create_method = db.Column(db.String(255), nullable=True)
-    time_created = db.Column(DateTime(timezone=True), server_default=func.now())
-    category = db.Column(db.string(255), nullable=True)
-    edited = db.Column(bool)
-    diff_lvl = db.Column(db.float(100), default=1)
+    ##time_created = db.Column(datetime.date.today(), server_default=func.now())
+    category = db.Column(db.String(255), nullable=True)
+    edited = db.Column(db.Integer, default=0)
+    diff_lvl = db.Column(db.Float(100), default=1)
     # unused
-    data_1 = db.Column(db.float(100), nullable = True)
-    data_2 = db.Column(db.float(100), nullable = True)
-    data_3 = db.Column(db.float(100), nullable = True)
-    data_time = db.Column(db.Interval, nullable = True)
+    #data_1 = db.Column(db.float(100), nullable = True)
+    #data_2 = db.Column(db.float(100), nullable = True)
+    #data_3 = db.Column(db.float(100), nullable = True)
+    #data_time = db.Column(db.Interval, nullable = True)
     
     def to_json(self):
         return {
             "id": self.id,
             "term": self.term,
-            "content": self.content, 
-            "content 2": self.boc_2,
-            "content 3": self.boc_3,                    
+            "content": self.content,               
         }
         
-    def forgotten(self):
-        return {
-            self.mem_v == self.mem_v - 1
-        }
+    def update_interval(self, value):
+        self.interval = self.interval * value
+        db.session.commit()
         
-    def remembered(self):
-        return {
-            self.mem_v == self.mem_v + 1
-        }
         
     def edit_card(self, term, content):
         self.term = term
@@ -149,13 +143,120 @@ class Card(db.Model):
         db.session.add(new_card)            
         db.session.commit()
         
+    def increment(self):
+        self.times_correct = self.times_correct + 1
+        self.times_asked = self.times_asked + 1
+        self.times_correct_row = self.times_correct_row + 1
+        if self.times_correct_row > 4:
+            self.box_id = self.box_id + 1
+            if self.box_id > 3:
+                self.box_id = 3
+        if self.box_id == 0:
+            self.interval = self.interval * 1.2    
+        if self.box_id == 1:
+            self.interval = self.interval * 2
+        if self.box_id == 2:
+            self.interval = self.interval * 5
+        if self.box_id == 3:
+            self.interval = self.interval * 10
+        if self.interval > 525600:
+            self.interval = 525600
+        db.session.commit()
+        
+    def decrement(self):
+        self.times_asked = self.times_asked + 1
+        self.times_correct_row = 0
+        if self.box_id == 0:
+            self.interval = 1
+        if self.box_id == 2:
+            self.box_id = 1
+        if self.box_id == 3:
+            self.box_id == 2
+        if self.box_id == 1:
+            self.interval = self.interval / 2
+        if self.box_id == 2:
+            self.interval - self.interval * 0.8
+        if self.box_id == 3:
+            self.interval - self.interval * 0.9
+        if not self.box_id == 1 and self.interval < 5:
+            self.interval = 5
+        db.session.commit()
+    
+    def reset_interval(self):
+        self.interval = 10
+        db.session.commit()
+        
+    def update_time(self):
+        self.time_updated = datetime.utcnow()
+        db.session.commit()
+    
 
 class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(255), nullable=False) 
+    ## make relational table instead of using user_id?
     user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
     cards = db.relationship('Card', secondary=cards, backref="decks", lazy="select")
+    ##time_created = db.Column(datetime(timezone=True), server_default=func.now())
+   ## time_updated = db.Column(datetime(timezone=True), onupdate=func.now())
+    ##creator = db.Column(db.Integer, db.ForeignKey('user.id')) 
+    public = db.Column(db.Integer, default=0) 
+    edited = db.Column(db.Integer, default=0)
+    create_method = db.Column(db.String(255), nullable=True)
+    category = db.Column(db.String(255), nullable=True)
+    times_accessed = db.Column(db.Integer, default=0)
+   ## access_date = db.Column(datetime(timezone=True), onupdate=func.now())
+
+    def force_study(self):
+        due_cards = []
+        current_time = datetime.now()
+        for card in self.cards:
+            time_diff = (current_time - card.time_updated).total_seconds() / 60
+            due_cards.append({
+                'term': card.term,
+                'content': card.content,
+                'boc_2': card.boc_2,
+                'boc_3': card.boc_3,
+                'id': card.id,
+                'img': card.img,
+                'sound': card.sound,
+                'time_remain': card.interval - time_diff,
+            })
+        due_cards.sort(key=lambda x: x['time_remain'])
+        return jsonify(due_cards)
+     
+        
+    def get_due_cards(self):
+        due_cards = []
+        current_time = datetime.now()
+        for card in self.cards:
+            time_diff = (current_time - card.time_updated).total_seconds() / 60
+            if time_diff >= card.interval:
+                due_cards.append({
+                    'term': card.term,
+                    'content': card.content,
+                    'boc_2': card.boc_2,
+                    'boc_3': card.boc_3,
+                    'id': card.id,
+                    'img': card.img,
+                    'sound': card.sound,
+                })
+        if not due_cards:
+            return jsonify({'info': 'No due cards found'}), 204
+        return jsonify(due_cards)
+    
+    def qty_cards_due(self):
+        current_time = datetime.now()
+        qty = 0
+        for card in self.cards:
+            if card.time_updated == None:
+                card.time_updated = current_time
+            else:
+                time_diff = (current_time - card.time_updated).total_seconds() / 60
+                if time_diff >= card.interval:
+                    qty = qty + 1
+        return qty
 
     def to_json(self):
         return {
@@ -450,5 +551,50 @@ def regenerate_def(deck_id, card_id):
     return redirect(("/currentdeck/{deck}").format(deck=deck_id))
 
 
+
+@app.route("/get-due-cards/<deck_id>")
+def get_due_cards(deck_id):
+    deck = Deck.query.get(deck_id)
+    if deck is None:
+        return jsonify({'error': 'Deck not found'}), 404
+    return deck.get_due_cards()
+
+
+@app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
+def study_deck(deck_id):
+    
+    return render_template("study_deck.html", title="Study deck", deck=deck_id)       
+
+
+@app.route("/increment/<card_id>", methods = ["POST", "GET"])
+def increment(card_id):
+    card = Card.query.get(card_id)
+    if card is None:
+        return jsonify({'error': 'Card not found'}), 404
+    card.increment()
+    card.update_time()
+    return jsonify({'success': 'Card incremented'}), 200
+    
+
+@app.route("/decrement/<card_id>", methods = ["POST"])
+def decrement(card_id):
+    card = Card.query.get(card_id)
+    if card is None:
+        return jsonify({'error': 'Card not found'}), 404
+    card.decrement()
+    card.update_time()
+    return jsonify({'success': 'Card decremented'}), 200
+
+@app.route("/forcestudy/<deck_id>")
+def force_study(deck_id):
+    deck = Deck.query.get(deck_id)
+    if deck is None:
+        return jsonify({'error': 'Deck not found'}), 404
+    return deck.force_study()
+    
+@app.route("/casualmode/<int:deck_id>")
+def casual_mode(deck_id):
+    return render_template("casualmode.html", title="Casual Mode", deck=deck_id)    
+    
 if __name__ == "__main__":
     app.run(debug=True)

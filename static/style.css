@@ -4,7 +4,6 @@
 }
 
 footer {
-  background-image: url("footer_0.png") !important;
   background-size: cover;
 }
 
@@ -174,6 +173,19 @@ footer {
 .eq_buttons {
   width: 100%;
   margin: 3px; /* or whatever */
+}
+
+/* CSS to style the card container */
+#card-container {
+  width: 500px;
+  height: 300px;
+  border: 1px solid black;
+  padding: 10px;
+}
+
+/* CSS to hide the extra content by default */
+#card-extra-content {
+  display: none;
 }
 
 @media screen and (max-width: 540px) {

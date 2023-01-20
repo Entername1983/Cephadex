@@ -22,10 +22,11 @@
                 <td class = "ml-2" data-th="Deck Name:">
                     <h4 class="table-heading"></h4>{{deck.name}}
                 </td>
-                <td class = "ml-2" data-th="Description:">{{ deck.description }}</td>
-                <td class = "ml-2" data-th="Number of Cards:"> {{ deck.quantity_cards() }} </td>
-                <td class = "ml-2" data-th="Cards Due:"> TBD </td>
-                <td class = "ml-2" data-th="Actions:">
+                <td data-th="Description:">{{ deck.description }}</td>
+                <td data-th="Number of Cards:"> {{ deck.quantity_cards() }} </td>
+                <td data-th="Cards Due:"> {{deck.qty_cards_due() }} </td>
+                <td data-th="Actions:">
+                    
                     <button class="btn btn-primary box_study box_study btn-max-1" type="button "
                         data-bs-toggle="collapse" data-bs-target="#collapse{{deck.id}}" aria-expanded="false"
                         aria-label="Toggle navigation">Actions<span class="navbar-toggler-icon"></span>
@@ -38,7 +39,7 @@
                                     class="btn btn-primary box_study m-1 btn-block btn-max-1">View Deck</a>
                             </div>
                             <div class="row">
-                                <a href="/study/{{deck.id}}"
+                                <a href="/study_deck/{{deck.id}}"
                                     class="btn btn-primary box_study m-1 btn-block btn-max-1">Study Deck </a>
                             </div>
                             <div class="row">
