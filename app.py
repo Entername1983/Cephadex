@@ -451,6 +451,16 @@ def study():
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract_page():
+    mapping = {
+    "Definitions": ("T", "D"),
+    "Translate": ("T", "CH"),
+    "Rhyme": ("T", "R"),
+    "People": ("P", "B"),
+    "Theories": ("TC", "E"),
+    }
+    
+
+    
     form = UploadFileForm()
     if form.validate_on_submit():
         if form.deck_list.data != None:
@@ -463,11 +473,14 @@ def extract_page():
         file = form.file.data
         file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
         file.save(file_loc)
-        prompt = form.prompt.data
-        terms = card_creator(file_loc, prompt)
+        prompt_option = form.prompt.data
+        terms = card_creator(file_loc, prompt_option)
         deck.user_id = current_user.id
-        for key, value in terms.items():
-            entry = Card(term=key, content=value)
+
+        x, y = mapping.get(prompt_option, ("T", "D"))
+        
+        for item in terms:
+            entry = Card(term=item[x].capitalize(), content=item[y])
             db.session.add(entry)
             deck.cards.append(entry)
         db.session.commit()

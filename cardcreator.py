@@ -5,7 +5,7 @@ from dotenv import load_dotenv, find_dotenv
 import csv
 from pptx import Presentation
 import numpy as np
-from extractors import extract_from_pdf, large_extract_terms, large_extract_terms2, terms_to_dict, extract_from_pptx, extract_terms, extract_from_docx
+from extractors import extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx
 
 
 
@@ -24,35 +24,20 @@ prompt_standard = "Extract as many uncommon or technical terms as possible from 
 
 def card_creator(file, prompt):
     
-    ## text_input is input id, cards output id
-
-    ##input("file: ")
-    
     if file.endswith('.pdf'):
         items = extract_from_pdf(file)
-        ## problem is that terms is only returning terms, not definitions seperated by a semi colon
-        terms = large_extract_terms(items, prompt)
-## issue with terms to dict
-        terms = terms_to_dict(terms)
         
     elif file.endswith('.pptx'):
         items = extract_from_pptx(file)
-        terms = large_extract_terms(items, prompt)
-        terms = terms_to_dict(terms)
         
-    elif file.endswith('.txt'):
-            items = []
-            with open(file) as file:
-                items = file.read()
-                response = extract_terms(items, prompt)
-                terms = response.choices[0]["text"]
-                terms = (terms_to_dict(terms))
-     
-     ## issue with this function, making too many calls to open ai api.  Why?           
     elif file.endswith('.docx'):
         items = extract_from_docx(file)
-        terms = large_extract_terms(items, prompt)
-        terms = terms_to_dict(terms)
+    
+    elif file.endswith('.txt'):
+         with open(file) as file:
+            items = file.read()
+    
+    terms = large_extract_terms(items, prompt)
     return terms
 
 
