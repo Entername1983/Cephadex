@@ -8,15 +8,15 @@ from flask_session import Session
 from tempfile import mkdtemp
 from sqlalchemy_utils import database_exists, create_database
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from wtforms import StringField, PasswordField, SubmitField, RadioField
+from wtforms import StringField, PasswordField, SubmitField, RadioField, SelectField, BooleanField, TextAreaField
 from flask_wtf.file import FileField, FileRequired
 from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms.validators import InputRequired, Length, ValidationError, EqualTo
+from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, Optional, URL
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
-from cardcreator import card_creator, write_to_csv, card_creator2
-from extractors import Regenerate_def
+from cardcreator import card_creator, write_to_csv, create_image
+from extractors import Regenerate_def, add_period, large_extract_terms, small_extract_terms
 import sys
 from sqlalchemy.sql import func
 import logging
@@ -27,6 +27,7 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Configure application
 app = Flask(__name__)
+
 bcrypt = Bcrypt(app)
 
 
@@ -85,7 +86,6 @@ class User(db.Model, UserMixin):
 
 
 class Card(db.Model):
-
     id = db.Column(db.Integer, primary_key=True)
     term = db.Column(db.String(50), nullable=False) 
     # content == Back of card 1
@@ -286,11 +286,17 @@ class Deck(db.Model):
         db.session.delete(self)            
         db.session.commit()
     
+    def rename(self, new_name):
+        self.name = new_name
+        db.session.commit()            
+        
+        
     def copy_deck(self, new_deck_name):
         new_deck = Deck(name=self.name, description=self.description, user_id=self.user_id)  
         new_deck.name = new_deck_name                      
         db.session.add(new_deck)            
         db.session.commit()
+        
     
     def assign_deck(self, user):
         pass
@@ -302,6 +308,32 @@ class Deck(db.Model):
         pass
     
     
+    
+class Subscriber(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(50), unique=True)
+    last_name = db.Column(db.String(50), unique=True)
+    email = db.Column(db.String(120), unique=True)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    def __repr__(self):
+        return '<Newsletter {}>'.format(self.email)
+    
+    def subscribe(self):
+        db.session.add(self)            	
+        db.session.commit()
+        
+    def unsubscribe(self):
+        db.session.delete(self)            	
+        db.session.commit()
+    
+class RegSub(FlaskForm):
+    first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
+    last_name = StringField('Last Name', validators=[InputRequired()], render_kw= {"placeholder": "Last Name"})           
+    email = StringField(validators=[InputRequired(), EqualTo('conf_email', message = 'Emails must match'), Length(min=5, max=100)], render_kw={"placeholder": "Email"})
+    conf_email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Confirm Email"})        
+    submit = SubmitField('Subscribe')
+    
+      
 class RegisterForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
     password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "Password"})
@@ -337,23 +369,43 @@ class ChangePassForm(FlaskForm):
         if new_password.data != conf_new_password.data:
             raise ValidationError("Passwords must match")
 class UploadFileForm(FlaskForm):
-    file = FileField("File", validators=[InputRequired()])
-    name = StringField("Deck name")
-    description = StringField("Description")
+    file = FileField("File")
+    name = StringField("Deck name", render_kw={"placeholder": "Name your deck"})
+    description = StringField("Description", render_kw={"placeholder": "Describe your deck!"})
     submit = SubmitField("Extract")
-    deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name')
-    prompt = RadioField('Prompt', choices=['Definitions', 'Translate', 'Rhyme', 'People', 'Theories'])
+    deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension')], default='Definitions')
+    generate_images = BooleanField('Generate_images')
+    languages = SelectField('Languages', choices=[('French', 'French'), ('English', 'English'), ('Spanish', 'Spanish'), ('Chinese', 'Chinese'), ('German', 'German'), ('Portuguese', 'Portuguese'), ('Japanese', 'Japanese'), ('Swahili', 'Swahili'), ('Dutch', 'Dutch'), ('Russian', 'Russian'), ('Klingon', 'Klingon'), ('Dothraki', 'Dothraki')], default = None)
+    text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
+    link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional(), URL()])
     
-    def validate_select(self, name, deck_list):
-        if name == '' and deck_list == '':            
-            raise ValidationError("You must select an existing deck OR enter a name for a new deck")
-        elif name != '' and deck_list != '':            
-            raise ValidationError("You must select an existing deck OR enter a name for a new deck")
-        
+    ##def validate_deck_list(self, name, deck_list):
+       ## if name == '' and deck_list == '':            
+        ##    raise ValidationError("You must select an existing deck OR enter a name for a new deck")
+        ##elif name != '' and deck_list != '':            
+        ##    raise ValidationError("You must select an existing deck OR enter a name for a new deck")
+    
     def validate_name(self, name):
         deck_object = Deck.query.filter_by(name=name.data).first()
         if deck_object:
             raise ValidationError("Deck name already exists")
+        
+    
+    ##def validate(self):
+        ##count = 0
+       ## if self.file.data:
+       ##     count += 1
+      ###  if self.text_input.data:
+      ##      count += 1
+      ##  if self.link_input.data:
+      ##      count += 1
+      ##  if count != 1:
+      ##      raise ValidationError('Please select one and only one option: a file, input text, or input link.')
+      ##  if self.prompt.data == 'Translate' and not self.languages.data:
+       ##     raise ValidationError('Please select a language for translation.')
+      ##  return True  
+        
 class EditCard(FlaskForm):
     term = StringField()
     content = StringField()
@@ -430,7 +482,17 @@ def change_pass():
 @login_required
 def viewdecks():
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
+    if request.method == 'POST':
+        deck_id = request.form['deck_id']
+        deck = Deck.query.filter(Deck.id == deck_id).first()
+        new_name = request.form['new_name']
+        if new_name != '':
+            deck.name = new_name
+            db.session.commit()
+        return redirect(url_for('viewdecks'))
     return render_template('viewdecks.html', decks=decks)
+
+
 
 @app.route("/createdeck", methods = ["GET", "POST"])
 @login_required
@@ -458,9 +520,6 @@ def extract_page():
     "People": ("P", "B"),
     "Theories": ("TC", "E"),
     }
-    
-
-    
     form = UploadFileForm()
     if form.validate_on_submit():
         if form.deck_list.data != None:
@@ -476,11 +535,9 @@ def extract_page():
         prompt_option = form.prompt.data
         terms = card_creator(file_loc, prompt_option)
         deck.user_id = current_user.id
-
         x, y = mapping.get(prompt_option, ("T", "D"))
-        
         for item in terms:
-            entry = Card(term=item[x].capitalize(), content=item[y])
+            entry = Card(term=item[x].capitalize(), content=add_period(item[y]))
             db.session.add(entry)
             deck.cards.append(entry)
         db.session.commit()
@@ -509,6 +566,14 @@ def currentdeck(deck_id):
 def delete(id):
     deck_to_delete = Deck.query.get_or_404(id)
     db.session.delete(deck_to_delete)
+    db.session.commit()
+    return redirect(url_for('viewdecks'))
+
+@app.route("/rename_deck/<int:id>/<string:new_name>", methods = ["POST", "GET"])
+@login_required
+def rename_deck(id, new_name):
+    deck = Deck.query.get_or_404(id)
+    deck.rename(new_name)
     db.session.commit()
     return redirect(url_for('viewdecks'))
     
@@ -607,7 +672,128 @@ def force_study(deck_id):
     
 @app.route("/casualmode/<int:deck_id>")
 def casual_mode(deck_id):
-    return render_template("casualmode.html", title="Casual Mode", deck=deck_id)    
+    return render_template("casualmode.html", title="Casual Mode", deck=deck_id)   
+
+@app.route('/subscribe', methods=['GET', 'POST'])
+def subrscribe():
+    form = RegSub()
+    if form.validate_on_submit():
+        subscriber = Subscriber(email=form.email.data, first_name=form.first_name.data, last_name=form.last_name.data, timestamp = datetime.now())
+        db.session.add(subscriber)
+        db.session.commit()
+        flash('You are now subscribed to our newsletter!')
+
+    return render_template('subscribe.html', title='Login', form=form)
+ 
+ 
+@app.route('/generate_img/<int:deck_id>', methods=['GET', 'POST'])
+def generate_img(deck_id):
+    deck = Deck.query.get(deck_id)
+    if deck is None:
+        return jsonify({'error': 'Deck not found'}), 404
+    for card in deck.cards:
+        try:
+            card.img = create_image(card.term)
+            db.session.commit()
+        except:
+            pass
+
+    return redirect(("/currentdeck/{deck}").format(deck=deck_id))
+    
+    
+@app.route("/extract2", methods = ["GET", "POST"])
+@login_required
+def extract2():
+    lang_dict = {
+        "Chinese": "CH",
+        "English": "EN",
+        "French": "FR",
+        "German": "DE",
+        "Japanese": "JP",
+        "Spanish": "SP",
+        "Klingon": "KL",
+        "Dothraki": "DO",
+    }
+    
+    mapping = {
+    "Definitions": ("T", "D"),
+    "Translate": ("T", "TR"),
+    "Rhyme": ("T", "R"),
+    "People": ("P", "B"),
+    "Theories": ("TC", "E"),
+    "Cloze": ("C", "F"),
+    "Mcq": ("Q", "A"),
+    "Comprehension": ("QC", "AC"),
+    }
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        print("form submitted")
+        ## load type of card to be made to prompt_option
+        if form.prompt.data != None:       
+            prompt_option = form.prompt.data
+        ## load optional secondary option, currently only useful for languages    
+        if form.languages.data != None:    
+            prompt_option2 = form.languages.data    
+             
+        if form.prompt.data != "Translate":
+            prompt_option2 = None         
+        
+        ## use existing deck or create a new one
+        if form.deck_list.data != None:
+            deck = form.deck_list.data
+        else:
+            deck_name = form.name.data
+            if form.description.data != None:
+                deck_description = form.description.data
+            else:
+                deck_description = " ".join(prompt_option + "deck")
+            deck = Deck(name=deck_name, description=deck_description)
+            db.session.add(deck) 
+   
+        ## create card content, gets outputed as a list of dicts    
+        if form.file.data != None:  
+            print("file inputted")
+            file = form.file.data
+            file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
+            file.save(file_loc)
+            terms = card_creator(file_loc, prompt_option, prompt_option2)
+            
+        elif form.text_input.data != None:
+            print("text inputted")
+            text = form.text_input.data
+            print(text)
+            terms = small_extract_terms(text, prompt_option, prompt_option2)
+
+            
+        deck.user_id = current_user.id
+        x, y = mapping.get(prompt_option, ("T", "D"))
+        if prompt_option != "Mcq":
+            for item in terms:
+                entry = Card(term=item[x].capitalize(), content=add_period(item[y]))
+                db.session.add(entry)
+                deck.cards.append(entry)
+            db.session.commit()
+        elif prompt_option == "Mcq":
+            for item in terms:
+                mcq_string = '##'.join(y)
+                entry = Card(term=item[x].capitalize(), content=item[mcq_string])
+                db.session.add(entry)
+                deck.cards.append(entry)
+            db.session.commit()                
+        if form.generate_images.data == True: 
+            for card in deck.cards:
+                try:
+                    card.img = create_image(card.term)
+                    db.session.commit()
+                except:
+                    pass
+        
+        return redirect('/currentdeck/{deck.id}'.format(deck = deck))
+    else:
+        print("form not valid`5")
+        print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
+
+    return render_template("extract2.html", title="Extract2", form=form)
     
 if __name__ == "__main__":
     app.run(debug=True)

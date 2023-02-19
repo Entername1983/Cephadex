@@ -4,6 +4,7 @@
 
 {% block main_0 %}
 <div class="col-10-md box_0 mx-2 my-5 py-5">
+ 
     <table class="table table_0 mobile-optimised">
 
         <thead>
@@ -20,37 +21,52 @@
 
             <tr>
                 <td class = "ml-2" data-th="Deck Name:">
-                    <h4 class="table-heading"></h4>{{deck.name}}
+                    <form action="" method="post">
+                        <input type="hidden" name="deck_id" value="{{ deck.id }}">
+                        <input 
+                            class = "border-0"
+                          name="new_name"
+                          id="deck.id"
+                          value="{{ deck.name }}"
+                          placeholder="{{ deck.name }}"
+                          onchange="this.form.submit();"
+                        />
+                        </form>
+                
                 </td>
                 <td data-th="Description:">{{ deck.description }}</td>
                 <td data-th="Number of Cards:"> {{ deck.quantity_cards() }} </td>
                 <td data-th="Cards Due:"> {{deck.qty_cards_due() }} </td>
-                <td data-th="Actions:">
+                
+
+                <td>
+
+                    <a href="/currentdeck/{{deck.id}}">
+                        <img src="\static\edit-box-icon.png" alt="Edit" style="max-width:30px;max-height:30px;" class ="px-1" title = "Edit">
+                      </a>
+
+
+                      <a href="/study_deck/{{deck.id}}">
+                        <img src="\static\graduation-cap-icon.png" alt="Study" style="max-width:30px;max-height:30px;"class ="px-1" title = "Study">
+                      </a>
+                      <a href="/downloadascsv/{{deck.id}}">
+                        <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px;"class ="px-1" title ="Download as CSV">
+                      </a>
+                      <a href="#" onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{deck.id}}'; }">
+                        <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class ="px-1" title="Delete deck">
+                      </a>
                     
-                    <button class="btn btn-primary box_study box_study btn-max-1" type="button "
-                        data-bs-toggle="collapse" data-bs-target="#collapse{{deck.id}}" aria-expanded="false"
-                        aria-label="Toggle navigation">Actions<span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="navbar-collapse collapse" id="collapse{{deck.id}}">
-                        <div class="column">
-                            <div class="btn-group"></div>
-                            <div class="row">
-                                <a href="/currentdeck/{{deck.id}}"
-                                    class="btn btn-primary box_study m-1 btn-block btn-max-1">View Deck</a>
-                            </div>
-                            <div class="row">
-                                <a href="/study_deck/{{deck.id}}"
-                                    class="btn btn-primary box_study m-1 btn-block btn-max-1">Study Deck </a>
-                            </div>
-                            <div class="row">
-                                <a href="/downloadascsv/{{deck.id}}"
-                                    class="btn btn-primary box_study m-1 btn-block btn-max-1">Download CSV file</a>
-                            </div>
-                            <div class="row">
-                                <a href="/delete/{{deck.id}}"
-                                    class="btn btn-primary box_warning m-1 btn-block btn-max-1">Delete Deck</a>
+                                <a href="/currentdeck/{{deck.id}}"></a>
+                    
+                                <a href="/study_deck/{{deck.id}}"></a>
+                        
+                                <a href="/downloadascsv/{{deck.id}}"></a>
+                     
+                                <a href="/delete/{{deck.id}}"></a>
+                             
                 </td>
 </div>
+
 </div>
 </div>
 </div>

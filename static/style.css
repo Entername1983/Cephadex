@@ -18,9 +18,8 @@ footer {
 }
 
 body {
-  background-color: #D8D5DB !important;
+  background-color: white !important;
   background-size: cover;
-  background-color: #B0D7FF !important;
 }
 
 .row {
@@ -28,40 +27,40 @@ body {
 }
 
 .navbar {
-  background-color: #2D3142 !important;
+  background-color: white !important;
   font-size: 50px !important;
   color: #EAE8FF !important;
 }
 
 .nav-link {
-  color: #EAE8FF !important;
+  color: #2D3142 !important;
 }
 
 .input_0 {
-  background-color: #FFFD98;
+  background-color: white !important;
   color: black;
 }
 
 .txtedit {
-  background-color: #D8D5DB !important;
+  background-color: white !important;
   border: none;
   size: 50;
 }
 
 .card {
-  background-color: #D8D5DB !important;
+  background-color: white !important;
 }
 
 .card-body {
-  background-color: #D8D5DB !important;
+  background-color: white !important;
 }
 
 .card-title {
-  background-color: #D8D5DB !important;
+  background-color: white !important;
 }
 
 .card-text {
-  background-color: #D8D5DB !important;
+  background-color: white !important;
 }
 
 #text_input {
@@ -71,67 +70,67 @@ body {
 }
 
 .btn-primary:hover {
-  background-color: #B0D7FF !important;
+  background-color: white !important;
 }
 
 .btn-primary {
-  background-color: #D8D5DB !important;
+  background-color: white !important;
   color: #2D3142 !important;
-  border-color: #7A9CC6 !important;
+  border-color: #1D71BA !important;
 }
 
 .btn-primary:active {
-  background-color: #D8D5DB !important;
+  background-color: white !important;
 }
 
 .box_0 {
   border: 10px solid !important;
   align-content: center !important;
-  background-color: #2D3142 !important;
+  background-color: white !important;
   border-width: 5px !important;
   border-radius: 20px !important;
-  border-color: #D8D5DB !important;
+  border-color: #1D71BA !important;
   align-self: center !important;
-  color: #EAE8FF !important;
+  color: #2D3142 !important;
 }
 
 .box_1 {
   border-radius: 15px !important;
   color: #2D3142 !important;
-  background-color: #D8D5DB !important;
+  background-color: white !important;
 }
 
 .box_warning {
   border: 10px solid !important;
   align-content: center !important;
-  background-color: #B97375 !important;
+  background-color: #F1466B !important;
   border-width: 1px !important;
   border-radius: 5px !important;
-  border-color: black !important;
+  border-color: #1D71BA !important;
   align-self: center !important;
-  color: #EAE8FF !important;
+  color: #2D3142 !important;
 }
 
 .box_s {
   border: 10px solid !important;
   align-content: center !important;
-  background-color: #86B03F !important;
+  background-color: white !important;
   border-width: 1px !important;
   border-radius: 5px !important;
-  border-color: black !important;
+  border-color: #1D71BA !important;
   align-self: center !important;
-  color: #EAE8FF !important;
+  color: #2D3142 !important;
 }
 
 .box_study {
   border: 10px solid !important;
   align-content: center !important;
-  background-color: #5F7470 !important;
+  background-color: white !important;
   border-width: 1px !important;
   border-radius: 5px !important;
-  border-color: black !important;
+  border-color: #1D71BA !important;
   align-self: center !important;
-  color: #EAE8FF !important;
+  color: #2D3142 !important;
 }
 
 .btn-max-1 {
@@ -144,7 +143,7 @@ body {
 }
 
 .table_0 {
-  color: #EAE8FF !important;
+  color: #2D3142 !important;
 }
 
 body {
@@ -158,7 +157,7 @@ main {
 }
 
 footer {
-  background-color: #B0D7FF;
+  background-color: white;
 }
 
 .deck_t {
@@ -179,7 +178,8 @@ footer {
 #card-container {
   width: 500px;
   height: 300px;
-  border: 1px solid black;
+  border: 1px;
+  border-color: #1D71BA;
   padding: 10px;
 }
 
@@ -189,7 +189,81 @@ footer {
 }
 
 .selected {
-  background-color: #86B03F !important;
+  background-color: white !important;
+}
+
+.mw1 {
+  max-width: 400px;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  right: 105%;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.nav-link {
+  font-size: 30px !important;
+  background-color: white !important;
+  color: #2D3142 !important;
+}
+
+.nav-item {
+  background-color: white !important;
+  color: #2D3142 !important;
+  padding-bottom: 0px !important;
+  margin-bottom: 0px !important;
+}
+
+.nav-link.active {
+  background-color: #B0D7FF !important;
+}
+
+.tab-content {
+  background-color: #B0D7FF !important;
+}
+
+.tab-pane {
+  background-color: #B0D7FF !important;
+  border-radius: 5px !important;
+}
+
+.tab-content {
+  background-color: white !important;
+  border-radius: 5px !important;
+}
+
+.extract-boxes {
+  background-color: #B0D7FF !important;
+}
+
+.extract-boxes1 {
+  background-color: #9cccfc !important;
+}
+
+.full-w {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.form-control {
+  background-color: #B0D7FF !important;
 }
 
 @media screen and (max-width: 540px) {

@@ -1,40 +1,11 @@
 
-$std_col_1:  #1D71BA;
-$std_col_2: #EDC400;
-$std_col_3: #B25690;
-$std_col_4: #71B379;
-$xtr_col_1: #37D6A4;
-$xtr_col_2: #F1466B;
-
-
 
 $dark: #2D3142;
 $pblue: #B0D7FF;
 $grey: #ADACB5;
 $lgrey: #D8D5DB;
 $lpink: #EAE8FF;
-
-
-
-
-$backgroundC: white;
-$backgroundC1: white;
-$backgroundCA: $pblue;
-$backgroundCA1: #9cccfc;
-
-$textC: $dark;
-$textC1: $dark;
-
-$boxC:$std_col_1;
-$boxC1:$std_col_1;
-$boxC2:$std_col_1;
-
-$warningC:$xtr_col_2;
-$successC:$xtr_col_1;
-
-$borderC:$std_col_1;
-$borderC1:$std_col_1;
-
+$backgroundC: #D8D5DB;
 // Pastel set
 //blue
 $blue: #7A9CC6;
@@ -46,10 +17,6 @@ $green: #B3D2B2;
 $lgreen: #BDE4A7;
 //yellow
 $yellow: #FFFD98;
-
-
-
-
 
 $btn-white-space: nowrap;
 
@@ -74,9 +41,10 @@ footer{
 }
 
 body {
-    background-color: $backgroundC !important;
+    background-color: #D8D5DB !important;
     //background-image: url("background_4.png") !important;
     background-size: cover;
+    background-color: $pblue !important;
   }
 
 .row {
@@ -85,17 +53,17 @@ body {
 
   
 .navbar {
-    background-color: $backgroundC !important;
+    background-color: $dark !important;
     font-size: 50px !important;
     color: $lpink !important;
 }
 
 .nav-link {
-    color: $textC !important;
+    color: $lpink !important;
 }
 
 .input_0 {
-    background-color: $backgroundC !important;
+    background-color: #FFFD98;
     color: black;
     
 }
@@ -128,18 +96,18 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: $backgroundC !important;
+    background-color: $pblue !important;
 }
 
 .btn-primary {
     background-color: $backgroundC !important;
-    color: $textC !important;
-    border-color: $borderC !important;
+    color: $dark !important;
+    border-color: $blue !important;
 }
 
 
 .btn-primary:active {
-    background-color: $backgroundC !important;
+    background-color: $lgrey !important;
 }
 
 // boxes
@@ -147,56 +115,56 @@ body {
 .box_0 {
     border: 10px solid !important;
     align-content: center !important;
-    background-color: $backgroundC !important;
+    background-color: $dark !important;
     border-width:5px !important;
     border-radius: 20px !important;
-    border-color: $borderC !important;
+    border-color: $backgroundC !important;
     align-self: center !important;
-    color: $textC !important;
+    color: $lpink !important;
 }
 
 .box_1 {
     border-radius: 15px !important;
-    color:$textC !important;
+    color:$dark!important;
     background-color: $backgroundC !important;
 }
 
 .box_warning {
     border: 10px solid !important;
     align-content: center !important;
-    background-color: $warningC !important;
+    background-color: #B97375 !important;
     border-width:1px !important;
     border-radius: 5px !important;
-    border-color: $borderC !important;
+    border-color: black !important;
     align-self: center !important;
-    color: $textC !important;
+    color: $lpink !important;
 }
 
 .box_s {
     border: 10px solid !important;
     align-content: center !important;
-    background-color: $backgroundC !important;
+    background-color: #86B03F !important;
     border-width:1px !important;
     border-radius: 5px !important;
-    border-color: $borderC !important;
+    border-color: black !important;
     align-self: center !important;
-    color: $textC !important;
+    color: $lpink !important;
 }
 
 .box_study {
     border: 10px solid !important;
     align-content: center !important;
-    background-color: $backgroundC !important;
+    background-color: #5F7470 !important;
     border-width:1px !important;
     border-radius: 5px !important;
-    border-color: $borderC !important;
+    border-color: black !important;
     align-self: center !important;
-    color: $textC !important;
+    color: $lpink !important;
 }
 
 .btn-max-1 {
     max-width: 120px !important;
-    color: $textC !important;
+    color: $dark !important;
 }
 
 
@@ -206,7 +174,7 @@ body {
 }
 
 .table_0 {
-    color: $textC !important;
+    color: $lpink !important;
 }
 
 
@@ -221,7 +189,7 @@ main {
 }
 
 footer {
-    background-color: $backgroundC;
+    background-color: $pblue;
 }
 
 
@@ -245,8 +213,7 @@ footer {
 #card-container {
     width: 500px;
     height: 300px;
-    border: 1px;
-    border-color: $borderC;
+    border: 1px solid black;
     padding: 10px;
 }
 
@@ -256,93 +223,8 @@ footer {
 }
 
 .selected {
-    background-color: $backgroundC !important;
+    background-color: #86B03F !important;
 }
-
-
-.mw1 {
-    max-width: 400px;
-}
-
-
-.tooltip {
-    position: relative;
-    display: inline-block;
-  }
-  
-.tooltiptext {
-    visibility: hidden;
-    width: 120px;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px 0;
-    
-    /* Position the tooltip */
-    position: absolute;
-    z-index: 1;
-    top: -5px;
-    right: 105%;
-  }
-
-
-.tooltip:hover .tooltiptext {
-    visibility: visible;
-  }
-
-
-  .nav-link {
-    font-size: 30px !important;
-    background-color: $backgroundC1 !important;
-    color: $textC !important;
-  }
-
-.nav-item {
-    background-color: $backgroundC !important;
-    color: $textC !important;
-    padding-bottom: 0px !important;
-    margin-bottom: 0px !important;
-}
-
-.nav-link.active{
-    background-color: $backgroundCA !important;
-}
-
-
-.tab-content{
-    background-color: $backgroundCA !important;
-}
-
-.tab-pane {
-    background-color: $backgroundCA !important;
-    border-radius: 5px !important;
-}
-
-.tab-content {
-    background-color: $backgroundC !important;
-    border-radius: 5px !important;
-}
-
-
-.extract-boxes {
-    background-color: $backgroundCA !important;
-}
-//expandable part of the boxes
-.extract-boxes1 {
-    background-color: $backgroundCA1 !important;
-}
-
-
-.full-w {
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-.form-control {
-    background-color: $backgroundCA !important;
-}
-
-
-
 
 // TABLE REFORMATTING
 
