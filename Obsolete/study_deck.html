@@ -1,0 +1,165 @@
+{% extends "layout.html" %} {% block title %} Study {% endblock %} {% block head
+%}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+<script>
+  var jq = $.noConflict();
+
+  jq(document).ready(function() {
+      var cardList;
+      var currentCard;
+      var currentCardIndex = 0;
+      var deckId = {{deck}};
+
+      jq.ajax({
+          type: 'GET',
+          url: '/get-due-cards/' + deckId,
+          dataType: 'json',
+          success: function(data) {
+              cardList = data;
+              if (cardList === null || cardList === undefined) {
+                  console.log("no cards")
+                  jq('#card-container').hide();
+                  jq('#card-extra-content').hide();
+                  jq('#remember-btn').hide();
+                  jq('#forgot-btn').hide();
+                  jq('#next-btn').hide();
+                  jq('#no-cards').html('<p id="no-cards">There are no cards due, check back later.</p>');
+                  jq("#force-study").show();
+              }
+              else {
+              currentCard = cardList[currentCardIndex];
+              jq('#card-term').html(currentCard.term);
+              jq('#card-id').html(currentCard.id);
+              jq('#card-content').html(currentCard.content);
+              jq('#card-boc_2').html(currentCard.boc_2);
+              jq('#card-boc_3').html(currentCard.boc_3);
+              jq("#force-study").hide();
+              }
+          },
+      });
+
+      jq('#forgot-btn').click(function() {
+          jq('#forgot-btn').addClass("selected");
+          jq('#remember-btn').removeClass("selected");
+          jq('#card-extra-content').show();
+          console.log("forgot button active, remember button inactive")
+      });
+
+      jq('#remember-btn').click(function() {
+          jq('#remember-btn').addClass("selected");
+          jq('#forgot-btn').removeClass("selected");
+          jq('#card-extra-content').show();
+          console.log("remember button active, forgot button inactive")
+      });
+
+      jq('#next-btn').on('click', function() {
+          var card_id = currentCard.id;
+          var csrf_token = jq("input[name='csrf_token']").val();
+
+          if (jq('#remember-btn').hasClass('selected')) {
+              jq.ajax({
+                  type: 'POST',
+                  url: '/increment/' + card_id,
+                  contentType: 'application/x-www-form-urlencoded',
+                  headers: {'X-CSRFToken': csrf_token},
+                  success: function(response) {
+                      console.log(response);
+                  }
+              });
+          }
+
+          else if (jq('#forgot-btn').hasClass('selected')) {
+              jq.ajax({
+                  type: 'POST',
+                  url: '/decrement/' + card_id,
+                  contentType: 'application/x-www-form-urlencoded',
+                  headers: {'X-CSRFToken': csrf_token},
+                  success: function(response) {
+                      console.log(response);
+                  }
+              });
+          }
+          jq('#remember-btn').removeClass("selected");
+          jq('#forgot-btn').removeClass("selected");
+          jq('#card-extra-content').hide();
+
+          cardList.splice(currentCardIndex,1); // remove the current card from list
+          currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
+
+          if(cardList.length === 0){
+            jq('#card-container').hide();
+            jq('#card-extra-content').hide();
+            jq('#remember-btn').hide();
+            jq('#forgot-btn').hide();
+            jq('#next-btn').hide();
+            jq("#force-study").show();
+              alert("No more cards due!")
+              return;
+
+          } else {
+              currentCard = cardList[currentCardIndex];
+              jq('#card-term').html(currentCard.term);
+              jq('#card-id').html(currentCard.id);
+              jq('#card-content').html(currentCard.content);
+              jq('#card-boc_2').html(currentCard.boc_2);
+              jq('#card-boc_3').html(currentCard.boc_3);
+          }
+      });
+
+      jq('#force-study').on('click', function() {
+        alert("You are entering casual mode, viewing the cards will not count towards your review!")
+        return;
+      });
+  });
+</script>
+
+{% endblock %} {% block main_0 %}
+
+
+<p id="no-cards"></p>
+<a href = "/casualmode/{{deck}}" id="force-study" style="display: none">Study anyway</a>
+<div class="row">
+  <a href="/viewdecks" class="btn box_warning eq_buttons ml-5" style="max-width: 300px"> Return to decks</a>
+</div>
+<div class="container mt-1 p-1">
+  <div class="col-8-md mx-auto box_0 p-1 border-0 mw1">
+    <div class="card m-1 bg-light"style="border-radius:15px">
+      <div class = "col-6-md mx-auto">
+      <div id="card-container mx-auto" style = "min-height: 300px; width: 300px;">
+        <div class="card-body mt-1" style="border-radius:15px">
+          <h3 class="card-title border-0 input_0 form-control form-control-lg m-1" id="card-term"></h3>
+          <div id="card-id" style="display: none"></div>
+          <!-- Card term will be inserted here -->
+        
+      </div>
+ <div style = "min-height: 200px;">
+      <div class = "box_1 mt-1 p-2" id="card-extra-content" style="display: none">
+        <p id="card-content"></p>
+        <p id="card-boc_2"></p>
+        <p id="card-boc_3"></p>
+      </div>
+</div>
+  
+      <div class="row my-1">
+        <div class ="col"><button class="btn box_study"  id="forgot-btn">Lost it</button></div>
+        <div class ="col"><button class="btn box_study"  id="remember-btn">Got it</button></div>
+        <div class ="col"><button class="btn box_study" id="next-btn">Next</button></div>
+      </div>
+    </div>
+  </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %} 
+
+// implement later for mobile //on swipe left //card.interval
+should be decremented by 50%, card.time_updated should be updated to current
+time, card.content, card.boc_2, card.box_3 should be displayed //on swipe right
+//card.interval should be incremented by 100%, card.time_updated should be
+updated to current time, card.content, card.boc_2, card.box_3 should be
+displayed //on double click or double tap //the existing card should be removed
+from the list and a new one should be loaded

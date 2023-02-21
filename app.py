@@ -246,6 +246,15 @@ class Deck(db.Model):
             return jsonify({'info': 'No due cards found'}), 204
         return jsonify(due_cards)
     
+    def cards_due(self):
+        due_cards = 0
+        current_time = datetime.now()
+        for card in self.cards:
+            time_diff = (current_time - card.time_updated).total_seconds() / 60
+            if time_diff >= card.interval:
+                due_cards = due_cards + 1
+        return due_cards
+    
     def qty_cards_due(self):
         current_time = datetime.now()
         qty = 0
@@ -257,6 +266,7 @@ class Deck(db.Model):
                 if time_diff >= card.interval:
                     qty = qty + 1
         return qty
+    
 
     def to_json(self):
         return {
@@ -478,10 +488,48 @@ def change_pass():
     flash('Your password has been updated!')
     return redirect(url_for('index'))
 
+
 @app.route("/viewdecks", methods = ["GET", "POST"])
 @login_required
 def viewdecks():
+    
+    print("page reloaded")
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
+   
+    
+    if request.method == 'GET':
+        print("entered get request")
+        sort_method =request.args.get('sort')
+        search_query = None
+        search_query = request.args.get('search', '').strip()
+        print(search_query)
+        print(sort_method)
+        
+        if sort_method != 'default':
+            if sort_method == 'name_asc':
+                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.name.asc()).all()
+            elif sort_method == 'name_desc':
+                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.name.desc()).all()
+            elif sort_method == "cards_due_asc":
+                decks = sorted(decks, key=lambda deck: deck.qty_cards_due())
+            elif sort_method == "cards_due_desc":
+                decks = sorted(decks, key=lambda deck: deck.qty_cards_due(), reverse=True) 
+                
+        
+        elif search_query:
+            print("entered search_query")
+            decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()
+            print(decks)
+
+        
+            
+        return render_template('viewdecks.html', decks=decks)
+            
+        
+        
+        
+        
+        
     if request.method == 'POST':
         deck_id = request.form['deck_id']
         deck = Deck.query.filter(Deck.id == deck_id).first()
@@ -489,7 +537,9 @@ def viewdecks():
         if new_name != '':
             deck.name = new_name
             db.session.commit()
-        return redirect(url_for('viewdecks'))
+
+        return render_template('viewdecks.html', decks=decks)
+    
     return render_template('viewdecks.html', decks=decks)
 
 
@@ -559,7 +609,24 @@ def currentdeck(deck_id):
         if content != "":
             card.content = content
         db.session.commit()
-    return render_template("currentdeck.html", title="Card Editor", deck=deck, cards=cards)                           
+    return render_template("currentdeck.html", title="Card Editor", deck=deck, cards=cards)
+
+@app.route("/edit_deck/<deck_id>", methods = ["POST", "GET"])
+@login_required
+def edit_deck(deck_id):
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+    if request.method == 'POST':
+        term = request.form['term'] ## new term for card
+        content = request.form['content'] ## new content for card
+        id = request.form['id'] ## id of card to be edited
+        card = Card.query.filter_by(id=id).first()
+        if term != "":
+            card.term = term
+        if content != "":
+            card.content = content
+        db.session.commit()
+    return render_template("edit_deck.html", title="Card Editor", deck=deck, cards=cards)                                
     
 @app.route("/delete/<int:id>", methods = ["POST", "GET"])
 @login_required
@@ -588,7 +655,7 @@ def deletecard(card_id, deck_id):
     card_to_delete = Card.query.get_or_404(card_id)
     db.session.delete(card_to_delete)
     db.session.commit()
-    return redirect(("/currentdeck/{deck}").format(deck=deck_id))  
+    return redirect(("/carousel/{deck}").format(deck=deck_id))  
 
 @app.route("/addterms/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
@@ -640,8 +707,8 @@ def get_due_cards(deck_id):
 
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 def study_deck(deck_id):
-    
-    return render_template("study_deck.html", title="Study deck", deck=deck_id)       
+    deck = Deck.query.get(deck_id)
+    return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck)       
 
 
 @app.route("/increment/<card_id>", methods = ["POST", "GET"])
@@ -788,12 +855,32 @@ def extract2():
                 except:
                     pass
         
-        return redirect('/currentdeck/{deck.id}'.format(deck = deck))
+        return redirect('/carousel/{deck.id}'.format(deck = deck))
     else:
         print("form not valid`5")
         print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
 
     return render_template("extract2.html", title="Extract2", form=form)
+
+
+@app.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
+def carousel(deck_id):
     
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+    if request.method == 'POST':
+        print("entered post request")
+        term = request.form['term'] ## new term for card
+        content = request.form['content'] ## new content for card
+        id = request.form['id'] ## id of card to be edited
+        card = Card.query.filter_by(id=id).first()
+        if term != "":
+            card.term = term
+        if content != "":
+            card.content = content
+        db.session.commit()
+        
+        
+    return render_template("carousel.html", title="Carousel", deck=deck, cards=cards)  
 if __name__ == "__main__":
     app.run(debug=True)

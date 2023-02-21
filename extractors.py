@@ -23,6 +23,7 @@ prompt_choices = {
    
 def extract_terms(text: str, prompt_option: str, prompt_option2 = None):
     print("entered extract term function")
+    print(prompt_option)
     print(prompt_option2)
     if prompt_option not in prompt_choices:
         raise ValueError("Invalid prompt option")
@@ -38,9 +39,12 @@ def extract_terms(text: str, prompt_option: str, prompt_option2 = None):
         prompt=prompt,
         max_tokens=1000
     )
+    print(prompt_option)
+    print(prompt_select)
     x = response.choices[0]["text"].strip()
+    print(x)
     x = json.loads(x)
-    print(response)
+    print(x)
     return x
    
    
@@ -67,6 +71,9 @@ def small_extract_terms(item: str, prompt_option:str, prompt_option2 = None):
 
 ## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
 def large_extract_terms(items: str, prompt_option:str, prompt_option2 = None):
+    print("entered large extract term function")
+    print(prompt_option)
+    print(prompt_option2)
     ls_terms = []
     for item in items:
         response = extract_terms(item, prompt_option, prompt_option2)

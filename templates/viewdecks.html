@@ -3,68 +3,97 @@
 {% block title %} View Decks {% endblock %}
 
 {% block main_0 %}
-<div class="col-10-md box_0 mx-2 my-5 py-5">
- 
+
+<div class="col-10-md box_0 m-3 p-3">
+  <form action="" method="get">
+
+      <div class="row justify-content-end">
+        <div class="col-auto">
+          <label class="sr-only" for="search-deck-name">Search Decks</label>
+          <input type="text" class="form-control mb-2" id="search-deck-name" style="max-width:300px" name="search"
+            placeholder="Search decks by name" value="{{ request.args.get('search', '') }}">
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary mb-2">Search</button>
+        </div>
+
+        <div class="col-auto">
+          <form action="" method="get">
+            <div id='sort-form'>
+              <label class="my-1 mr-2" for="sort-decks">Sort by:</label>
+              <select class="custom-select my-1 mr-sm-2" id="sort" name="sort" onchange="this.form.submit();">
+                <option value="default">Select sort method</option>
+                <option value="name_asc">Name (A to Z)</option>
+                <option value="name_desc">Name (Z to A)</option>
+                <option value="cards_due_asc">Cards Due (Low to High)</option>
+                <option value="cards_due_desc">Cards Due (High to Low)</option>
+              </select>
+            </div>
+          </form>
+        </div>
+      </div>
+
+  </form>
+  <table class="table table_0 mobile-optimised">
+
     <table class="table table_0 mobile-optimised">
 
-        <thead>
-            <tr>
-                <th>Deck Name: </th>
-                <th>Description: </th>
-                <th>Number of cards: </th>
-                <th>Cards due: </th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for deck in decks%}
+      <thead>
+        <tr>
+          <th>Deck Name: </th>
+          <th>Description: </th>
+          <th>Number of cards: </th>
+          <th>Actions:</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for deck in decks%}
 
-            <tr>
-                <td class = "ml-2" data-th="Deck Name:">
-                    <form action="" method="post">
-                        <input type="hidden" name="deck_id" value="{{ deck.id }}">
-                        <input 
-                            class = "border-0"
-                          name="new_name"
-                          id="deck.id"
-                          value="{{ deck.name }}"
-                          placeholder="{{ deck.name }}"
-                          onchange="this.form.submit();"
-                        />
-                        </form>
-                
-                </td>
-                <td data-th="Description:">{{ deck.description }}</td>
-                <td data-th="Number of Cards:"> {{ deck.quantity_cards() }} </td>
-                <td data-th="Cards Due:"> {{deck.qty_cards_due() }} </td>
-                
+        <tr>
+          <td class="ml-2" data-th="Deck Name:">
+            <form action="" method="post">
+              <input type="hidden" name="deck_id" value="{{ deck.id }}">
+              <input class="border-0" name="new_name" id="deck.id" value="{{ deck.name }}" placeholder="{{ deck.name }}"
+                onchange="this.form.submit();" />
+            </form>
 
-                <td>
-
-                    <a href="/currentdeck/{{deck.id}}">
-                        <img src="\static\edit-box-icon.png" alt="Edit" style="max-width:30px;max-height:30px;" class ="px-1" title = "Edit">
-                      </a>
+          </td>
+          <td data-th="Description:">{{ deck.description }}</td>
+          <td data-th="Number of Cards (cards due):"> {{ deck.quantity_cards() }} ({{deck.qty_cards_due() }})</td>
 
 
-                      <a href="/study_deck/{{deck.id}}">
-                        <img src="\static\graduation-cap-icon.png" alt="Study" style="max-width:30px;max-height:30px;"class ="px-1" title = "Study">
-                      </a>
-                      <a href="/downloadascsv/{{deck.id}}">
-                        <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px;"class ="px-1" title ="Download as CSV">
-                      </a>
-                      <a href="#" onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{deck.id}}'; }">
-                        <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class ="px-1" title="Delete deck">
-                      </a>
-                    
-                                <a href="/currentdeck/{{deck.id}}"></a>
-                    
-                                <a href="/study_deck/{{deck.id}}"></a>
-                        
-                                <a href="/downloadascsv/{{deck.id}}"></a>
-                     
-                                <a href="/delete/{{deck.id}}"></a>
-                             
-                </td>
+
+          <td>
+
+            <a href="/carousel/{{deck.id}}" class = "mx-2">
+              <img src="\static\edit-box-icon.png" alt="Edit" style="max-width:30px;max-height:30px;" class="px-1"
+                title="Edit">
+            </a>
+
+
+            <a href="/study_deck/{{deck.id}}" class = "mx-2">
+              <img src="\static\graduation-cap-icon.png" alt="Study" style="max-width:30px;max-height:30px;"
+                class="px-1" title="Study">
+            </a>
+            <a href="/downloadascsv/{{deck.id}}" class = "mx-2">
+              <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px;"
+                class="px-1" title="Download as CSV">
+            </a>
+            <a href="#" class = "mx-2"
+              onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{deck.id}}'; }">
+              <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class="px-1"
+                title="Delete deck">
+            </a>
+
+            <a href="/currentdeck/{{deck.id}}"></a>
+
+            <a href="/study_deck/{{deck.id}}"></a>
+
+            <a href="/downloadascsv/{{deck.id}}"></a>
+
+            <a href="/delete/{{deck.id}}"></a>
+
+          </td>
 </div>
 
 </div>

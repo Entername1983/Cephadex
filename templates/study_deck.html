@@ -6,155 +6,316 @@
 <script>
   var jq = $.noConflict();
 
-  jq(document).ready(function() {
-      var cardList;
-      var currentCard;
-      var currentCardIndex = 0;
-      var deckId = {{deck}};
+  jq(document).ready(function () {
+    var cardList;
+    var currentCard;
+    var currentCardIndex = 0;
+    var deckId = {{ deck }};
+  var cardStack = [];
+  var cardsDue;
 
-      jq.ajax({
-          type: 'GET',
-          url: '/get-due-cards/' + deckId,
-          dataType: 'json',
-          success: function(data) {
-              cardList = data;
-              if (cardList === null || cardList === undefined) {
-                  console.log("no cards")
-                  jq('#card-container').hide();
-                  jq('#card-extra-content').hide();
-                  jq('#remember-btn').hide();
-                  jq('#forgot-btn').hide();
-                  jq('#next-btn').hide();
-                  jq('#no-cards').html('<p id="no-cards">There are no cards due, check back later.</p>');
-                  jq("#force-study").show();
-              }
-              else {
-              currentCard = cardList[currentCardIndex];
-              jq('#card-term').html(currentCard.term);
-              jq('#card-id').html(currentCard.id);
-              jq('#card-content').html(currentCard.content);
-              jq('#card-boc_2').html(currentCard.boc_2);
-              jq('#card-boc_3').html(currentCard.boc_3);
-              jq("#force-study").hide();
-              }
-          },
-      });
 
-      jq('#forgot-btn').click(function() {
-          jq('#forgot-btn').addClass("selected");
-          jq('#remember-btn').removeClass("selected");
-          jq('#card-extra-content').show();
-          console.log("forgot button active, remember button inactive")
-      });
+  jq.ajax({
+    type: 'GET',
+    url: '/get-due-cards/' + deckId,
+    dataType: 'json',
+    success: function (data) {
+      cardList = data;
+      console.log(cardList);
+      if (cardList === null || cardList === undefined) {
+        console.log("no cards")
+        jq("#force-study").show();
+        jq("#contain-main").hide();
+        jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
 
-      jq('#remember-btn').click(function() {
-          jq('#remember-btn').addClass("selected");
-          jq('#forgot-btn').removeClass("selected");
-          jq('#card-extra-content').show();
-          console.log("remember button active, forgot button inactive")
-      });
+      }
+      else {
+        currentCard = cardList[currentCardIndex];
+        cardsDue = cardList.length - currentCardIndex;
+        jq('#card-term').html(currentCard.term);
+        jq('#card-id').html(currentCard.id);
+        jq('#card-content').html(currentCard.content);
+        jq('#card-boc_2').html(currentCard.boc_2);
+        jq('#card-boc_3').html(currentCard.boc_3);
+        jq('#cards-due').html(cardsDue);
+        jq("#force-study").hide();
 
-      jq('#next-btn').on('click', function() {
-          var card_id = currentCard.id;
-          var csrf_token = jq("input[name='csrf_token']").val();
-
-          if (jq('#remember-btn').hasClass('selected')) {
-              jq.ajax({
-                  type: 'POST',
-                  url: '/increment/' + card_id,
-                  contentType: 'application/x-www-form-urlencoded',
-                  headers: {'X-CSRFToken': csrf_token},
-                  success: function(response) {
-                      console.log(response);
-                  }
-              });
-          }
-
-          else if (jq('#forgot-btn').hasClass('selected')) {
-              jq.ajax({
-                  type: 'POST',
-                  url: '/decrement/' + card_id,
-                  contentType: 'application/x-www-form-urlencoded',
-                  headers: {'X-CSRFToken': csrf_token},
-                  success: function(response) {
-                      console.log(response);
-                  }
-              });
-          }
-          jq('#remember-btn').removeClass("selected");
-          jq('#forgot-btn').removeClass("selected");
-          jq('#card-extra-content').hide();
-
-          cardList.splice(currentCardIndex,1); // remove the current card from list
-          currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
-
-          if(cardList.length === 0){
-            jq('#card-container').hide();
-            jq('#card-extra-content').hide();
-            jq('#remember-btn').hide();
-            jq('#forgot-btn').hide();
-            jq('#next-btn').hide();
-            jq("#force-study").show();
-              alert("No more cards due!")
-              return;
-
-          } else {
-              currentCard = cardList[currentCardIndex];
-              jq('#card-term').html(currentCard.term);
-              jq('#card-id').html(currentCard.id);
-              jq('#card-content').html(currentCard.content);
-              jq('#card-boc_2').html(currentCard.boc_2);
-              jq('#card-boc_3').html(currentCard.boc_3);
-          }
-      });
-
-      jq('#force-study').on('click', function() {
-        alert("You are entering casual mode, viewing the cards will not count towards your review!")
-        return;
-      });
+      }
+    },
   });
+
+  jq('#forgot-btn').click(function () {
+    jq('#forgot-btn').addClass("selected");
+    jq('#remember-btn').removeClass("selected");
+    jq('#card-extra-content').show();
+    console.log("forgot button active, remember button inactive")
+  });
+
+  jq('#remember-btn').click(function () {
+    jq('#remember-btn').addClass("selected");
+    jq('#forgot-btn').removeClass("selected");
+    jq('#card-extra-content').show();
+    console.log("remember button active, forgot button inactive")
+  });
+
+  jq('#next-btn').on('click', function () {
+    loadNextCard();
+  });
+    
+
+  jq('#force-study').on('click', function () {
+    alert("You are entering casual mode, viewing the cards will not count towards your review!")
+    return;
+  });
+
+  jq('#prev-btn').on('click', function () {
+    // Call the function to load the previous card
+    loadPreviousCard();
+  });
+
+  var touchStartX = null;
+  var touchStartY = null;
+
+
+  jq(document.body).on('touchstart', function (event) {
+    // disable default touch action
+    console.log("touchstart")
+    touchStartX = event.changedTouches[0].clientX;
+
+    
+    touchStartY = event.changedTouches[0].clientY;
+    console.log(touchStartX, touchStartY)
+  });
+
+  jq(document.body).on('touchend', function (event) {
+    var touchEndX = event.changedTouches[0].clientX;
+    var touchEndY = event.changedTouches[0].clientY;
+    var touchDiffX = touchStartX - touchEndX;
+    var touchDiffY = touchStartY - touchEndY;
+    var touchDiffRatio = touchDiffY / touchDiffX;
+    console.log(touchEndX, touchEndY)
+    var swipes = 0;
+    if (touchDiffRatio >= -1 && touchDiffRatio <= 1) {
+
+      // Swipe left or right
+      if (touchDiffX > 0) {
+        // Swipe left
+        if (jq('#forgot-btn').hasClass('selected')) {
+          loadNextCard();
+        } else if (jq('#remember-btn').hasClass('selected')){
+          jq('#remember-btn').removeClass('selected');
+          jq('#forgot-btn').addClass('selected');
+        
+          loadNextCard();
+        }
+        else {
+          jq('#forgot-btn').addClass('selected');
+          jq('#card-extra-content').show();
+        }
+      } else {
+        // Swipe right
+        if (jq('#remember-btn').hasClass('selected')) {
+          loadNextCard();
+        } else if (jq('#forgot-btn').hasClass('selected')){
+        
+          
+          jq('#forgot-btn').removeClass('selected');
+          jq('#remember-btn').addClass('selected');
+          // if remember-btn has class selected, CardC changes colour to green
+          if(jq('#remember-btn').hasClass('selected')){
+            jq('#cardC').css('background-color', 'green !important');
+          }
+          loadNextCard();
+        } else {
+          jq('#remember-btn').addClass('selected');
+          
+          jq('#card-extra-content').show();
+          
+        }
+      }
+    }
+  });
+
+
+  //load next card
+  function loadNextCard() {
+    cardStack.push(currentCard)
+    var card_id = currentCard.id;
+    var csrf_token = jq("input[name='csrf_token']").val();
+
+    if (jq('#remember-btn').hasClass('selected')) {
+      jq.ajax({
+        type: 'POST',
+        url: '/increment/' + card_id,
+        contentType: 'application/x-www-form-urlencoded',
+        headers: { 'X-CSRFToken': csrf_token },
+        success: function (response) {
+          console.log(response);
+        }
+      });
+    }
+
+    else if (jq('#forgot-btn').hasClass('selected')) {
+      jq.ajax({
+        type: 'POST',
+        url: '/decrement/' + card_id,
+        contentType: 'application/x-www-form-urlencoded',
+        headers: { 'X-CSRFToken': csrf_token },
+        success: function (response) {
+          console.log(response);
+        }
+      });
+    }
+
+    jq('#remember-btn').removeClass("selected");
+    jq('#forgot-btn').removeClass("selected");
+    jq('#card-extra-content').hide();
+
+    cardList.splice(currentCardIndex, 1); // remove the current card from list
+    currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
+
+    if (cardList.length === 0) {
+      cardsDue = cardList.length;
+      jq("#force-study").show();
+      jq("#contain-main").hide();
+      jq('#cards-due').html(cardsDue);
+      jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
+      return;
+
+    } else {
+      currentCard = cardList[currentCardIndex];
+      cardsDue = cardList.length;
+      jq('#cards-due').html(cardsDue);
+      jq('#card-term').html(currentCard.term);
+      jq('#card-id').html(currentCard.id);
+      jq('#card-content').html(currentCard.content);
+      jq('#card-boc_2').html(currentCard.boc_2);
+      jq('#card-boc_3').html(currentCard.boc_3);
+    }
+  }
+
+  function loadPreviousCard() {
+    // Pop the top card from the stack to go back to the previous card
+    if (cardStack.length == 0) {
+      alert("No previous cards");
+    }
+
+    var previousCard = cardStack.pop();
+
+    if (previousCard) {
+      // If there is a previous card on the stack, switch to it
+      currentCard = previousCard;
+
+      // Add the current card back to the list and re-sort the list
+      cardList.push(currentCard);
+      cardList.sort(function (a, b) {
+        return a.due_date - b.due_date;
+      });
+      currentCardIndex = cardList.indexOf(currentCard);
+
+      // Update the card content on the page
+      jq('#card-term').html(currentCard.term);
+      jq('#card-id').html(currentCard.id);
+      jq('#card-content').html(currentCard.content);
+      jq('#card-boc_2').html(currentCard.boc_2);
+      jq('#card-boc_3').html(currentCard.boc_3);
+    }
+  }
+  });
+
+
 </script>
 
 {% endblock %} {% block main_0 %}
 
 
-<p id="no-cards"></p>
-<a href = "/casualmode/{{deck}}" id="force-study" style="display: none">Study anyway</a>
-<div class="row">
-  <a href="/viewdecks" class="btn box_warning eq_buttons ml-5" style="max-width: 300px"> Return to decks</a>
-</div>
-<div class="container mt-1 p-1">
-  <div class="col-8-md mx-auto box_0 p-1 border-0 mw1">
-    <div class="card m-1 bg-light"style="border-radius:15px">
-      <div class = "col-6-md mx-auto">
-      <div id="card-container mx-auto" style = "min-height: 300px; width: 300px;">
-        <div class="card-body mt-1" style="border-radius:15px">
-          <h3 class="card-title border-0 input_0 form-control form-control-lg m-1" id="card-term"></h3>
-          <div id="card-id" style="display: none"></div>
-          <!-- Card term will be inserted here -->
-        
+<div class="d-flex align-items-center justify-content-center">
+  <div style="max-width:700px">
+    <div class="row m-3">
+      <div class="col-3 d-flex align-items-center justify-content-center h-100">
+
+        <a href="/viewdecks">
+          <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
+            class="" title="Return to decks">
+        </a>
+
+
+
       </div>
- <div style = "min-height: 200px;">
-      <div class = "box_1 mt-1 p-2" id="card-extra-content" style="display: none">
-        <p id="card-content"></p>
-        <p id="card-boc_2"></p>
-        <p id="card-boc_3"></p>
+      <div class="col-6 d-flex align-items-center justify-content-center h-100">
+        <h4> {{deck0.name}} </h4>
       </div>
-</div>
-  
-      <div class="row my-1">
-        <div class ="col"><button class="btn box_study"  id="forgot-btn">Lost it</button></div>
-        <div class ="col"><button class="btn box_study"  id="remember-btn">Got it</button></div>
-        <div class ="col"><button class="btn box_study" id="next-btn">Next</button></div>
+
+      <div class="col-3 d-flex align-items-center justify-content-center h-100">
+        <h4 id="cards-due"> </h4>
+      </div>
+    </div>
+    <div id="contain-main">
+
+      <div class="container p-1">
+        <div class="col-8-md mx-auto box_0 p-1 border-0 mw1">
+          <div class="card m-1 bg-light p-3 box_study" id="cardC" style="border-radius:15px">
+            <div class="col-6-md mx-auto">
+              <div id="card-container mx-auto " style="min-height: 300px; width: 300px;">
+                <div class="card-body" style="border-radius:15px">
+                  <h3
+                    class="card-title border-0 input_0 form-control form-control-lg m-0 d-flex align-items-center justify-content-center"
+                    id="card-term"></h3>
+                  <div id="card-id" style="display: none"></div>
+                  <!-- Card term will be inserted here -->
+
+                </div>
+                <div style="min-height: 200px;">
+                  <div class="box_1 my-1 p-3" id="card-extra-content" style="display: none">
+                    <p id="card-content"></p>
+                    <p id="card-boc_2"></p>
+                    <p id="card-boc_3"></p>
+                  </div>
+                </div>
+
+                <div class="row my-1">
+                  <div class="d-flex align-items-center justify-content-center">
+                    <div class="col d-flex align-items-center justify-content-center"><button class="btn box_study "
+                        style="width: 120px" id="forgot-btn">Lost it</button></div>
+                    <div class="col d-flex align-items-center justify-content-center"><button class="btn box_study"
+                        style="width: 120px" id="remember-btn">Got it</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="row my-1">
+                  <div class="d-flex align-items-center justify-content-center">
+                  <div class="col d-flex align-items-center justify-content-center"><button class="btn box_study"
+                      style="width: 120px" id="prev-btn">Previous</button></div>
+                  <div class="col d-flex align-items-center justify-content-center"><button class="btn box_study"
+                      style="width: 120px" id="next-btn">Next</button></div>
+                </div></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
+</div>
+</div>
+</div>
+<div class="row d-flex align-items-center justify-content-center">
+  <div class="col-3"></div>
+  <div class="col-6 mx-auto">
+    <div class="row d-flex align-items-center justify-content-center">
+      <p class="d-flex align-items-center justify-content-center" id="no-cards"></p>
+    </div>
+    <div class="row d-flex align-items-center justify-content-center">
+      <a class="btn box_warning eq_buttons ml-5" style="max-width: 300px" href="/casualmode/{{deck}}" id="force-study"
+        style="display: none">Study anyway</a>
     </div>
   </div>
+  <div class="col-3"></div>
+</div>
+</div>
 </div>
 
-{% endblock %} 
+{% endblock %}
 
 // implement later for mobile //on swipe left //card.interval
 should be decremented by 50%, card.time_updated should be updated to current

@@ -84,21 +84,21 @@ block head %} {% endblock %} {% block main_0 %}
               > {{ card.content }}</textarea>
             </div>
             <div class="col ">
-              <div class="row eq_buttons_div no_gutter">
+              <div class="row eq_buttons_div no_gutter align-items-center justify-content-center">
                 <input
                   class="btn box_study eq_buttons "
                   type="submit"
                   value="Save"
                 />
               </div>
-              <div class="row eq_buttons_div no_gutter">
+              <div class="row eq_buttons_div no_gutter align-items-center justify-content-center ">
                 <a
                   href="/regen_def/{{deck.id}}/{{card.id}}"
                   class="btn box_study eq_buttons"
                   >Regenerate</a
                 >
               </div>
-              <div class="row eq_buttons_div no_gutter">
+              <div class="row eq_buttons_div no_gutter align-items-center justify-content-center">
                 <a
                   href="/deletecard/{{deck.id}}/{{card.id}}"
                   class="btn box_warning eq_buttons"
