@@ -90,8 +90,10 @@ class Card(db.Model):
     term = db.Column(db.String(50), nullable=False) 
     # content == Back of card 1
     content = db.Column(db.String(255), nullable=False)
+    ## used for MCQ wrong answers
     boc_2 = db.Column(db.String(255), nullable=True) 
     boc_3 = db.Column(db.String(255), nullable=True) 
+    boc_4 = db.Column(db.String(255), nullable=True)
     img = db.Column(db.String(255), nullable=True) 
     sound = db.Column(db.String(255), nullable=True) 
     boc_id = db.Column(db.Float(10), nullable=True)
@@ -102,7 +104,7 @@ class Card(db.Model):
     times_correct = db.Column(db.Integer, default=0)
     times_correct_row = db.Column(db.Integer, default=0)
     create_method = db.Column(db.String(255), nullable=True)
-    ##time_created = db.Column(datetime.date.today(), server_default=func.now())
+    time_created = db.Column(db.DateTime, default=datetime.utcnow) 
     category = db.Column(db.String(255), nullable=True)
     edited = db.Column(db.Integer, default=0)
     diff_lvl = db.Column(db.Float(100), default=1)
@@ -198,16 +200,17 @@ class Deck(db.Model):
     ## make relational table instead of using user_id?
     user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
     cards = db.relationship('Card', secondary=cards, backref="decks", lazy="select")
-    ##time_created = db.Column(datetime(timezone=True), server_default=func.now())
-   ## time_updated = db.Column(datetime(timezone=True), onupdate=func.now())
-    ##creator = db.Column(db.Integer, db.ForeignKey('user.id')) 
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)   
+    time_updated = db.Column(db.DateTime, default=datetime.utcnow)
+
+    creator = db.Column(db.Integer) 
     public = db.Column(db.Integer, default=0) 
     edited = db.Column(db.Integer, default=0)
     create_method = db.Column(db.String(255), nullable=True)
     category = db.Column(db.String(255), nullable=True)
     times_accessed = db.Column(db.Integer, default=0)
-   ## access_date = db.Column(datetime(timezone=True), onupdate=func.now())
-
+    access_date = db.Column(db.DateTime, default=datetime.utcnow)
+ 
     def force_study(self):
         due_cards = []
         current_time = datetime.now()
@@ -789,7 +792,7 @@ def extract2():
     "People": ("P", "B"),
     "Theories": ("TC", "E"),
     "Cloze": ("C", "F"),
-    "Mcq": ("Q", "A"),
+    "Mcq": ("Q", "A", "W1", "W2", "W3"),
     "Comprehension": ("QC", "AC"),
     }
     form = UploadFileForm()
@@ -820,6 +823,7 @@ def extract2():
         ## create card content, gets outputed as a list of dicts    
         if form.file.data != None:  
             print("file inputted")
+            method = "file upload"
             file = form.file.data
             file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
             file.save(file_loc)
@@ -827,23 +831,29 @@ def extract2():
             
         elif form.text_input.data != None:
             print("text inputted")
+            method = "text input"
             text = form.text_input.data
             print(text)
             terms = small_extract_terms(text, prompt_option, prompt_option2)
 
+        if prompt_option == "Translate":
+            cat = prompt_option2
+        else:
+            cat = prompt_option
             
         deck.user_id = current_user.id
-        x, y = mapping.get(prompt_option, ("T", "D"))
-        if prompt_option != "Mcq":
+        ## need to modify db accordingly
+        if prompt_option == "Mcq":
+            v, w, x, y, z = mapping.get(prompt_option, ("Q", "A", "W1", "W2", "W3"))
             for item in terms:
-                entry = Card(term=item[x].capitalize(), content=add_period(item[y]))
+                entry = Card(category = cat, term=item[v].capitalize(), content=(add_period.item[w]), boc_2=(add_period.item[x]), boc_3=(add_period.item[y]), boc_4=(add_period.item[z]), create_method = method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
-        elif prompt_option == "Mcq":
+        elif prompt_option != "Mcq":
+            x, y = mapping.get(prompt_option, ("T", "D"))
             for item in terms:
-                mcq_string = '##'.join(y)
-                entry = Card(term=item[x].capitalize(), content=item[mcq_string])
+                entry = Card(category = cat, term=item[x].capitalize(), content=add_period.item[y], create_method = method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()                
@@ -857,7 +867,7 @@ def extract2():
         
         return redirect('/carousel/{deck.id}'.format(deck = deck))
     else:
-        print("form not valid`5")
+        print("form not valid")
         print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
 
     return render_template("extract2.html", title="Extract2", form=form)
