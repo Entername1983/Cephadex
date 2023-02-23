@@ -241,6 +241,8 @@ class Deck(db.Model):
                     'content': card.content,
                     'boc_2': card.boc_2,
                     'boc_3': card.boc_3,
+                    'boc_4': card.boc_4,
+                    'category': card.category,
                     'id': card.id,
                     'img': card.img,
                     'sound': card.sound,
@@ -385,7 +387,7 @@ class UploadFileForm(FlaskForm):
     file = FileField("File")
     name = StringField("Deck name", render_kw={"placeholder": "Name your deck"})
     description = StringField("Description", render_kw={"placeholder": "Describe your deck!"})
-    submit = SubmitField("Extract")
+    submit = SubmitField("Extract", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
     prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension')], default='Definitions')
     generate_images = BooleanField('Generate_images')
@@ -399,10 +401,10 @@ class UploadFileForm(FlaskForm):
         ##elif name != '' and deck_list != '':            
         ##    raise ValidationError("You must select an existing deck OR enter a name for a new deck")
     
-    def validate_name(self, name):
-        deck_object = Deck.query.filter_by(name=name.data).first()
-        if deck_object:
-            raise ValidationError("Deck name already exists")
+   ## def validate_name(self, name):
+       ## deck_object = Deck.query.filter_by(name=name.data).first()
+       ## if deck_object:
+##raise ValidationError("Deck name already exists")
         
     
     ##def validate(self):
@@ -517,6 +519,12 @@ def viewdecks():
                 decks = sorted(decks, key=lambda deck: deck.qty_cards_due())
             elif sort_method == "cards_due_desc":
                 decks = sorted(decks, key=lambda deck: deck.qty_cards_due(), reverse=True) 
+            elif sort_method == "category_asc":
+                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.category.asc()).all()
+            elif sort_method == "create_time_asc":
+                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.asc()).all()
+            elif sort_method == "create_time_dsc":
+                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.desc()).all()
                 
         
         elif search_query:
@@ -774,17 +782,7 @@ def generate_img(deck_id):
 @app.route("/extract2", methods = ["GET", "POST"])
 @login_required
 def extract2():
-    lang_dict = {
-        "Chinese": "CH",
-        "English": "EN",
-        "French": "FR",
-        "German": "DE",
-        "Japanese": "JP",
-        "Spanish": "SP",
-        "Klingon": "KL",
-        "Dothraki": "DO",
-    }
-    
+
     mapping = {
     "Definitions": ("T", "D"),
     "Translate": ("T", "TR"),
@@ -846,14 +844,14 @@ def extract2():
         if prompt_option == "Mcq":
             v, w, x, y, z = mapping.get(prompt_option, ("Q", "A", "W1", "W2", "W3"))
             for item in terms:
-                entry = Card(category = cat, term=item[v].capitalize(), content=(add_period.item[w]), boc_2=(add_period.item[x]), boc_3=(add_period.item[y]), boc_4=(add_period.item[z]), create_method = method)
+                entry = Card(category = cat, term=item[v].capitalize(), content=(add_period(item[w])), boc_2=(add_period(item[x])), boc_3=(add_period(item[y])), boc_4=(add_period(item[z])), create_method = method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option != "Mcq":
             x, y = mapping.get(prompt_option, ("T", "D"))
             for item in terms:
-                entry = Card(category = cat, term=item[x].capitalize(), content=add_period.item[y], create_method = method)
+                entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y]), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()                

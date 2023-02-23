@@ -10,7 +10,7 @@
       <div class="row justify-content-end">
         <div class="col-auto">
           <label class="sr-only" for="search-deck-name">Search Decks</label>
-          <input type="text" class="form-control mb-2" id="search-deck-name" style="max-width:300px" name="search"
+          <input type="text" class="form-control mb-2 box_study" id="search-deck-name" style="max-width:300px" name="search"
             placeholder="Search decks by name" value="{{ request.args.get('search', '') }}">
         </div>
         <div class="col-auto">
@@ -27,6 +27,9 @@
                 <option value="name_desc">Name (Z to A)</option>
                 <option value="cards_due_asc">Cards Due (Low to High)</option>
                 <option value="cards_due_desc">Cards Due (High to Low)</option>
+                <option value="category_asc">Category (A to Z)</option>
+                <option value="create_time_asc">Date created (earliest first)</option>
+                <option value="create_time_dsc">Date created (latest first)</option>
               </select>
             </div>
           </form>
