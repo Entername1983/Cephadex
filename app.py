@@ -168,20 +168,19 @@ class Card(db.Model):
     def decrement(self):
         self.times_asked = self.times_asked + 1
         self.times_correct_row = 0
-        if self.box_id == 0:
-            self.interval = 1
-        if self.box_id == 2:
-            self.box_id = 1
-        if self.box_id == 3:
-            self.box_id == 2
         if self.box_id == 1:
-            self.interval = self.interval / 2
+            self.interval = self.interval * 0.5
         if self.box_id == 2:
             self.interval - self.interval * 0.8
         if self.box_id == 3:
             self.interval - self.interval * 0.9
+            
         if not self.box_id == 1 and self.interval < 5:
             self.interval = 5
+            
+        if self.box_id > 0:
+            self.box_id = self.box_id-1; 
+             
         db.session.commit()
     
     def reset_interval(self):
@@ -464,7 +463,7 @@ def login():
     form = LoginForm()
     app.logger.info('0')
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter(User.username.ilike(form.username.data)).first()
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)

@@ -38,7 +38,7 @@
   });
 
   jq(document).on('dblclick', function () {
-    console.log("you double clicked")();
+    console.log("you double clicked");
 
     if (currentCard.category == 'Mcq') {
 
@@ -142,16 +142,7 @@
         // if swipe up load next card
         if (touchDiffY < 0) {
           console.log("swipe down")
-          if (jq('#A-btn').hasClass('selected')) {
-            loadNextCard();
-          }
-          else if (jq('#B-btn').hasClass('selected')) {
-            loadNextCard();
-          }
-          else if (jq('#C-btn').hasClass('selected')) {
-            loadNextCard();
-          }
-          else if (jq('#D-btn').hasClass('selected')) {
+          if (jq('#A-btn, #B-btn, #C-btn, #D-btn').hasClass('selected')) {
             loadNextCard();
           }
         }
