@@ -1,3 +1,4 @@
 *.env
 creds.py
 api.txt
+__pycache__/*
