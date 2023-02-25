@@ -876,19 +876,60 @@ def carousel(deck_id):
     
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-    if request.method == 'POST':
-        print("entered post request")
+
+    if request.method == 'POST' and 'term' in request.form:
+        print("entered post request3")
         term = request.form['term'] ## new term for card
         content = request.form['content'] ## new content for card
         id = request.form['id'] ## id of card to be edited
+        print(id)
         card = Card.query.filter_by(id=id).first()
         if term != "":
             card.term = term
         if content != "":
             card.content = content
         db.session.commit()
+    
+    if request.method == 'POST' and 'new_term' in request.form:
+        print("entered post request for adding new card")
+        term = request.form['new_term']
+        content = request.form['new_content']
+        boc_2 = request.form['new_boc_2']
+        boc_3 = request.form['new_boc_3']
+        boc_4 = request.form['new_boc_4']
+        category = request.form['new_category']
+        time_created = datetime.now()
+        entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category, time_created=time_created)
+        deck.cards.append(entry)
+        db.session.commit()
         
-        
-    return render_template("carousel.html", title="Carousel", deck=deck, cards=cards)  
+    
+    
+    return render_template("carousel.html", title="Carousel", deck=deck, cards=cards) 
+
+@app.route("/add_new_card/<int:deck_id>", methods = ["GET", "POST"])
+def add_new_card(deck_id):
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    if request.method == 'POST':
+        term = request.form['term'] 
+        content = request.form['content']
+        boc_2 = request.form['boc_2']
+        boc_3 = request.form['boc_3']
+        boc_4 = request.form['boc_4']
+        category = request.form['category']
+        create_date = datetime.now()
+        entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category, create_date=create_date)
+        db.session().add(entry)
+        deck.cards.append(entry)
+        db.session.commit()
+    if request.method == 'POST' and "new-card" in request.form:
+        id = request.form['id']
+        card = Card.query.filter_by(id=id).first()
+        db.session.delete(card)
+        db.session.commit()
+
+    return render_template("add_new_card.html", title="Add New Card", deck=deck)
+
+
 if __name__ == "__main__":
     app.run(debug=True)
