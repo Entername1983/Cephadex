@@ -17,6 +17,7 @@
     var mcq_guess_counter = 0;
 
     // Load Deck due cards on load page 
+    console.log(deckId)
     jq.ajax({
       type: 'GET',
       url: '/get-due-cards/' + deckId,
@@ -246,11 +247,11 @@
 
         if (cardList.length === 0) 
         {
+          location.reload(true);
           cardsDue = cardList.length;
           jq("#force-study").show();
           jq("#contain-main").hide();
           jq('#cards-due').html(cardsDue);
-          jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
 
           return;
 

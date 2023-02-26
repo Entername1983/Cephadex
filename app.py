@@ -21,6 +21,7 @@ import sys
 from sqlalchemy.sql import func
 import logging
 import logging.handlers
+import json
 from datetime import datetime, timedelta
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -389,16 +390,41 @@ class UploadFileForm(FlaskForm):
     description = StringField("Description", render_kw={"placeholder": "Describe your deck!"})
     submit = SubmitField("Extract", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension')], default='Definitions')
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension'), ('Vocab_builder', 'Vocabulary builder')], default='Definitions')
     generate_images = BooleanField('Generate_images')
-    languages = SelectField('Languages', choices=[('French', 'French'), ('English', 'English'), ('Spanish', 'Spanish'), ('Chinese', 'Chinese'), ('German', 'German'), ('Portuguese', 'Portuguese'), ('Japanese', 'Japanese'), ('Swahili', 'Swahili'), ('Dutch', 'Dutch'), ('Russian', 'Russian'), ('Klingon', 'Klingon'), ('Dothraki', 'Dothraki')], default = None)
+    languages = SelectField('Languages', choices=[("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
+                                                  ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
+                                                  ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
+                                                  ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
+                                                  ("Italian", "Italian"), ("Japanese", "Japanese"), ("Korean", "Korean"), ("Klingon", "Klingon"),
+                                                  ("Latvian", "Latvian"), ("Lithuanian", "Lithuanian"), ("Malay", "Malay"), ("Norwegian", "Norwegian"),
+                                                  ("Polish", "Polish"), ("Portuguese", "Portuguese"), ("Romanian", "Romanian"), ("Russian",  "Russian"),
+                                                  ("Spanish", "Spanish"), ("Serbian", "Serbian"), ("Swahili", "Swahili"), ("Swedish", "Swedish"),
+                                                  ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
+                                                  ( "Vietnamese", "Vietnamese")], default = None)
+    
     text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
     link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional(), URL()])
-    qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Min. amount of items"})
-    qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Max. amount of items"})
-    subject = SelectField('Subject', choices=[("", 'Select subject'), ('Math', 'Math'), ('Science', 'Science'), ('History', 'History'), ('Literature', 'Literature'), ('Geography', 'Geography'), ('Computer Science', 'Computer Science'), ('Physics', 'Physics'), ('Chemistry', 'Chemistry'), ('Biology', 'Biology')], default = None)
-    length = SelectField('Length', choices=[("", "Brief/Detailed?"), ('Detailed', 'Detailed'), ('Brief', 'Brief')], default = None)
-    main_lang = SelectField('Main Language', choices=[("", "Select output language"), ('French', 'French'), ('English', 'English'), ('Spanish', 'Spanish'), ('Chinese', 'Chinese'), ('German', 'German'), ('Portuguese', 'Portuguese'), ('Japanese', 'Japanese'), ('Swahili', 'Swahili'), ('Dutch', 'Dutch'), ('Russian', 'Russian'), ('Klingon', 'Klingon'), ('Dothraki', 'Dothraki')], default = None)
+    qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Min. items per page"})
+    qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Max. items per page"})
+    subject = SelectField('Subject', choices=[("", 'Select subject'),('Art', 'Art'), ('Anatomy', 'Anatomy'), ('Astron', 'Astronomy'), ('Bus', 'Business'), 
+                                              ('Bio', 'Biology'), ('Chem', 'Chemistry'), ('CS', 'Computer Science'), ('Econ', 'Economics'), 
+                                              ('Eng', 'Engineering'), ('Film', 'Film'), ('Geo', 'Geography'), ('Hist', 'History'), 
+                                              ('Lit', 'Literature'), ('Law', 'Law'),
+                                              ('Math', 'Math'), ('Music', 'Music'), ('Med', 'Medecine'), 
+                                              ('Politics', 'Politics'), ('Physics', 'Physics'), ('Psych', 'Psychology'), ('Phil', 'Philosophy'), ('Phys', 'Physiology'),
+                                              ('Science', 'Science'), ('Soc', 'Sociology'),], default = None)
+    length = SelectField('Length', choices=[("", "Content length"), ('long', 'Long'), ('short', 'Short')], default = None)
+    main_lang = SelectField('Main Language', choices=[("", "Select output language"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
+                                                  ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
+                                                  ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
+                                                  ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
+                                                  ("Italian", "Italian"), ("Japanese", "Japanese"), ("Korean", "Korean"), ("Klingon", "Klingon"),
+                                                  ("Latvian", "Latvian"), ("Lithuanian", "Lithuanian"), ("Malay", "Malay"), ("Norwegian", "Norwegian"),
+                                                  ("Polish", "Polish"), ("Portuguese", "Portuguese"), ("Romanian", "Romanian"), ("Russian",  "Russian"),
+                                                  ("Spanish", "Spanish"), ("Serbian", "Serbian"), ("Swahili", "Swahili"), ("Swedish", "Swedish"),
+                                                  ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
+                                                  ( "Vietnamese", "Vietnamese")], default = None)
     
     ##def validate_deck_list(self, name, deck_list):
        ## if name == '' and deck_list == '':            
@@ -730,8 +756,20 @@ def get_due_cards(deck_id):
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 def study_deck(deck_id):
     deck = Deck.query.get(deck_id)
-    return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck)       
+    return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck) 
 
+@app.route("/study_deck_all", methods = ["POST", "GET"])   
+@login_required   
+def study_deck_all():
+    ## loads all decks for a user
+    
+    ## get list of decks for user with id user id
+    decks = Deck.query.filter(Deck.user_id == current_user.id).all()
+    print(decks)
+    decks_data = [{'id': deck.id} for deck in decks]
+    decks_json = json.dumps(decks_data)
+    print(decks_json)
+    return render_template('study_deck_all.html', title='Study all decks', decks_json=decks_json)
 
 @app.route("/increment/<card_id>", methods = ["POST", "GET"])
 def increment(card_id):
