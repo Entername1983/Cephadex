@@ -2,6 +2,43 @@
 %}
 
 {% endblock %} {% block main_0 %}
+<script>
+    $(document).ready(function() {
+        var deck_id = {{deck.id}};
+        // When the "Save" button is clicked
+        $('#saveButton').click(function() {
+      
+          // Get the form data
+          var formData = $('#newCardForm').serialize();
+          var newTerm = $('#new_term').val();
+          console.log(newTerm);
+          // Send the form data to the Flask app using AJAX
+          $.ajax({
+            type: 'POST',
+            url: '/add_new_card/' + deck_id,
+            data: formData,
+            success: function(response) {
+              // Reset the form fields
+              $('#addCardMessage').text('Card "' + newTerm + '" created successfully.')
+              $('#newCardForm')[0].reset();
+            },
+            error: function(response) {
+              alert('An error occurred while saving the card.');
+            }
+          });
+      
+          // Keep the modal open
+          return false;
+        });
+        $('#closeButton').click(function() {
+            $('#addCardMessage').text('')
+          });
+      });
+  </script>
+
+
+
+
 <a href="/viewdecks" class="m-3">
     <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
         title="Return to decks">
@@ -99,7 +136,7 @@
                                         </a>
                                     </div>
                                     <div class=" col-4 text-center align-items-center justify-content-center">
-                                        <a href="#"
+                                        <a href="/deletecard/{{deck.id}}/{{card.id}}"
                                             onclick="if (confirm('Are you sure you want to delete this card?')) { window.location.href = '/deletecard/{{deck.id}}/{{card.id}}'; }">
                                             <img src="\static\delete-icon.png" alt="Delete"
                                                 style="max-width:30px;max-height:30px;" class="px-1" title="Delete">
@@ -227,27 +264,29 @@
           <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
+          
         </div>
+        <div class = "m-2" id="addCardMessage"></div>
         <div class="modal-body">
-<form action = "" method = "post" onsubmit="event.preventDefault();">
+<form id="newCardForm" action = "" method = "post">
 
     <div class="row mt-1">
 
-    <input name = "new_term" type = "text" id = "new_term" placeholder = "Term" />
+    <input class = "box_study" name = "new_term" type = "text" id = "new_term" placeholder = "Term" />
 </div>
 <div class="row mt-1">
-    <input name = "new_content" type = "text" id = "new_content" placeholder = "Content" />
+    <input class = "box_study" name = "new_content" type = "text" id = "new_content" placeholder = "Main content" />
 </div>
 <div class="row mt-1">
-    <input name = "new_boc_2" type = "text" id = "new_boc_2" placeholder = "Boc_2" />
+    <input class = "box_study" name = "new_boc_2" type = "text" id = "new_boc_2" placeholder = "Optional content" />
 </div>
 <div class="row mt-1">
-    <input name = "new_boc_3" type = "text" id = "new_boc_3" placeholder = "Boc_3" />
+    <input class = "box_study" name = "new_boc_3" type = "text" id = "new_boc_3" placeholder = "Optional content" />
 </div>
 <div class="row mt-1">
-    <input name = "new_boc_4" type = "text" id = "new_boc_4" placeholder = "Boc_4" />
+    <input class = "box_study" name = "new_boc_4" type = "text" id = "new_boc_4" placeholder = "Optional content" />
 </div>
-<div class="row mt-1">
+<div class="row mt-1 box_study">
     <select name="new_category">
         <option value="" selected>Choose a card type</option>
         <option value="Definitions">Definitions</option>
@@ -263,9 +302,8 @@
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <input type="image" src="\static\save-outline-icon.png"
-          style="max-width:30px;max-height:30px;" name="edit-card" value="Save" />
+          <input type="image" id="saveButton" src="\static\save-outline-icon.png"
+          style="max-width:30px;max-height:30px;" name="edit-card" value="Save"/>
 </form>          
         </div>
       </div>

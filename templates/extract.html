@@ -13,15 +13,16 @@ main_0 %}
       {{form.hidden_tag()}}
       <div class="row m-2">
         <div>
-            <h5>Select an existing deck to add to:</h5>{{form.deck_list (class="border-0 form-control-lg")}}
+          <h5>Select an existing deck to add to:</h5>
+          {{form.deck_list (class="border-0 form-control-lg")}}
         </div>
-        <h5> Or create a new deck:</h5>
+        <h5>Or create a new deck:</h5>
         <div class="col-6">
           <h5>Deck name:</h5>
           {{form.name (class="form-control form-control-lg")}}
           <ul>
             {% for error in form.name.errors %}
-            <li> {{ error }}</li>
+            <li>{{ error }}</li>
             {% endfor %}
           </ul>
         </div>
@@ -30,13 +31,13 @@ main_0 %}
           {{form.description (class="form-control form-control-lg")}}
         </div>
       </div>
-      <div class = "row">
-        <h5> Select the type of cards you want to create:</h5>
-        <div class = "row">
-
-        <p>{% for subfield in form.prompt %}
-        {{ subfield }} {{ subfield.label }}
-        {% endfor %}</p>
+      <div class="row">
+        <h5>Select the type of cards you want to create:</h5>
+        <div class="row">
+          <p>
+            {% for subfield in form.prompt %} {{ subfield }} {{ subfield.label
+            }} {% endfor %}
+          </p>
         </div>
       </div>
       <div class="row m-2">
@@ -45,7 +46,6 @@ main_0 %}
           {{form.file(class="form-control form-control-lg")}}
         </div>
         <div class="col-6">
-
           {{form.submit(class="form-control form-control-lg box_0 mt-4")}}
         </div>
       </div>

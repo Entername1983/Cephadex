@@ -1,30 +1,32 @@
-{% extends "layout.html" %} {% block title %} Extractor {% endblock %} 
+{% extends "layout.html" %} {% block title %} Extractor {% endblock %}
 {% block main_0 %}
 <script>
     function showSpinner() {
-      document.getElementById("extract-spinner").style.display = "inline-block";
+        document.getElementById("extract-spinner").style.display = "inline-block";
     }
-    </script>
+</script>
 
 <h3 class="p-3 d-none d-md-block"> Generate cards in 3 easy steps!</h3>
-<div class="col-11 mx-auto box_0 my-3 p-4" style ="border-radius: 5px;">
-    <form method="POST" action="{{url_for('extract2')}}" enctype="multipart/form-data", onsubmit="showSpinner()">
+<div class="col-11 mx-auto box_0 my-3 p-4" style="border-radius: 5px;">
+    <form method="POST" action="{{url_for('extract2')}}" enctype="multipart/form-data" , onsubmit="showSpinner()">
         {{form.hidden_tag()}}
         {{ form.csrf_token }}
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
             <li class="nav-item " role="presentation">
                 <button class="nav-link active box_study " id="extract-input-tab" data-bs-toggle="pill"
                     data-bs-target="#extract-input" type="button" role="tab" aria-controls="extract-input"
-                    aria-selected="true"  style = "font-size: 20px !important"> 1 - What goes in?</button>
+                    aria-selected="true" style="font-size: 20px !important"> 1 - What goes in?</button>
             </li>
             <li class="nav-item " role="presentation">
-                <button class="nav-link box_study" id="extract-output-tab" data-bs-toggle="pill" data-bs-target="#extract-output"
-                    type="button" role="tab" aria-controls="extract-output" aria-selected="false" style = "font-size: 20px !important"> 2 - What comes
+                <button class="nav-link box_study" id="extract-output-tab" data-bs-toggle="pill"
+                    data-bs-target="#extract-output" type="button" role="tab" aria-controls="extract-output"
+                    aria-selected="false" style="font-size: 20px !important"> 2 - What comes
                     out?</button>
             </li>
             <li class="nav-item " role="presentation">
-                <button class="nav-link box_study" id="extract-name-tab" data-bs-toggle="pill" data-bs-target="#extract-name"
-                    type="button" role="tab" aria-controls="extract-name" aria-selected="false"  style = "font-size: 20px !important"> 3 - What it's
+                <button class="nav-link box_study" id="extract-name-tab" data-bs-toggle="pill"
+                    data-bs-target="#extract-name" type="button" role="tab" aria-controls="extract-name"
+                    aria-selected="false" style="font-size: 20px !important"> 3 - What it's
                     called?</button>
             </li>
 
@@ -41,8 +43,9 @@
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes" id="headingOne">
                                 <h5 class="mb-0">
-                                    <button type = "button" class="btn" data-bs-toggle="collapse" data-bs-target="#collapseOne"
-                                        aria-expanded="true" aria-controls="collapseOne" style="width:100%">
+                                    <button type="button" class="btn" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
+                                        style="width:100%">
                                         Upload a file (ppt, pdf, doc, txt)
                                     </button>
                                 </h5>
@@ -60,15 +63,17 @@
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes" id="headingTwo">
                                 <h5 class="mb-0">
-                                    <button type = "button" class="btn collapsed" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" style="width:100%">
+                                    <button type="button" class="btn collapsed" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
+                                        style="width:100%">
                                         Paste some text</button>
                                 </h5>
                             </div>
                             <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
                                 data-bs-parent="#accordion">
                                 <div class="card-body extract-boxes1">
-                                    {{form.text_input(class="form-control form-control-lg box_study full-w", style="height:100%, width:100%" )}}
+                                    {{form.text_input(class="form-control form-control-lg box_study full-w",
+                                    style="height:100%, width:100%" )}}
 
 
                                 </div>
@@ -77,7 +82,7 @@
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes" id="headingThree">
                                 <h5 class="mb-0">
-                                    <button type = "button" class="btn collapsed" data-bs-toggle="collapse"
+                                    <button type="button" class="btn collapsed" data-bs-toggle="collapse"
                                         data-bs-target="#collapseThree" aria-expanded="false"
                                         aria-controls="collapseThree" style="width:100%">
                                         Insert a link (coming soon)</button>
@@ -95,44 +100,98 @@
             </div>
 
             <! SECTION ON HOW>
-                <div class="tab-pane fade extract-boxes1 p-3" id="extract-output" role="tabpanel" aria-labelledby="extract-output-tab">
-
-
+                <div class="tab-pane fade extract-boxes1 p-3" id="extract-output" role="tabpanel"
+                    aria-labelledby="extract-output-tab">
+                    <div id="accordion1">
+                        <div class="card extract-boxes">
+                            <div class="card-header extract-boxes " id="headingOne">
                                 <h5 class="mb-0">
-
-                                        Select type of card to create:
+                                    <button type="button" class="btn" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseOne" aria-expanded="true" style="width:100%"
+                                        aria-controls="collapseOne">
+                                        Select type of card to create: </button>
                                 </h5>
-<br>
+                            </div>
+                            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                                data-bs-parent="#accordion2">
+                                <div class="card-body extract-boxes1">
 
-<br>
-                                <p>
-                                    {% for subfield in form.prompt %}
-                                    {{ subfield }} {{ subfield.label }}
-                                    {% endfor %}
-                                </p>
-                                
-                                <p> Generate images {{ form.generate_images }} (generating images can significantly affect processing time)</p>
+                                    <p>
+                                        {% for subfield in form.prompt %}
+                                        {{ subfield }} {{ subfield.label }}
+                                        {% endfor %}
+                                    </p>
 
-                                <div class="extract-boxes" id="language-select" style="display: none;">
 
-                                    {{form.languages (class="border-0 form-control-lg")}}
+
+                                    <div class="extract-boxes" id="language-select" style="display: none;">
+
+                                        {{form.languages (class="border-0 form-control-lg")}}
+                                    </div>
+
+                                    <script type="text/javascript">
+                                        $(document).ready(function () {
+                                            $('input[name="prompt"]').change(function () {
+                                                if ($(this).val() === 'Translate') {
+                                                    $('#language-select').show();
+                                                } else {
+                                                    $('#language-select').hide();
+                                                }
+                                            });
+                                        });
+                                    </script>
+
+
                                 </div>
-                            
-                            <script type="text/javascript">
-                                $(document).ready(function () {
-                                    $('input[name="prompt"]').change(function () {
-                                        if ($(this).val() === 'Translate') {
-                                            $('#language-select').show();
-                                        } else {
-                                            $('#language-select').hide();
-                                        }
-                                    });
-                                });
-                            </script>
-                        
-                  
-                   
+                            </div>
+                        </div>
+
+                        <div class="card extract-boxes">
+                            <div class="card-header extract-boxes" id="headingTwo">
+                                <h5 class="mb-0">
+                                    <button type="button" class="btn collapsed" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
+                                        style="width:100%">
+                                        ADvanced options </button>
+                                </h5>
+                            </div>
+                            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                                data-bs-parent="#accordion2">
+                                <div class="card-body extract-boxes1">
+
+
+                                    <div class="row m-1">
+                                        {{ form.qmin_option(class="border-0 form-control-lg")}}
+                                    </div>
+                                    <div class="row m-1">
+                                        {{ form.qmax_option(class="border-0 form-control-lg")}}
+                                    </div>
+
+                                    <div class="row m-1">
+                                        {{ form.subject(class="border-0 form-control-lg")}}
+                                    </div>
+                                    <div class="row m-1">
+                                        {{ form.length(class="border-0 form-control-lg")}}
+                                    </div>
+
+                                    <div class="row m-1">
+                                        {{ form.main_lang(class="border-0 form-control-lg")}}
+                                    </div>
+                                    <div class="row m-1">
+                                        <p> Generate images {{ form.generate_images}} (generating images can
+                                            significantly
+                                            affect processing time)</p>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
                 </div>
+
 
 
                 <div class="tab-pane fade p-3" id="extract-name" role="tabpanel" aria-labelledby="extract-name-tab">
@@ -143,8 +202,9 @@
                             <div class="card extract-boxes">
                                 <div class="card-header extract-boxes " id="headingOne">
                                     <h5 class="mb-0">
-                                        <button type = "button" class="btn" data-bs-toggle="collapse" data-bs-target="#collapseOne"
-                                            aria-expanded="true" style="width:100%" aria-controls="collapseOne">
+                                        <button type="button" class="btn" data-bs-toggle="collapse"
+                                            data-bs-target="#collapseOne" aria-expanded="true" style="width:100%"
+                                            aria-controls="collapseOne">
                                             New deck </button>
                                     </h5>
                                 </div>
@@ -154,7 +214,7 @@
                                     <div class="card-body extract-boxes1">
                                         {{form.name (class="form-control form-control-lg box_study")}}
 
-<br>
+                                        <br>
                                         {{form.description (class="form-control form-control-lg box_study")}}
 
                                     </div>
@@ -163,7 +223,7 @@
                             <div class="card extract-boxes">
                                 <div class="card-header extract-boxes" id="headingTwo">
                                     <h5 class="mb-0">
-                                        <button type = "button" class="btn collapsed" data-bs-toggle="collapse"
+                                        <button type="button" class="btn collapsed" data-bs-toggle="collapse"
                                             data-bs-target="#collapseTwo" aria-expanded="false"
                                             aria-controls="collapseTwo" style="width:100%">
                                             Existing deck </button>
@@ -172,7 +232,8 @@
                                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
                                     data-bs-parent="#accordion2">
                                     <div class="card-body extract-boxes1">
-                                        {{form.deck_list (class=" form-control form-control-lg full-w box_study", placeholder="Select a deck")}}
+                                        {{form.deck_list (class=" form-control form-control-lg full-w box_study",
+                                        placeholder="Select a deck")}}
 
 
 
@@ -182,18 +243,18 @@
 
                         </div>
                 </div>
-                <div class = "row justify-content-end">
-                    <div class = "col d-flex justify-content-end">
-                <div class="spinner-border m-4" id = "extract-spinner" role="status" style="display:none">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
+                <div class="row justify-content-end">
+                    <div class="col d-flex justify-content-end">
+                        <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
 
-                  {{form.submit(class="form-control form-control-lg m-2 box_study", style = "max-width: 200px")}}      
+                        {{form.submit(class="form-control form-control-lg m-2 box_study", style = "max-width: 200px")}}
+                    </div>
                 </div>
         </div>
-    </div>
-        
-    
+
+
 
     </form>
 

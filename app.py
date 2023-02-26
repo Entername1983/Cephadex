@@ -202,7 +202,6 @@ class Deck(db.Model):
     cards = db.relationship('Card', secondary=cards, backref="decks", lazy="select")
     time_created = db.Column(db.DateTime, default=datetime.utcnow)   
     time_updated = db.Column(db.DateTime, default=datetime.utcnow)
-
     creator = db.Column(db.Integer) 
     public = db.Column(db.Integer, default=0) 
     edited = db.Column(db.Integer, default=0)
@@ -221,6 +220,8 @@ class Deck(db.Model):
                 'content': card.content,
                 'boc_2': card.boc_2,
                 'boc_3': card.boc_3,
+                'boc_4': card.boc_4,
+                'category': card.category,
                 'id': card.id,
                 'img': card.img,
                 'sound': card.sound,
@@ -235,7 +236,7 @@ class Deck(db.Model):
         current_time = datetime.now()
         for card in self.cards:
             time_diff = (current_time - card.time_updated).total_seconds() / 60
-            if time_diff >= card.interval:
+            if (time_diff + 1440)>= card.interval:
                 due_cards.append({
                     'term': card.term,
                     'content': card.content,
@@ -256,7 +257,7 @@ class Deck(db.Model):
         current_time = datetime.now()
         for card in self.cards:
             time_diff = (current_time - card.time_updated).total_seconds() / 60
-            if time_diff >= card.interval:
+            if (time_diff + 1440) >= card.interval:
                 due_cards = due_cards + 1
         return due_cards
     
@@ -394,6 +395,11 @@ class UploadFileForm(FlaskForm):
     languages = SelectField('Languages', choices=[('French', 'French'), ('English', 'English'), ('Spanish', 'Spanish'), ('Chinese', 'Chinese'), ('German', 'German'), ('Portuguese', 'Portuguese'), ('Japanese', 'Japanese'), ('Swahili', 'Swahili'), ('Dutch', 'Dutch'), ('Russian', 'Russian'), ('Klingon', 'Klingon'), ('Dothraki', 'Dothraki')], default = None)
     text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
     link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional(), URL()])
+    qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Min. amount of items"})
+    qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Max. amount of items"})
+    subject = SelectField('Subject', choices=[("", 'Select subject'), ('Math', 'Math'), ('Science', 'Science'), ('History', 'History'), ('Literature', 'Literature'), ('Geography', 'Geography'), ('Computer Science', 'Computer Science'), ('Physics', 'Physics'), ('Chemistry', 'Chemistry'), ('Biology', 'Biology')], default = None)
+    length = SelectField('Length', choices=[("", "Brief/Detailed?"), ('Detailed', 'Detailed'), ('Brief', 'Brief')], default = None)
+    main_lang = SelectField('Main Language', choices=[("", "Select output language"), ('French', 'French'), ('English', 'English'), ('Spanish', 'Spanish'), ('Chinese', 'Chinese'), ('German', 'German'), ('Portuguese', 'Portuguese'), ('Japanese', 'Japanese'), ('Swahili', 'Swahili'), ('Dutch', 'Dutch'), ('Russian', 'Russian'), ('Klingon', 'Klingon'), ('Dothraki', 'Dothraki')], default = None)
     
     ##def validate_deck_list(self, name, deck_list):
        ## if name == '' and deck_list == '':            
@@ -663,9 +669,15 @@ def account():
 @app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
 @login_required
 def deletecard(card_id, deck_id):
+    print("card to delete")
+    print(card_id)
+    print("from deck")
+    print(deck_id)
     card_to_delete = Card.query.get_or_404(card_id)
-    db.session.delete(card_to_delete)
-    db.session.commit()
+    if card_to_delete != None:
+        db.session.delete(card_to_delete)
+        db.session.commit()
+
     return redirect(("/carousel/{deck}").format(deck=deck_id))  
 
 @app.route("/addterms/<int:deck_id>", methods = ["POST", "GET"])
@@ -794,17 +806,37 @@ def extract2():
     "Comprehension": ("QC", "AC"),
     }
     form = UploadFileForm()
+    ## prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option
+    prompt_option2 = None
+    lang_option = None
+    trans_option = None
+    len_option = None
+    qmin_option = None
+    qmax_option = None
+    
     if form.validate_on_submit():
         print("form submitted")
         ## load type of card to be made to prompt_option
         if form.prompt.data != None:       
             prompt_option = form.prompt.data
-        ## load optional secondary option, currently only useful for languages    
+        ## load translate option  
         if form.languages.data != None:    
-            prompt_option2 = form.languages.data    
-             
+            trans_option = form.languages.data    
         if form.prompt.data != "Translate":
-            prompt_option2 = None         
+            trans_option = None
+        ## load secondary prompt option
+        if form.subject.data:
+            prompt_option2 = form.subject.data
+        ## load language output option (defaults to English)
+        if form.main_lang.data:
+            lang_option = form.main_lang.data
+        if form.length.data:
+            len_option = form.length.data
+        if form.qmin_option.data:
+            qmin_option = form.qmin_option.data
+        if form.qmax_option.data:
+            qmax_option = form.qmax_option.data
+                 
         
         ## use existing deck or create a new one
         if form.deck_list.data != None:
@@ -825,14 +857,14 @@ def extract2():
             file = form.file.data
             file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
             file.save(file_loc)
-            terms = card_creator(file_loc, prompt_option, prompt_option2)
+            terms = card_creator(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
             
         elif form.text_input.data != None:
             print("text inputted")
             method = "text input"
             text = form.text_input.data
             print(text)
-            terms = small_extract_terms(text, prompt_option, prompt_option2)
+            terms = small_extract_terms(text, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
 
         if prompt_option == "Translate":
             cat = prompt_option2
@@ -909,26 +941,20 @@ def carousel(deck_id):
 
 @app.route("/add_new_card/<int:deck_id>", methods = ["GET", "POST"])
 def add_new_card(deck_id):
+    print("entered add new card")
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    if request.method == 'POST':
-        term = request.form['term'] 
-        content = request.form['content']
-        boc_2 = request.form['boc_2']
-        boc_3 = request.form['boc_3']
-        boc_4 = request.form['boc_4']
-        category = request.form['category']
-        create_date = datetime.now()
-        entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category, create_date=create_date)
-        db.session().add(entry)
-        deck.cards.append(entry)
-        db.session.commit()
-    if request.method == 'POST' and "new-card" in request.form:
-        id = request.form['id']
-        card = Card.query.filter_by(id=id).first()
-        db.session.delete(card)
-        db.session.commit()
+    term = request.form['new_term'] 
+    content = request.form['new_content']
+    boc_2 = request.form['new_boc_2']
+    boc_3 = request.form['new_boc_3']
+    boc_4 = request.form['new_boc_4']
+    category = request.form['new_category']
+    entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category)
+    db.session().add(entry)
+    deck.cards.append(entry)
+    db.session.commit()
 
-    return render_template("add_new_card.html", title="Add New Card", deck=deck)
+    return 'Card saved successfully'
 
 
 if __name__ == "__main__":
