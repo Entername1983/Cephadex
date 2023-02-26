@@ -11,414 +11,241 @@
     var currentCard;
     var currentCardIndex = 0;
     var deckId = {{ deck }};
-  var cardStack = [];
-  var cardsDue;
-  var lastTapTime = 0;
-  var mcq_guess_counter = 0;
+    var cardStack = [];
+    var cardsDue;
+    var lastTapTime = 0;
+    var mcq_guess_counter = 0;
 
-  // EVENT LISTENERS
-  document.addEventListener('touchend', function (event) {
-    var currentTime = new Date().getTime();
-    var tapLength = currentTime - lastTapTime;
-    if (tapLength < 200 && tapLength > 0) {
-      // Double tap
-      console.log("you double tapped")
-      event.preventDefault();
-      //wait 1000ms before loading next card
+    // Load Deck due cards on load page 
+    jq.ajax({
+      type: 'GET',
+      url: '/get-due-cards/' + deckId,
+      dataType: 'json',
+      success: function (data) {
+        cardList = data;
+        console.log(cardList);
+        if (cardList === null || cardList === undefined) {
+          console.log("no cards")
+          jq("#force-study").show();
+          jq("#contain-main").hide();
+          jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
 
-      if (currentCard.category == 'Mcq') {
+        }
+        else {
+          currentCard = cardList[currentCardIndex];
+          console.log(currentCard.category)
+          console.log(currentCard.term)
+          cardsDue = cardList.length - currentCardIndex;
+          mcqChecker();
+          LoadRandomMcq();
+          mcqCorrectAnswerSetter();
+          setCardData(currentCard,cardsDue);
+          jq("#force-study").hide();
 
+        }
+      },
+    });
+
+
+
+    // EVENT LISTENERS
+   
+    document.addEventListener('touchend', function (event) 
+    {
+      var currentTime = new Date().getTime();
+      var tapLength = currentTime - lastTapTime;
+      if (tapLength < 200 && tapLength > 0) {
+        // Double tap
+        console.log("you double tapped")
+        event.preventDefault();
+        //wait 1000ms before loading next card
+
+       loadNextCardOnCategory();
+      }
+      lastTapTime = currentTime;
+    });
+
+    jq(document).on('dblclick', function () 
+    {
+      console.log("you double clicked");
+      loadNextCardOnCategory()
+    });
+
+    jq('#forgot-btn').click(function () 
+    {
+      jq('#forgot-btn').addClass("selected");
+      jq('#remember-btn').removeClass("selected");
+      jq('#card-extra-content').show();
+      console.log("forgot button active, remember button inactive")
+    });
+
+    jq('#remember-btn').click(function () 
+    {
+      jq('#remember-btn').addClass("selected");
+      jq('#forgot-btn').removeClass("selected");
+      jq('#card-extra-content').show();
+      console.log("remember button active, forgot button inactive")
+    });
+
+    jq('#next-btn').on('click', function () 
+    {
+      loadNextCard();
+    });
+
+    jq('#force-study').on('click', function () 
+    {
+      alert("You are entering casual mode, viewing the cards will not count towards your review!")
+      return;
+    });
+
+    jq('#prev-btn').on('click', function () 
+    {
+      // Call the function to load the previous card
+      loadPreviousCard();
+    });
+
+    jq('#A-btn, #B-btn, #C-btn, #D-btn').click(function () 
+    {
+      selectButton(jq(this));
+    });
+
+    //touch swipe functionality
+    var touchStartX = null;
+    var touchStartY = null;
+
+    jq(document.body).on('touchstart', function (event) 
+    {
+      // disable default touch action
+      console.log("touchstart")
+      touchStartX = event.changedTouches[0].clientX;
+      touchStartY = event.changedTouches[0].clientY;
+      console.log(touchStartX, touchStartY)
+    });
+
+    jq(document.body).on('touchend', function (event) 
+    {
+      var touchEndX = event.changedTouches[0].clientX;
+      var touchEndY = event.changedTouches[0].clientY;
+      var touchDiffX = touchStartX - touchEndX;
+      var touchDiffY = touchStartY - touchEndY;
+      var touchDiffRatio = touchDiffY / touchDiffX;
+      console.log(touchEndX, touchEndY)
+      var swipes = 0;
+      if (touchDiffRatio >= -1 && touchDiffRatio <= 1) 
+      { // Horizontal swipe
+        if (currentCard.category != "Mcq") 
+        {  
+          if (touchDiffX > 0) 
+          { // Swipe left
+            if (jq('#forgot-btn').hasClass('selected')) 
+            {
+              loadNextCard();
+            }
+            else if (jq('#remember-btn').hasClass('selected')) 
+            {
+              jq('#remember-btn').removeClass('selected');
+              jq('#forgot-btn').addClass('selected');
+              loadNextCard();
+            }
+            else 
+            {
+              jq('#forgot-btn').addClass('selected');
+              jq('#card-extra-content').show();
+            }
+          }
+          else 
+          { // Swipe right
+            
+            if (jq('#remember-btn').hasClass('selected')) 
+            {
+              loadNextCard();
+            } 
+            else if (jq('#forgot-btn').hasClass('selected')) 
+            {
+              jq('#forgot-btn').removeClass('selected');
+              jq('#remember-btn').addClass('selected');
+              loadNextCard();
+            } 
+            else 
+            {
+              jq('#remember-btn').addClass('selected');
+              jq('#card-extra-content').show();
+            }
+          }
+        }
+      }
+      else if (touchDiffRatio < -1 || touchDiffRatio > 1) 
+      { // Vertical swipe
+        // implement swipe functionality for MCQ cards
+        if (currentCard.category == "Mcq") 
+        {
+          // if swipe up load next card
+          if (touchDiffY < 0) 
+          { // Swipe down
+            console.log("swipe down")
+            if (jq('#A-btn, #B-btn, #C-btn, #D-btn').hasClass('selected')) 
+            {
+              loadNextCard();
+            }
+          }
+          else if (touchDiffy > 0) 
+          { // Swipe up
+            console.log("swipe up")
+          }
+        }
+
+      }
+
+    });
+
+    // FUNCTIONS
+    function loadNextCardOnCategory()
+    {
+      if (currentCard.category == 'Mcq') 
+      {
         mcqLoadNextCard();
       }
-      else {
+      else 
+      {
         loadNextCard();
       }
     }
-    lastTapTime = currentTime;
-  });
+    //load next card
+    function loadNextCard() 
+    {
+      cardStack.push(currentCard)
+      var card_id = currentCard.id;
+      var csrf_token = jq("input[name='csrf_token']").val();
 
-  jq(document).on('dblclick', function () {
-    console.log("you double clicked");
-
-    if (currentCard.category == 'Mcq') {
-
-      mcqLoadNextCard();
-    }
-    else {
-      loadNextCard();
-    }
-  });
-  jq('#forgot-btn').click(function () {
-    jq('#forgot-btn').addClass("selected");
-    jq('#remember-btn').removeClass("selected");
-    jq('#card-extra-content').show();
-    console.log("forgot button active, remember button inactive")
-  });
-
-  jq('#remember-btn').click(function () {
-    jq('#remember-btn').addClass("selected");
-    jq('#forgot-btn').removeClass("selected");
-    jq('#card-extra-content').show();
-    console.log("remember button active, forgot button inactive")
-  });
-
-  jq('#next-btn').on('click', function () {
-    loadNextCard();
-  });
-
-  jq('#force-study').on('click', function () {
-    alert("You are entering casual mode, viewing the cards will not count towards your review!")
-    return;
-  });
-
-  jq('#prev-btn').on('click', function () {
-    // Call the function to load the previous card
-    loadPreviousCard();
-  });
-
-  jq('#A-btn, #B-btn, #C-btn, #D-btn').click(function () {
-    selectButton(jq(this));
-  });
-
-
-
-  //touch swipe functionality
-  var touchStartX = null;
-  var touchStartY = null;
-
-  jq(document.body).on('touchstart', function (event) {
-    // disable default touch action
-    console.log("touchstart")
-    touchStartX = event.changedTouches[0].clientX;
-    touchStartY = event.changedTouches[0].clientY;
-    console.log(touchStartX, touchStartY)
-  });
-
-  jq(document.body).on('touchend', function (event) {
-    var touchEndX = event.changedTouches[0].clientX;
-    var touchEndY = event.changedTouches[0].clientY;
-    var touchDiffX = touchStartX - touchEndX;
-    var touchDiffY = touchStartY - touchEndY;
-    var touchDiffRatio = touchDiffY / touchDiffX;
-    console.log(touchEndX, touchEndY)
-    var swipes = 0;
-    if (touchDiffRatio >= -1 && touchDiffRatio <= 1) {
-      if (currentCard.category != "Mcq") {
-        // Swipe left 
-        if (touchDiffX > 0) {
-          if (jq('#forgot-btn').hasClass('selected')) {
-            loadNextCard();
-          }
-          else if (jq('#remember-btn').hasClass('selected')) {
-            jq('#remember-btn').removeClass('selected');
-            jq('#forgot-btn').addClass('selected');
-            loadNextCard();
-          }
-          else {
-            jq('#forgot-btn').addClass('selected');
-            jq('#card-extra-content').show();
-          }
+      if (currentCard.category != "Mcq") 
+      {
+        console.log("not mcq")
+        if (jq('#remember-btn').hasClass('selected')) 
+        {
+          console.log("remember selected")
+          incrementCard(csrf_token, card_id);
         }
-        else {
-          // Swipe right
-          if (jq('#remember-btn').hasClass('selected')) {
-            loadNextCard();
-          } else if (jq('#forgot-btn').hasClass('selected')) {
-
-
-            jq('#forgot-btn').removeClass('selected');
-            jq('#remember-btn').addClass('selected');
-            loadNextCard();
-          } else {
-            jq('#remember-btn').addClass('selected');
-            jq('#card-extra-content').show();
-          }
+        else if (jq('#forgot-btn').hasClass('selected')) 
+        {
+          decrementCard(csrf_token, card_id);
         }
-      }
-    }
-    else if (touchDiffRatio >= 1 || touchDiffRatio <= -1) {
-      // implement swipe functionality for MCQ cards
-      if (currentCard.category == "Mcq") {
-        // if swipe up load next card
-        if (touchDiffY < 0) {
-          console.log("swipe down")
-          if (jq('#A-btn, #B-btn, #C-btn, #D-btn').hasClass('selected')) {
-            loadNextCard();
-          }
+        else 
+        {
+          console.log("no button selected")
         }
-        else if (touchDiffy > 0) {
-          console.log("swipe up")
-        }
-      }
+        jq('A-btn').removeClass('selected');
+        jq('B-btn').removeClass('selected');
+        jq('C-btn').removeClass('selected');
+        jq('D-btn').removeClass('selected');
+        jq('#remember-btn').removeClass("selected");
+        jq('#forgot-btn').removeClass("selected");
+        jq('#card-extra-content').hide();
 
-    }
-
-  });
-
-
-  jq.ajax({
-    type: 'GET',
-    url: '/get-due-cards/' + deckId,
-    dataType: 'json',
-    success: function (data) {
-      cardList = data;
-      console.log(cardList);
-      if (cardList === null || cardList === undefined) {
-        console.log("no cards")
-        jq("#force-study").show();
-        jq("#contain-main").hide();
-        jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
-
-      }
-      else {
-        currentCard = cardList[currentCardIndex];
-        console.log(currentCard.category)
-        console.log(currentCard.term)
-        cardsDue = cardList.length - currentCardIndex;
-        mcqChecker();
-        LoadRandomMcq();
-        mcqCorrectAnswerSetter();
-        jq('#card-term').html(currentCard.term);
-        jq('#card-id').html(currentCard.id);
-        jq('#card-content').html(currentCard.content);
-        jq('#card-boc_2').html(currentCard.boc_2);
-        jq('#card-boc_3').html(currentCard.boc_3);
-        jq('#card-boc_4').html(currentCard.boc_4);
-        jq('#cards-due').html(cardsDue);
-        jq("#force-study").hide();
-
-      }
-    },
-  });
-
-
-  // FUNCTIONS
-
-  //load next card
-  function loadNextCard() {
-    cardStack.push(currentCard)
-    var card_id = currentCard.id;
-    var csrf_token = jq("input[name='csrf_token']").val();
-
-    if (currentCard.category != "Mcq") {
-      console.log("not mcq")
-      if (jq('#remember-btn').hasClass('selected')) {
-        console.log("remember selected")
-        jq.ajax({
-          type: 'POST',
-          url: '/increment/' + card_id,
-          contentType: 'application/x-www-form-urlencoded',
-          headers: { 'X-CSRFToken': csrf_token },
-          success: function (response) {
-            console.log(response);
-          }
-        });
-      }
-
-      else if (jq('#forgot-btn').hasClass('selected')) {
-        jq.ajax({
-          type: 'POST',
-          url: '/decrement/' + card_id,
-          contentType: 'application/x-www-form-urlencoded',
-          headers: { 'X-CSRFToken': csrf_token },
-          success: function (response) {
-            console.log(response);
-          }
-        });
-      }
-      else {
-        console.log("no button selected")
-      }
-      jq('A-btn').removeClass('selected');
-      jq('B-btn').removeClass('selected');
-      jq('C-btn').removeClass('selected');
-      jq('D-btn').removeClass('selected');
-      jq('#remember-btn').removeClass("selected");
-      jq('#forgot-btn').removeClass("selected");
-      jq('#card-extra-content').hide();
-
-      cardList.splice(currentCardIndex, 1); // remove the current card from list
-      currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
-
-      if (cardList.length === 0) {
-        cardsDue = cardList.length;
-        jq("#force-study").show();
-        jq("#contain-main").hide();
-        jq('#cards-due').html(cardsDue);
-        jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
-
-        return;
-
-      } else {
-        currentCard = cardList[currentCardIndex];
-        cardsDue = cardList.length;
-        mcqChecker();
-        jq('#cards-due').html(cardsDue);
-        jq('#card-term').html(currentCard.term);
-        jq('#card-id').html(currentCard.id);
-        jq('#card-content').html(currentCard.content);
-        jq('#card-boc_2').html(currentCard.boc_2);
-        jq('#card-boc_3').html(currentCard.boc_3);
-        LoadRandomMcq();
-        mcqCorrectAnswerSetter();
-      }
-    }
-
-    else if (currentCard.category == "Mcq") {
-      // if button a b c or d has class correct then increment the card
-      console.log("entered load next card for mcq")
-
-    }
-  }
-
-  function loadPreviousCard() {
-    // Pop the top card from the stack to go back to the previous card
-    if (cardStack.length == 0) {
-      alert("No previous cards");
-    }
-    var previousCard = cardStack.pop();
-
-    if (previousCard) {
-      // If there is a previous card on the stack, switch to it
-      currentCard = previousCard;
-
-      // Add the current card back to the list and re-sort the list
-      cardList.push(currentCard);
-      cardList.sort(function (a, b) {
-        return a.due_date - b.due_date;
-      });
-      currentCardIndex = cardList.indexOf(currentCard);
-
-      // Update the card content on the page
-      jq('#card-term').html(currentCard.term);
-      jq('#card-id').html(currentCard.id);
-      jq('#card-content').html(currentCard.content);
-      jq('#card-boc_2').html(currentCard.boc_2);
-      jq('#card-boc_3').html(currentCard.boc_3);
-    }
-  }
-  // takes a list of cards and randomly displays each in A-btn, B-btn, C-btn, D-btn
-  function LoadRandomMcq() {
-    var randomMcq = [currentCard.boc_2, currentCard.boc_3, currentCard.boc_4, currentCard.content];
-    randomMcq.sort(function () {
-      return 0.5 - Math.random();
-    });
-    jq('#A-btn').html(randomMcq[0]);
-    jq('#B-btn').html(randomMcq[1]);
-    jq('#C-btn').html(randomMcq[2]);
-    jq('#D-btn').html(randomMcq[3]);
-  }
-  // mcqChecker function
-  function mcqChecker() {
-    if (currentCard.category == "Mcq") {
-      console.log("mcqChecker is true")
-      jq('#mcq').show();
-      jq('#n-mcq').hide();
-    }
-    else {
-      console.log("mcqChecker is false")
-      jq('#mcq').hide();
-      jq('#n-mcq').show();
-    }
-  }
-  // mcq correct answer setter
-  function mcqCorrectAnswerSetter() {
-    console.log("mcqCorrectAnswersetter")
-    y = currentCard.content;
-    console.log(y)
-    console.log(jq('#A-btn').text(), jq('#B-btn').text(), jq('#C-btn').text(), jq('#D-btn').text())
-    var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
-    for (var i = 0; i < answerButtons.length; i++) {
-      if (jq(answerButtons[i]).text() == y) {
-        jq(answerButtons[i]).addClass('correct-mcq');
-      } else {
-        jq(answerButtons[i]).addClass('incorrect-mcq');
-      }
-    }
-  }
-
-
-  // change 
-
-  function mcqCorrectAnswerChecker() {
-    console.log("mcqCorrectAnswerChecker")
-    cardStack.push(currentCard)
-    var card_id = currentCard.id;
-    var csrf_token = jq("input[name='csrf_token']").val();
-    var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
-    for (var i = 0; i < answerButtons.length; i++) {
-      if (jq(answerButtons[i]).hasClass('correct-mcq') && jq(answerButtons[i]).hasClass('selected')) {
-        jq.ajax({
-          type: 'POST',
-          url: '/increment/' + card_id,
-          contentType: 'application/x-www-form-urlencoded',
-          headers: { 'X-CSRFToken': csrf_token },
-          success: function (response) {
-            console.log(response);
-          }
-        });
-      }
-      else if (jq(answerButtons[i]).hasClass('incorrect-mcq') && jq(answerButtons[i]).hasClass('selected')) {
-        jq.ajax({
-          type: 'POST',
-          url: '/decrement/' + card_id,
-          contentType: 'application/x-www-form-urlencoded',
-          headers: { 'X-CSRFToken': csrf_token },
-          success: function (response) {
-            console.log(response);
-          }
-        });
-      }
-    }
-  }
-  function selectButton(button) {
-    if (button.hasClass('selected')) {
-      button.removeClass('selected');
-    }
-    else {
-      button.addClass('selected');
-      if (mcq_guess_counter == 0) {
-        revealCorrectMcq();
-        mcqCorrectAnswerChecker();
-      }
-      mcq_guess_counter += 1;
-      jq('#A-btn, #B-btn, #C-btn, #D-btn').not(button).removeClass('selected');
-      console.log(`${button.attr('id')} button active`);
-    }
-  }
-
-  function revealCorrectMcq () {
-    var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
-    for (var i = 0; i < answerButtons.length; i++) {
-      if (jq(answerButtons[i]).hasClass('correct-mcq')) {
-        jq(answerButtons[i]).addClass('correct-selected');
-      }
-      else {
-        jq(answerButtons[i]).addClass('incorrect-selected');
-      }
-    }
-  }
-
-  function hideCorrectMcq () {
-    var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
-    for (var i = 0; i < answerButtons.length; i++) {
-        jq(answerButtons[i]).removeClass('correct-selected');
-        jq(answerButtons[i]).removeClass('incorrect-selected');
-      }
-  }
-
-  function mcqLoadNextCard() {
-    console.log("mcqLoadNextCard")
-    console.log(cardList.length)
-    var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
-    var counter = 0;
-    
-      for (var i = 0; i < answerButtons.length; i++) {
-        if (counter == 0) {
         cardList.splice(currentCardIndex, 1); // remove the current card from list
         currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
 
-        if (cardList.length === 0) {
+        if (cardList.length === 0) 
+        {
           cardsDue = cardList.length;
           jq("#force-study").show();
           jq("#contain-main").hide();
@@ -427,29 +254,252 @@
 
           return;
 
-        } else {
+        } 
+        else 
+        {
           currentCard = cardList[currentCardIndex];
-          console.log(currentCard)
-          console.log(cardsDue)
           cardsDue = cardList.length;
-          console.log(cardsDue)
           mcqChecker();
-          jq('#cards-due').html(cardsDue);
-          jq('#card-term').html(currentCard.term);
-          jq('#card-id').html(currentCard.id);
-          jq('#card-content').html(currentCard.content);
-          jq('#card-boc_2').html(currentCard.boc_2);
-          jq('#card-boc_3').html(currentCard.boc_3);
+          
+          setCardData(currentCard,cardsDue);
+
           LoadRandomMcq();
           mcqCorrectAnswerSetter();
-          hideCorrectMcq();
-          counter = 1;
         }
-        mcq_guess_counter = 0;
+      }
+      else if (currentCard.category == "Mcq") 
+      {
+        // if button a b c or d has class correct then increment the card
+        console.log("entered load next card for mcq")
       }
     }
-    counter = 0;
-  }
+
+    function loadPreviousCard() 
+    {
+      // Pop the top card from the stack to go back to the previous card
+      if (cardStack.length == 0) {
+        alert("No previous cards");
+      }
+      var previousCard = cardStack.pop();
+
+      if (previousCard) {
+        // If there is a previous card on the stack, switch to it
+        currentCard = previousCard;
+
+        // Add the current card back to the list and re-sort the list
+        cardList.push(currentCard);
+        cardList.sort(function (a, b) {
+          return a.due_date - b.due_date;
+        });
+        currentCardIndex = cardList.indexOf(currentCard);
+
+        // Update the card content on the page
+        jq('#card-term').html(currentCard.term);
+        jq('#card-id').html(currentCard.id);
+        jq('#card-content').html(currentCard.content);
+        jq('#card-boc_2').html(currentCard.boc_2);
+        jq('#card-boc_3').html(currentCard.boc_3);
+      }
+    }
+    // takes a list of cards and randomly displays each in A-btn, B-btn, C-btn, D-btn
+    function LoadRandomMcq() 
+    {
+      var randomMcq = [currentCard.boc_2, currentCard.boc_3, currentCard.boc_4, currentCard.content];
+      randomMcq.sort(function () {
+        return 0.5 - Math.random();
+      });
+      jq('#A-btn').html(randomMcq[0]);
+      jq('#B-btn').html(randomMcq[1]);
+      jq('#C-btn').html(randomMcq[2]);
+      jq('#D-btn').html(randomMcq[3]);
+    }
+    // mcqChecker function
+    function mcqChecker() 
+    {
+      if (currentCard.category == "Mcq") {
+        console.log("mcqChecker is true")
+        jq('#mcq').show();
+        jq('#n-mcq').hide();
+      }
+      else {
+        console.log("mcqChecker is false")
+        jq('#mcq').hide();
+        jq('#n-mcq').show();
+      }
+    }
+    // mcq correct answer setter
+    function mcqCorrectAnswerSetter() 
+    {
+      console.log("mcqCorrectAnswersetter")
+      y = currentCard.content;
+      console.log(y)
+      console.log(jq('#A-btn').text(), jq('#B-btn').text(), jq('#C-btn').text(), jq('#D-btn').text())
+      var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+      for (var i = 0; i < answerButtons.length; i++) {
+        if (jq(answerButtons[i]).text() == y) {
+          jq(answerButtons[i]).addClass('correct-mcq');
+        } else {
+          jq(answerButtons[i]).addClass('incorrect-mcq');
+        }
+      }
+    }
+
+    // Sets the data for the card and cardsDue
+    function setCardData(cardData,cardsDue)
+    {
+      jq('#card-term').html(currentCard.term);
+      jq('#card-id').html(currentCard.id);
+      jq('#card-content').html(currentCard.content);
+      jq('#card-boc_2').html(currentCard.boc_2);
+      jq('#card-boc_3').html(currentCard.boc_3);
+      jq('#card-boc_4').html(currentCard.boc_4);
+      jq('#cards-due').html(cardsDue);
+    }
+
+    // API
+    function incrementCard(csrf_token, card_id) 
+    {
+      jq.ajax({
+        type: 'POST',
+        url: '/increment/' + card_id,
+        contentType: 'application/x-www-form-urlencoded',
+        headers: { 'X-CSRFToken': csrf_token },
+        success: function (response) {
+          console.log(response);
+        }
+      });
+    }
+
+    function decrementCard(csrf_token, card_id)
+    {
+      jq.ajax({
+        type: 'POST',
+        url: '/decrement/' + card_id,
+        contentType: 'application/x-www-form-urlencoded',
+        headers: { 'X-CSRFToken': csrf_token },
+        success: function (response) {
+          console.log(response);
+        }
+      });
+    }
+
+    // change 
+
+    function mcqCorrectAnswerChecker() 
+    {
+      console.log("mcqCorrectAnswerChecker")
+      cardStack.push(currentCard)
+      var card_id = currentCard.id;
+      var csrf_token = jq("input[name='csrf_token']").val();
+      var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+      for (var i = 0; i < answerButtons.length; i++) {
+        if (jq(answerButtons[i]).hasClass('correct-mcq') && jq(answerButtons[i]).hasClass('selected')) {
+          jq.ajax({
+            type: 'POST',
+            url: '/increment/' + card_id,
+            contentType: 'application/x-www-form-urlencoded',
+            headers: { 'X-CSRFToken': csrf_token },
+            success: function (response) {
+              console.log(response);
+            }
+          });
+        }
+        else if (jq(answerButtons[i]).hasClass('incorrect-mcq') && jq(answerButtons[i]).hasClass('selected')) {
+          jq.ajax({
+            type: 'POST',
+            url: '/decrement/' + card_id,
+            contentType: 'application/x-www-form-urlencoded',
+            headers: { 'X-CSRFToken': csrf_token },
+            success: function (response) {
+              console.log(response);
+            }
+          });
+        }
+      }
+    }
+    function selectButton(button) 
+    {
+      if (button.hasClass('selected')) {
+        button.removeClass('selected');
+      }
+      else {
+        button.addClass('selected');
+        if (mcq_guess_counter == 0) {
+          revealCorrectMcq();
+          mcqCorrectAnswerChecker();
+        }
+        mcq_guess_counter += 1;
+        jq('#A-btn, #B-btn, #C-btn, #D-btn').not(button).removeClass('selected');
+        console.log(`${button.attr('id')} button active`);
+      }
+    }
+
+    function revealCorrectMcq () 
+    {
+      var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+      for (var i = 0; i < answerButtons.length; i++) {
+        if (jq(answerButtons[i]).hasClass('correct-mcq')) {
+          jq(answerButtons[i]).addClass('correct-selected');
+        }
+        else {
+          jq(answerButtons[i]).addClass('incorrect-selected');
+        }
+      }
+    }
+
+    function hideCorrectMcq () 
+    {
+      var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+      for (var i = 0; i < answerButtons.length; i++) {
+          jq(answerButtons[i]).removeClass('correct-selected');
+          jq(answerButtons[i]).removeClass('incorrect-selected');
+        }
+    }
+
+    function mcqLoadNextCard() 
+    {
+      console.log("mcqLoadNextCard")
+      console.log(cardList.length)
+      var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+      var counter = 0;
+      
+        for (var i = 0; i < answerButtons.length; i++) {
+          if (counter == 0) {
+          cardList.splice(currentCardIndex, 1); // remove the current card from list
+          currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
+
+          if (cardList.length === 0) 
+          {
+            cardsDue = cardList.length;
+            jq("#force-study").show();
+            jq("#contain-main").hide();
+            jq('#cards-due').html(cardsDue);
+            jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
+
+            return;
+
+          } 
+          else 
+          {
+            currentCard = cardList[currentCardIndex];
+            console.log(currentCard)
+            console.log(cardsDue)
+            cardsDue = cardList.length;
+            console.log(cardsDue)
+            mcqChecker();
+
+            setCardData(currentCard,cardsDue);
+
+            LoadRandomMcq();
+            mcqCorrectAnswerSetter();
+            hideCorrectMcq();
+            counter = 1;
+          }
+          mcq_guess_counter = 0;
+        }
+      }
+      counter = 0;
+    }
   });
 
 // randomly assign values to the buttons
@@ -472,9 +522,6 @@
           <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
             class="" title="Return to decks">
         </a>
-
-
-
       </div>
       <div class="col-6 d-flex align-items-center justify-content-center h-100">
         <h4> {{deck0.name}} </h4>
