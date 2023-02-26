@@ -335,6 +335,15 @@
       console.log(y)
       console.log(jq('#A-btn').text(), jq('#B-btn').text(), jq('#C-btn').text(), jq('#D-btn').text())
       var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+
+      jq('#A-btn, #B-btn, #C-btn, #D-btn')
+        .removeClass('correct-mcq')
+        .removeClass('incorrect-mcq')
+        .removeClass('selected')
+        .removeClass('correct-selected')
+        .removeClass('incorrect-selected');
+    
+
       for (var i = 0; i < answerButtons.length; i++) {
         if (jq(answerButtons[i]).text() == y) {
           jq(answerButtons[i]).addClass('correct-mcq');
@@ -392,28 +401,15 @@
       var card_id = currentCard.id;
       var csrf_token = jq("input[name='csrf_token']").val();
       var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
-      for (var i = 0; i < answerButtons.length; i++) {
-        if (jq(answerButtons[i]).hasClass('correct-mcq') && jq(answerButtons[i]).hasClass('selected')) {
-          jq.ajax({
-            type: 'POST',
-            url: '/increment/' + card_id,
-            contentType: 'application/x-www-form-urlencoded',
-            headers: { 'X-CSRFToken': csrf_token },
-            success: function (response) {
-              console.log(response);
-            }
-          });
+      for (var i = 0; i < answerButtons.length; i++) 
+      {
+        if (jq(answerButtons[i]).hasClass('correct-mcq') && jq(answerButtons[i]).hasClass('selected')) 
+        {
+          incrementCard(csrf_token,card_id);
         }
-        else if (jq(answerButtons[i]).hasClass('incorrect-mcq') && jq(answerButtons[i]).hasClass('selected')) {
-          jq.ajax({
-            type: 'POST',
-            url: '/decrement/' + card_id,
-            contentType: 'application/x-www-form-urlencoded',
-            headers: { 'X-CSRFToken': csrf_token },
-            success: function (response) {
-              console.log(response);
-            }
-          });
+        else if (jq(answerButtons[i]).hasClass('incorrect-mcq') && jq(answerButtons[i]).hasClass('selected')) 
+        {
+          decrementCard(csrf_token,card_id);
         }
       }
     }
