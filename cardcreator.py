@@ -14,7 +14,7 @@ load_dotenv(find_dotenv())
 ## open AI api, 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-def card_creator(file, prompt, prompt_option2 = None):
+def card_creator(file, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None, len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     
     if file.endswith('.pdf'):
         items = extract_from_pdf(file) 
@@ -25,7 +25,7 @@ def card_creator(file, prompt, prompt_option2 = None):
     elif file.endswith('.txt'):
          with open(file) as file:
             items = file.read()
-    terms = large_extract_terms(items, prompt, prompt_option2)
+    terms = large_extract_terms(items, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
     return terms
 
    ## takes a term and returns a card with term image.  Will need to be modified later to have a different one per user
@@ -55,16 +55,3 @@ def write_to_csv(definitions: str, filename: str):
         for key, value in definitions.items():
             if key != "" and value != "":
                 writer.writerow([key, value])
-
-
-## obsolete?
-##def card_creator2(file, prompt):
-    
-    ## text_input is input id, cards output id
-    ##input("file: ")
-    
-    ##if file.endswith('.pdf'):
-      ##  items = extract_from_pdf(file)
-       # ## problem is that terms is only returning terms, not definitions seperated by a semi colon
-       ## terms = large_extract_terms2(items, prompt)
-       ## return terms
