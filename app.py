@@ -532,6 +532,8 @@ def login():
             if bcrypt.check_password_hash(user.password, request.form.get('password')):
                 print("password correct")
                 login_user(user)
+                flash('You have been logged in!', 'success')
+                return redirect(url_for('index'))
         else:
             flash('Login Unsuccessful. Please check username and password')
 

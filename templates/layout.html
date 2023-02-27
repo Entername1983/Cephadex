@@ -26,7 +26,6 @@
                     url: '{{ url_for("register") }}',
                     data: form_data,
                     success: function(response) {
-                        alert(response);
                         $('#registerModal').modal('hide');
                     },
                     error: function(error) {
@@ -45,7 +44,6 @@
                     data: form_data,
                     success: function(response) {
                         console.log("login-form success");
-                        alert(response);
                         $('#loginModal').modal('hide');
                     },
                     error: function(error) {
