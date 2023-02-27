@@ -45,6 +45,7 @@
                     success: function(response) {
                         console.log("login-form success");
                         $('#loginModal').modal('hide');
+                        location.reload();
                     },
                     error: function(error) {
                         alert('An error occurred: ' + error.responseText);
