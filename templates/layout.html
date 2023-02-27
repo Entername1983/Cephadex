@@ -71,10 +71,22 @@
                 });
             });
         });
-        </script>
 
-<!-- END SUBMIT FORMS JAVASCRIPT -->
+// END SUBMIT FORMS JAVASCRIPT 
 
+// TERMS AND CONDITIONS MODAL JS
+
+$('#terms-cond-button').click(function(event) {
+    event.preventDefault();
+    $('#terms-condModal').modal('show');
+  });
+
+$('#terms-cond-link').click(function(event) {
+    event.preventDefault();
+    $('#terms-condModal').modal('show');
+  });
+
+</script>
 
 
     <link href="..\static\style.css" rel="stylesheet" />
@@ -222,19 +234,23 @@
                               <label for="confirm-password">Confirm password</label>
                               <input type="password" class="form-control" id="confirm-password" name="confirm_password" required>
                             </div>
+                            <div class="form-group">
+                                <input type="checkbox" id="terms-cond" name="terms-cond" value="agree-terms">
+                                <label for="terms-cond">I agree to the <a href="/terms_and_conditions" target="_blank" id="terms-cond-link"> terms and conditions</a> </label><br>
+                                <input type="checkbox" id="contacted" name="contacted" value="agree-contacted">
+                                <label for="terms-cond"> would like to stay receive information about special offers... </label><br>                              </div>
                           <br>
                             <button type="submit" class="btn btn-primary">Sign up</button>
                           
         
 
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </form>
+
+                </form>  
                 </div>
             </div>
         </div>
+<!-- END OF REGISTER MODAL-->
 
 
 
@@ -252,26 +268,25 @@ aria-hidden="true">
             <form id = "login-form" method="POST" action="{{ url_for('login') }}">
 
                 <div class="form-group">
-                  <label for="username">Username or Email</label>
-                  <input type="text" class="form-control" id="username" name="username" required>
+                  <label for="email">Email:</label>
+                  <input type="email" class="form-control" id="email" name="email" required>
                 </div>
               
               
                 <div class="form-group">
-                  <label for="password">Password</label>
+                  <label for="password">Password:</label>
                   <input type="password" class="form-control" id="password" name="password" required>
                 </div>
-              
+                <br>
+                <input class="w3-check w3-margin-top" type="checkbox" checked="checked"> Remember me
+              <br>
               <br>
                 <button type="submit" class="btn btn-primary">Log in</button>
-              
-
+                <button class="btn btn-primary" onclick="window.location.href='/recover_password'">Forgot password</button>
+            </form> 
 
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-    </form>
+    
     </div>
 </div>
 </div>

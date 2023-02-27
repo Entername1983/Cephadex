@@ -489,22 +489,32 @@ def register():
     confirm_password = request.form.get('confirm_password')
     first_name = request.form.get('first_name')
     last_name = request.form.get('last_name')
+    agree_terms = request.form.get('terms-cond')
+    agree_contact = request.form.get('contacted')
+    print(agree_terms)
+    print(agree_contact)
     print(username, email, email_conf, password, confirm_password)
-    if password != confirm_password:
-        return 'Passwords do not match'
-    elif email != email_conf:
-        return 'Emails do not match'
-    elif User.query.filter_by(username=username).first():
-        return 'Username already exists'
-    elif User.query.filter_by(email=email).first():
-        return 'Email already exists'
-    elif User.query.filter_by(email=email_conf).first():
-        return 'Email already exists'
-    else:
-        password = bcrypt.generate_password_hash(request.form.get('password'))
-        user = User(username=username, email=email, password=password, first_name = first_name, last_name = last_name)
-        db.session.add(user)
-        db.session.commit()
+    if agree_terms == "agree-terms":
+        if agree_contact == "agree-contacted":
+            subscriber = Subscriber(email=email, first_name=first_name, last_name = last_name)
+            db.session.add(subscriber)
+            db.session.commit()
+        if password != confirm_password:
+            return 'Passwords do not match'
+        elif email != email_conf:
+            return 'Emails do not match'
+        elif User.query.filter_by(username=username).first():
+            return 'Username already exists'
+        elif User.query.filter_by(email=email).first():
+            return 'Email already exists'
+        elif User.query.filter_by(email=email_conf).first():
+            return 'Email already exists'
+        else:
+            password = bcrypt.generate_password_hash(request.form.get('password'))
+            user = User(username=username, email=email, password=password, first_name = first_name, last_name = last_name)
+            db.session.add(user)
+            db.session.commit()
+            flash('You have been registered succesfully!', 'success')
 
     return render_template('index.html', title='Index')
 
@@ -522,21 +532,20 @@ def register():
 def login():
     print("entered login")
     app.logger.info('0')
-    username = request.form.get('username')
-    if username is not None:
-        print("username exists")
-        print(username)
-        user = User.query.filter(User.username.ilike(request.form.get('username'))).first()
+    email = request.form.get('email')
+    print(email)
+    if email is not None:
+        user = User.query.filter(User.email.ilike(email)).first()
         print(user)
         if user:
             if bcrypt.check_password_hash(user.password, request.form.get('password')):
                 print("password correct")
                 login_user(user)
                 flash('You have been logged in!', 'success')
-                return redirect(url_for('index'))
+                return render_template('index.html', title='Index')
         else:
             flash('Login Unsuccessful. Please check username and password')
-
+            return render_template('index.html', title='Index')
     return render_template('index.html', title='Index')
 
 
@@ -1024,7 +1033,10 @@ def add_new_card(deck_id):
     deck.cards.append(entry)
     db.session.commit()
 
-    return 'Card saved successfully'
+@app.route("/terms_and_conditions")
+def terms_and_conditions():
+    return render_template("terms_and_conditions.html", title="Terms and Conditions")
+
 ## share deck, user clicks share deck, modal opens up, user enters one or more email addresses, user clicks submit
 ## email addresses are sent to backend, backend adds deck to each user decks with a tag of shared
 ## user sees those decks on their decks page but must click approve to permanently add to their deck list/make a copy
