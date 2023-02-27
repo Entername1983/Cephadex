@@ -465,44 +465,91 @@ class AddTermForm(FlaskForm):
     content = StringField(validators=[InputRequired(), Length(min=1, max=50)])
     submit = SubmitField("Save")
     
-    
-@app.route("/", methods=["GET", "POST"])
-def index():
-    return render_template('index.html')
-
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
-    return response
+    return response    
+    
+@app.route("/", methods=["GET", "POST"])
+def index():
+
+    return render_template('index.html')
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    form = RegisterForm()
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
-        user = User(username=form.username.data, email=form.email.data, password=hashed_password, first_name=form.first_name.data, last_name=form.last_name.data)
+    
+    username = request.form.get('username')
+    email = request.form.get('email')
+    email_conf = request.form.get('email_conf')
+    password = request.form.get('password')
+    confirm_password = request.form.get('confirm_password')
+    first_name = request.form.get('first_name')
+    last_name = request.form.get('last_name')
+    print(username, email, email_conf, password, confirm_password)
+    if password != confirm_password:
+        return 'Passwords do not match'
+    elif email != email_conf:
+        return 'Emails do not match'
+    elif User.query.filter_by(username=username).first():
+        return 'Username already exists'
+    elif User.query.filter_by(email=email).first():
+        return 'Email already exists'
+    elif User.query.filter_by(email=email_conf).first():
+        return 'Email already exists'
+    else:
+        password = bcrypt.generate_password_hash(request.form.get('password'))
+        user = User(username=username, email=email, password=password, first_name = first_name, last_name = last_name)
         db.session.add(user)
         db.session.commit()
-        flash("Your account has been created! You are now able to log in", "info")
-        return redirect(url_for("login"))
-    return render_template("register.html", title="Register", form=form)
+
+    return render_template('index.html', title='Index')
+
+    
+    ##register_form = RegisterForm()
+   ## if register_form.validate_on_submit():
+       ## hashed_password = bcrypt.generate_password_hash(register_form.password.data)
+       ## user = User(username=register_form.username.data, email=register_form.email.data, password=hashed_password, first_name=register_form.first_name.data, last_name=register_form.last_name.data)
+       ## db.session.add(user)
+       ## db.session.commit()
+      ##  flash("Your account has been created! You are now able to log in", "info")
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
+    print("entered login")
     app.logger.info('0')
-    if form.validate_on_submit():
-        user = User.query.filter(User.username.ilike(form.username.data)).first()
+    username = request.form.get('username')
+    if username is not None:
+        print("username exists")
+        print(username)
+        user = User.query.filter(User.username.ilike(request.form.get('username'))).first()
+        print(user)
         if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
+            if bcrypt.check_password_hash(user.password, request.form.get('password')):
+                print("password correct")
                 login_user(user)
-                return redirect(url_for('study'))
         else:
             flash('Login Unsuccessful. Please check username and password')
-    return render_template('login.html', title='Login', form=form)
+
+    return render_template('index.html', title='Index')
+
+
+@app.route('/subscribe', methods=['GET', 'POST'])
+def subscribe():
+    subscribe_form = RegSub()
+    if subscribe_form.validate_on_submit():
+        subscriber = Subscriber(email=subscribe_form.email.data, first_name=subscribe_form.first_name.data, last_name=subscribe_form.last_name.data, timestamp = datetime.now())
+        db.session.add(subscriber)
+        db.session.commit()
+        flash('You are now subscribed to our newsletter!')
+
+    return render_template('subscribe.html', title='Login', subscribe_form=subscribe_form)
+
+
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
@@ -556,21 +603,13 @@ def viewdecks():
                 decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.asc()).all()
             elif sort_method == "create_time_dsc":
                 decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.desc()).all()
-                
-        
+                     
         elif search_query:
             print("entered search_query")
             decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()
             print(decks)
-
-        
             
         return render_template('viewdecks.html', decks=decks)
-            
-        
-        
-        
-        
         
     if request.method == 'POST':
         deck_id = request.form['deck_id']
@@ -731,7 +770,7 @@ def downloadascsv(deck_id):
     cards = Card.query.filter(Card.decks.any(id=deck_id)).all()
     termsstrings = []
     for card in cards:
-        string = card.term + "," + card.content + "\n"
+        string = card.term + "," + card.content + "," + card.boc_2 + "," + card.boc_3 + "," + card.boc_4 + "," + card.category + "\n"
         termsstrings.append(string)            
     csvstring = "".join(termsstrings)            
     return Response(csvstring, mimetype="text/csv")
@@ -801,16 +840,7 @@ def force_study(deck_id):
 def casual_mode(deck_id):
     return render_template("casualmode.html", title="Casual Mode", deck=deck_id)   
 
-@app.route('/subscribe', methods=['GET', 'POST'])
-def subrscribe():
-    form = RegSub()
-    if form.validate_on_submit():
-        subscriber = Subscriber(email=form.email.data, first_name=form.first_name.data, last_name=form.last_name.data, timestamp = datetime.now())
-        db.session.add(subscriber)
-        db.session.commit()
-        flash('You are now subscribed to our newsletter!')
 
-    return render_template('subscribe.html', title='Login', form=form)
  
  
 @app.route('/generate_img/<int:deck_id>', methods=['GET', 'POST'])
@@ -833,14 +863,15 @@ def generate_img(deck_id):
 def extract2():
 
     mapping = {
-    "Definitions": ("T", "D"),
-    "Translate": ("T", "TR"),
-    "Rhyme": ("T", "R"),
-    "People": ("P", "B"),
-    "Theories": ("TC", "E"),
-    "Cloze": ("C", "F"),
-    "Mcq": ("Q", "A", "W1", "W2", "W3"),
-    "Comprehension": ("QC", "AC"),
+    "Definitions": ("A", "B"),
+    "Translate": ("A", "B"),
+    "Rhyme": ("A", "B"),
+    "People": ("A", "B"),
+    "Theories": ("A", "B"),
+    "Cloze": ("A", "B"),
+    "Mcq": ("A", "B", "C", "D", "E"),
+    "Comprehension": ("A", "B"),
+    "Vocab_builder": ("A", "B"),
     }
     form = UploadFileForm()
     ## prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option
@@ -992,6 +1023,14 @@ def add_new_card(deck_id):
     db.session.commit()
 
     return 'Card saved successfully'
+## share deck, user clicks share deck, modal opens up, user enters one or more email addresses, user clicks submit
+## email addresses are sent to backend, backend adds deck to each user decks with a tag of shared
+## user sees those decks on their decks page but must click approve to permanently add to their deck list/make a copy
+## When decks are added in this way the user specific info is wiped.  
+@app.route("/share_deck/<int:deck_id>", methods = ["GET", "POST"])
+def share_deck(deck_id):
+    print("entered share deck")
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
 
 
 if __name__ == "__main__":

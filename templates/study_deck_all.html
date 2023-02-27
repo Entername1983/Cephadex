@@ -40,6 +40,7 @@
               console.log(promises);
               if (promises === decks.length) {
                 console.log("checking if this works");
+                cardList = cardList.sort(compareRandom)
                 currentCard = cardList[currentCardIndex];
                 cardsDue = cardList.length - currentCardIndex;
                 setCardData(currentCard,cardsDue);
@@ -47,6 +48,9 @@
                   mcqChecker();
                   LoadRandomMcq();
                   mcqCorrectAnswerSetter();
+                }
+                else {
+                  jq("#mcq").hide();
                 }
                 jq("#force-study").hide();
                 console.log(currentCard.name);
@@ -503,6 +507,10 @@
             }
           }
           counter = 0;
+        }
+
+        function compareRandom(a, b) {
+          return Math.random() - 0.5;
         }
       });
     

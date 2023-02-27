@@ -26,16 +26,6 @@ body {
   --mdb-gutter-x: 0.5rem !important;
 }
 
-.navbar {
-  background-color: white !important;
-  font-size: 50px !important;
-  color: #EAE8FF !important;
-}
-
-.nav-link {
-  color: #2D3142 !important;
-}
-
 .input_0 {
   background-color: white !important;
   color: black;
@@ -238,23 +228,6 @@ footer {
   visibility: visible;
 }
 
-.nav-link {
-  font-size: 30px !important;
-  background-color: white !important;
-  color: #2D3142 !important;
-}
-
-.nav-item {
-  background-color: white !important;
-  color: #2D3142 !important;
-  padding-bottom: 0px !important;
-  margin-bottom: 0px !important;
-}
-
-.nav-link.active {
-  background-color: #B0D7FF !important;
-}
-
 .tab-content {
   background-color: #B0D7FF !important;
 }
@@ -280,6 +253,10 @@ footer {
 .full-w {
   width: 100% !important;
   max-width: 100% !important;
+}
+
+.navbar-brand {
+  margin-left: 4px !important;
 }
 
 #slide-max-container {

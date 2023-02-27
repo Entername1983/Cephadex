@@ -84,16 +84,6 @@ body {
 }
 
   
-.navbar {
-    background-color: $backgroundC !important;
-    font-size: 50px !important;
-    color: $lpink !important;
-}
-
-.nav-link {
-    color: $textC !important;
-}
-
 .input_0 {
     background-color: $backgroundC !important;
     color: black;
@@ -308,23 +298,6 @@ footer {
   }
 
 
-  .nav-link {
-    font-size: 30px !important;
-    background-color: $backgroundC1 !important;
-    color: $textC !important;
-  }
-
-.nav-item {
-    background-color: $backgroundC !important;
-    color: $textC !important;
-    padding-bottom: 0px !important;
-    margin-bottom: 0px !important;
-}
-
-.nav-link.active{
-    background-color: $backgroundCA !important;
-}
-
 
 .tab-content{
     background-color: $backgroundCA !important;
@@ -355,9 +328,11 @@ footer {
     max-width: 100% !important;
 }
 
+//NAVBAR
 
-
-
+.navbar-brand {
+    margin-left: 4px !important;
+}
 
 // SLIDE
 #slide-max-container {

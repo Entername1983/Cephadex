@@ -14,9 +14,76 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+   <!-- SUBMIT FORMS JAVASCRIPT-->
+    <script>
+        $(document).ready(function() {
+            // Register form handler
+            $('#register-form').submit(function(event) {
+                event.preventDefault();
+                var form_data = $(this).serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("register") }}',
+                    data: form_data,
+                    success: function(response) {
+                        alert(response);
+                        $('#registerModal').modal('hide');
+                    },
+                    error: function(error) {
+                        alert('An error occurred: ' + error.responseText);
+                    }
+                });
+            });
+        
+            // Sign in form handler
+            $('#login-form').submit(function(event) {
+                event.preventDefault();
+                var form_data = $(this).serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("login") }}',
+                    data: form_data,
+                    success: function(response) {
+                        console.log("login-form success");
+                        alert(response);
+                        $('#loginModal').modal('hide');
+                    },
+                    error: function(error) {
+                        alert('An error occurred: ' + error.responseText);
+                    }
+                });
+            });
+        
+            // Subscribe form handler
+            $('#subscribe-form').submit(function(event) {
+                event.preventDefault();
+                var form_data = $(this).serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("subscribe") }}',
+                    data: form_data,
+                    success: function(response) {
+                        alert(response);
+                        $('#subscribeModal').modal('hide');
+                    },
+                    error: function(error) {
+                        alert('An error occurred: ' + error.responseText);
+                    }
+                });
+            });
+        });
+        </script>
+
+<!-- END SUBMIT FORMS JAVASCRIPT -->
+
+
+
     <link href="..\static\style.css" rel="stylesheet" />
     {% block head %} {% endblock %}
     <title>Octuply {% block title %}{% endblock %}</title>
+
+
+
 </head>
 
 <body>
@@ -25,32 +92,65 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <!-- MDB -- this is causing an issue with jquery -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.css" rel="stylesheet" />
-    <div class = "row"> 
-        <div class = "col align-left">
-    <a href="/"><img src="\static\logo1_small.png" alt = "logo" class="responsive navbar-brand px-2" style="max-height: 60px;"></a>
-</div>
-<div class = "col d-flex justify-content-end">
-    <div class="dropdown align-right">
-       
-            <img src="/static/navbar_toggler_img.png" class="dropdown-toggle m-1" type="button" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false">
 
-        
-            {% if current_user.is_authenticated %}
-        <ul class="dropdown-menu dropdown-menu-end">    
-            <li><a href="/viewdecks" class="dropdown-item" type="button">Study</a></li>
-            <li><a href="/extract2" class="dropdown-item" type="button">Create</a></li>
-            <li><a  href="/account" class="dropdown-item" type="button">My account</a></li>
-            <li><a  href="/logout"class="dropdown-item" type="button">Sign out</a></li>
-        </ul>
-        <ul class="dropdown-menu dropdown-menu-end"> 
+
+
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1D71BA;">
+        <a class="navbar-brand pl-2" href="/">
+            <img src="\static\logo1_small.png" width="50" height="50" alt="">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav nav-fill">
+                {% if current_user.is_authenticated %}
+                <li class="nav-item active">
+                    <a class="nav-link" href="/study_deck_all">Study <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/extract2">Create</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/viewdecks">Decks</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Account
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="/account">Account info</a>
+                        <a class="dropdown-item" href="#">Upgrade</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/logout">Sign out</a>
+                    </div>
+                </li>
+
+            </ul>
             {% else %}
-            <li><a  href="/login" class="dropdown-item" type="button">Sign in</a></li>
-            <li><a  href="/register" class="dropdown-item" type="button">Register</a></li>
-            <li><a href="/subscribe" class="dropdown-item" type="button">Subscribe</a></li>
+            <li class="nav-item active">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    Log in
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    Register
+                </button>
+
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/about">Find out more</a>
+            </li>
+
             {% endif %}
-        </ul>
-    </div>
-</div>
+        </div>
+    </nav>
+
+
 
 
 
@@ -59,26 +159,161 @@
 
     <div class="container-md px-2 flex">
         <div class="row">
-          {% with messages = get_flashed_messages() %} 
-          {% if messages %} 
-          {% for msg in messages %}
-          <div class = "container align-self-center box_warning my-3">
-          <h4 class = "" >{{msg}}</h4>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for msg in messages %}
+            <div class="container align-self-center box_warning my-3">
+                <h4 class="">{{msg}}</h4>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
         </div>
-          {% endfor %} 
-          {% endif %} 
-          {% endwith %}
-        </div>
-  
-      </div>
+
+    </div>
 
     <main>
         {% block main_0 %}
 
         {% endblock %}
+
+
+
+
+
+        <!-- Modal Register -->
+        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Sign up</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id = "register-form" method="POST" action="{{ url_for('register') }}">
+
+                            <div class="form-group">
+                              <label for="username">Username</label>
+                              <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                          
+                            <div class="form-group">
+                              <label for="email">Email address</label>
+                              <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Confirm Email address</label>
+                                <input type="email" class="form-control" id="email_conf" name="email_conf" required>
+                              </div>
+                              <div class="form-group">
+                                <label >First name</label>
+                                <input class="form-control" id="first_name" name="first_name" required>
+                              </div>
+                              <div class="form-group">
+                                <label >Last name</label>
+                                <input  class="form-control" id="last_name" name="last_name" required>
+                              </div>
+                            <div class="form-group">
+                              <label for="password">Password</label>
+                              <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                          
+                            <div class="form-group">
+                              <label for="confirm-password">Confirm password</label>
+                              <input type="password" class="form-control" id="confirm-password" name="confirm_password" required>
+                            </div>
+                          <br>
+                            <button type="submit" class="btn btn-primary">Sign up</button>
+                          
+        
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+
+
+
+
+<!-- Modal sign in -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
+aria-hidden="true">
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="loginModalLabel">Log in</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id = "login-form" method="POST" action="{{ url_for('login') }}">
+
+                <div class="form-group">
+                  <label for="username">Username or Email</label>
+                  <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+              
+              
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+              
+              <br>
+                <button type="submit" class="btn btn-primary">Log in</button>
+              
+
+
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+    </form>
+    </div>
+</div>
+</div>
+
+
+
+
+
+
     </main>
 
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     <footer class="text-center site-footer">
@@ -101,7 +336,56 @@
             <a class="text-white" href="https://mdbootstrap.com/">Octoply</a>
         </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </footer>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -116,7 +400,26 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </body>
+
+
+
+
 
 
 </html>
