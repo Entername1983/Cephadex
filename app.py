@@ -1040,6 +1040,10 @@ def add_new_card(deck_id):
     db.session().add(entry)
     deck.cards.append(entry)
     db.session.commit()
+    
+@app.route("/landingpage", methods = ["GET", "POST"])
+def landingpage():
+    return render_template("landingpage.html", title="Landing Page")
 
 @app.route("/terms_and_conditions")
 def terms_and_conditions():

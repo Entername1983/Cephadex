@@ -417,3 +417,8 @@ footer {
     }
 
   }
+
+// LANDING PAGE
+.bg-gradient-primary-to-secondary {
+    background: linear-gradient(45deg, $std_col_1, $std_col_3) !important;
+  }

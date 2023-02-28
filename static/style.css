@@ -331,4 +331,7 @@ footer {
   .main-table tbody tr:nth-child(odd) td {
     background: #ccc;
   }
+}
+.bg-gradient-primary-to-secondary {
+  background: linear-gradient(45deg, #1D71BA, #B25690) !important;
 }/*# sourceMappingURL=style.css.map */
