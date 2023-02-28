@@ -84,6 +84,14 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     decks = db.relationship("Deck", backref=db.backref("user", lazy="joined"), lazy="select")
+    ## need to add:
+    ## -creation date
+    ## -account type
+    ## -billing info
+    ## -location info
+    ## -date of birth
+    ## -profile pic
+    
 
 
 class Card(db.Model):
@@ -487,8 +495,6 @@ def register():
     email_conf = request.form.get('email_conf')
     password = request.form.get('password')
     confirm_password = request.form.get('confirm_password')
-    first_name = request.form.get('first_name')
-    last_name = request.form.get('last_name')
     agree_terms = request.form.get('terms-cond')
     agree_contact = request.form.get('contacted')
     print(agree_terms)
@@ -496,7 +502,7 @@ def register():
     print(username, email, email_conf, password, confirm_password)
     if agree_terms == "agree-terms":
         if agree_contact == "agree-contacted":
-            subscriber = Subscriber(email=email, first_name=first_name, last_name = last_name)
+            subscriber = Subscriber(email=email)
             db.session.add(subscriber)
             db.session.commit()
         if password != confirm_password:
@@ -511,7 +517,7 @@ def register():
             return 'Email already exists'
         else:
             password = bcrypt.generate_password_hash(request.form.get('password'))
-            user = User(username=username, email=email, password=password, first_name = first_name, last_name = last_name)
+            user = User(username=username, email=email, password=password)
             db.session.add(user)
             db.session.commit()
             flash('You have been registered succesfully!', 'success')
@@ -739,7 +745,9 @@ def rename_deck(id, new_name):
 @app.route("/account", methods = ["POST", "GET"])
 @login_required
 def account():
-    return render_template("account.html", title="Account")
+    user = User.query.filter_by(id=current_user.id).first()
+    
+    return render_template("account.html", title="Account", user = user)
 
 @app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
 @login_required

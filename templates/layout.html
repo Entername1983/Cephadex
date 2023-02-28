@@ -198,7 +198,7 @@ $('#terms-cond-link').click(function(event) {
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Sign up</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">Register</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -217,14 +217,7 @@ $('#terms-cond-link').click(function(event) {
                                 <label for="email">Confirm Email address</label>
                                 <input type="email" class="form-control" id="email_conf" name="email_conf" required>
                               </div>
-                              <div class="form-group">
-                                <label >First name</label>
-                                <input class="form-control" id="first_name" name="first_name" required>
-                              </div>
-                              <div class="form-group">
-                                <label >Last name</label>
-                                <input  class="form-control" id="last_name" name="last_name" required>
-                              </div>
+                        
                             <div class="form-group">
                               <label for="password">Password</label>
                               <input type="password" class="form-control" id="password" name="password" required>
@@ -240,7 +233,7 @@ $('#terms-cond-link').click(function(event) {
                                 <input type="checkbox" id="contacted" name="contacted" value="agree-contacted">
                                 <label for="terms-cond"> would like to stay receive information about special offers... </label><br>                              </div>
                           <br>
-                            <button type="submit" class="btn btn-primary">Sign up</button>
+                            <button type="submit" class="btn btn-primary">Register</button>
                           
         
 
@@ -266,7 +259,9 @@ aria-hidden="true">
         </div>
         <div class="modal-body">
             <form id = "login-form" method="POST" action="{{ url_for('login') }}">
-
+                <div style ="text-align:center">
+                <img src="static/logo1_small.png" alt="Avatar" style="width:30%" class="w3-circle w3-margin-top">
+</div>
                 <div class="form-group">
                   <label for="email">Email:</label>
                   <input type="email" class="form-control" id="email" name="email" required>
