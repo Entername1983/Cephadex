@@ -14,6 +14,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
    <!-- SUBMIT FORMS JAVASCRIPT-->
     <script>
         $(document).ready(function() {
@@ -105,7 +107,7 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav nav-fill">
-                {% if current_user.is_authenticated %}
+            {% if current_user.is_authenticated %}
                 <li class="nav-item active">
                     <a class="nav-link" href="/study_deck_all">Study <span class="sr-only">(current)</span></a>
                 </li>
@@ -115,6 +117,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/viewdecks">Decks</a>
                 </li>
+
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -127,25 +130,44 @@
                         <a class="dropdown-item" href="/logout">Sign out</a>
                     </div>
                 </li>
-
-            </ul>
             {% else %}
-            <li class="nav-item active">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
-                    Log in
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">
-                    Register
-                </button>
+                <li class="nav-item active">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        Log in
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">
+                        Register
+                    </button>
+                    
+                </li>
 
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/about">Find out more</a>
-            </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about">Find out more</a>
+                </li>
+                
+                <li class="nav-item">
+                    <div id="g_id_onload"
+                        data-client_id="561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com"
+                        data-context="signin"
+                        data-ux_mode="popup"
+                        data-login_uri="http://localhost:5000/googleSignIn"
+                        data-nonce=""
+                        data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin"
+                        data-type="standard"
+                        data-shape="rectangular"
+                        data-theme="outline"
+                        data-text="signin_with"
+                        data-size="large"
+                        data-logo_alignment="left">
+                    </div>
+                </li>
 
             {% endif %}
+            </ul>
         </div>
     </nav>
 

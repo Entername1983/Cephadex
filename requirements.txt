@@ -36,3 +36,4 @@ Werkzeug==2.2.2
 WTForms==3.0.1
 WTForms-SQLAlchemy==0.3
 pysqlite3
+google-auth

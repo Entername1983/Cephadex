@@ -17,6 +17,8 @@ from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from cardcreator import card_creator, write_to_csv, create_image
 from extractors import Regenerate_def, add_period, large_extract_terms, small_extract_terms
+from google.oauth2 import id_token
+from google.auth.transport import requests
 import sys
 from sqlalchemy.sql import func
 import logging
@@ -85,6 +87,12 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(50), nullable=False)
     decks = db.relationship("Deck", backref=db.backref("user", lazy="joined"), lazy="select")
 
+class GoogleUser(db.Model, UserMixin):
+    email = db.Column(db.String(255), nullable=False)
+    external_id = db.Column(db.String(64), nullable=False,  primary_key=True)
+    given_name = db.Column(db.String(50), nullable=False)
+    family_name = db.Column(db.String(50), nullable=False)
+    enabled = db.Column(db.Boolean, default=True)
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -471,6 +479,9 @@ def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
+    
+    ##TODO ONLY FOR http AND LOCALHOST, FOR GOOGLE AUTH
+    response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
     return response    
     
 @app.route("/", methods=["GET", "POST"])
@@ -508,6 +519,50 @@ def register():
 
     return render_template('index.html', title='Index')
 
+    
+    
+@app.route("/googleSignIn", methods=["POST"])
+def googleSignIn():
+    #Security validation
+    csrf_token_cookie = request.cookies.get('g_csrf_token')
+    if not csrf_token_cookie:
+        print('No CSRF token in Cookie.')#webapp2.abort(400, 'No CSRF token in Cookie.')
+    csrf_token_body = request.form.get('g_csrf_token')
+    if not csrf_token_body:
+        print('No CSRF token in post body.')#webapp2.abort(400, 'No CSRF token in post body.')
+    if csrf_token_cookie != csrf_token_body:
+        print('Failed to verify double submit cookie.')#webapp2.abort(400, 'Failed to verify double submit cookie.')
+    try:
+        #encrypted credential
+        credential = request.form.get('credential')
+        # Decrypt credential, third parameter comes from google API console client ID
+        idinfo = id_token.verify_oauth2_token(credential, requests.Request(),'561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com')
+        print(idinfo);
+        # ID token is valid. Get the user's Google Account ID from the decoded token. (UniqueID to use for login)
+        userid = idinfo['sub']
+        
+        user = GoogleUser.query.filter_by(external_id=userid).first()
+        
+        if (user):
+            login_user(user)
+            flash('You have been logged in!', 'success')
+            return redirect(url_for('index'))
+        
+        email = idinfo['email']
+        given_name = idinfo['given_name']
+        family_name = idinfo['family_name']
+        
+        
+        user = GoogleUser(email = email, external_id = userid, given_name = given_name, family_name = family_name, enabled = True)
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+        return redirect(url_for('index'))
+    
+    except ValueError:
+        # Invalid token
+        pass
+    return render_template('index.html', title='Index')
     
     ##register_form = RegisterForm()
    ## if register_form.validate_on_submit():
