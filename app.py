@@ -31,8 +31,6 @@ app = Flask(__name__)
 
 bcrypt = Bcrypt(app)
 
-
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database1.db'
 app.config['SECRET_KEY'] = 'whynot'
 app.config['UPLOAD_FOLDER'] = 'static\\files'
@@ -40,7 +38,6 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 
 werkzeug_logger = logging.getLogger('werkzeug')
 werkzeug_logger.setLevel(logging.INFO)
-
 
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx'}
@@ -91,7 +88,43 @@ class User(db.Model, UserMixin):
     ## -location info
     ## -date of birth
     ## -profile pic
+    ## -gender
+    ## - contacted by email
     
+    
+    ##def member_since(self):
+        ##return self.time_created.strftime('%b %Y')
+    
+    def quantity_decks(self):
+        return len(self.decks)
+    
+    def quantity_cards(self):
+        return sum([len(deck.cards) for deck in self.decks])
+    
+    def quantity_cards_mastered(self):
+        counter = 0
+        for deck in self.decks:
+            for card in deck.cards:
+                if card.box_id == 3:
+                    counter += 1
+        return counter
+
+    def quantity_cards_learning(self):
+        counter = 0
+        for deck in self.decks:
+            for card in deck.cards:
+                if card.box_id != 3 and card.times_asked != 0:
+                    counter += 1
+        return counter
+    
+    def quantity_cards_new(self):
+        counter = 0
+        for deck in self.decks:
+            for card in deck.cards:
+                if card.times_asked == 0:
+                    counter += 1
+        return counter
+        
 
 
 class Card(db.Model):
@@ -122,6 +155,8 @@ class Card(db.Model):
     #data_2 = db.Column(db.float(100), nullable = True)
     #data_3 = db.Column(db.float(100), nullable = True)
     #data_time = db.Column(db.Interval, nullable = True)
+    ## consider including a field for explanation of answer
+    ## how can we keep track of time studied deck?  
     
     def to_json(self):
         return {
@@ -747,7 +782,53 @@ def rename_deck(id, new_name):
 def account():
     user = User.query.filter_by(id=current_user.id).first()
     
+    
+    if request.method == 'POST':
+        print(request.form)
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        username = request.form.get('username')
+        gender = request.form.get('gender')
+        email_checkbox = request.form.get('email-checkbox')
+        print(user, first_name, last_name, username, gender, email_checkbox)
+        print("Entered account post request")
+        if first_name != "":
+            user.first_name = first_name
+        if last_name != "":
+            user.last_name = last_name
+        if username != "":
+            if User.query.filter_by(username=username).first() is not None and username != user.username:
+                flash("Username already taken")
+            else:
+                user.username = username
+        if gender != "":
+            user.gender = gender
+        if email_checkbox == "on":
+            user.email_checkbox = True
+            if not Subscriber.query.filter_by(email=user.email).first():
+                subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name, timestamp = datetime.now())
+                db.session.add(subscriber)
+                db.session.commit()
+
+
     return render_template("account.html", title="Account", user = user)
+
+@app.route('/update_profile_pic', methods=['POST'])
+def update_profile_pic():
+  # get the uploaded file
+  profile_picture = request.files['profile-pic']
+  if profile_picture:
+  # save the file to our server
+    profile_picture.save(os.path.join('static', 'profile_pictures', profile_picture.filename))
+  else:
+      flash('No file selected')
+  # update the user's profile picture in the database
+  # (replace this with your own code to update the database)
+  
+  # redirect back to the user's profile page
+  return redirect(url_for('account'))
+
+
 
 @app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
 @login_required
@@ -968,7 +1049,7 @@ def extract2():
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option != "Mcq":
-            x, y = mapping.get(prompt_option, ("T", "D"))
+            x, y = mapping.get(prompt_option, ("A", "B"))
             for item in terms:
                 entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y]), create_method=method)
                 db.session.add(entry)
@@ -999,7 +1080,12 @@ def carousel(deck_id):
     if request.method == 'POST' and 'term' in request.form:
         print("entered post request3")
         term = request.form['term'] ## new term for card
-        content = request.form['content'] ## new content for card
+        content = request.form['content']
+        
+        
+        boc_2 = request.form.get('boc_2')
+        boc_3 = request.form.get('boc_3')
+        boc_4 = request.form.get('boc_4')
         id = request.form['id'] ## id of card to be edited
         print(id)
         card = Card.query.filter_by(id=id).first()
@@ -1007,6 +1093,13 @@ def carousel(deck_id):
             card.term = term
         if content != "":
             card.content = content
+        if boc_2 != "":
+           card.boc_2 = boc_2
+        if boc_3 != "":
+            card.boc_3 = boc_3
+        if boc_4 != "":
+            card.boc_4 = boc_4
+        print(boc_2, boc_3, boc_4)
         db.session.commit()
     
     if request.method == 'POST' and 'new_term' in request.form:
@@ -1040,7 +1133,8 @@ def add_new_card(deck_id):
     db.session().add(entry)
     deck.cards.append(entry)
     db.session.commit()
-    
+    return 'Card saved successfully'
+
 @app.route("/landingpage", methods = ["GET", "POST"])
 def landingpage():
     return render_template("landingpage.html", title="Landing Page")
@@ -1057,6 +1151,19 @@ def terms_and_conditions():
 def share_deck(deck_id):
     print("entered share deck")
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    
+    
+@login_required
+@app.route("/delete_account", methods = ["POST"])
+def delete_account():
+    user = User.query.filter_by(id=current_user.id).first()
+    del_email = request.form['del_email']
+    del_password = request.form['del_password']
+    if user.email == del_email and bcrypt.check_password_hash(user.password, del_password):
+        db.session.delete(user)
+        db.session.commit()
+        flash("We'are sorry to see you go. Your account has been deleted.")
+    return redirect(url_for('logout'))
 
 
 if __name__ == "__main__":
