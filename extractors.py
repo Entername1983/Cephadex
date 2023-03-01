@@ -245,3 +245,109 @@ def Regenerate_def(term):
         x = x.strip()
         x = add_period(x)
         return x    
+
+
+
+
+##  EXPERIMENTATION
+
+def extract_ind_terms(text: str, prompt_option2: str, prompt_option3: str):
+    pass
+
+
+def extract_terms3(text: str, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                  len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    print("entered extract term function")
+    print(prompt_option)
+    print(prompt_option2)
+    print(lang_option)
+    print(trans_option)
+    print(len_option)
+    print(qmin_option)
+    print(qmax_option)
+    
+    ## get prompt choice
+    prompt_select = prompt_choices[prompt_option]
+    ## get prompt chocie 2
+    if prompt_option2 != None:
+        c2 = "related to the subject of " + prompt_choices2[prompt_option2]
+    else:
+        c2 = ""
+    ## get language
+    if lang_option != None:
+        lang = lang_choices[lang_option]
+    else:
+        lang = ""
+    ## get len_option
+    if len_option:
+        length = len_choices[len_option]
+    else:
+        length = ""
+
+    if qmin_option:
+        qmin = "at least " + qmin_option 
+    else:
+        qmin = "all"
+    if qmax_option:
+        qmax = ", and at most " + qmax_option
+    else:
+        qmax = ""
+    
+    
+    if prompt_option not in prompt_choices:
+        raise ValueError("Invalid prompt option")
+    
+    print(prompt_select)
+    prompt_select = prompt_select.replace('{qmin}', qmin)
+    prompt_select = prompt_select.replace('{c2}', c2)
+    prompt_select = prompt_select.replace('{qmax}', qmax)
+    prompt_select = prompt_select.replace('{length}', length)
+    prompt_select = prompt_select.replace('{lang}', lang)
+    print(prompt_select)
+
+    if trans_option != None:
+        print(prompt_select)
+        prompt_select = prompt_select.replace('{}', trans_option)
+    prompt = (prompt_select + text + 'The JSON object: \n')
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        temperature=0.7,
+        top_p=1,
+        prompt=prompt,
+        max_tokens=1000
+    )
+    print(prompt_option)
+    print(prompt_select)
+    x = response.choices[0]["text"].strip()
+    print(x)
+    x = json.loads(x)
+    print(x)
+    return x
+   
+
+def small_extract_terms3(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    ls_terms = []
+    response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+    for dict in response:
+        ls_terms.append(dict)
+    return ls_terms
+
+## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
+def large_extract_terms3(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    print("entered large extract term function")
+    print(prompt_option)
+    print(prompt_option2)
+    ls_terms = []
+    for item in items:
+        response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+        for dict in response:
+            ls_terms.append(dict)
+    print(ls_terms)
+    return ls_terms
+
+def add_period3(s):
+    if s[-1] != ".":
+        s += "."
+    return s

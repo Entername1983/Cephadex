@@ -342,8 +342,78 @@ class Deck(db.Model):
                 if time_diff >= card.interval:
                     qty = qty + 1
         return qty
-    
-
+    "Definitions": ("A", "B"),
+    "Translate": ("A", "B"),
+    "Rhyme": ("A", "B"),
+    "People": ("A", "B"),
+    "Theories": ("A", "B"),
+    "Cloze": ("A", "B"),
+    "Mcq": ("A", "B", "C", "D", "E"),
+    "Comprehension": ("A", "B"),
+    "Vocab_builder": ("A", "B"),
+    def check_cat(self):
+        Mcq = 0
+        Cloze = 0
+        Definitions = 0
+        Comprehension = 0
+        Vocab_builder = 0
+        Theories = 0
+        Rhyme = 0
+        Translate = 0
+        counter = 0
+        People = 0
+        ## check if all cards have same category
+        for card in self.cards:
+            if card.category == "Mcq":
+                Mcq += 1
+            elif card.category == "Cloze":
+                Cloze += 1
+            elif card.category == "Definitions":
+                Definitions += 1
+            elif card.category == "Comprehension":
+                Comprehension += 1
+            elif card.category == "Vocab_builder":
+                Vocab_builder += 1
+            elif card.category == "Theories":
+                Theories += 1
+            elif card.category == "Rhyme":
+                Rhyme += 1
+            elif card.category == "Translate":
+                Translate += 1
+            elif card.category == "People":
+                People += 1
+        ## identify which categor has most cards
+        if Mcq > counter:
+            counter = Mcq
+            Most_common = "Mcq"
+        if Cloze > counter:
+            counter = Cloze
+            Most_common = "Cloze"
+        if Definitions > counter:
+            counter = Definitions
+            Most_common = "Definitions"
+        if Comprehension > counter:
+            counter = Comprehension
+            Most_common = "Comprehension"
+        if Vocab_builder > counter:
+            counter = Vocab_builder
+            Most_common = "Vocab_builder"
+        if Theories > counter:
+            counter = Theories
+            Most_common = "Theories"
+        if Rhyme > counter:
+            counter = Rhyme
+            Most_common = "Rhyme"
+        if Translate > counter:
+            counter = Translate
+            Most_common = "Translate"
+        if People > counter:
+            counter = People
+            Most_common = "People"
+        
+        return Most_common
+        
+        
     def to_json(self):
         return {
             "id": self.id,
@@ -1064,20 +1134,17 @@ def extract2():
             file = form.file.data
             file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
             file.save(file_loc)
-            terms = card_creator(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-            
+            terms = card_creator(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)          
         elif form.text_input.data != None:
             print("text inputted")
             method = "text input"
             text = form.text_input.data
             print(text)
             terms = small_extract_terms(text, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-
         if prompt_option == "Translate":
             cat = prompt_option2
         else:
             cat = prompt_option
-            
         deck.user_id = current_user.id
         ## need to modify db accordingly
         if prompt_option == "Mcq":
@@ -1101,7 +1168,6 @@ def extract2():
                     db.session.commit()
                 except:
                     pass
-        
         return redirect('/carousel/{deck.id}'.format(deck = deck))
     else:
         print("form not valid")
@@ -1203,6 +1269,118 @@ def delete_account():
         db.session.commit()
         flash("We'are sorry to see you go. Your account has been deleted.")
     return redirect(url_for('logout'))
+
+
+## USING FOR EXPERIMENTATION
+@app.route("/extract3", methods = ["GET", "POST"])
+@login_required
+def extract3():
+
+    mapping = {
+    "Definitions": ("A", "B"),
+    "Translate": ("A", "B"),
+    "Rhyme": ("A", "B"),
+    "People": ("A", "B"),
+    "Theories": ("A", "B"),
+    "Cloze": ("A", "B"),
+    "Mcq": ("A", "B", "C", "D", "E"),
+    "Comprehension": ("A", "B"),
+    "Vocab_builder": ("A", "B"),
+    }
+    form = UploadFileForm()
+    ## prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option
+    prompt_option2 = None
+    lang_option = None
+    trans_option = None
+    len_option = None
+    qmin_option = None
+    qmax_option = None
+    
+    if form.validate_on_submit():
+        print("form submitted")
+        ## load type of card to be made to prompt_option
+        if form.prompt.data != None:       
+            prompt_option = form.prompt.data
+        ## load translate option  
+        if form.languages.data != None:    
+            trans_option = form.languages.data    
+        if form.prompt.data != "Translate":
+            trans_option = None
+        ## load secondary prompt option
+        if form.subject.data:
+            prompt_option2 = form.subject.data
+        ## load language output option (defaults to English)
+        if form.main_lang.data:
+            lang_option = form.main_lang.data
+        if form.length.data:
+            len_option = form.length.data
+        if form.qmin_option.data:
+            qmin_option = form.qmin_option.data
+        if form.qmax_option.data:
+            qmax_option = form.qmax_option.data
+                 
+        
+        ## use existing deck or create a new one
+        if form.deck_list.data != None:
+            deck = form.deck_list.data
+        else:
+            deck_name = form.name.data
+            if form.description.data != None:
+                deck_description = form.description.data
+            else:
+                deck_description = " ".join(prompt_option + "deck")
+            deck = Deck(name=deck_name, description=deck_description)
+            db.session.add(deck) 
+   
+        ## create card content, gets outputed as a list of dicts    
+        if form.file.data != None:  
+            print("file inputted")
+            method = "file upload"
+            file = form.file.data
+            file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
+            file.save(file_loc)
+            terms = card_creator(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)          
+        elif form.text_input.data != None:
+            print("text inputted")
+            method = "text input"
+            text = form.text_input.data
+            print(text)
+            terms = small_extract_terms(text, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+        if prompt_option == "Translate":
+            cat = prompt_option2
+        else:
+            cat = prompt_option
+        deck.user_id = current_user.id
+        ## need to modify db accordingly
+        if prompt_option == "Mcq":
+            v, w, x, y, z = mapping.get(prompt_option, ("Q", "A", "W1", "W2", "W3"))
+            for item in terms:
+                entry = Card(category = cat, term=item[v].capitalize(), content=(add_period(item[w])), boc_2=(add_period(item[x])), boc_3=(add_period(item[y])), boc_4=(add_period(item[z])), create_method = method)
+                db.session.add(entry)
+                deck.cards.append(entry)
+            db.session.commit()
+        elif prompt_option != "Mcq":
+            x, y = mapping.get(prompt_option, ("A", "B"))
+            for item in terms:
+                entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y]), create_method=method)
+                db.session.add(entry)
+                deck.cards.append(entry)
+            db.session.commit()                
+        if form.generate_images.data == True: 
+            for card in deck.cards:
+                try:
+                    card.img = create_image(card.term)
+                    db.session.commit()
+                except:
+                    pass
+        return redirect('/carousel/{deck.id}'.format(deck = deck))
+    else:
+        print("form not valid")
+        print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
+
+    return render_template("extract3.html", title="Extract", form=form)
+
+
 
 
 if __name__ == "__main__":
