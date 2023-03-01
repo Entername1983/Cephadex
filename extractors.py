@@ -10,12 +10,12 @@ import sys
 
 ## terms choices
 prompt_choices = {
-    'Definitions': ' Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {length} definition for each. {lang} Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A" as well as one named "B". \n The resulting JSON object should be in this format: [{"T":"string","D":"string"}] \n The passage: \n',
-    "Translate": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {trans} translation for each. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the {} translation. \n The resulting JSON object should be in this format: [{"T":"string","TR":"string"}] \n The passage: \n',    "Rhyme": 'Given the passage below, extract as many uncommon or technical terms as possible and create a four verse poem for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the terms extracted and have a property named "T", for the term, as well as one named "R", for the poem. \n The resulting JSON object should be in this format: [{"T":"string","R":"string"}] \n The passage: \n',
-    "Rhyme": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and create a four verse poem for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"T":"string","R":"string"}] \n The passage: \n',
-    "People": 'Given the passage below, extract all the names of people and provide a {length} biography for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the person, as well as one named "B", for the biography. \n The resulting JSON object should be in this format: [{"P":"string","B":"string"}] \n The passage: \n',    "Theories": 'Given the passage below, identify all the relevant theories and concepts and provide an explanation for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "TC", for the theory or concept, as well as one named "E", for the explanation. \n The resulting JSON object should be in this format: [{"TC":"string","E":"string"}] \n The passage: \n',
-    "Theories": 'Given the passage below, identify {qmin} {qmax} relevant theories and concepts {c2} and provide an {length} explanation for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "A", for the theory or concept, as well as one named "B", for the explanation. \n The resulting JSON object should be in this format: [{"TC":"string","E":"string"}] \n The passage: \n',
-    "Cloze": 'Given the passage below, create {qmin} {qmax} cloze deletion questions  {lang}.{c2} The goal is to test my understanding of the text. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the cloze deletion texts and have a property named "A" for the cloze deletion text, and "B" for the missing word(s). \n The resulting JSON object should be in this format: [{"C":"string","F":"string"}] \n The passage: \n',    "Mcq":'Given the passage below, create at least one multiple choice question for each key piece of information.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the multiple choice questions and have a property named "Q" for the question, one named A for the correct answer and 3 other properties for the wrong answers, W1, W2, W3.  \n The resulting JSON object should be in this format: [{"Q": "string", "A":"Answer", "W1":"Wrong answer 1", "W2":"Wrong answer 2", "W3":"Wrong answer 3"}] \n The passage \n',
+    'Definitions': ' Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {length} definition for each. {lang} Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A" as well as one named "B". \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
+    "Translate": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {trans} translation for each. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the {} translation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Rhyme": 'Given the passage below, extract as many uncommon or technical terms as possible and create a four verse poem for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the terms extracted and have a property named "T", for the term, as well as one named "R", for the poem. \n The resulting JSON object should be in this format: [{"T":"string","R":"string"}] \n The passage: \n',
+    "Rhyme": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and create a four verse poem for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
+    "People": 'Given the passage below, extract all the names of people and provide a {length} biography for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the person, as well as one named "B", for the biography. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Theories": 'Given the passage below, identify all the relevant theories and concepts and provide an explanation for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "TC", for the theory or concept, as well as one named "E", for the explanation. \n The resulting JSON object should be in this format: [{"TC":"string","E":"string"}] \n The passage: \n',
+    "Theories": 'Given the passage below, identify {qmin} {qmax} relevant theories and concepts {c2} and provide an {length} explanation for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "A", for the theory or concept, as well as one named "B", for the explanation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
+    "Cloze": 'Given the passage below, create {qmin} {qmax} cloze deletion questions  {lang}.{c2} The goal is to test my understanding of the text. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the cloze deletion texts and have a property named "A" for the cloze deletion text, and "B" for the missing word(s). \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Mcq":'Given the passage below, create at least one multiple choice question for each key piece of information.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the multiple choice questions and have a property named "Q" for the question, one named A for the correct answer and 3 other properties for the wrong answers, W1, W2, W3.  \n The resulting JSON object should be in this format: [{"Q": "string", "A":"Answer", "W1":"Wrong answer 1", "W2":"Wrong answer 2", "W3":"Wrong answer 3"}] \n The passage \n',
     "Mcq":'{c2}Given the passage below, create {qmin} {qmax} {length} multiple choice questions {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the multiple choice questions and have a property named "A" for the question, one named "B" for the correct answer and 3 other properties for the wrong answers, "C", "D", "E". \n The resulting JSON object should be in this format: [{"A": "string", "B":"Answer", "C":"Wrong answer 1", "D":"Wrong answer 2", "E":"Wrong answer 3"}] \n The passage \n',
     "Comprehension":'Given the passage below, create {qmin}  {qmax} {length} questionsto test comprehension of the key information contained within {c2} {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the comprehension questions and have a property named "A" for the question, and "B" for the answer. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    
     "Vocab_builder": 'Given the passage below, extract all unique words and provide a definition for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the words extracted and have a property named "A", for the word, as well as one named "B", for the definition. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n', } 
@@ -245,3 +245,109 @@ def Regenerate_def(term):
         x = x.strip()
         x = add_period(x)
         return x    
+
+
+
+
+##  EXPERIMENTATION
+
+def extract_ind_terms(text: str, prompt_option2: str, prompt_option3: str):
+    pass
+
+
+def extract_terms3(text: str, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                  len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    print("entered extract term function")
+    print(prompt_option)
+    print(prompt_option2)
+    print(lang_option)
+    print(trans_option)
+    print(len_option)
+    print(qmin_option)
+    print(qmax_option)
+    
+    ## get prompt choice
+    prompt_select = prompt_choices[prompt_option]
+    ## get prompt chocie 2
+    if prompt_option2 != None:
+        c2 = "related to the subject of " + prompt_choices2[prompt_option2]
+    else:
+        c2 = ""
+    ## get language
+    if lang_option != None:
+        lang = lang_choices[lang_option]
+    else:
+        lang = ""
+    ## get len_option
+    if len_option:
+        length = len_choices[len_option]
+    else:
+        length = ""
+
+    if qmin_option:
+        qmin = "at least " + qmin_option 
+    else:
+        qmin = "all"
+    if qmax_option:
+        qmax = ", and at most " + qmax_option
+    else:
+        qmax = ""
+    
+    
+    if prompt_option not in prompt_choices:
+        raise ValueError("Invalid prompt option")
+    
+    print(prompt_select)
+    prompt_select = prompt_select.replace('{qmin}', qmin)
+    prompt_select = prompt_select.replace('{c2}', c2)
+    prompt_select = prompt_select.replace('{qmax}', qmax)
+    prompt_select = prompt_select.replace('{length}', length)
+    prompt_select = prompt_select.replace('{lang}', lang)
+    print(prompt_select)
+
+    if trans_option != None:
+        print(prompt_select)
+        prompt_select = prompt_select.replace('{}', trans_option)
+    prompt = (prompt_select + text + 'The JSON object: \n')
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        temperature=0.7,
+        top_p=1,
+        prompt=prompt,
+        max_tokens=1000
+    )
+    print(prompt_option)
+    print(prompt_select)
+    x = response.choices[0]["text"].strip()
+    print(x)
+    x = json.loads(x)
+    print(x)
+    return x
+   
+
+def small_extract_terms3(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    ls_terms = []
+    response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+    for dict in response:
+        ls_terms.append(dict)
+    return ls_terms
+
+## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
+def large_extract_terms3(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    print("entered large extract term function")
+    print(prompt_option)
+    print(prompt_option2)
+    ls_terms = []
+    for item in items:
+        response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+        for dict in response:
+            ls_terms.append(dict)
+    print(ls_terms)
+    return ls_terms
+
+def add_period3(s):
+    if s[-1] != ".":
+        s += "."
+    return s

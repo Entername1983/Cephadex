@@ -55,3 +55,22 @@ def write_to_csv(definitions: str, filename: str):
         for key, value in definitions.items():
             if key != "" and value != "":
                 writer.writerow([key, value])
+
+
+
+
+## EXPERIMENTATION
+
+def card_creator3(file, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None, len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    
+    if file.endswith('.pdf'):
+        items = extract_from_pdf(file) 
+    elif file.endswith('.pptx'):
+        items = extract_from_pptx(file) 
+    elif file.endswith('.docx'):
+        items = extract_from_docx(file)
+    elif file.endswith('.txt'):
+         with open(file) as file:
+            items = file.read()
+    terms = large_extract_terms(items, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+    return terms

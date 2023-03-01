@@ -12,6 +12,7 @@
           var formData = $('#newCardForm').serialize();
           var newTerm = $('#new_term').val();
           console.log(newTerm);
+          console.log(formData)
           // Send the form data to the Flask app using AJAX
           $.ajax({
             type: 'POST',
@@ -103,19 +104,19 @@
                                 {% if card.boc_2 is not none %}
 
                                 <div class="row mt-1">
-                                    <textarea name="content"
+                                    <textarea name="boc_2"
                                         class="form-control card-text box_study input_0 form-control form-control-lg"
                                         type="text" id="card.id" rows="1"
                                         placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
                                 </div>
                                 <div class="row mt-1">
-                                    <textarea name="content"
+                                    <textarea name="boc_3"
                                         class="form-control card-text box_study input_0 form-control form-control-lg"
                                         type="text" id="card.id" rows="1"
                                         placeholder="{{ card.boc_3 }}"> {{ card.boc_3 }}</textarea>
                                 </div>
                                 <div class="row mt-1">
-                                    <textarea name="content"
+                                    <textarea name="boc_4"
                                         class="form-control card-text box_study input_0 form-control form-control-lg"
                                         type="text" id="card.id" rows="1"
                                         placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
@@ -178,19 +179,19 @@
                             </div>
                             {% if card.boc_2 is not none %}
                             <div class="row mt-1">
-                                <textarea name="content"
+                                <textarea name="boc_2"
                                     class="form-control card-text box_study input_0 form-control form-control-lg"
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
                             </div>
                             <div class="row mt-1">
-                                <textarea name="content"
+                                <textarea name="boc_3"
                                     class="form-control card-text box_study input_0 form-control form-control-lg"
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.boc_3 }}"> {{ card.boc_3 }}</textarea>
                             </div>
                             <div class="row mt-1">
-                                <textarea name="content"
+                                <textarea name="boc_4"
                                     class="form-control card-text box_study input_0 form-control form-control-lg"
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>

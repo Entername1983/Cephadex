@@ -283,10 +283,16 @@
         alert("No previous cards");
       }
       var previousCard = cardStack.pop();
+      
 
       if (previousCard) {
         // If there is a previous card on the stack, switch to it
+
         currentCard = previousCard;
+        // add that card to cardList and sort it
+        
+        cardList.push(previousCard);
+        cardsDue = cardList.length;
 
         // Add the current card back to the list and re-sort the list
         cardList.push(currentCard);
@@ -480,10 +486,7 @@
           else 
           {
             currentCard = cardList[currentCardIndex];
-            console.log(currentCard)
-            console.log(cardsDue)
             cardsDue = cardList.length;
-            console.log(cardsDue)
             mcqChecker();
 
             setCardData(currentCard,cardsDue);

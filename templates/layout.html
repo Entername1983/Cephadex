@@ -18,70 +18,82 @@
 
    <!-- SUBMIT FORMS JAVASCRIPT-->
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Register form handler
-            $('#register-form').submit(function(event) {
+            $('#register-form').submit(function (event) {
                 event.preventDefault();
                 var form_data = $(this).serialize();
                 $.ajax({
                     type: 'POST',
                     url: '{{ url_for("register") }}',
                     data: form_data,
-                    success: function(response) {
+                    success: function (response) {
                         $('#registerModal').modal('hide');
                     },
-                    error: function(error) {
+                    error: function (error) {
                         alert('An error occurred: ' + error.responseText);
                     }
                 });
             });
-        
+
             // Sign in form handler
-            $('#login-form').submit(function(event) {
+            $('#login-form').submit(function (event) {
                 event.preventDefault();
                 var form_data = $(this).serialize();
                 $.ajax({
                     type: 'POST',
                     url: '{{ url_for("login") }}',
                     data: form_data,
-                    success: function(response) {
+                    success: function (response) {
                         console.log("login-form success");
                         $('#loginModal').modal('hide');
                         location.reload();
                     },
-                    error: function(error) {
+                    error: function (error) {
                         alert('An error occurred: ' + error.responseText);
                     }
                 });
             });
-        
+
             // Subscribe form handler
-            $('#subscribe-form').submit(function(event) {
+            $('#subscribe-form').submit(function (event) {
                 event.preventDefault();
                 var form_data = $(this).serialize();
                 $.ajax({
                     type: 'POST',
                     url: '{{ url_for("subscribe") }}',
                     data: form_data,
-                    success: function(response) {
+                    success: function (response) {
                         alert(response);
                         $('#subscribeModal').modal('hide');
                     },
-                    error: function(error) {
+                    error: function (error) {
                         alert('An error occurred: ' + error.responseText);
                     }
                 });
             });
         });
-        </script>
 
-<!-- END SUBMIT FORMS JAVASCRIPT -->
+        // END SUBMIT FORMS JAVASCRIPT 
 
+        // TERMS AND CONDITIONS MODAL JS
+
+        $('#terms-cond-button').click(function (event) {
+            event.preventDefault();
+            $('#terms-condModal').modal('show');
+        });
+
+        $('#terms-cond-link').click(function (event) {
+            event.preventDefault();
+            $('#terms-condModal').modal('show');
+        });
+
+    </script>
 
 
     <link href="..\static\style.css" rel="stylesheet" />
     {% block head %} {% endblock %}
-    <title>Octuply {% block title %}{% endblock %}</title>
+    <title>Octoply {% block title %}{% endblock %}</title>
 
 
 
@@ -96,78 +108,90 @@
 
 
 
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1D71BA;">
-        <a class="navbar-brand pl-2" href="/">
-            <img src="\static\logo1_small.png" width="50" height="50" alt="">
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm" style="background-color: rgba(29, 113, 186, 0.5);">
+        <div class="container px-5">
+            <a class="navbar-brand pl-2" href="/">
+                <img src="\static\logo1_small.png" width="50" height="50" alt="logo">
+            </a>
+            <a class="navbar-brand fw-bold" href="#page-top">Octoply</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="#navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="bi-list"></i>
+            </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav nav-fill">
-            {% if current_user.is_authenticated %}
-                <li class="nav-item active">
-                    <a class="nav-link" href="/study_deck_all">Study <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/extract2">Create</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/viewdecks">Decks</a>
-                </li>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto me-4 my-3 my-lg-0">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/study_deck_all">Study <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/extract2">Create</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/viewdecks">Decks</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Account
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="/account">Account info</a>
+                            <a class="dropdown-item" href="#">Upgrade</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="/logout">Sign out</a>
+                        </div>
+                    </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Account
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="/account">Account info</a>
-                        <a class="dropdown-item" href="#">Upgrade</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="/logout">Sign out</a>
-                    </div>
-                </li>
-            {% else %}
-                <li class="nav-item active">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
-                        Log in
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">
-                        Register
-                    </button>
-                    
-                </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="/about">Find out more</a>
-                </li>
+                    {% else %}
+                    <li class="nav-item active">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#loginModal">
+                            Log in
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#registerModal">
+                            Register
+                        </button>
+
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">Find out more</a>
+                    </li>
                 
-                <li class="nav-item">
-                    <div id="g_id_onload"
-                        data-client_id="561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com"
-                        data-context="signin"
-                        data-ux_mode="popup"
-                        data-login_uri="http://localhost:5000/googleSignIn"
-                        data-nonce=""
-                        data-auto_prompt="false">
-                    </div>
-                    <div class="g_id_signin"
-                        data-type="standard"
-                        data-shape="rectangular"
-                        data-theme="outline"
-                        data-text="signin_with"
-                        data-size="large"
-                        data-logo_alignment="left">
-                    </div>
-                </li>
+                    <li class="nav-item">
+                        <div id="g_id_onload"
+                            data-client_id="561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com"
+                            data-context="signin"
+                            data-ux_mode="popup"
+                            data-login_uri="http://localhost:5000/googleSignIn"
+                            data-nonce=""
+                            data-auto_prompt="false">
+                        </div>
+                        <div class="g_id_signin"
+                            data-type="standard"
+                            data-shape="rectangular"
+                            data-theme="outline"
+                            data-text="signin_with"
+                            data-size="large"
+                            data-logo_alignment="left">
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+                <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0" data-bs-toggle="modal"
+                    data-bs-target="#feedbackModal">
+                    <span class="d-flex align-items-center">
+                        <i class="bi-chat-text-fill me-2"></i>
+                        <span class="small">Send Feedback</span>
+                    </span>
+                </button>
 
-            {% endif %}
-            </ul>
+            </div>
         </div>
     </nav>
 
@@ -178,7 +202,17 @@
 
 
 
-    <div class="container-md px-2 flex">
+ 
+
+    <main>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+   
+
+           <div class="container-md px-2 flex">
         <div class="row">
             {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -192,8 +226,6 @@
         </div>
 
     </div>
-
-    <main>
         {% block main_0 %}
 
         {% endblock %}
@@ -208,95 +240,157 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Sign up</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">Register</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form id = "register-form" method="POST" action="{{ url_for('register') }}">
+                        <form id="register-form" method="POST" action="{{ url_for('register') }}">
 
                             <div class="form-group">
-                              <label for="username">Username</label>
-                              <input type="text" class="form-control" id="username" name="username" required>
+                                <label for="username">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
                             </div>
-                          
+
                             <div class="form-group">
-                              <label for="email">Email address</label>
-                              <input type="email" class="form-control" id="email" name="email" required>
+                                <label for="email">Email address</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
                             </div>
                             <div class="form-group">
                                 <label for="email">Confirm Email address</label>
                                 <input type="email" class="form-control" id="email_conf" name="email_conf" required>
-                              </div>
-                              <div class="form-group">
-                                <label >First name</label>
-                                <input class="form-control" id="first_name" name="first_name" required>
-                              </div>
-                              <div class="form-group">
-                                <label >Last name</label>
-                                <input  class="form-control" id="last_name" name="last_name" required>
-                              </div>
-                            <div class="form-group">
-                              <label for="password">Password</label>
-                              <input type="password" class="form-control" id="password" name="password" required>
                             </div>
-                          
+
                             <div class="form-group">
-                              <label for="confirm-password">Confirm password</label>
-                              <input type="password" class="form-control" id="confirm-password" name="confirm_password" required>
+                                <label for="password">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
                             </div>
-                          <br>
-                            <button type="submit" class="btn btn-primary">Sign up</button>
-                          
-        
+
+                            <div class="form-group">
+                                <label for="confirm-password">Confirm password</label>
+                                <input type="password" class="form-control" id="confirm-password"
+                                    name="confirm_password" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="checkbox" id="terms-cond" name="terms-cond" value="agree-terms">
+                                <label for="terms-cond">I agree to the <a href="/terms_and_conditions" target="_blank"
+                                        id="terms-cond-link"> terms and conditions</a> </label><br>
+                                <input type="checkbox" id="contacted" name="contacted" value="agree-contacted">
+                                <label for="terms-cond"> would like to stay receive information about special offers...
+                                </label><br>
+                            </div>
+                            <br>
+                            <button type="submit" class="btn btn-primary">Register</button>
+
+
 
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </form>
+
+                    </form>
                 </div>
             </div>
         </div>
+        <!-- END OF REGISTER MODAL-->
 
-
-
-
-<!-- Modal sign in -->
-<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
-aria-hidden="true">
-<div class="modal-dialog">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="loginModalLabel">Log in</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+ <!-- Feedback Modal-->
+ <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary-to-secondary p-4">
+                <h5 class="modal-title font-alt" id="feedbackModalLabel">Send feedback</h5>
+                <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body border-0 p-4">
+                <!-- * * * * * * * * * * * * * * *-->
+                <!-- * * SB Forms Contact Form * *-->
+                <!-- * * * * * * * * * * * * * * *-->
+                <!-- This form is pre-integrated with SB Forms.-->
+                <!-- To make this form functional, sign up at-->
+                <!-- https://startbootstrap.com/solution/contact-forms-->
+                <!-- to get an API token!-->
+                <form id="contactForm" data-sb-form-api-token="API_TOKEN">
+                    <!-- Name input-->
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="name" type="text" placeholder="Enter your name..." data-sb-validations="required" />
+                        <label for="name">Full name</label>
+                        <div class="invalid-feedback" data-sb-feedback="name:required">A name is required.</div>
+                    </div>
+                    <!-- Email address input-->
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="email" type="email" placeholder="name@example.com" data-sb-validations="required,email" />
+                        <label for="email">Email address</label>
+                        <div class="invalid-feedback" data-sb-feedback="email:required">An email is required.</div>
+                        <div class="invalid-feedback" data-sb-feedback="email:email">Email is not valid.</div>
+                    </div>
+                    <!-- Message input-->
+                    <div class="form-floating mb-3">
+                        <textarea class="form-control" id="message" type="text" placeholder="Enter your message here..." style="height: 10rem" data-sb-validations="required"></textarea>
+                        <label for="message">Message</label>
+                        <div class="invalid-feedback" data-sb-feedback="message:required">A message is required.</div>
+                    </div>
+                    <!-- Submit success message-->
+                    <!---->
+                    <!-- This is what your users will see when the form-->
+                    <!-- has successfully submitted-->
+                    <div class="d-none" id="submitSuccessMessage">
+                        <div class="text-center mb-3">
+                            <div class="fw-bolder">Form submission successful!</div>
+                            To activate this form, sign up at
+                            <br />
+                            <a href="https://startbootstrap.com/solution/contact-forms">https://startbootstrap.com/solution/contact-forms</a>
+                        </div>
+                    </div>
+                    <!-- Submit error message-->
+                    <!---->
+                    <!-- This is what your users will see when there is-->
+                    <!-- an error submitting the form-->
+                    <div class="d-none" id="submitErrorMessage"><div class="text-center text-danger mb-3">Error sending message!</div></div>
+                    <!-- Submit Button-->
+                    <div class="d-grid"><button class="btn btn-primary rounded-pill btn-lg disabled" id="submitButton" type="submit">Submit</button></div>
+                </form>
+            </div>
         </div>
-        <div class="modal-body">
-            <form id = "login-form" method="POST" action="{{ url_for('login') }}">
-
-                <div class="form-group">
-                  <label for="username">Username or Email</label>
-                  <input type="text" class="form-control" id="username" name="username" required>
-                </div>
-              
-              
-                <div class="form-group">
-                  <label for="password">Password</label>
-                  <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-              
-              <br>
-                <button type="submit" class="btn btn-primary">Log in</button>
-              
-
-
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-    </form>
     </div>
 </div>
-</div>
+
+
+        <!-- Modal sign in -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="loginModalLabel">Log in</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="login-form" method="POST" action="{{ url_for('login') }}">
+                            <div style="text-align:center">
+                                <img src="static/logo1_small.png" alt="Avatar" style="width:30%"
+                                    class="w3-circle w3-margin-top">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email:</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="password">Password:</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <br>
+                            <input class="w3-check w3-margin-top" type="checkbox" checked="checked"> Remember me
+                            <br>
+                            <br>
+                            <button type="submit" class="btn btn-primary">Log in</button>
+                            <button class="btn btn-primary" onclick="window.location.href='/recover_password'">Forgot
+                                password</button>
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
 
 
 
@@ -337,7 +431,7 @@ aria-hidden="true">
 
 
 
-    <footer class="text-center site-footer">
+    <footer class="text-center site-footer pt-2" style="background-color: rgba(29, 113, 186, 0.5);">
 
         <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i class="fab fa-facebook-f"></i></a>
 
@@ -352,7 +446,7 @@ aria-hidden="true">
         <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i class="fab fa-github"></i></a>
 
 
-        <div class="text-center p-3 mt-2" style="background-color: rgba(0, 0, 0, 0.2);">
+        <div class="text-center p-3 mt-2" style="background-color: rgba(29, 113, 186, 0.5);">
             © 2023 Copyright:
             <a class="text-white" href="https://mdbootstrap.com/">Octoply</a>
         </div>
