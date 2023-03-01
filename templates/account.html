@@ -43,6 +43,7 @@ main_0 %}
                 <div class="row">
                   <label for="gender">Gender:</label>
                   <select id="gender" name="gender" class="card-title box_study input_0 form-control form-control-lg">
+                    <option value="default">{{user.gender}}</option>
                     <option value="Female">Female</option>
                     <option value="Male">Male</option>
                     <option value="Other">Other</option>
@@ -56,7 +57,11 @@ main_0 %}
 
             <div class="col-6">
               <div class="row justify-content-center" style="text-align:center">
+                {% if user.pic == None %}
                 <img src="static/logo1.png" style="max-height:fit-content; max-width:fit-content;" alt="logo">
+                {% else %}
+                <img src="\{{user.pic}}" style="max-height:400px; max-width:400px;" alt="profile pic">
+                {% endif %}
               </div>
               <div class="row justify-content-center mt-2">
                 <button type="button" class="btn box_study" data-bs-toggle="modal" data-bs-target="#exampleModal"
@@ -68,11 +73,11 @@ main_0 %}
           <div class="row">
             <label for="email">Account type:</label>
             <p name="term" class="card-title box_study input_0 form-control form-control-lg" type="text" id="email"
-              placeholder="" value=""> Free (placeholder) </p>
+              placeholder="" value=""> {{user.account_type}} </p>
             <button type="button" class="btn box_study" style="max-width:300px;">Upgrade account</button>
             <label for="email">Member since:</label>
             <p name="term" class="card-title box_study input_0 form-control form-control-lg" type="text" id="email"
-              placeholder="" value=""> 00-00-0000 (placeholder) </p>
+              placeholder="" value=""> {{user.time_created}} </p>
             <div class="row">
               <label for="checkbox">Receive email notifications:</label>
               <input class=" " type="checkbox" id="email-checkbox" name="email-checkbox" value="on" />

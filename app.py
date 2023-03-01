@@ -23,6 +23,7 @@ import logging
 import logging.handlers
 import json
 from datetime import datetime, timedelta
+from flask_migrate import Migrate
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -43,6 +44,7 @@ werkzeug_logger.setLevel(logging.INFO)
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx'}
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -71,6 +73,12 @@ cards = db.Table("cards",
                  db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
                  db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),
                  )
+
+source_files = db.Table("source_files",
+                        db.Column("deck_file_id", db.Integer, db.ForeignKey("DeckFiles.id")), 
+                        db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),  # 
+                        )  
+                        
 ## external auth + external type + external
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,19 +89,25 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     decks = db.relationship("Deck", backref=db.backref("user", lazy="joined"), lazy="select")
-    ## need to add:
-    ## -creation date
-    ## -account type
-    ## -billing info
-    ## -location info
-    ## -date of birth
-    ## -profile pic
-    ## -gender
-    ## - contacted by email
+    ## external auth + external type
+    external_id = db.Column(db.String(255), nullable=True) 
+    external_type = db.Column(db.String(255), nullable=True)
     
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)
+    time_accessed= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    ##def member_since(self):
-        ##return self.time_created.strftime('%b %Y')
+    account_type = db.Column(db.String(255), nullable=True, default="free")
+    account_status = db.Column(db.String(255), nullable=True, default="active")
+    account_expiration = db.Column(db.DateTime, nullable=True)
+    account_expiration_reason = db.Column(db.String(255), nullable=True)
+    gender = db.Column(db.String(255), nullable=True)
+    pic = db.Column(db.String(255), nullable=True)
+    contacted_email = db.Column(db.Boolean, default=False)
+    dob = db.Column(db.DateTime, nullable=True)
+
+    
+    def member_since(self):
+        return self.time_created.strftime('%b %Y')
     
     def quantity_decks(self):
         return len(self.decks)
@@ -150,6 +164,15 @@ class Card(db.Model):
     category = db.Column(db.String(255), nullable=True)
     edited = db.Column(db.Integer, default=0)
     diff_lvl = db.Column(db.Float(100), default=1)
+    subject = db.Column(db.String(255), nullable=True)
+    topic = db.Column(db.String(255), nullable=True)
+    prompt_option = db.Column(db.String(255), nullable=True)
+    prompt_option2 = db.Column(db.String(255), nullable=True)
+    trans_option = db.Column(db.String(255), nullable=True)
+    len_option = db.Column(db.String(255), nullable=True)
+    qmin_option = db.Column(db.String(255), nullable=True)
+    qmax_option = db.Column(db.String(255), nullable=True)
+    
     # unused
     #data_1 = db.Column(db.float(100), nullable = True)
     #data_2 = db.Column(db.float(100), nullable = True)
@@ -252,7 +275,11 @@ class Deck(db.Model):
     category = db.Column(db.String(255), nullable=True)
     times_accessed = db.Column(db.Integer, default=0)
     access_date = db.Column(db.DateTime, default=datetime.utcnow)
- 
+    subject = db.Column(db.String(255), nullable=True)
+    topic = db.Column(db.String(255), nullable=True)
+    shared = db.Column(db.Boolean, default=False)
+    accepted = db.Column(db.Boolean, default=False)
+    
     def force_study(self):
         due_cards = []
         current_time = datetime.now()
@@ -384,7 +411,13 @@ class Subscriber(db.Model):
     def unsubscribe(self):
         db.session.delete(self)            	
         db.session.commit()
-    
+
+class DeckFiles(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    file_name = db.Column(db.String(50), unique=True)
+    file_path = db.Column(db.String(50), unique=True)
+    file_type = db.Column(db.String(50), unique=True)	
+    file_size = db.Column(db.String(50), unique=True)
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
     last_name = StringField('Last Name', validators=[InputRequired()], render_kw= {"placeholder": "Last Name"})           
@@ -532,9 +565,6 @@ def register():
     confirm_password = request.form.get('confirm_password')
     agree_terms = request.form.get('terms-cond')
     agree_contact = request.form.get('contacted')
-    print(agree_terms)
-    print(agree_contact)
-    print(username, email, email_conf, password, confirm_password)
     if agree_terms == "agree-terms":
         if agree_contact == "agree-contacted":
             subscriber = Subscriber(email=email)
@@ -819,7 +849,16 @@ def update_profile_pic():
   profile_picture = request.files['profile-pic']
   if profile_picture:
   # save the file to our server
-    profile_picture.save(os.path.join('static', 'profile_pictures', profile_picture.filename))
+    pic = os.path.join('static', 'profile_pictures', profile_picture.filename)
+
+    user = User.query.filter_by(id=current_user.id).first()
+    ##save the file to the server
+    profile_picture.save(pic)
+    user.pic = pic
+    print(pic)
+    db.session.commit()
+    print(user.pic)
+    
   else:
       flash('No file selected')
   # update the user's profile picture in the database
