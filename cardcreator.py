@@ -6,7 +6,7 @@ import csv
 from pptx import Presentation
 import numpy as np
 from extractors import extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx, extract_audio
-from extractors import extract_from_pdf3, large_extract_terms, extract_from_pptx3, extract_terms, extract_from_docx3, extract_audio
+from extractors import extract_from_pdf3, large_extract_terms, extract_from_pptx3, extract_terms, extract_from_docx3, extract_audio, transcribe_and_translate
 import base64
 import requests
 import tiktoken
@@ -66,17 +66,18 @@ def write_to_csv(definitions: str, filename: str):
 
 
 ## EXPERIMENTATION
+
+
+
 ## TEXT DIVIDER
 
-
-
-
-
 ## Takes a text and divides it into a list, with each item being at most n tokens long
-def split_text(text, n = 1024):
+def split_text(text, n = 2000):
     print("entered split text")
     tokens = count_tokens(text)
+    print(tokens)
     n_chunks = tokens//n
+    print(n_chunks)
     if n_chunks < 1:
         n_chunks = 1
     chunks = np.array_split(text.split(), n_chunks)
@@ -100,8 +101,8 @@ def split_tokens(tokens, n):
 
 
 
-def card_creator3(file, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None, len_option: str = None, qmin_option: int = None, qmax_option: int = None):
-    print("entered card_creator3")
+
+def text_extractor(file):
     if file.endswith('.pdf'):
         items = extract_from_pdf3(file) 
     elif file.endswith('.pptx'):
@@ -111,16 +112,24 @@ def card_creator3(file, prompt_option: str, prompt_option2: str = None, lang_opt
     elif file.endswith('.wav'):
         items = extract_audio(file)
     elif file.endswith('.txt'):
-         with open(file) as file:
+        with open(file) as file:
             items = file.read()
     print(count_tokens(items))
-   
-    print(items)
+    return items
+
+
+def creator(text, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None, len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    items = text
     if prompt_option != "Transcribe":
         print("entered not transcribe")
         items = split_text(items)
         
         terms = large_extract_terms(items, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-    else:
-        terms = items
-    return terms
+        return terms
+    elif prompt_option == "Transcribe":
+        if trans_option == None:
+            return items
+        else:
+            items = transcribe_and_translate(items, prompt_option, trans_option)
+            
+        return items

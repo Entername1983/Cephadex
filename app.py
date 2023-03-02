@@ -15,8 +15,8 @@ from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, 
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
-from cardcreator import card_creator, write_to_csv, create_image, card_creator3
-from extractors import Regenerate_def, add_period, large_extract_terms, small_extract_terms
+from cardcreator import card_creator, write_to_csv, create_image, text_extractor, creator
+from extractors import Regenerate_def, add_period, large_extract_terms, small_extract_terms, extract_from_youtube, text_extractor, check_comma_list, get_video_id
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import sys
@@ -536,7 +536,7 @@ class UploadFileForm(FlaskForm):
                                                   ( "Vietnamese", "Vietnamese")], default = None)
     
     text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
-    link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional(), URL()])
+    link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional()])
     qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Min. items per page"})
     qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Max. items per page"})
     subject = SelectField('Subject', choices=[("", 'Select subject'),('Art', 'Art'), ('Anatomy', 'Anatomy'), ('Astron', 'Astronomy'), ('Bus', 'Business'), 
@@ -1339,7 +1339,8 @@ def extract3():
     len_option = None
     qmin_option = None
     qmax_option = None
-    
+    print("checking form")
+    print(form.link_input.data)
     if form.validate_on_submit():
         print("form submitted")
         ## load type of card to be made to prompt_option
@@ -1349,8 +1350,6 @@ def extract3():
         ## load translate option  
         if form.languages.data != None:    
             trans_option = form.languages.data    
-        if form.prompt.data != "Translate":
-            trans_option = None
         ## load secondary prompt option
         if form.subject.data:
             prompt_option2 = form.subject.data
@@ -1364,7 +1363,10 @@ def extract3():
         if form.qmax_option.data:
             qmax_option = form.qmax_option.data
                  
-        
+        if form.text_input.data != None:
+            print("text not none")
+        if form.link_input.data != None:
+            print("link not none")
         ## use existing deck or create a new one
         if form.deck_list.data != None:
             deck = form.deck_list.data
@@ -1384,13 +1386,38 @@ def extract3():
             file = form.file.data
             file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
             file.save(file_loc)
-            terms = card_creator3(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)          
-        elif form.text_input.data != None:
+            text = text_extractor(file_loc)
+        
+        elif form.link_input.data != None:
+            text = None
+            link_input = form.link_input.data
+            if check_comma_list(link_input):
+                link_input = link_input.split(",")
+                print(link_input)
+                for link in link_input:
+                    print("check")
+                    print(link)
+                    print(type(link))
+                    link = get_video_id(link)
+                    part = extract_from_youtube(link)
+                    if text == None:
+                        text = part
+                    text = text + part
+            print("youtube link inputted")
+            method = "link input"
+            link_input = get_video_id(link_input)
+            print("link input format")
+            print(link_input)
+            text = extract_from_youtube(link_input)
+            
+        elif form.text_input.data is not None and form.text_input.data.strip() != '':
+            print(form.text_input.data)
             print("text inputted")
             method = "text input"
-            text = form.text_input.data
-            print(text)
-            terms = small_extract_terms(text, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+            text = form.text_input.data    
+        terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
+        
+        
         if prompt_option == "Translate":
             cat = prompt_option2
         else:
@@ -1412,6 +1439,7 @@ def extract3():
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option == "Transcribe":
+            print(trans_option)
             print("prompt option is transcribe")
             print(terms)
             entry = Card(category = cat, term="transcription", content=terms, create_method=method)
