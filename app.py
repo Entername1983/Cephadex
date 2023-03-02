@@ -77,15 +77,15 @@ cards = db.Table("cards",
                  )
 
 source_files = db.Table("source_files",
-                        db.Column("deck_file_id", db.Integer, db.ForeignKey("DeckFiles.id")), 
+                        db.Column("deck_file_id", db.Integer, db.ForeignKey("deck_files.id")), 
                         db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),  # 
                         )  
-                        
+                      
 ## external auth + external type + external
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(80), nullable=False)
+    username = db.Column(db.String(20), nullable=True, unique=True)
+    password = db.Column(db.String(80), nullable=True)
     email = db.Column(db.String(255), nullable=False)
     email_confirmed_at = db.Column(db.DateTime())
     first_name = db.Column(db.String(50), nullable=False)
@@ -142,12 +142,12 @@ class User(db.Model, UserMixin):
         return counter
         
 
-class GoogleUser(db.Model, UserMixin):
-    email = db.Column(db.String(255), nullable=False)
-    external_id = db.Column(db.String(64), nullable=False,  primary_key=True)
-    given_name = db.Column(db.String(50), nullable=False)
-    family_name = db.Column(db.String(50), nullable=False)
-    enabled = db.Column(db.Boolean, default=True)
+#class GoogleUser(db.Model, UserMixin):
+#    email = db.Column(db.String(255), nullable=False)
+#    external_id = db.Column(db.String(64), nullable=False,  primary_key=True)
+#    given_name = db.Column(db.String(50), nullable=False)
+#    family_name = db.Column(db.String(50), nullable=False)
+#    enabled = db.Column(db.Boolean, default=True)
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -350,15 +350,7 @@ class Deck(db.Model):
                 if time_diff >= card.interval:
                     qty = qty + 1
         return qty
-    "Definitions": ("A", "B"),
-    "Translate": ("A", "B"),
-    "Rhyme": ("A", "B"),
-    "People": ("A", "B"),
-    "Theories": ("A", "B"),
-    "Cloze": ("A", "B"),
-    "Mcq": ("A", "B", "C", "D", "E"),
-    "Comprehension": ("A", "B"),
-    "Vocab_builder": ("A", "B"),
+
     def check_cat(self):
         Mcq = 0
         Cloze = 0
@@ -496,6 +488,7 @@ class DeckFiles(db.Model):
     file_path = db.Column(db.String(50), unique=True)
     file_type = db.Column(db.String(50), unique=True)	
     file_size = db.Column(db.String(50), unique=True)
+       
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
     last_name = StringField('Last Name', validators=[InputRequired()], render_kw= {"placeholder": "Last Name"})           
@@ -692,7 +685,7 @@ def googleSignIn():
         # ID token is valid. Get the user's Google Account ID from the decoded token. (UniqueID to use for login)
         userid = idinfo['sub']
         
-        user = GoogleUser.query.filter_by(external_id=userid).first()
+        user = User.query.filter_by(external_id=userid).first()
         
         if (user):
             login_user(user)
@@ -704,7 +697,9 @@ def googleSignIn():
         family_name = idinfo['family_name']
         
         
-        user = GoogleUser(email = email, external_id = userid, given_name = given_name, family_name = family_name, enabled = True)
+        user = User(email=email, first_name=given_name, last_name=family_name,external_id=userid)
+        
+        #user = User(email = email, external_id = userid, given_name = given_name, family_name = family_name, enabled = True)
         db.session.add(user)
         db.session.commit()
         login_user(user)
