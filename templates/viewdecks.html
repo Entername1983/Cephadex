@@ -55,6 +55,7 @@
         <tr>
           <th>Deck Name: </th>
           <th>Description: </th>
+          <th>Category: </th>
           <th>Number of cards: </th>
           <th>Actions:</th>
         </tr>
@@ -72,7 +73,9 @@
 
           </td>
           <td data-th="Description:">{{ deck.description }}</td>
+          <td data-th="Category:"> {{ deck.check_cat() }} </td>
           <td data-th="Number of Cards (cards due):"> {{ deck.quantity_cards() }} ({{deck.qty_cards_due() }})</td>
+          
 
 
 

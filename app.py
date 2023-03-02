@@ -15,7 +15,7 @@ from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, 
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
-from cardcreator import card_creator, write_to_csv, create_image
+from cardcreator import card_creator, write_to_csv, create_image, card_creator3
 from extractors import Regenerate_def, add_period, large_extract_terms, small_extract_terms
 import sys
 from sqlalchemy.sql import func
@@ -31,11 +31,10 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 app = Flask(__name__)
 
 bcrypt = Bcrypt(app)
-
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max limi
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database1.db'
 app.config['SECRET_KEY'] = 'whynot'
 app.config['UPLOAD_FOLDER'] = 'static\\files'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 
 werkzeug_logger = logging.getLogger('werkzeug')
 werkzeug_logger.setLevel(logging.INFO)
@@ -216,7 +215,7 @@ class Card(db.Model):
         self.times_correct = self.times_correct + 1
         self.times_asked = self.times_asked + 1
         self.times_correct_row = self.times_correct_row + 1
-        if self.times_correct_row > 4:
+        if self.times_correct_row > 3:
             self.box_id = self.box_id + 1
             if self.box_id > 3:
                 self.box_id = 3
@@ -230,6 +229,9 @@ class Card(db.Model):
             self.interval = self.interval * 10
         if self.interval > 525600:
             self.interval = 525600
+        ## ensure that at minimum if someone answer 3 questions in a row correctly, they will be asked again in 24 hours
+        if self.times_correct_row > 3:
+            self.interval += 1440
         db.session.commit()
         
     def decrement(self):
@@ -342,15 +344,6 @@ class Deck(db.Model):
                 if time_diff >= card.interval:
                     qty = qty + 1
         return qty
-    "Definitions": ("A", "B"),
-    "Translate": ("A", "B"),
-    "Rhyme": ("A", "B"),
-    "People": ("A", "B"),
-    "Theories": ("A", "B"),
-    "Cloze": ("A", "B"),
-    "Mcq": ("A", "B", "C", "D", "E"),
-    "Comprehension": ("A", "B"),
-    "Vocab_builder": ("A", "B"),
     def check_cat(self):
         Mcq = 0
         Cloze = 0
@@ -382,37 +375,20 @@ class Deck(db.Model):
                 Translate += 1
             elif card.category == "People":
                 People += 1
-        ## identify which categor has most cards
-        if Mcq > counter:
-            counter = Mcq
-            Most_common = "Mcq"
-        if Cloze > counter:
-            counter = Cloze
-            Most_common = "Cloze"
-        if Definitions > counter:
-            counter = Definitions
-            Most_common = "Definitions"
-        if Comprehension > counter:
-            counter = Comprehension
-            Most_common = "Comprehension"
-        if Vocab_builder > counter:
-            counter = Vocab_builder
-            Most_common = "Vocab_builder"
-        if Theories > counter:
-            counter = Theories
-            Most_common = "Theories"
-        if Rhyme > counter:
-            counter = Rhyme
-            Most_common = "Rhyme"
-        if Translate > counter:
-            counter = Translate
-            Most_common = "Translate"
-        if People > counter:
-            counter = People
-            Most_common = "People"
-        
-        return Most_common
-        
+        ## loop through each category and check if it is the highest count
+        categories = {'Mcq': Mcq, 'Cloze': Cloze, 'Definitions': Definitions,
+                  'Comprehension': Comprehension, 'Vocab_builder': Vocab_builder,
+                  'Theories': Theories, 'Rhyme': Rhyme, 'Translate': Translate,
+                  'People': People}
+        max_category, max_count = max(categories.items(), key=lambda x: x[1])
+        if max_count > len(self.cards) / 2:
+            self.category = max_category
+            db.session.commit()
+            return max_category
+        else:
+            self.category = "Mixed"
+            db.session.commit()
+            return "Mixed"
         
     def to_json(self):
         return {
@@ -536,7 +512,7 @@ class UploadFileForm(FlaskForm):
     description = StringField("Description", render_kw={"placeholder": "Describe your deck!"})
     submit = SubmitField("Extract", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension'), ('Vocab_builder', 'Vocabulary builder')], default='Definitions')
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe')], default='Definitions')
     generate_images = BooleanField('Generate_images')
     languages = SelectField('Languages', choices=[("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
@@ -978,7 +954,16 @@ def downloadascsv(deck_id):
     deck = Deck.query.filter_by(id=deck_id).first()
     cards = Card.query.filter(Card.decks.any(id=deck_id)).all()
     termsstrings = []
+
     for card in cards:
+        if card.boc_2 == None:
+            card.boc_2 = "null"
+        if card.boc_3 == None:
+            card.boc_3 = "null"
+        if card.boc_4 == None:
+            card.boc_4 = "null"    
+        
+        
         string = card.term + "," + card.content + "," + card.boc_2 + "," + card.boc_3 + "," + card.boc_4 + "," + card.category + "\n"
         termsstrings.append(string)            
     csvstring = "".join(termsstrings)            
@@ -1301,6 +1286,7 @@ def extract3():
         ## load type of card to be made to prompt_option
         if form.prompt.data != None:       
             prompt_option = form.prompt.data
+            print(prompt_option)
         ## load translate option  
         if form.languages.data != None:    
             trans_option = form.languages.data    
@@ -1334,12 +1320,12 @@ def extract3():
    
         ## create card content, gets outputed as a list of dicts    
         if form.file.data != None:  
-            print("file inputted")
+            print("file inputted3")
             method = "file upload"
             file = form.file.data
             file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
             file.save(file_loc)
-            terms = card_creator(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)          
+            terms = card_creator3(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)          
         elif form.text_input.data != None:
             print("text inputted")
             method = "text input"
@@ -1359,12 +1345,19 @@ def extract3():
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
-        elif prompt_option != "Mcq":
+        elif prompt_option != "Mcq" and prompt_option != "Transcribe":
             x, y = mapping.get(prompt_option, ("A", "B"))
             for item in terms:
                 entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y]), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
+            db.session.commit()
+        elif prompt_option == "Transcribe":
+            print("prompt option is transcribe")
+            print(terms)
+            entry = Card(category = cat, term="transcription", content=terms, create_method=method)
+            db.session.add(entry)
+            deck.cards.append(entry)
             db.session.commit()                
         if form.generate_images.data == True: 
             for card in deck.cards:
