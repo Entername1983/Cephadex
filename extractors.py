@@ -7,6 +7,11 @@ import numpy as np
 import docx2txt
 import json
 import sys
+from pydub import AudioSegment
+import os
+from io import BytesIO
+import math
+
 
 ## terms choices
 prompt_choices = {
@@ -98,13 +103,6 @@ len_choices = {
 def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
                   len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     print("entered extract term function")
-    print(prompt_option)
-    print(prompt_option2)
-    print(lang_option)
-    print(trans_option)
-    print(len_option)
-    print(qmin_option)
-    print(qmax_option)
     
     ## get prompt choice
     prompt_select = prompt_choices[prompt_option]
@@ -133,17 +131,14 @@ def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, lan
     else:
         qmax = ""
     
-    
     if prompt_option not in prompt_choices:
         raise ValueError("Invalid prompt option")
     
-    print(prompt_select)
     prompt_select = prompt_select.replace('{qmin}', qmin)
     prompt_select = prompt_select.replace('{c2}', c2)
     prompt_select = prompt_select.replace('{qmax}', qmax)
     prompt_select = prompt_select.replace('{length}', length)
     prompt_select = prompt_select.replace('{lang}', lang)
-    print(prompt_select)
 
     if trans_option != None:
         print(prompt_select)
@@ -156,13 +151,10 @@ def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, lan
         prompt=prompt,
         max_tokens=1000
     )
-    print(prompt_option)
-    print(prompt_select)
     x = response.choices[0]["text"].strip()
-    print(x)
     x = json.loads(x)
-    print(x)
     return x
+   
    
 
 def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
@@ -205,7 +197,6 @@ def extract_from_pdf(pdf_file):
             page_content = page_content.replace("\n", " ")
             text.append(page_content)
     return text
-
 
 def extract_from_pptx(ppt_file):
     prs = Presentation(ppt_file)
@@ -250,6 +241,56 @@ def Regenerate_def(term):
 
 
 ##  EXPERIMENTATION
+def extract_audio(file): 
+    print("entered extract audio function")
+    text = []
+    segments = divide_audio(file) 
+    for segment in segments:
+        transcript = transcribe_whisper(segment)
+        text.append(transcript)
+    concatenated_text = "".join(text)
+    return concatenated_text
+
+
+def transcribe_whisper(audio_file):
+    print("entered transcribe function")
+    audio_file= open(audio_file, "rb")
+    transcript = openai.Audio.transcribe("whisper-1", audio_file)
+    transcript = transcript["text"]
+    return transcript
+
+## takes an mp3 files and divides in into 25mb segments
+
+def divide_audio(input_file, segment_length=25):
+    """
+    Split an audio file into segments of at most 25mb and save each segment as an MP3 file in the same folder as the input file
+    :param input_file: the path to the input audio file
+    :param segment_length: the maximum size of each audio segment, in megabytes
+    :return: a list of audio segment file paths
+    """
+    # Open the audio file
+    audio = AudioSegment.from_file(input_file)
+    # Calculate the segment size in bytes
+    segment_size = segment_length * 1024 * 1024
+    # Calculate the total number of segments
+    num_segments = math.ceil(len(audio) / segment_size)
+    # Create a list to hold the file paths for the audio segments
+    segments = []
+    # Split the audio file into segments and save each segment as an MP3 file
+    for i in range(num_segments):
+        start = i * segment_size
+        end = min((i + 1) * segment_size, len(audio))
+        segment = audio[start:end]
+        # Define the output file path for the segment
+        output_file = os.path.join(os.path.dirname(input_file), f"segment_{i}.mp3")
+        # Export the segment as an MP3 file
+        segment.export(output_file, format="mp3")
+        # Add the output file path to the list of segments
+        segments.append(output_file)
+    return segments
+
+
+
 
 def extract_ind_terms(text: str, prompt_option2: str, prompt_option3: str):
     pass
@@ -351,3 +392,34 @@ def add_period3(s):
     if s[-1] != ".":
         s += "."
     return s
+
+## MODIFIED TO RETURN STRINGS INSTEAD OF LIST OF STRINGS
+def extract_from_pdf3(pdf_file):
+    with open(pdf_file, 'rb') as f:
+        reader = PyPDF2.PdfReader(f)
+        total_pages = len(reader.pages)
+        text = []
+        for i in range(total_pages):
+            page = reader.pages[i]
+            page_content = page.extract_text()
+            page_content = page_content.replace("\n", " ")
+            text.append(page_content)
+        concatenated_text = "".join(text)
+
+    return concatenated_text
+
+def extract_from_pptx3(ppt_file):
+    prs = Presentation(ppt_file)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text_runs.append(shape.text)
+                
+        concatenated_text = "".join(text_runs)
+    return concatenated_text
+
+def extract_from_docx3(docx_file):            
+    text = docx2txt.process(docx_file)
+    text = text.replace("\n", " ")          
+    return text
