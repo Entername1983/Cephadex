@@ -8,7 +8,7 @@
 
 <h3 class="p-3 d-none d-md-block"> Generate cards in 3 easy steps!</h3>
 <div class="col-11 mx-auto box_0 my-3 p-4" style="border-radius: 5px;">
-    <form method="POST" action="{{url_for('extract3')}}" enctype="multipart/form-data" , onsubmit="showSpinner()">
+    <form method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data" , onsubmit="showSpinner()">
         {{form.hidden_tag()}}
         {{ form.csrf_token }}
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
@@ -85,7 +85,7 @@
                                     <button type="button" class="btn collapsed" data-bs-toggle="collapse"
                                         data-bs-target="#collapseThree" aria-expanded="false"
                                         aria-controls="collapseThree" style="width:100%">
-                                        Insert a link (coming soon)</button>
+                                        Insert a link (youtube)</button>
                                 </h5>
                             </div>
                             <div id="collapseThree" class="collapse" aria-labelledby="headingThree"

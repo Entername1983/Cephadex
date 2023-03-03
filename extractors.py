@@ -14,6 +14,7 @@ import math
 from youtube_transcript_api import YouTubeTranscriptApi
 import tiktoken
 
+encoding = tiktoken.get_encoding("gpt2")
 
 
 
@@ -104,241 +105,30 @@ len_choices = {
     "long": "very long",
     "short": "short",}
 
-def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
-                  len_option: str = None, qmin_option: int = None, qmax_option: int = None):
-    print("entered extract term function")
-    
-    ## get prompt choice
-    prompt_select = prompt_choices[prompt_option]
-    ## get prompt chocie 2
-    if prompt_option2 != None:
-        c2 = "related to the subject of " + prompt_choices2[prompt_option2]
-    else:
-        c2 = ""
-    ## get language
-    if lang_option != None:
-        lang = lang_choices[lang_option]
-    else:
-        lang = ""
-    ## get len_option
-    if len_option:
-        length = len_choices[len_option]
-    else:
-        length = ""
+## CALLS TO OPEN AI API
 
-    if qmin_option:
-        qmin = "at least " + qmin_option 
-    else:
-        qmin = "all"
-    if qmax_option:
-        qmax = ", and at most " + qmax_option
-    else:
-        qmax = ""
-    
-    if prompt_option not in prompt_choices:
-        raise ValueError("Invalid prompt option")
-    
-    prompt_select = prompt_select.replace('{qmin}', qmin)
-    prompt_select = prompt_select.replace('{c2}', c2)
-    prompt_select = prompt_select.replace('{qmax}', qmax)
-    prompt_select = prompt_select.replace('{length}', length)
-    prompt_select = prompt_select.replace('{lang}', lang)
 
-    if trans_option != None:
-        print(prompt_select)
-        prompt_select = prompt_select.replace('{}', trans_option)
-    prompt = (prompt_select + text + 'The JSON object: \n')
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        temperature=0.7,
-        top_p=1,
-        prompt=prompt,
-        max_tokens=1000
-    )
-    try:
-        x = response.choices[0]["text"].strip()
-        x = json.loads(x)
-        return x
-    except json.JSONDecodeError:
-        print("JSONDecodeError occurred, skipping this part.")
     
    
    
 
-def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
-                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
-    ls_terms = []
-    response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-    for dict in response:
-        ls_terms.append(dict)
-    return ls_terms
-
-## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
-def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
-                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
-    print("entered large extract term function")
-    print(items)
-    ls_terms = []
-    for item in items:
-        print(item)
-        response = extract_terms3(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-        for dict in response:
-            ls_terms.append(dict)
-    print(ls_terms)
-    return ls_terms
-
-def add_period(s):
-    if s[-1] != ".":
-        s += "."
-    return s
-
-
-## TEXT EXTRACTORS 
-def extract_from_youtube(youtube_url):
-    full_text = None
-    print("entered youtube function")
-    srt = YouTubeTranscriptApi.get_transcript(youtube_url)
-    for dict in srt:
-        x = dict['text']
-        if full_text == None:
-            full_text = x
-        else:
-            full_text = full_text + x
-    print(full_text)
-    return full_text
 
    
-def extract_from_pdf(pdf_file):
-    with open(pdf_file, 'rb') as f:
-        reader = PyPDF2.PdfReader(f)
-        total_pages = len(reader.pages)
-        text = []
-        for i in range(total_pages):
-            page = reader.pages[i]
-            page_content = page.extract_text()
-            page_content = page_content.replace("\n", " ")
-            text.append(page_content)
-    return text
 
-def extract_from_pptx(ppt_file):
-    prs = Presentation(ppt_file)
-    text_runs = []
-    for slide in prs.slides:
-        for shape in slide.shapes:
-            if hasattr(shape, "text"):
-                text_runs.append(shape.text)
-    return text_runs
-
-def extract_from_docx(docx_file):            
-    text = docx2txt.process(docx_file)
-    text = text.replace("\n", " ")          
-    return text
-
-## obsolete?            
-def Merge(dict1, dict2):
-    return(dict2.update(dict1))
  
-## REGENERATE A DEFINITION
-def Regenerate_def(term):
-        prompt = "Provide the definition for the following term: "
-        prompt1 = (prompt + term)
-        response = openai.Completion.create(
-        engine="text-davinci-003", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001.  HAVE TO USE DA VINCI TO GET PROPER FORMATTING
-        temperature = 0.7,
-        top_p = 1,
-        prompt=prompt1,
-        max_tokens=100)
-        x = response.choices[0]["text"].strip()
-        z = [term, ":"]
-        y = "".join(z)
-        if x.startswith(term):
-            x = x.replace(term, "",)
-        if x.startswith(y):
-            x = x.replace(y, "", 1)
-        x = x.strip()
-        x = add_period(x)
-        return x    
-
-
 
 
 ##  EXPERIMENTATION
 
-def text_extractor(file):
-    if file.endswith('.pdf'):
-        items = extract_from_pdf3(file) 
-    elif file.endswith('.pptx'):
-        items = extract_from_pptx3(file) 
-    elif file.endswith('.docx'):
-        items = extract_from_docx3(file)
-    elif file.endswith('.wav'):
-        items = extract_audio(file)
-    elif file.endswith('.txt'):
-        with open(file) as file:
-            items = file.read()
-    print(count_tokens(items))
-    return items
 
 
 
 
 
-def extract_audio(file): 
-    print("entered extract audio function")
-    text = []
-    segments = divide_audio(file) 
-    for segment in segments:
-        transcript = transcribe_whisper(segment)
-        text.append(transcript)
-    concatenated_text = "".join(text)
-    return concatenated_text
-
-
-def transcribe_whisper(audio_file):
-    print("entered transcribe function")
-    audio_file= open(audio_file, "rb")
-    transcript = openai.Audio.transcribe("whisper-1", audio_file)
-    transcript = transcript["text"]
-    return transcript
-
-## takes an mp3 files and divides in into 25mb segments
-
-def divide_audio(input_file, segment_length=25):
-    """
-    Split an audio file into segments of at most 25mb and save each segment as an MP3 file in the same folder as the input file
-    :param input_file: the path to the input audio file
-    :param segment_length: the maximum size of each audio segment, in megabytes
-    :return: a list of audio segment file paths
-    """
-    # Open the audio file
-    audio = AudioSegment.from_file(input_file)
-    # Calculate the segment size in bytes
-    segment_size = segment_length * 1024 * 1024
-    # Calculate the total number of segments
-    num_segments = math.ceil(len(audio) / segment_size)
-    # Create a list to hold the file paths for the audio segments
-    segments = []
-    # Split the audio file into segments and save each segment as an MP3 file
-    for i in range(num_segments):
-        start = i * segment_size
-        end = min((i + 1) * segment_size, len(audio))
-        segment = audio[start:end]
-        # Define the output file path for the segment
-        output_file = os.path.join(os.path.dirname(input_file), f"segment_{i}.mp3")
-        # Export the segment as an MP3 file
-        segment.export(output_file, format="mp3")
-        # Add the output file path to the list of segments
-        segments.append(output_file)
-    return segments
 
 
 
-
-def extract_ind_terms(text: str, prompt_option2: str, prompt_option3: str):
-    pass
-
-
-def extract_terms3(text: str, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
                   len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     print("entered extract term function")
     print(prompt_option)
@@ -413,7 +203,7 @@ def extract_terms3(text: str, prompt_option: str, prompt_option2: str = None, la
     return x
    
 
-def small_extract_terms3(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
                         len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     ls_terms = []
     response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
@@ -422,7 +212,7 @@ def small_extract_terms3(item, prompt_option: str, prompt_option2: str = None, l
     return ls_terms
 
 ## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
-def large_extract_terms3(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
                         len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     print("entered large extract term function")
     print(prompt_option)
@@ -435,43 +225,14 @@ def large_extract_terms3(items, prompt_option: str, prompt_option2: str = None, 
     print(ls_terms)
     return ls_terms
 
-def add_period3(s):
-    if s[-1] != ".":
-        s += "."
-    return s
-
-## MODIFIED TO RETURN STRINGS INSTEAD OF LIST OF STRINGS
-def extract_from_pdf3(pdf_file):
-    with open(pdf_file, 'rb') as f:
-        reader = PyPDF2.PdfReader(f)
-        total_pages = len(reader.pages)
-        text = []
-        for i in range(total_pages):
-            page = reader.pages[i]
-            page_content = page.extract_text()
-            page_content = page_content.replace("\n", " ")
-            text.append(page_content)
-        concatenated_text = "".join(text)
-
-    return concatenated_text
-
-def extract_from_pptx3(ppt_file):
-    prs = Presentation(ppt_file)
-    text_runs = []
-    for slide in prs.slides:
-        for shape in slide.shapes:
-            if hasattr(shape, "text"):
-                text_runs.append(shape.text)
-        concatenated_text = "".join(text_runs)
-    return concatenated_text
-
-def extract_from_docx3(docx_file):            
-    text = docx2txt.process(docx_file)
-    text = text.replace("\n", " ")          
-    return text
 
 
-## takes a string and 2 options and returns a string.  No formatting
+
+
+
+
+## TAKES TEXT OR LIST OF TEXT AND TRANSLATES IT TO THE LANGUAGE CHOSEN
+## ISSUE IS HOW TO HAVE PARAGRAPH BREAKS
 def transcribe_and_translate(items, prompt_option, trans_option):
     language = trans_option
     print(language)
@@ -503,10 +264,148 @@ def transcribe_and_translate(items, prompt_option, trans_option):
         )
         response = response['choices'][0]['message']['content']
         byte_string = response.encode('utf-8')
-        response = byte_string.decode('utf-8')
-        
+        response = byte_string.decode('utf-8')   
     return response
 
+## AUDIO TRANSCRIPTION
+def transcribe_whisper(audio_file):
+    print("entered transcribe function")
+    audio_file= open(audio_file, "rb")
+    transcript = openai.Audio.transcribe("whisper-1", audio_file)
+    transcript = transcript["text"]
+    return transcript
+
+## REGENERATE A DEFINITION
+def regenerate_def(term):
+        prompt = "Provide the definition for the following term: "
+        prompt1 = (prompt + term)
+        response = openai.Completion.create(
+        engine="text-davinci-003", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001.  HAVE TO USE DA VINCI TO GET PROPER FORMATTING
+        temperature = 0.7,
+        top_p = 1,
+        prompt=prompt1,
+        max_tokens=100)
+        x = response.choices[0]["text"].strip()
+        z = [term, ":"]
+        y = "".join(z)
+        if x.startswith(term):
+            x = x.replace(term, "",)
+        if x.startswith(y):
+            x = x.replace(y, "", 1)
+        x = x.strip()
+        x = add_period(x)
+        return x    
+
+
+
+
+
+###################################
+###################################
+
+
+
+## TEXT EXTRACTORS
+def text_extractor(file):
+    if file.endswith('.pdf'):
+        items = extract_from_pdf(file) 
+    elif file.endswith('.pptx'):
+        items = extract_from_pptx(file) 
+    elif file.endswith('.docx'):
+        items = extract_from_docx(file)
+    elif file.endswith('.wav'):
+        items = extract_audio(file)
+    elif file.endswith('.txt'):
+        with open(file) as file:
+            items = file.read()
+    print(count_tokens(items))
+    return items
+
+## AUDIO EXTRACTORS
+def extract_audio(file): 
+    print("entered extract audio function")
+    text = []
+    segments = divide_audio(file) 
+    for segment in segments:
+        transcript = transcribe_whisper(segment)
+        text.append(transcript)
+    concatenated_text = "".join(text)
+    return concatenated_text
+
+## PDF
+def extract_from_pdf(pdf_file):
+    with open(pdf_file, 'rb') as f:
+        reader = PyPDF2.PdfReader(f)
+        total_pages = len(reader.pages)
+        text = []
+        for i in range(total_pages):
+            page = reader.pages[i]
+            page_content = page.extract_text()
+            page_content = page_content.replace("\n", " ")
+            text.append(page_content)
+        concatenated_text = "".join(text)
+    return concatenated_text
+
+# PPTX
+def extract_from_pptx(ppt_file):
+    prs = Presentation(ppt_file)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text_runs.append(shape.text)
+        concatenated_text = "".join(text_runs)
+    return concatenated_text
+
+#DOCX
+def extract_from_docx(docx_file):            
+    text = docx2txt.process(docx_file)
+    text = text.replace("\n", " ")          
+    return text
+
+##YOUTUBE
+def extract_from_youtube(youtube_url):
+    full_text = None
+    print("entered youtube function")
+    srt = YouTubeTranscriptApi.get_transcript(youtube_url)
+    for dict in srt:
+        x = dict['text']
+        if full_text == None:
+            full_text = x
+        else:
+            full_text = full_text + x
+    print(full_text)
+    return full_text
+
+
+## DIVIDE AUDIO
+def divide_audio(input_file, segment_length=25):
+    """
+    Split an audio file into segments of at most 25mb and save each segment as an MP3 file in the same folder as the input file
+    :param input_file: the path to the input audio file
+    :param segment_length: the maximum size of each audio segment, in megabytes
+    :return: a list of audio segment file paths
+    """
+    # Open the audio file
+    audio = AudioSegment.from_file(input_file)
+    # Calculate the segment size in bytes
+    segment_size = segment_length * 1024 * 1024
+    # Calculate the total number of segments
+    num_segments = math.ceil(len(audio) / segment_size)
+    # Create a list to hold the file paths for the audio segments
+    segments = []
+    # Split the audio file into segments and save each segment as an MP3 file
+    for i in range(num_segments):
+        start = i * segment_size
+        end = min((i + 1) * segment_size, len(audio))
+        segment = audio[start:end]
+        # Define the output file path for the segment
+        output_file = os.path.join(os.path.dirname(input_file), f"segment_{i}.mp3")
+        # Export the segment as an MP3 file
+        segment.export(output_file, format="mp3")
+        # Add the output file path to the list of segments
+        segments.append(output_file)
+    return segments
 
 ## TOKEN HANDLERS
 def count_tokens(text):
@@ -524,6 +423,12 @@ def split_tokens(tokens, n):
     return [tokens[i:i+n] for i in range(0, len(tokens), n)]
 
 
+## MISC FORMATTERS
+def add_period(s):
+    if s[-1] != ".":
+        s += "."
+    return s
+
 def check_comma_list(string):
     if "," in string:
         return True
@@ -534,19 +439,108 @@ def check_comma_list(string):
 def comma_list_to_list(string):
     return string.split(",")
 
-
 ## remove unecessary elements of youtube link
 def get_video_id(link):
     # Remove any whitespace from the link
     print(type(link))
     link = ''.join(link)
     link = link.strip()
-
     # Check if the link is in the "youtu.be" format
     if "youtu.be" in link:
         video_id = link.split("/")[-1]
-
     # Check if the link is in the "youtube.com" format
     elif "watch?v=" in link:
         video_id = link.split("v=")[1].split("&")[0]
     return video_id
+
+###################################################################
+###################################################################
+
+## OBSOLETE?        
+def Merge(dict1, dict2):
+    return(dict2.update(dict1))
+
+
+def extract_terms_obs(text: str, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                  len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    print("entered extract term function")
+    
+    ## get prompt choice
+    prompt_select = prompt_choices[prompt_option]
+    ## get prompt chocie 2
+    if prompt_option2 != None:
+        c2 = "related to the subject of " + prompt_choices2[prompt_option2]
+    else:
+        c2 = ""
+    ## get language
+    if lang_option != None:
+        lang = lang_choices[lang_option]
+    else:
+        lang = ""
+    ## get len_option
+    if len_option:
+        length = len_choices[len_option]
+    else:
+        length = ""
+
+    if qmin_option:
+        qmin = "at least " + qmin_option 
+    else:
+        qmin = "all"
+    if qmax_option:
+        qmax = ", and at most " + qmax_option
+    else:
+        qmax = ""
+    
+    if prompt_option not in prompt_choices:
+        raise ValueError("Invalid prompt option")
+    
+    prompt_select = prompt_select.replace('{qmin}', qmin)
+    prompt_select = prompt_select.replace('{c2}', c2)
+    prompt_select = prompt_select.replace('{qmax}', qmax)
+    prompt_select = prompt_select.replace('{length}', length)
+    prompt_select = prompt_select.replace('{lang}', lang)
+
+    if trans_option != None:
+        print(prompt_select)
+        prompt_select = prompt_select.replace('{}', trans_option)
+    prompt = (prompt_select + text + 'The JSON object: \n')
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        temperature=0.7,
+        top_p=1,
+        prompt=prompt,
+        max_tokens=1000
+    )
+    try:
+        x = response.choices[0]["text"].strip()
+        x = json.loads(x)
+        return x
+    except json.JSONDecodeError:
+        print("JSONDecodeError occurred, skipping this part.")
+        
+        
+def small_extract_terms_obs(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    ls_terms = []
+    response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+    for dict in response:
+        ls_terms.append(dict)
+    return ls_terms
+
+## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
+def large_extract_terms_obs(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+    print("entered large extract term function")
+    print(items)
+    ls_terms = []
+    for item in items:
+        print(item)
+        response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+        for dict in response:
+            ls_terms.append(dict)
+    print(ls_terms)
+    return ls_terms
+
+
+
