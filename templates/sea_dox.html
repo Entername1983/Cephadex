@@ -1,0 +1,16 @@
+{% extends "layout.html" %} {% block title %} Sea Dox {% endblock %}
+{% block main_0 %}
+{% if deck.deck_files %}
+<ol>
+{% for file in deck.deck_files %}
+<div class = "col-6 box_study">
+<li> <a href="/source_file/{{file.id}}" class="mx-2">{{file.file_name}}</a></li>
+</div>
+<br>
+{% endfor %}
+</ol>
+{% else %}
+<h1> No source files available </h1>
+{% endif %}
+
+{% endblock %}

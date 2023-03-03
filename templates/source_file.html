@@ -1,0 +1,18 @@
+{% extends "layout.html" %} {% block title %} Sea Dox {% endblock %}
+{% block main_0 %}
+<div class = "container m-5 box_study">
+<div class = "row">
+    <a href="/download_source/{{file.id}}" class="mx-2">
+        <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px;"
+          class="px-1" title="Download">
+      </a>
+</div>
+<div class = "row">
+<h4> {{file.file_name}}</h4>
+</div>
+
+<div class = "row">
+<p> {{file.text_string}}</p>
+</div>
+</div>
+{% endblock %}

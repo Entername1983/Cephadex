@@ -16,7 +16,7 @@ from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from cardcreator import card_creator, write_to_csv, create_image, creator
-from extractors import regenerate_def, add_period, large_extract_terms, small_extract_terms, extract_from_youtube, text_extractor, check_comma_list, get_video_id, text_extractor
+from extractors import regenerate_def, add_period, large_extract_terms, small_extract_terms, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import sys
@@ -276,6 +276,7 @@ class Deck(db.Model):
     ## make relational table instead of using user_id?
     user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
     cards = db.relationship('Card', secondary=cards, backref="decks", lazy="select")
+    deck_files = db.relationship('DeckFiles', secondary=source_files, backref="decks", lazy="select")
     time_created = db.Column(db.DateTime, default=datetime.utcnow)   
     time_updated = db.Column(db.DateTime, default=datetime.utcnow)
     creator = db.Column(db.Integer) 
@@ -469,10 +470,11 @@ class Subscriber(db.Model):
 
 class DeckFiles(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    file_name = db.Column(db.String(50), unique=True)
-    file_path = db.Column(db.String(50), unique=True)
-    file_type = db.Column(db.String(50), unique=True)	
-    file_size = db.Column(db.String(50), unique=True)
+    file_name = db.Column(db.String(100))
+    file_path = db.Column(db.String(50))
+    file_type = db.Column(db.String(500))	
+    file_size = db.Column(db.String(50))
+    text_string = db.Column(db.String())
        
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
@@ -871,7 +873,7 @@ def edit_deck(deck_id):
 @login_required
 def delete(id):
     deck_to_delete = Deck.query.get_or_404(id)
-    if(current_user != deck_to_delete.user_id):
+    if(current_user.id != deck_to_delete.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
 
     db.session.delete(deck_to_delete)
@@ -1265,7 +1267,7 @@ def extract():
             qmin_option = form.qmin_option.data
         if form.qmax_option.data:
             qmax_option = form.qmax_option.data
-                 
+                
         ## use existing deck or create a new one
         if form.deck_list.data != None:
             deck = form.deck_list.data
@@ -1282,7 +1284,8 @@ def extract():
         print(form.text_input.data)
         print(form.link_input.data)
         ## GET TEXT FROM INPUT 
-        if form.file.data != None:  
+        if form.file.data != None:
+            f_type = form.file.data.content_type  
             print("file inputted3")
             method = "file upload"
             file = form.file.data
@@ -1290,10 +1293,12 @@ def extract():
             file.save(file_loc)
             text = text_extractor(file_loc)
         elif form.text_input.data is not None and form.text_input.data.strip() != '':
+            f_type = "text"
             print("text inputted")
             method = "text input"
             text = form.text_input.data  
         elif form.link_input.data != None and form.link_input.data.strip() != '':
+            f_type = "link"
             text = None
             link_input = form.link_input.data
             if check_comma_list(link_input):
@@ -1311,9 +1316,8 @@ def extract():
             method = "link input"
             link_input = get_video_id(link_input)
             text = extract_from_youtube(link_input)
-        ## RETURN OUTPUT
+         ## RETURN OUTPUT    
         terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
-        
         ## IF CHOSING TRANSSLATE SET CATEGORY TO LANGUAGE OTHERWISE TAKES ON TYPE OF CARD
         if prompt_option == "Translate":
             cat = prompt_option2
@@ -1349,12 +1353,49 @@ def extract():
                     db.session.commit()
                 except:
                     pass
+                
+        ## SAVE TEXT TO DB
+        f_name = deck.name + "_" + method + "_" + prompt_option + "_" + str(datetime.now())
+        file_storage = DeckFiles(file_name=f_name, text_string=text)
+        db.session.add(file_storage) 
+        deck.deck_files.append(file_storage)
+        db.session.commit()
+        
         return redirect('/carousel/{deck.id}'.format(deck = deck))
     else:
         print("form not valid")
         print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
 
     return render_template("extract.html", title="Extract", form=form)
+
+
+@app.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
+def sea_dox(deck_id):
+    ## GET DECK
+    deck = Deck.query.get_or_404(deck_id)
+    ## GET source files
+    print(deck.deck_files)
+    return render_template("sea_dox.html", title="Sea Dox", deck=deck)
+
+@app.route("/source_file/<int:file_id>", methods=["GET", "POST"])
+def source_file(file_id):
+    ## GET FILE
+    file = DeckFiles.query.get_or_404(file_id)
+    return render_template("source_file.html", title="Source File", file=file)
+
+@app.route("/download_source/<int:file_id>", methods=["GET", "POST"])
+def download_source(file_id):
+    ## GET FILE
+    file = DeckFiles.query.get_or_404(file_id)
+    name = file.file_name +".pdf"
+    text = file.text_string
+    ## turn file.text_string into a pdf
+    pdf_buffer = create_pdf(text)
+    return send_file(pdf_buffer, download_name = name)
+
+
+
+
 
 
 if __name__ == "__main__":

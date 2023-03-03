@@ -1,6 +1,7 @@
-
+from reportlab.pdfgen import canvas
 import openai 
 import PyPDF2
+from PyPDF2 import PdfWriter, PdfReader
 from dotenv import load_dotenv, find_dotenv
 from pptx import Presentation
 import numpy as np
@@ -13,6 +14,10 @@ from io import BytesIO
 import math
 from youtube_transcript_api import YouTubeTranscriptApi
 import tiktoken
+import io
+import textwrap
+from reportlab.lib.pagesizes import letter
+
 
 encoding = tiktoken.get_encoding('gpt2')
 
@@ -20,7 +25,7 @@ encoding = tiktoken.get_encoding('gpt2')
 
 ## terms choices
 prompt_choices = {
-    'Definitions': ' Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {length} definition for each. {lang} Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A" as well as one named "B". \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
+    'Definitions': ' Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {length} definition for each. {lang} Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A" as well as one named "B". \n The resulting JSON object should be in this format: [{"A":"term","B":"definition"}] \n The passage: \n',
     "Translate": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {trans} translation for each. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the {} translation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Rhyme": 'Given the passage below, extract as many uncommon or technical terms as possible and create a four verse poem for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
     "Rhyme": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and create a four verse poem for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
     "People": 'Given the passage below, extract all the names of people and provide a {length} biography for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the person, as well as one named "B", for the biography. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Theories": 'Given the passage below, identify all the relevant theories and concepts and provide an explanation for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "A", for the theory or concept, as well as one named "B", for the explanation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
@@ -554,3 +559,30 @@ def fix_json(s):
             return s
         except:
             raise ValueError("Unable to fix JSON string")
+        
+        
+
+def create_pdf(string):
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer)
+
+    # Define the width and height of the canvas
+    width, height = letter
+
+    # Define the margin and the maximum line width
+    margin = 36
+    max_width = width - 2*margin
+
+    # Wrap the string to fit within the canvas
+    lines = textwrap.wrap(string, width=max_width//8)
+
+    # Draw each line on the canvas
+    y = height - margin
+    for line in lines:
+        pdf.drawString(margin, y, line)
+        y -= 20  # Move down to the next line
+
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+    return buffer
