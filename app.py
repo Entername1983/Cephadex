@@ -15,8 +15,8 @@ from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, 
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
-from cardcreator import card_creator, write_to_csv, create_image, card_creator3
-from extractors import Regenerate_def, add_period, large_extract_terms, small_extract_terms
+from cardcreator import card_creator, write_to_csv, create_image, creator
+from extractors import regenerate_def, add_period, large_extract_terms, small_extract_terms, extract_from_youtube, text_extractor, check_comma_list, get_video_id, text_extractor
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import sys
@@ -210,7 +210,7 @@ class Card(db.Model):
         db.session.commit()
         
     def regen_def(self):
-        self.content = Regenerate_def(self.term)
+        self.content = regenerate_def(self.term)
         db.session.commit()
     
     def copy_card(self, deck):
@@ -524,7 +524,7 @@ class UploadFileForm(FlaskForm):
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
     prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe')], default='Definitions')
     generate_images = BooleanField('Generate_images')
-    languages = SelectField('Languages', choices=[("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
+    languages = SelectField('Languages', choices=[("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
                                                   ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
                                                   ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
@@ -536,7 +536,7 @@ class UploadFileForm(FlaskForm):
                                                   ( "Vietnamese", "Vietnamese")], default = None)
     
     text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
-    link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional(), URL()])
+    link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional()])
     qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Min. items per page"})
     qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Max. items per page"})
     subject = SelectField('Subject', choices=[("", 'Select subject'),('Art', 'Art'), ('Anatomy', 'Anatomy'), ('Astron', 'Astronomy'), ('Bus', 'Business'), 
@@ -831,39 +831,7 @@ def study():
     return render_template("study.html", title="Study")
 
 
-@app.route("/extract", methods = ["GET", "POST"])
-@login_required
-def extract_page():
-    mapping = {
-    "Definitions": ("T", "D"),
-    "Translate": ("T", "CH"),
-    "Rhyme": ("T", "R"),
-    "People": ("P", "B"),
-    "Theories": ("TC", "E"),
-    }
-    form = UploadFileForm()
-    if form.validate_on_submit():
-        if form.deck_list.data != None:
-            deck = form.deck_list.data
-        else:
-            deck_name = form.name.data
-            deck_description = form.description.data
-            deck = Deck(name=deck_name, description=deck_description)
-            db.session.add(deck)   
-        file = form.file.data
-        file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
-        file.save(file_loc)
-        prompt_option = form.prompt.data
-        terms = card_creator(file_loc, prompt_option)
-        deck.user_id = current_user.id
-        x, y = mapping.get(prompt_option, ("T", "D"))
-        for item in terms:
-            entry = Card(term=item[x].capitalize(), content=add_period(item[y]))
-            db.session.add(entry)
-            deck.cards.append(entry)
-        db.session.commit()
-        return redirect('/currentdeck/{deck.id}'.format(deck = deck))
-    return render_template("extract.html", title="Extract", form=form)
+
 
 @app.route("/currentdeck/<deck_id>", methods = ["POST", "GET"])
 @login_required
@@ -1151,113 +1119,6 @@ def generate_img(deck_id):
     return redirect(("/currentdeck/{deck}").format(deck=deck_id))
     
     
-@app.route("/extract2", methods = ["GET", "POST"])
-@login_required
-def extract2():
-
-    mapping = {
-    "Definitions": ("A", "B"),
-    "Translate": ("A", "B"),
-    "Rhyme": ("A", "B"),
-    "People": ("A", "B"),
-    "Theories": ("A", "B"),
-    "Cloze": ("A", "B"),
-    "Mcq": ("A", "B", "C", "D", "E"),
-    "Comprehension": ("A", "B"),
-    "Vocab_builder": ("A", "B"),
-    }
-    form = UploadFileForm()
-    ## prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option
-    prompt_option2 = None
-    lang_option = None
-    trans_option = None
-    len_option = None
-    qmin_option = None
-    qmax_option = None
-    
-    if form.validate_on_submit():
-        print("form submitted")
-        ## load type of card to be made to prompt_option
-        if form.prompt.data != None:       
-            prompt_option = form.prompt.data
-        ## load translate option  
-        if form.languages.data != None:    
-            trans_option = form.languages.data    
-        if form.prompt.data != "Translate":
-            trans_option = None
-        ## load secondary prompt option
-        if form.subject.data:
-            prompt_option2 = form.subject.data
-        ## load language output option (defaults to English)
-        if form.main_lang.data:
-            lang_option = form.main_lang.data
-        if form.length.data:
-            len_option = form.length.data
-        if form.qmin_option.data:
-            qmin_option = form.qmin_option.data
-        if form.qmax_option.data:
-            qmax_option = form.qmax_option.data
-                 
-        
-        ## use existing deck or create a new one
-        if form.deck_list.data != None:
-            deck = form.deck_list.data
-        else:
-            deck_name = form.name.data
-            if form.description.data != None:
-                deck_description = form.description.data
-            else:
-                deck_description = " ".join(prompt_option + "deck")
-            deck = Deck(name=deck_name, description=deck_description)
-            db.session.add(deck) 
-   
-        ## create card content, gets outputed as a list of dicts    
-        if form.file.data != None:  
-            print("file inputted")
-            method = "file upload"
-            file = form.file.data
-            file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
-            file.save(file_loc)
-            terms = card_creator(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)          
-        elif form.text_input.data != None:
-            print("text inputted")
-            method = "text input"
-            text = form.text_input.data
-            print(text)
-            terms = small_extract_terms(text, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-        if prompt_option == "Translate":
-            cat = prompt_option2
-        else:
-            cat = prompt_option
-        deck.user_id = current_user.id
-        ## need to modify db accordingly
-        if prompt_option == "Mcq":
-            v, w, x, y, z = mapping.get(prompt_option, ("Q", "A", "W1", "W2", "W3"))
-            for item in terms:
-                entry = Card(category = cat, term=item[v].capitalize(), content=(add_period(item[w])), boc_2=(add_period(item[x])), boc_3=(add_period(item[y])), boc_4=(add_period(item[z])), create_method = method)
-                db.session.add(entry)
-                deck.cards.append(entry)
-            db.session.commit()
-        elif prompt_option != "Mcq":
-            x, y = mapping.get(prompt_option, ("A", "B"))
-            for item in terms:
-                entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y]), create_method=method)
-                db.session.add(entry)
-                deck.cards.append(entry)
-            db.session.commit()                
-        if form.generate_images.data == True: 
-            for card in deck.cards:
-                try:
-                    card.img = create_image(card.term)
-                    db.session.commit()
-                except:
-                    pass
-        return redirect('/carousel/{deck.id}'.format(deck = deck))
-    else:
-        print("form not valid")
-        print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
-
-    return render_template("extract2.html", title="Extract2", form=form)
 
 
 @app.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
@@ -1361,10 +1222,10 @@ def delete_account():
 
 
 ## USING FOR EXPERIMENTATION
-@app.route("/extract3", methods = ["GET", "POST"])
+@app.route("/extract", methods = ["GET", "POST"])
 @login_required
-def extract3():
-
+def extract():
+    form = UploadFileForm()
     mapping = {
     "Definitions": ("A", "B"),
     "Translate": ("A", "B"),
@@ -1376,15 +1237,13 @@ def extract3():
     "Comprehension": ("A", "B"),
     "Vocab_builder": ("A", "B"),
     }
-    form = UploadFileForm()
-    ## prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option
+    
     prompt_option2 = None
     lang_option = None
     trans_option = None
     len_option = None
     qmin_option = None
     qmax_option = None
-    
     if form.validate_on_submit():
         print("form submitted")
         ## load type of card to be made to prompt_option
@@ -1394,8 +1253,6 @@ def extract3():
         ## load translate option  
         if form.languages.data != None:    
             trans_option = form.languages.data    
-        if form.prompt.data != "Translate":
-            trans_option = None
         ## load secondary prompt option
         if form.subject.data:
             prompt_option2 = form.subject.data
@@ -1409,7 +1266,6 @@ def extract3():
         if form.qmax_option.data:
             qmax_option = form.qmax_option.data
                  
-        
         ## use existing deck or create a new one
         if form.deck_list.data != None:
             deck = form.deck_list.data
@@ -1421,29 +1277,54 @@ def extract3():
                 deck_description = " ".join(prompt_option + "deck")
             deck = Deck(name=deck_name, description=deck_description)
             db.session.add(deck) 
-   
-        ## create card content, gets outputed as a list of dicts    
+        print("type of data received, file, text, link")
+        print(form.file.data)
+        print(form.text_input.data)
+        print(form.link_input.data)
+        ## GET TEXT FROM INPUT 
         if form.file.data != None:  
             print("file inputted3")
             method = "file upload"
             file = form.file.data
             file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
             file.save(file_loc)
-            terms = card_creator3(file_loc, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)          
-        elif form.text_input.data != None:
+            text = text_extractor(file_loc)
+        elif form.text_input.data is not None and form.text_input.data.strip() != '':
             print("text inputted")
             method = "text input"
-            text = form.text_input.data
-            print(text)
-            terms = small_extract_terms(text, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+            text = form.text_input.data  
+        elif form.link_input.data != None and form.link_input.data.strip() != '':
+            text = None
+            link_input = form.link_input.data
+            if check_comma_list(link_input):
+                link_input = link_input.split(",")
+                print(link_input)
+                for link in link_input:
+                    print(link)
+                    print(type(link))
+                    link = get_video_id(link)
+                    part = extract_from_youtube(link)
+                    if text == None:
+                        text = part
+                    text = text + part
+            print("youtube link inputted")
+            method = "link input"
+            link_input = get_video_id(link_input)
+            text = extract_from_youtube(link_input)
+        ## RETURN OUTPUT
+        terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
+        
+        ## IF CHOSING TRANSSLATE SET CATEGORY TO LANGUAGE OTHERWISE TAKES ON TYPE OF CARD
         if prompt_option == "Translate":
             cat = prompt_option2
         else:
             cat = prompt_option
+        
+        ## SET USER TO CURRENT USER
         deck.user_id = current_user.id
-        ## need to modify db accordingly
+        ## ADD CARDS TO DECK
         if prompt_option == "Mcq":
-            v, w, x, y, z = mapping.get(prompt_option, ("Q", "A", "W1", "W2", "W3"))
+            v, w, x, y, z = mapping.get(prompt_option, ("A", "B", "C", "D", "E"))
             for item in terms:
                 entry = Card(category = cat, term=item[v].capitalize(), content=(add_period(item[w])), boc_2=(add_period(item[x])), boc_3=(add_period(item[y])), boc_4=(add_period(item[z])), create_method = method)
                 db.session.add(entry)
@@ -1457,8 +1338,6 @@ def extract3():
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option == "Transcribe":
-            print("prompt option is transcribe")
-            print(terms)
             entry = Card(category = cat, term="transcription", content=terms, create_method=method)
             db.session.add(entry)
             deck.cards.append(entry)
@@ -1475,10 +1354,17 @@ def extract3():
         print("form not valid")
         print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
 
-    return render_template("extract3.html", title="Extract", form=form)
-
-
+    return render_template("extract.html", title="Extract", form=form)
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
+    
+    
+    
+    
+  ## OBSOLETE CODE BELOW ###############################################################################################  
+############################################################################################################    
+    
+    
