@@ -914,7 +914,7 @@ def delete(id):
 @login_required
 def rename_deck(id, new_name):
     deck = Deck.query.get_or_404(id)
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
     deck.rename(new_name)
     db.session.commit()
@@ -990,7 +990,7 @@ def deletecard(card_id, deck_id):
     print("from deck")
     print(deck_id)
     deck = Deck.query.get_or_404(deck_id)
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
        return jsonify({'error': 'Deck not assigned to user'}), 403
       
     card_to_delete = Card.query.get_or_404(card_id)
@@ -1005,7 +1005,7 @@ def deletecard(card_id, deck_id):
 def addterms(deck_id):
     form = AddTermForm()
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
        return jsonify({'error': 'Deck not assigned to user'}), 403
     
     cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
@@ -1026,7 +1026,7 @@ def addterms(deck_id):
 @login_required
 def downloadascsv(deck_id):
     deck = Deck.query.filter_by(id=deck_id).first()
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
        return jsonify({'error': 'Deck not assigned to user'}), 403
     cards = Card.query.filter(Card.decks.any(id=deck_id)).all()
     termsstrings = []
@@ -1057,7 +1057,7 @@ def regenerate_def(deck_id, card_id):
 @app.route("/get-due-cards/<deck_id>")
 def get_due_cards(deck_id):
     deck = Deck.query.get(deck_id)
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
     if deck is None:
         return jsonify({'error': 'Deck not found'}), 404
@@ -1067,7 +1067,7 @@ def get_due_cards(deck_id):
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 def study_deck(deck_id):
     deck = Deck.query.get(deck_id)
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
     return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck) 
 
@@ -1090,7 +1090,7 @@ def increment(card_id):
     
     card_deck = cards.query.get(card_id)
     deck = Deck.query.get(card_deck.deck_id)
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
         return jsonify({'error': 'Card not assigned to user'}), 403
     
     if card is None:
@@ -1106,7 +1106,7 @@ def decrement(card_id):
     
     card_deck = cards.query.get(card_id)
     deck = Deck.query.get(card_deck.deck_id)
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
     
     if card is None:
@@ -1119,7 +1119,7 @@ def decrement(card_id):
 def force_study(deck_id):
     deck = Deck.query.get(deck_id)
     
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
          return jsonify({'error': 'Deck not assigned to user'}), 403
     
     if deck is None:
@@ -1136,7 +1136,7 @@ def casual_mode(deck_id):
 @app.route('/generate_img/<int:deck_id>', methods=['GET', 'POST'])
 def generate_img(deck_id):
     deck = Deck.query.get(deck_id)
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
          return jsonify({'error': 'Deck not assigned to user'}), 403
         
     if deck is None:
@@ -1265,7 +1265,7 @@ def carousel(deck_id):
     
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
          return jsonify({'error': 'Deck not assigned to user'}), 403
         
     if request.method == 'POST' and 'term' in request.form:
@@ -1314,7 +1314,7 @@ def carousel(deck_id):
 def add_new_card(deck_id):
     print("entered add new card")
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    if(current_user != deck.user_id):
+    if(current_user.id != deck.user_id):
          return jsonify({'error': 'Deck not assigned to user'}), 403
         
     term = request.form['new_term'] 
