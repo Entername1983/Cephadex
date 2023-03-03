@@ -656,11 +656,14 @@ def googleSignIn():
     csrf_token_cookie = request.cookies.get('g_csrf_token')
     if not csrf_token_cookie:
         print('No CSRF token in Cookie.')#webapp2.abort(400, 'No CSRF token in Cookie.')
+        return jsonify({'error': 'No CSRF token in Cookie'}), 400
     csrf_token_body = request.form.get('g_csrf_token')
     if not csrf_token_body:
         print('No CSRF token in post body.')#webapp2.abort(400, 'No CSRF token in post body.')
+        return jsonify({'error': 'No CSRF token in post body.'}), 400
     if csrf_token_cookie != csrf_token_body:
         print('Failed to verify double submit cookie.')#webapp2.abort(400, 'Failed to verify double submit cookie.')
+        return jsonify({'error': 'Failed to verify double submit cookie.'}), 400
     try:
         #encrypted credential
         credential = request.form.get('credential')
@@ -696,12 +699,12 @@ def googleSignIn():
     return render_template('index.html', title='Index')
     
     ##register_form = RegisterForm()
-   ## if register_form.validate_on_submit():
-       ## hashed_password = bcrypt.generate_password_hash(register_form.password.data)
-       ## user = User(username=register_form.username.data, email=register_form.email.data, password=hashed_password, first_name=register_form.first_name.data, last_name=register_form.last_name.data)
-       ## db.session.add(user)
-       ## db.session.commit()
-      ##  flash("Your account has been created! You are now able to log in", "info")
+    ## if register_form.validate_on_submit():
+    ## hashed_password = bcrypt.generate_password_hash(register_form.password.data)
+    ## user = User(username=.username.data, email=register_form.email.data, password=hashed_password, first_name=register_form.first_name.data, last_name=register_form.last_name.data)
+    ## db.session.add(user)
+    ## db.session.commit()
+    ## flash("Your account has been created! You are now able to log in", "info")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -900,6 +903,9 @@ def edit_deck(deck_id):
 @login_required
 def delete(id):
     deck_to_delete = Deck.query.get_or_404(id)
+    if(current_user != deck_to_delete.user_id):
+        return jsonify({'error': 'Deck not assigned to user'}), 403
+
     db.session.delete(deck_to_delete)
     db.session.commit()
     return redirect(url_for('viewdecks'))
@@ -908,6 +914,8 @@ def delete(id):
 @login_required
 def rename_deck(id, new_name):
     deck = Deck.query.get_or_404(id)
+    if(current_user != deck.user_id):
+        return jsonify({'error': 'Deck not assigned to user'}), 403
     deck.rename(new_name)
     db.session.commit()
     return redirect(url_for('viewdecks'))
@@ -981,6 +989,10 @@ def deletecard(card_id, deck_id):
     print(card_id)
     print("from deck")
     print(deck_id)
+    deck = Deck.query.get_or_404(deck_id)
+    if(current_user != deck.user_id):
+       return jsonify({'error': 'Deck not assigned to user'}), 403
+      
     card_to_delete = Card.query.get_or_404(card_id)
     if card_to_delete != None:
         db.session.delete(card_to_delete)
@@ -993,6 +1005,9 @@ def deletecard(card_id, deck_id):
 def addterms(deck_id):
     form = AddTermForm()
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    if(current_user != deck.user_id):
+       return jsonify({'error': 'Deck not assigned to user'}), 403
+    
     cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
     if form.validate_on_submit():
         key = form.term.data
@@ -1011,6 +1026,8 @@ def addterms(deck_id):
 @login_required
 def downloadascsv(deck_id):
     deck = Deck.query.filter_by(id=deck_id).first()
+    if(current_user != deck.user_id):
+       return jsonify({'error': 'Deck not assigned to user'}), 403
     cards = Card.query.filter(Card.decks.any(id=deck_id)).all()
     termsstrings = []
 
@@ -1040,6 +1057,8 @@ def regenerate_def(deck_id, card_id):
 @app.route("/get-due-cards/<deck_id>")
 def get_due_cards(deck_id):
     deck = Deck.query.get(deck_id)
+    if(current_user != deck.user_id):
+        return jsonify({'error': 'Deck not assigned to user'}), 403
     if deck is None:
         return jsonify({'error': 'Deck not found'}), 404
     return deck.get_due_cards()
@@ -1048,6 +1067,8 @@ def get_due_cards(deck_id):
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 def study_deck(deck_id):
     deck = Deck.query.get(deck_id)
+    if(current_user != deck.user_id):
+        return jsonify({'error': 'Deck not assigned to user'}), 403
     return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck) 
 
 @app.route("/study_deck_all", methods = ["POST", "GET"])   
@@ -1066,6 +1087,12 @@ def study_deck_all():
 @app.route("/increment/<card_id>", methods = ["POST", "GET"])
 def increment(card_id):
     card = Card.query.get(card_id)
+    
+    card_deck = cards.query.get(card_id)
+    deck = Deck.query.get(card_deck.deck_id)
+    if(current_user != deck.user_id):
+        return jsonify({'error': 'Card not assigned to user'}), 403
+    
     if card is None:
         return jsonify({'error': 'Card not found'}), 404
     card.increment()
@@ -1076,6 +1103,12 @@ def increment(card_id):
 @app.route("/decrement/<card_id>", methods = ["POST"])
 def decrement(card_id):
     card = Card.query.get(card_id)
+    
+    card_deck = cards.query.get(card_id)
+    deck = Deck.query.get(card_deck.deck_id)
+    if(current_user != deck.user_id):
+        return jsonify({'error': 'Deck not assigned to user'}), 403
+    
     if card is None:
         return jsonify({'error': 'Card not found'}), 404
     card.decrement()
@@ -1085,6 +1118,10 @@ def decrement(card_id):
 @app.route("/forcestudy/<deck_id>")
 def force_study(deck_id):
     deck = Deck.query.get(deck_id)
+    
+    if(current_user != deck.user_id):
+         return jsonify({'error': 'Deck not assigned to user'}), 403
+    
     if deck is None:
         return jsonify({'error': 'Deck not found'}), 404
     return deck.force_study()
@@ -1099,6 +1136,9 @@ def casual_mode(deck_id):
 @app.route('/generate_img/<int:deck_id>', methods=['GET', 'POST'])
 def generate_img(deck_id):
     deck = Deck.query.get(deck_id)
+    if(current_user != deck.user_id):
+         return jsonify({'error': 'Deck not assigned to user'}), 403
+        
     if deck is None:
         return jsonify({'error': 'Deck not found'}), 404
     for card in deck.cards:
@@ -1225,7 +1265,9 @@ def carousel(deck_id):
     
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-
+    if(current_user != deck.user_id):
+         return jsonify({'error': 'Deck not assigned to user'}), 403
+        
     if request.method == 'POST' and 'term' in request.form:
         print("entered post request3")
         term = request.form['term'] ## new term for card
@@ -1272,6 +1314,9 @@ def carousel(deck_id):
 def add_new_card(deck_id):
     print("entered add new card")
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    if(current_user != deck.user_id):
+         return jsonify({'error': 'Deck not assigned to user'}), 403
+        
     term = request.form['new_term'] 
     content = request.form['new_content']
     boc_2 = request.form['new_boc_2']
