@@ -1180,7 +1180,7 @@ def delete_account():
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract():
-
+    form = UploadFileForm()
     mapping = {
     "Definitions": ("A", "B"),
     "Translate": ("A", "B"),
@@ -1192,15 +1192,13 @@ def extract():
     "Comprehension": ("A", "B"),
     "Vocab_builder": ("A", "B"),
     }
-    form = UploadFileForm()
-    ## prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option
+    
     prompt_option2 = None
     lang_option = None
     trans_option = None
     len_option = None
     qmin_option = None
     qmax_option = None
-    print(form.link_input.data)
     if form.validate_on_submit():
         print("form submitted")
         ## load type of card to be made to prompt_option
@@ -1234,7 +1232,11 @@ def extract():
                 deck_description = " ".join(prompt_option + "deck")
             deck = Deck(name=deck_name, description=deck_description)
             db.session.add(deck) 
-        ## create card content, gets outputed as a list of dicts    
+        print("type of data received, file, text, link")
+        print(form.file.data)
+        print(form.text_input.data)
+        print(form.link_input.data)
+        ## GET TEXT FROM INPUT 
         if form.file.data != None:  
             print("file inputted3")
             method = "file upload"
@@ -1242,8 +1244,11 @@ def extract():
             file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
             file.save(file_loc)
             text = text_extractor(file_loc)
-
-        elif form.link_input.data != None:
+        elif form.text_input.data is not None and form.text_input.data.strip() != '':
+            print("text inputted")
+            method = "text input"
+            text = form.text_input.data  
+        elif form.link_input.data != None and form.link_input.data.strip() != '':
             text = None
             link_input = form.link_input.data
             if check_comma_list(link_input):
@@ -1260,28 +1265,21 @@ def extract():
             print("youtube link inputted")
             method = "link input"
             link_input = get_video_id(link_input)
-            print("link input format")
-            print(link_input)
             text = extract_from_youtube(link_input)
-            
-        elif form.text_input.data is not None and form.text_input.data.strip() != '':
-            print(form.text_input.data)
-            print("text inputted")
-            method = "text input"
-            text = form.text_input.data 
-        print("text before creator")   
-        print(text)
+        ## RETURN OUTPUT
         terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
         
-        
+        ## IF CHOSING TRANSSLATE SET CATEGORY TO LANGUAGE OTHERWISE TAKES ON TYPE OF CARD
         if prompt_option == "Translate":
             cat = prompt_option2
         else:
             cat = prompt_option
+        
+        ## SET USER TO CURRENT USER
         deck.user_id = current_user.id
-        ## need to modify db accordingly
+        ## ADD CARDS TO DECK
         if prompt_option == "Mcq":
-            v, w, x, y, z = mapping.get(prompt_option, ("Q", "A", "W1", "W2", "W3"))
+            v, w, x, y, z = mapping.get(prompt_option, ("A", "B", "C", "D", "E"))
             for item in terms:
                 entry = Card(category = cat, term=item[v].capitalize(), content=(add_period(item[w])), boc_2=(add_period(item[x])), boc_3=(add_period(item[y])), boc_4=(add_period(item[z])), create_method = method)
                 db.session.add(entry)
@@ -1295,9 +1293,6 @@ def extract():
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option == "Transcribe":
-            print(trans_option)
-            print("prompt option is transcribe")
-            print(terms)
             entry = Card(category = cat, term="transcription", content=terms, create_method=method)
             db.session.add(entry)
             deck.cards.append(entry)
@@ -1315,8 +1310,6 @@ def extract():
         print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
 
     return render_template("extract.html", title="Extract", form=form)
-
-
 
 
 if __name__ == "__main__":

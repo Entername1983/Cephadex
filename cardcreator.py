@@ -11,7 +11,7 @@ import requests
 import tiktoken
 
 
-encoding = tiktoken.get_encoding("gpt2")
+encoding = tiktoken.get_encoding('gpt2')
 load_dotenv(find_dotenv())
 
 ## open AI api, 
@@ -36,7 +36,7 @@ def creator(text, prompt_option: str, prompt_option2: str = None, lang_option: s
         pass
         
 
-   ## takes a term and returns a card with term image.  Will need to be modified later to have a different one per user
+## takes a term and returns a card with term image.  Will need to be modified later to have a different one per user
 def create_image(term):
     try:
         response = openai.Image.create(
@@ -70,14 +70,17 @@ def write_to_csv(definitions: str, filename: str):
 def split_text(text, n = 2000):
     print("entered split text")
     tokens = count_tokens(text)
-    print(tokens)
-    n_chunks = tokens//n
-    print(n_chunks)
-    if n_chunks < 1:
-        n_chunks = 1
-    chunks = np.array_split(text.split(), n_chunks)
-    str_chunks = [' '.join(chunk) for chunk in chunks]
-    return str_chunks
+    if tokens > 2000:
+        print(tokens)
+        n_chunks = tokens//n
+        print(n_chunks)
+        if n_chunks < 1:
+            n_chunks = 1
+        chunks = np.array_split(text.split(), n_chunks)
+        str_chunks = [' '.join(chunk) for chunk in chunks]
+        return str_chunks
+    else:
+        return text
 
 ## TOKEN HANDLERS
 def count_tokens(text):
