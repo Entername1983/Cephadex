@@ -326,7 +326,7 @@ def extract_audio(file):
     for segment in segments:
         transcript = transcribe_whisper(segment)
         text.append(transcript)
-    concatenated_text = "".join(text)
+    concatenated_text = " ".join(text)
     return concatenated_text
 
 ## PDF
@@ -340,7 +340,7 @@ def extract_from_pdf(pdf_file):
             page_content = page.extract_text()
             page_content = page_content.replace("\n", " ")
             text.append(page_content)
-        concatenated_text = "".join(text)
+        concatenated_text = " ".join(text)
     return concatenated_text
 
 # PPTX
@@ -351,7 +351,7 @@ def extract_from_pptx(ppt_file):
         for shape in slide.shapes:
             if hasattr(shape, "text"):
                 text_runs.append(shape.text)
-        concatenated_text = "".join(text_runs)
+        concatenated_text = " ".join(text_runs)
     return concatenated_text
 
 #DOCX

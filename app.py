@@ -1383,8 +1383,39 @@ def sea_dox(deck_id):
     ## GET DECK
     deck = Deck.query.get_or_404(deck_id)
     ## GET source files
-    print(deck.deck_files)
-    return render_template("sea_dox.html", title="Sea Dox", deck=deck)
+    files = deck.deck_files
+    files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.desc()).all()
+    
+    if request.method == 'GET':
+        print("entered get request")
+        sort_method =request.args.get('sort')
+        search_query = None
+        search_query = request.args.get('search', '').strip()
+        if sort_method != 'default':
+                if sort_method == 'name_asc':
+                    files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.asc()).all()
+                if sort_method == 'name_desc':
+                    files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.desc()).all()
+                if sort_method == 'type':
+                    files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.create_type.asc()).all()
+                if sort_method == 'date':
+                    files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.time_created.desc()).all()
+        elif search_query:
+                files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).filter(DeckFiles.file_name.contains(search_query)).all()
+        
+        return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
+    if request.method == 'POST':
+        file_id = request.form['file_id']
+        file = DeckFiles.query.get_or_404(file_id)
+        new_name = request.form['new_name']
+        if new_name != '':
+            file.file_name = new_name
+            db.session.commit()
+        return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
+    
+    return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
+
+
 
 @app.route("/source_file/<int:file_id>", methods=["GET", "POST"])
 def source_file(file_id):
@@ -1404,7 +1435,14 @@ def download_source(file_id):
 
 
 
-
+@app.route("/delete_file/<int:deck_id>/<int:file_id>/", methods=["GET", "POST"])
+def delete_file(deck_id, file_id):
+    print("entered delete file")
+    file = DeckFiles.query.get_or_404(file_id)
+    deck = Deck.query.get_or_404(deck_id)
+    db.session.delete(file)
+    db.session.commit()
+    return redirect(("/sea_dox/{deck}").format(deck=deck.id)) 
 
 
 if __name__ == "__main__":
