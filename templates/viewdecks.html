@@ -2,7 +2,18 @@
 
 {% block title %} View Decks {% endblock %}
 
+
+
+
 {% block main_0 %}
+{% if shared_decks|length > 0 %}
+<p> You have shared decks waiting for your approval, click<a class="mx-2" data-bs-toggle="modal"
+    data-bs-target="#SharedDecksModal" alt="shared decks">here</a>to approve them</p>
+{% endif %}
+
+
+
+
 
 <div class="col-10-md box_0 m-3 p-3">
   <div class="row">
@@ -75,7 +86,7 @@
           <td data-th="Description:">{{ deck.description }}</td>
           <td data-th="Category:"> {{ deck.check_cat() }} </td>
           <td data-th="Number of Cards (cards due):"> {{ deck.quantity_cards() }} ({{deck.qty_cards_due() }})</td>
-          
+
 
 
 
@@ -87,6 +98,13 @@
             </a>
 
 
+
+
+
+            <a data-bs-toggle="modal" data-bs-target="#Modal{{deck.id}}" class="mx-2" style="cursor: pointer;">
+              <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px;"
+                class="px-1" title="Share">
+            </a>
             <a href="/study_deck/{{deck.id}}" class="mx-2">
               <img src="\static\graduation-cap-icon.png" alt="Study" style="max-width:30px;max-height:30px;"
                 class="px-1" title="Study">
@@ -112,14 +130,138 @@
 </div>
 </td>
 </tr>
+
+
+
 {% endfor %}
 </tbody>
 </table>
+
+
+</div>
+
+<!----- SHARE DECK MODAL -->
+
+{% for deck in decks %}
+<script>
+  function shareDeck(deckId) {
+
+    var email = document.getElementById('email' + deckId).value;
+    var encodedEmail = encodeURIComponent(email);
+    var url = '/share_deck/' + deckId + '/' + encodedEmail;
+    window.location.href = url;
+  }
+</script>
+
+<div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalLabel{{deck.id}}">Log in</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="share-form" method="POST">
+          <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" id="email{{deck.id}}" name="email" required>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="shareDeck('{{ deck.id }}')">Share</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 
+{% endfor %}
+
+<!---- SHARED DECKS MODAL----->
+<div class="modal fade" id="SharedDecksModal" tabindex="-1" aria-labelledby="#SharedDecksModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="SharedDecksModalLabel">Shared Decks</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        {% for deck in shared_decks %}
+        <div class="row box_study mt-1">
+          <div class="col">{{deck.name}}</div>
+          <div class="col">{{deck.sender}}</div>
+          <div class="col">{{deck.description}}</div>
+          <div class="col">
+
+            <a id="approve{{deck.id}}" onclick="approveSharedDeck(event, {{deck.id}})" class="mx-2">
+              <img src="\static\approve-accept-icon.png" alt="See source docs" style="max-width:30px;max-height:30px;"
+                class="px-1" title="Approve">
+            </a>
+
+            <a id="reject{{deck.id}}" class="mx-2" onclick="rejectSharedDeck(event, {{deck.id}})">
+              <img src="\static\remove-cross-icon.png" alt="Reject" style="max-width:30px;max-height:30px;" class="px-1"
+                title="Reject">
+            </a>
 
 
+
+          </div>
+
+        </div>
+        <script>
+          function approveSharedDeck(event, deckId) {
+            event.preventDefault();
+            $.ajax({
+              type: "GET",
+              url: "/approve_shared/" + deckId,
+              success: function () {
+                // Refresh the content of the modal
+                console.log("approve shared deck")
+                refreshSharedDecksModal();
+              }
+            });
+          }
+          
+          function rejectSharedDeck(event, deckId) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to reject this shared deck?')) {
+              $.ajax({
+                type: "GET",
+                url: "/reject_shared/" + deckId,
+                success: function () {
+                  // Refresh the content of the modal
+                  refreshSharedDecksModal();
+                }
+              });
+            }
+          }
+          
+         
+        </script>
+        {% endfor %}
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function refreshSharedDecksModal() {
+    // Get the modal element
+    const sharedDecksModal = $('#SharedDecksModal');
+  
+    // Hide the modal to prevent flickering
+    //sharedDecksModal.modal('hide');
+  
+    // Reload the entire modal using jQuery's load method
+    sharedDecksModal.load(location.href + ' #SharedDecksModal > *', function () {
+      // Show the modal again after the new content has been loaded
+      sharedDecksModal.modal('show');
+    });
+  }
+</script>
 
 
 

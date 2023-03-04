@@ -26,7 +26,7 @@ encoding = tiktoken.get_encoding('gpt2')
 ## terms choices
 prompt_choices = {
     'Definitions': ' Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {length} definition for each. {lang} Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A" as well as one named "B". \n The resulting JSON object should be in this format: [{"A":"term","B":"definition"}] \n The passage: \n',
-    "Translate": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {trans} translation for each. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the {} translation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Rhyme": 'Given the passage below, extract as many uncommon or technical terms as possible and create a four verse poem for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
+    "Translate": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {trans} translation for each. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the {option_2} translation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Rhyme": 'Given the passage below, extract as many uncommon or technical terms as possible and create a four verse poem for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
     "Rhyme": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and create a four verse poem for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
     "People": 'Given the passage below, extract all the names of people and provide a {length} biography for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the person, as well as one named "B", for the biography. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Theories": 'Given the passage below, identify all the relevant theories and concepts and provide an explanation for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "A", for the theory or concept, as well as one named "B", for the explanation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
     "Theories": 'Given the passage below, identify {qmin} {qmax} relevant theories and concepts {c2} and provide an {length} explanation for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "A", for the theory or concept, as well as one named "B", for the explanation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
@@ -111,7 +111,7 @@ len_choices = {
     "short": "short",}
 
 ## CALLS TO OPEN AI API
-def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
+def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, trans_option: str = None, lang_option: str = None, 
                   len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     print("entered extract term function")
     print(prompt_option)
@@ -164,7 +164,7 @@ def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, lan
 
     if trans_option != None:
         print(prompt_select)
-        prompt_select = prompt_select.replace('{}', trans_option)
+        prompt_select = prompt_select.replace('{option_2}', option_2)
     print("TEXT TO BE SENT TO OPEN AI")
     print(text)
     prompt = (prompt_select + text + 'The JSON object: \n')
@@ -177,6 +177,9 @@ def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, lan
             )
 
     response = response['choices'][0]['message']['content'].strip()
+    
+    if prompt_option == "Cloze":
+        response = add_underscores(response)
     print(response)
     byte_string = response.encode('utf-8')
     x = byte_string.decode('utf-8')
@@ -433,6 +436,11 @@ def check_comma_list(string):
     else:
         return False
     
+def add_underscores(string):
+    if "_" in string:
+        string = string.replace("_", "_" * 8, 1)
+    return string
+
 ## turn string of comma separated terms into list of terms
 def comma_list_to_list(string):
     return string.split(",")

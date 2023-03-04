@@ -26,6 +26,8 @@ import logging.handlers
 import json
 from datetime import datetime, timedelta
 from flask_migrate import Migrate
+import urllib.parse
+from urllib.parse import unquote
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -78,7 +80,12 @@ cards = db.Table("cards",
 source_files = db.Table("source_files",
                         db.Column("deck_file_id", db.Integer, db.ForeignKey("deck_files.id")), 
                         db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),  # 
-                        )  
+                        )
+
+cards_shared = db.Table("cards_shared", 
+                 db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
+                 db.Column("shared_decks_id", db.Integer, db.ForeignKey("shared_decks.id")),
+                 )
                       
 ## external auth + external type + external
 class User(db.Model, UserMixin):
@@ -268,14 +275,30 @@ class Card(db.Model):
         self.time_updated = datetime.utcnow()
         db.session.commit()
     
+class SharedDecks(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.String(255), nullable=False) 
+    sender = db.Column(db.Integer, db.ForeignKey('user.id'))
+    receiver = db.Column(db.Integer, db.ForeignKey('user.id'))
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)
+    creator = db.Column(db.Integer) 
+    public = db.Column(db.Integer, default=0) 
+    edited = db.Column(db.Integer, default=0)
+    cards = db.relationship('Card', secondary=cards_shared, backref="decks", lazy="select")
+    
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
 
+    
 class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(255), nullable=False) 
     ## make relational table instead of using user_id?
     user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
-    cards = db.relationship('Card', secondary=cards, backref="decks", lazy="select")
+    cards = db.relationship('Card', secondary=cards, backref="decks_backref", lazy="select")
     deck_files = db.relationship('DeckFiles', secondary=source_files, backref="decks", lazy="select")
     time_created = db.Column(db.DateTime, default=datetime.utcnow)   
     time_updated = db.Column(db.DateTime, default=datetime.utcnow)
@@ -290,6 +313,8 @@ class Deck(db.Model):
     topic = db.Column(db.String(255), nullable=True)
     shared = db.Column(db.Boolean, default=False)
     accepted = db.Column(db.Boolean, default=False)
+    sharer = db.Column(db.Integer) 
+    share_date = db.Column(db.DateTime, default=datetime.utcnow)
     
     def force_study(self):
         due_cards = []
@@ -769,18 +794,23 @@ def change_pass():
 @app.route("/viewdecks", methods = ["GET", "POST"])
 @login_required
 def viewdecks():
+    shared_decks = SharedDecks.query.all()
     
-    print("page reloaded")
+    email = current_user.email
+    print("current user email: " + current_user.email)
+    
+    shared_decks = SharedDecks.query.filter(SharedDecks.receiver.ilike(f"%{email}%")).all()
+
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
-   
+    print("SHARED DECKS")
+    for deck in shared_decks:
+        print(deck.sender)
     
     if request.method == 'GET':
         print("entered get request")
         sort_method =request.args.get('sort')
         search_query = None
         search_query = request.args.get('search', '').strip()
-        print(search_query)
-        print(sort_method)
         
         if sort_method != 'default':
             if sort_method == 'name_asc':
@@ -801,9 +831,8 @@ def viewdecks():
         elif search_query:
             print("entered search_query")
             decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()
-            print(decks)
             
-        return render_template('viewdecks.html', decks=decks)
+        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks)
         
     if request.method == 'POST':
         deck_id = request.form['deck_id']
@@ -813,9 +842,9 @@ def viewdecks():
             deck.name = new_name
             db.session.commit()
 
-        return render_template('viewdecks.html', decks=decks)
-    
-    return render_template('viewdecks.html', decks=decks)
+        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks)
+    print(shared_decks)
+    return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks)
 
 
 
@@ -1202,15 +1231,7 @@ def landingpage():
 def terms_and_conditions():
     return render_template("terms_and_conditions.html", title="Terms and Conditions")
 
-## share deck, user clicks share deck, modal opens up, user enters one or more email addresses, user clicks submit
-## email addresses are sent to backend, backend adds deck to each user decks with a tag of shared
-## user sees those decks on their decks page but must click approve to permanently add to their deck list/make a copy
-## When decks are added in this way the user specific info is wiped.  
-@app.route("/share_deck/<int:deck_id>", methods = ["GET", "POST"])
-def share_deck(deck_id):
-    print("entered share deck")
-    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    
+
     
 @login_required
 @app.route("/delete_account", methods = ["POST"])
@@ -1334,14 +1355,14 @@ def extract():
         if prompt_option == "Mcq":
             v, w, x, y, z = mapping.get(prompt_option, ("A", "B", "C", "D", "E"))
             for item in terms:
-                entry = Card(category = cat, term=item[v].capitalize(), content=(add_period(item[w])), boc_2=(add_period(item[x])), boc_3=(add_period(item[y])), boc_4=(add_period(item[z])), create_method = method)
+                entry = Card(category = cat, term=item[v].capitalize(), content=(add_period(item[w].capitalize())), boc_2=(add_period(item[x].capitalize())), boc_3=(add_period(item[y].capitalize())), boc_4=(add_period(item[z].capitalize())), create_method = method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option != "Mcq" and prompt_option != "Transcribe":
             x, y = mapping.get(prompt_option, ("A", "B"))
             for item in terms:
-                entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y]), create_method=method)
+                entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y].capitalize()), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
@@ -1444,7 +1465,57 @@ def delete_file(deck_id, file_id):
     db.session.commit()
     return redirect(("/sea_dox/{deck}").format(deck=deck.id)) 
 
+@app.route("/share_deck/<int:deck_id>/<string:user_email>/", methods=["GET", "POST"])
+def share_deck(deck_id, user_email):
+    decks = Deck.query.filter(Deck.user_id == current_user.id).all()
 
+    print("entered share deck")
+
+    email = unquote(user_email)
+    print(email)
+    sender_id = current_user.email
+    print("SENDER ID")
+    print(sender_id)
+    deck_to_copy = Deck.query.get_or_404(deck_id)
+
+    ## make a copy of the deck and all cards in deck
+    ## add deck to user's decks
+    ## add cards to deck
+    ## add deck to user's decks
+    shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.now(), receiver=email)
+    db.session.add(shared_deck)
+    for card in deck_to_copy.cards:
+        new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+        shared_deck.cards.append(new_card)
+    print("sender is", sender_id)
+    print("deck is", deck_to_copy)
+    db.session.commit()
+    return redirect(url_for('viewdecks'))
+
+@app.route("/approve_shared/<int:deck_id>/", methods=["GET", "POST"])
+def approve_shared(deck_id):
+    print("entered approve shared")
+    shared_deck = SharedDecks.query.get_or_404(deck_id)
+    new_deck = Deck(user_id = current_user.id, name=shared_deck.name, description=shared_deck.description, shared=True, sharer=shared_deck.sender, time_created=datetime.now())
+    db.session.add(new_deck)
+    for card in shared_deck.cards:
+        new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+        new_deck.cards.append(new_card)
+    db.session.commit()
+    shared_deck.delete()
+    db.session.commit()
+    success = True
+    return jsonify({'success': success})
+
+
+@app.route("/reject_shared/<int:deck_id>/", methods=["GET", "POST"])
+def reject_shared(deck_id):
+    print("entered reject shared")
+    shared_deck = SharedDecks.query.get_or_404(deck_id)
+    shared_deck.delete()
+    db.session.commit()
+    success = True
+    return jsonify({'success': success})
 if __name__ == "__main__":
     app.run(debug=True)
     
