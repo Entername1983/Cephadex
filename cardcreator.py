@@ -17,19 +17,29 @@ load_dotenv(find_dotenv())
 ## open AI api, 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-def creator(text, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None, len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+def creator(text, prompt_option: str, prompt_option2: str = None, trans_option: str = None, lang_option: str = None, len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     text_ = text
+    print(prompt_option)
+    print(prompt_option2)
+    print(lang_option)
+    print(trans_option)
+    print(len_option)
+    print(qmin_option)
+    print(qmax_option)
     if prompt_option != "Transcribe":
         print("entered not transcribe")
         text_ = split_text(text_)
         print(text_)
         print(type(text))
-        terms = large_extract_terms(text_, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+        terms = large_extract_terms(text_, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
         return terms
     elif prompt_option == "Transcribe":
+        print("entered transcribe")
         if trans_option == None:
+            print("trans_option is none")
             return text_
         else:
+            print("trans option is not none")
             text_ = transcribe_and_translate(text_, prompt_option, trans_option)
             return text_   
     elif prompt_option == "List":

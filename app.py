@@ -475,6 +475,8 @@ class DeckFiles(db.Model):
     file_type = db.Column(db.String(500))	
     file_size = db.Column(db.String(50))
     text_string = db.Column(db.String())
+    create_type = db.Column(db.String(50))
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)   
        
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
@@ -1254,7 +1256,9 @@ def extract():
             print(prompt_option)
         ## load translate option  
         if form.languages.data != None:    
-            trans_option = form.languages.data    
+            trans_option = form.languages.data
+            print("------------------TRANS OPTION------------------")
+            print(trans_option)    
         ## load secondary prompt option
         if form.subject.data:
             prompt_option2 = form.subject.data
@@ -1342,10 +1346,15 @@ def extract():
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option == "Transcribe":
-            entry = Card(category = cat, term="transcription", content=terms, create_method=method)
-            db.session.add(entry)
-            deck.cards.append(entry)
-            db.session.commit()                
+            if trans_option != None:
+                name = deck.name + "_" + method + "_" + prompt_option + trans_option + "_" + str(datetime.now())
+                create_type = trans_option + " translation"
+                transcript_trans = DeckFiles(file_name = name, text_string = terms, time_created = datetime.now(), create_type = create_type)
+                db.session.add(transcript_trans)
+                deck.deck_files.append(transcript_trans)
+                db.session.commit()
+                return redirect("sea_dox/{deck.id}".format(deck = deck))
+        ## ADD DECK)        
         if form.generate_images.data == True: 
             for card in deck.cards:
                 try:
@@ -1356,7 +1365,7 @@ def extract():
                 
         ## SAVE TEXT TO DB
         f_name = deck.name + "_" + method + "_" + prompt_option + "_" + str(datetime.now())
-        file_storage = DeckFiles(file_name=f_name, text_string=text)
+        file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.now())
         db.session.add(file_storage) 
         deck.deck_files.append(file_storage)
         db.session.commit()
