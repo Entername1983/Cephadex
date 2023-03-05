@@ -1,5 +1,6 @@
 import openai 
 import os
+from bs4 import BeautifulSoup
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
@@ -15,8 +16,8 @@ from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, 
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
-from cardcreator import card_creator, write_to_csv, create_image, creator
-from extractors import regenerate_def, add_period, large_extract_terms, small_extract_terms, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
+from cardcreator import create_image, creator
+from extractors import regenerate_def, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import sys
@@ -566,7 +567,7 @@ class UploadFileForm(FlaskForm):
     description = StringField("Description", render_kw={"placeholder": "Describe your deck!"})
     submit = SubmitField("Extract", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe')], default='Definitions')
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'), ('Formulas', 'Formulas')], default='Definitions')
     generate_images = BooleanField('Generate_images')
     languages = SelectField('Languages', choices=[("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
@@ -1286,6 +1287,7 @@ def extract():
     "Mcq": ("A", "B", "C", "D", "E"),
     "Comprehension": ("A", "B"),
     "Vocab_builder": ("A", "B"),
+    "Formulas": ("A", "B", "C"),
     }
     
     prompt_option2 = None
@@ -1349,23 +1351,36 @@ def extract():
             text = form.text_input.data  
         elif form.link_input.data != None and form.link_input.data.strip() != '':
             f_type = "link"
+            method = "link input"
             text = None
             link_input = form.link_input.data
-            if check_comma_list(link_input):
-                link_input = link_input.split(",")
-                print(link_input)
-                for link in link_input:
-                    print(link)
-                    print(type(link))
-                    link = get_video_id(link)
-                    part = extract_from_youtube(link)
+            if "wikipedia" in form.link_input.data:
+                if check_comma_list(link_input):
+                    link_input = link_input.split(",")
+                    print(link_input)
+                    for link in link_input:
+                        part = extract_from_wiki(link_input)
                     if text == None:
                         text = part
                     text = text + part
-            print("youtube link inputted")
-            method = "link input"
-            link_input = get_video_id(link_input)
-            text = extract_from_youtube(link_input)
+                print(link_input)
+                text = extract_from_wiki(link_input)   
+                    
+            else:
+                if check_comma_list(link_input):
+                    link_input = link_input.split(",")
+                    print(link_input)
+                    for link in link_input:
+                        print(link)
+                        print(type(link))
+                        link = get_video_id(link)
+                        part = extract_from_youtube(link)
+                        if text == None:
+                            text = part
+                        text = text + part
+                print("youtube link inputted")
+                link_input = get_video_id(link_input)
+                text = extract_from_youtube(link_input)
          ## RETURN OUTPUT    
         terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
         ## IF CHOSING TRANSSLATE SET CATEGORY TO LANGUAGE OTHERWISE TAKES ON TYPE OF CARD
@@ -1394,10 +1409,17 @@ def extract():
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
-        elif prompt_option != "Mcq" and prompt_option != "Transcribe":
+        elif prompt_option != "Mcq" and prompt_option != "Transcribe" and prompt_option != "Formulas":
             x, y = mapping.get(prompt_option, ("A", "B"))
             for item in terms:
                 entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y].capitalize()), create_method=method)
+                db.session.add(entry)
+                deck.cards.append(entry)
+            db.session.commit()
+        elif prompt_option == "Formulas":
+            x, y, z = mapping.get(prompt_option, ("A", "B", "C"))
+            for item in terms:
+                entry = Card(category = cat, term=item[x].capitalize(), content="\["+(item[y])+"\]", boc_2=add_period(item[z].capitalize()), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()

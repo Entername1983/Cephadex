@@ -18,11 +18,16 @@ import io
 import textwrap
 from reportlab.lib.pagesizes import letter
 from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
-
+from bs4 import BeautifulSoup
+import requests
+from pylatexenc.latex2text import LatexNodes2Text
+import re
 
 encoding = tiktoken.get_encoding('gpt2')
 
 
+
+testing = "[{\"A\":\"Fibonacci sequence\",\"B\":\"$$F_n=F_{n-1}+F_{n-2}$$\",\"C\":\"The Fibonacci sequence is a sequence of integers in which each number after the first two numbers is the sum of the two preceding ones. The sequence can be defined recursively by the equation F_n = F_{n-1} + F_{n-2}, with initial conditions F_0 = 0 and F_1 = 1. \"},{\"A\":\"Binet's formula\",\"B\":\"$$F_n = \\frac{1}{\\sqrt{5}}\\left[\\left(\\frac{1+\\sqrt{5}}{2}\\right)^n -\\left(\\frac{1-\\sqrt{5}}{2}\\right)^n\\right]$$\",\"C\":\"Binet's formula is an explicit formula used to find the value of the nth term in the Fibonacci sequence. It is based on the golden ratio and can be used to efficiently calculate large Fibonacci numbers.\"}]"
 
 ## terms choices
 
@@ -93,9 +98,15 @@ def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, tra
             )
     
     response_ = response['choices'][0]['message']['content'].strip()
+    if prompt_option == "Formulas":
+        print("entered formulas")
+        print(response_)
+        ##response_ = double_backslashes(response_)
+        response = json.dumps(response_)
+        print(response)
+    
     if prompt_option == "Cloze":
         response_ = add_underscores(response_)
-    print(response_)
     byte_string = response_.encode('utf-8')
     x = byte_string.decode('utf-8')
 
@@ -103,6 +114,44 @@ def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, tra
  
     return x, prompt, response, x
    
+
+
+def render_latex(latex_code):
+
+    unicode_str = LatexNodes2Text().latex_to_text(latex_code)
+
+    return unicode_str
+
+def double_backslashes(s):
+    result = ''
+    pattern = r'\\\[.*?\\\]|\\\(.*?\\\)|(?<!\\)\$.+?(?<!\\)\$'
+    # Match LaTeX formulas delimited by \[...\] or \(...\), or inline formulas delimited by $...$
+    matches = re.findall(pattern, s)
+    last_end = 0
+    for match in matches:
+        start = s.index(match, last_end)
+        result += s[last_end:start]
+        result += re.sub(r'\\', r'\\\\', match)
+        last_end = start + len(match)
+    result += s[last_end:]
+    return result
+
+def decode_latex_in_string(string):
+    # Define a regular expression pattern to match LaTeX formulas
+    pattern = r'(\$[^\$]*\$|\\\([^\)]*\\\))'
+    
+    # Use the pattern to find all LaTeX formulas in the string
+    matches = re.findall(pattern, string)
+    
+    # Loop over the matches and replace each LaTeX formula with its decoded equivalent
+    for match in matches:
+        decoded = render_latex(match)
+        string = string.replace(match, decoded)
+    
+    return string
+
+
+
 
 def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
                         len_option: str = None, qmin_option: int = None, qmax_option: int = None):
@@ -278,6 +327,33 @@ def extract_from_docx(docx_file):
     text = text.replace("\n", " ")          
     return text
 
+def extract_from_wiki(wiki_url):
+    page = requests.get(wiki_url)
+    
+    # scrape webpage
+    soup = BeautifulSoup(page.content, 'html.parser')
+    
+    list(soup.children)
+    
+    # find all occurrence of p in HTML
+    # includes HTML tags
+    print(soup.find_all('p'))
+    print('\n\n')
+    # return only text
+    # does not include HTML tags
+    items = soup.find_all('p')[0].get_text()
+    for i in range(0, len(soup.find_all('p')) - 1):
+        items = soup.find_all('p')[i].get_text()
+        print("item" + str(i))
+        print(items)
+        if i == 0:
+            text = items
+        else:
+            text = text + items
+    
+    return text
+    
+    
 ##YOUTUBE
 def extract_from_youtube(youtube_url):
     full_text = None

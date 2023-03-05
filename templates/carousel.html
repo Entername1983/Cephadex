@@ -34,9 +34,21 @@
     $('#closeButton').click(function () {
         $('#addCardMessage').text('')
     });
+
+
+
+
+    
       });
 </script>
-
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [['$$','$$']],
+            processEscapes: true
+        }
+    });
+    </script>
 
 
 
@@ -100,12 +112,20 @@
                                         class=" card-title box_study input_0 form-control form-control-lg" type="text"
                                         id="card.id" placeholder="{{ card.term }}" value="{{ card.term }}" />
                                 </div>
+                                {% if card.category == "Formulas" %}
+                                <div>
+                                \[{{ card.content}}\]
+                                    </div>
+                                {% endif %}
+                                {% if card.category != "Formulas" %}
                                 <div class="row">
                                     <textarea name="content"
                                         class="form-control card-text box_study input_0 form-control form-control-lg"
                                         type="text" id="card.id" rows="4"
                                         placeholder="{{ card.content }}"> {{ card.content }}</textarea>
                                 </div>
+                                {% endif %}
+                            
                                 {% if card.boc_2 is not none %}
 
                                 <div class="row mt-1">
@@ -114,6 +134,7 @@
                                         type="text" id="card.id" rows="1"
                                         placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
                                 </div>
+                                {% if card.category != "Formulas" %}
                                 <div class="row mt-1">
                                     <textarea name="boc_3"
                                         class="form-control card-text box_study input_0 form-control form-control-lg"
@@ -127,7 +148,7 @@
                                         placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
                                 </div>
                                 {% endif %}
-
+                                {% endif %}
 
                                 <div class="row mt-3 align-item-end align-bottom">
                                     <div class=" text-center col-4 align-items-center justify-content-center">
@@ -176,12 +197,19 @@
                                 <input name="term" class="card-title box_study input_0 form-control form-control-lg"
                                     type="text" id="card.id" placeholder="{{ card.term }}" value="{{ card.term }}" />
                             </div>
+                            {% if card.category == "Formulas" %}
+                            <div>
+                            \[{{ card.content }}\]
+                                </div>
+                            {% endif %}
+                            {% if card.category != "Formulas" %}
                             <div class="row">
                                 <textarea name="content"
                                     class="form-control card-text box_study input_0 form-control form-control-lg"
                                     type="text" id="card.id" rows="3"
                                     placeholder="{{ card.content }}"> {{ card.content }}</textarea>
                             </div>
+                            {% endif %}
                             {% if card.boc_2 is not none %}
                             <div class="row mt-1">
                                 <textarea name="boc_2"
@@ -189,6 +217,7 @@
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
                             </div>
+                            {% if card.category != "Formulas" %}
                             <div class="row mt-1">
                                 <textarea name="boc_3"
                                     class="form-control card-text box_study input_0 form-control form-control-lg"
@@ -201,6 +230,7 @@
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
                             </div>
+                            {% endif %}
                             {% endif %}
                             <div class="row mt-2 align-items-end justify-content-center ">
                                 <div class=" col-4 text-center align-items-center justify-content-center">
