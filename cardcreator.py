@@ -32,7 +32,7 @@ def creator(text, prompt_option: str, prompt_option2: str = None, trans_option: 
         print(text_)
         print(type(text))
         terms = large_extract_terms(text_, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
-        return terms
+        return terms[0], terms[1], terms[2], terms[3]
     elif prompt_option == "Transcribe":
         print("entered transcribe")
         if trans_option == None:

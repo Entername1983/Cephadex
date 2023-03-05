@@ -60,6 +60,8 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 
+
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -501,8 +503,17 @@ class DeckFiles(db.Model):
     file_size = db.Column(db.String(50))
     text_string = db.Column(db.String())
     create_type = db.Column(db.String(50))
-    time_created = db.Column(db.DateTime, default=datetime.utcnow)   
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
        
+class ResponseData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    prompt = db.Column(db.String())	
+    response = db.Column(db.String())
+    content = db.Column(db.String())	
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    success = db.Column(db.Boolean)
+          
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
     last_name = StringField('Last Name', validators=[InputRequired()], render_kw= {"placeholder": "Last Name"})           
@@ -510,6 +521,10 @@ class RegSub(FlaskForm):
     conf_email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Confirm Email"})        
     submit = SubmitField('Subscribe')
     
+
+
+
+
       
 class RegisterForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
@@ -1158,7 +1173,7 @@ def generate_img(deck_id):
 def carousel(deck_id):
     
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+    cards = Card.query.filter(Card.decks_backref.any(id=deck_id)).order_by(Card.id.desc()).all()
     if(current_user.id != deck.user_id):
          return jsonify({'error': 'Deck not assigned to user'}), 403
         
@@ -1199,8 +1214,18 @@ def carousel(deck_id):
         entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category, time_created=time_created)
         deck.cards.append(entry)
         db.session.commit()
-        
     
+    if request.method == 'POST' and 'new_deck_name' in request.form:
+        print("entered post request for editing deck")
+        name = request.form['new_deck_name']
+        description = request.form['new_deck_description']
+        subject = request.form['new_deck_subject']
+        topic = request.form['new_deck_topic']
+        deck.name = name
+        deck.description = description
+        deck.subject = subject
+        deck.topic = topic
+        db.session.commit()   
     
     return render_template("carousel.html", title="Carousel", deck=deck, cards=cards) 
 
@@ -1348,10 +1373,20 @@ def extract():
             cat = prompt_option2
         else:
             cat = prompt_option
-        
+            
+        ## DATA LOGGING
+        prompt = str(terms[1])
+        response = str(terms[2])
+        content = str(terms[3])
+        terms = terms[0]
+        response_entry = ResponseData(prompt=prompt, response=response, content=content, timestamp = datetime.now())
+        db.session.add(response_entry)
+        db.session.commit()
         ## SET USER TO CURRENT USER
         deck.user_id = current_user.id
         ## ADD CARDS TO DECK
+        
+        
         if prompt_option == "Mcq":
             v, w, x, y, z = mapping.get(prompt_option, ("A", "B", "C", "D", "E"))
             for item in terms:
@@ -1468,16 +1503,13 @@ def delete_file(deck_id, file_id):
 @app.route("/share_deck/<int:deck_id>/<string:user_email>/", methods=["GET", "POST"])
 def share_deck(deck_id, user_email):
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
-
     print("entered share deck")
-
     email = unquote(user_email)
     print(email)
     sender_id = current_user.email
     print("SENDER ID")
     print(sender_id)
     deck_to_copy = Deck.query.get_or_404(deck_id)
-
     ## make a copy of the deck and all cards in deck
     ## add deck to user's decks
     ## add cards to deck
@@ -1489,6 +1521,9 @@ def share_deck(deck_id, user_email):
         shared_deck.cards.append(new_card)
     print("sender is", sender_id)
     print("deck is", deck_to_copy)
+        # Create a message object
+        
+    
     db.session.commit()
     return redirect(url_for('viewdecks'))
 

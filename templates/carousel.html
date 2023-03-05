@@ -3,39 +3,39 @@
 
 {% endblock %} {% block main_0 %}
 <script>
-    $(document).ready(function() {
-        var deck_id = {{deck.id}};
-        // When the "Save" button is clicked
-        $('#saveButton').click(function() {
-      
-          // Get the form data
-          var formData = $('#newCardForm').serialize();
-          var newTerm = $('#new_term').val();
-          console.log(newTerm);
-          console.log(formData)
-          // Send the form data to the Flask app using AJAX
-          $.ajax({
+    $(document).ready(function () {
+        var deck_id = {{ deck.id }};
+    // When the "Save" button is clicked
+    $('#saveButton').click(function () {
+
+        // Get the form data
+        var formData = $('#newCardForm').serialize();
+        var newTerm = $('#new_term').val();
+        console.log(newTerm);
+        console.log(formData)
+        // Send the form data to the Flask app using AJAX
+        $.ajax({
             type: 'POST',
             url: '/add_new_card/' + deck_id,
             data: formData,
-            success: function(response) {
-              // Reset the form fields
-              $('#addCardMessage').text('Card "' + newTerm + '" created successfully.')
-              $('#newCardForm')[0].reset();
+            success: function (response) {
+                // Reset the form fields
+                $('#addCardMessage').text('Card "' + newTerm + '" created successfully.')
+                $('#newCardForm')[0].reset();
             },
-            error: function(response) {
-              alert('An error occurred while saving the card.');
+            error: function (response) {
+                alert('An error occurred while saving the card.');
             }
-          });
-      
-          // Keep the modal open
-          return false;
         });
-        $('#closeButton').click(function() {
-            $('#addCardMessage').text('')
-          });
+
+        // Keep the modal open
+        return false;
+    });
+    $('#closeButton').click(function () {
+        $('#addCardMessage').text('')
+    });
       });
-  </script>
+</script>
 
 
 
@@ -44,9 +44,14 @@
     <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
         title="Return to decks">
 </a>
-    <img src="\static\mathematics-sign-plus-outline-icon.png" class = "m-4" data-bs-toggle="modal" data-bs-target="#exampleModalLong" alt="Add new card" style="max-width:30px;max-height:30px;"
-        title="Add cards">
 
+<img src="\static\mathematics-sign-plus-outline-icon.png" class="m-4" data-bs-toggle="modal"
+    data-bs-target="#exampleModalLong" alt="Add new card" style="max-width:30px;max-height:30px;" title="Add cards">
+
+<a data-bs-toggle="modal" data-bs-target="#editDeckModalLong" class="mx-2" style="cursor: pointer;">
+    <img src="\static\edit-box-icon.png" alt="Share" style="max-width:30px;max-height:30px;" class="px-1"
+        title="Edit deck attributes">
+</a>
 
 <div id="carouselExampleDark" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="false">
 
@@ -85,9 +90,9 @@
                                 style="max-width: fit-content; max-height: fit-content;">
                         </div>
                         {% endif %}
-                        
-                            <form action="" method="post">
-                           <div class="container flex-grow-1 align-items-end" style="min-height:500px">     
+
+                        <form action="" method="post">
+                            <div class="container flex-grow-1 align-items-end" style="min-height:500px">
                                 <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
                                     placeholder="{{ card.id }}" />
                                 <div class="row">
@@ -144,7 +149,7 @@
                                         </a>
                                     </div>
                                 </div>
-                        </div>
+                            </div>
                     </div>
 
 
@@ -218,12 +223,12 @@
                                 </div>
                             </div>
                     </div>
-                    
+
                 </div>
 
             </div>
 
-</form>
+            </form>
 
 
             {% endif %}
@@ -245,8 +250,8 @@
 
 
 
-            
-        
+
+
         </div>
     </div>
 
@@ -256,62 +261,114 @@
             <span class="visually-hidden">Next</span>
         </button>
     </div>
-<!--- MODAL -->
-<div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLongTitle">Add card</h5>
-          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-          
+    <!--- MODAL -->
+    <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Add card</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+
+                </div>
+                <div class="m-2" id="addCardMessage"></div>
+                <div class="modal-body">
+                    <form id="newCardForm" action="" method="post">
+
+                        <div class="row mt-1">
+
+                            <input class="box_study" name="new_term" type="text" id="new_term" placeholder="Term" />
+                        </div>
+                        <div class="row mt-1">
+                            <input class="box_study" name="new_content" type="text" id="new_content"
+                                placeholder="Main content" />
+                        </div>
+                        <div class="row mt-1">
+                            <input class="box_study" name="new_boc_2" type="text" id="new_boc_2"
+                                placeholder="Optional content" />
+                        </div>
+                        <div class="row mt-1">
+                            <input class="box_study" name="new_boc_3" type="text" id="new_boc_3"
+                                placeholder="Optional content" />
+                        </div>
+                        <div class="row mt-1">
+                            <input class="box_study" name="new_boc_4" type="text" id="new_boc_4"
+                                placeholder="Optional content" />
+                        </div>
+                        <div class="row mt-1 box_study">
+                            <select name="new_category">
+                                <option value="" selected>Choose a card type</option>
+                                <option value="Definitions">Definitions</option>
+                                <option value="Translate">Translate</option>
+                                <option value="Rhyme">Rhyme</option>
+                                <option value="People">People</option>
+                                <option value="Theories">Theories</option>
+                                <option value="Cloze">Cloze</option>
+                                <option value="MCQ">MCQ</option>
+                                <option value="Comprehension">Comprehension</option>
+                            </select>
+                        </div>
+
+                </div>
+                <div class="modal-footer">
+                    <input type="image" id="saveButton" src="\static\save-outline-icon.png"
+                        style="max-width:30px;max-height:30px;" name="edit-card" value="Save" />
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class = "m-2" id="addCardMessage"></div>
-        <div class="modal-body">
-<form id="newCardForm" action = "" method = "post">
-
-    <div class="row mt-1">
-
-    <input class = "box_study" name = "new_term" type = "text" id = "new_term" placeholder = "Term" />
-</div>
-<div class="row mt-1">
-    <input class = "box_study" name = "new_content" type = "text" id = "new_content" placeholder = "Main content" />
-</div>
-<div class="row mt-1">
-    <input class = "box_study" name = "new_boc_2" type = "text" id = "new_boc_2" placeholder = "Optional content" />
-</div>
-<div class="row mt-1">
-    <input class = "box_study" name = "new_boc_3" type = "text" id = "new_boc_3" placeholder = "Optional content" />
-</div>
-<div class="row mt-1">
-    <input class = "box_study" name = "new_boc_4" type = "text" id = "new_boc_4" placeholder = "Optional content" />
-</div>
-<div class="row mt-1 box_study">
-    <select name="new_category">
-        <option value="" selected>Choose a card type</option>
-        <option value="Definitions">Definitions</option>
-        <option value="Translate">Translate</option>
-        <option value="Rhyme">Rhyme</option>
-        <option value="People">People</option>
-        <option value="Theories">Theories</option>
-        <option value="Cloze">Cloze</option>
-        <option value="MCQ">MCQ</option>
-        <option value="Comprehension">Comprehension</option>
-      </select>
     </div>
 
-        </div>
-        <div class="modal-footer">
-          <input type="image" id="saveButton" src="\static\save-outline-icon.png"
-          style="max-width:30px;max-height:30px;" name="edit-card" value="Save"/>
-</form>          
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- END MODAL -->
+    <!---- EDIT DECK ATTRIBUTES MODAL -->
+    <div class="modal fade" id="editDeckModalLong" tabindex="-1" role="dialog" aria-labelledby="editDeckModalLongTitle"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDeckModalLongTitle">Edit Deck</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
 
-<!-- END MODAL -->
+                </div>
+                <div class="m-2" id="addCardMessage"></div>
+                <div class="modal-body">
+                    <form id="newCardForm" action="" method="post">
+
+                        <div class="row mt-1">
+                            <label class="form-label" for="new_deck_name">Name</label>
+                            <input class="box_study" name="new_deck_name" type="text" id="new_deck_name"
+                                placeholder="{{deck.name}}" />
+                        </div>
+                        <div class="row mt-1">
+                            <label class="form-label" for="new_deck_description">Description</label>
+                            <input class="box_study" name="new_deck_description" type="text" id="new_deck_description"
+                                placeholder="{{deck.description}}" />
+                        </div>
+                        <div class="row mt-1">
+                            <label class="form-label" for="new_deck_subject">Subject</label>
+
+                            <input class="box_study" name="new_deck_subject" type="text" id="new_deck_subject"
+                                placeholder="{{deck.subject}}" />
+                        </div>
+                        <div class="row mt-1">
+                            <label class="form-label" for="new_deck_subject">Topic</label>
+
+                            <input class="box_study" name="new_deck_topic" type="text" id="new_deck_topic"
+                                placeholder="{{deck.topic}}" />
+                        </div>
+                        <div class="modal-footer">
+                            <input type="image" id="saveButton" src="\static\save-outline-icon.png"
+                                style="max-width:30px;max-height:30px;" name="edit-deck" value="Save" />
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 </div>
 

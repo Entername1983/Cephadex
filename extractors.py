@@ -17,6 +17,7 @@ import tiktoken
 import io
 import textwrap
 from reportlab.lib.pagesizes import letter
+from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
 
 
 encoding = tiktoken.get_encoding('gpt2')
@@ -24,91 +25,6 @@ encoding = tiktoken.get_encoding('gpt2')
 
 
 ## terms choices
-prompt_choices = {
-    'Definitions': ' Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {length} definition for each. {lang} Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A" as well as one named "B". \n The resulting JSON object should be in this format: [{"A":"term","B":"definition"}] \n The passage: \n',
-    "Translate": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and provide a {trans} translation for each. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the {option_2} translation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Rhyme": 'Given the passage below, extract as many uncommon or technical terms as possible and create a four verse poem for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
-    "Rhyme": 'Given the passage below, extract {qmin} {qmax} uncommon or technical terms {c2} and create a four verse poem for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the term, as well as one named "B", for the poem. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
-    "People": 'Given the passage below, extract all the names of people and provide a {length} biography for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the terms extracted and have a property named "A", for the person, as well as one named "B", for the biography. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Theories": 'Given the passage below, identify all the relevant theories and concepts and provide an explanation for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "A", for the theory or concept, as well as one named "B", for the explanation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
-    "Theories": 'Given the passage below, identify {qmin} {qmax} relevant theories and concepts {c2} and provide an {length} explanation for each {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the theories or concepts extracted and have a property named "A", for the theory or concept, as well as one named "B", for the explanation. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
-    "Cloze": 'Given the passage below, create {qmin} {qmax} cloze deletion questions  {lang}.{c2} The goal is to test my understanding of the text. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the cloze deletion texts and have a property named "A" for the cloze deletion text, and "B" for the missing word(s). \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    "Mcq":'Given the passage below, create at least one multiple choice question for each key piece of information.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the multiple choice questions and have a property named "A" for the question, one named A for the correct answer and 3 other properties for the wrong answers, B, C, D.  \n The resulting JSON object should be in this format: [{"A": "string", "B":"string", "C":"string", "D":"string", "E":"string"}] \n The passage \n',
-    "Mcq":'{c2}Given the passage below, create {qmin} {qmax} {length} multiple choice questions {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the multiple choice questions and have a property named "A" for the question, one named "B" for the correct answer and 3 other properties for the wrong answers, "C", "D", "E". \n The resulting JSON object should be in this format: [{"A": "string", "B":"Answer", "C":"Wrong answer 1", "D":"Wrong answer 2", "E":"Wrong answer 3"}] \n The passage \n',
-    "Comprehension":'Given the passage below, create {qmin}  {qmax} {length} questionsto test comprehension of the key information contained within {c2} {lang}. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the comprehension questions and have a property named "A" for the question, and "B" for the answer. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',    
-    "Vocab_builder": 'Given the passage below, extract all unique words and provide a definition for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the words extracted and have a property named "A", for the word, as well as one named "B", for the definition. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n', } 
-
-prompt_choices2 =  {
-    "Econ": "Economics",
-    "Finance": "Finance",
-    "Lit": "Literature",
-    "Chem": "Chemistry",
-    "Science":  "Science",
-    "Physics": "Physics",
-    "Philo": "Philosophy",
-    "CS": "Computer Science",
-    "Bio": "Biology",
-    "Math": "Mathematics",
-    "Geo": "Geography",
-    "Hist": "History",
-    "Anatomy": "Anatomy",
-    "Psych": "Psychology",
-    "Soc": "Sociology",
-    "Law": "Law",
-    "Music": "Music",
-    "Art": "Art",
-    "Dance": "Dance",
-    "Theatre": "Theatre",
-    "Film": "Film",
-    "Med": "Medicine",
-    "Eng": "Engineering",
-    "Bus": "Business",
-    "Politics": "Political science",
-    }
-lang_choices = {
-    "English": "The language used should be English",
-    "French": "The language used should be French",
-    "Spanish": "The language used should be Spanish",
-    "German": "The language used should be German",
-    "Portuguese": "The language used should be Portuguese",
-    "Chinese": "The language used should be Chinese",
-    "Russian": "The language used should be Russian",
-    "Swahili": "The language used should be Swahili",
-    "Japanese": "The language used should be Japanese",
-    "Dothraki": "The language used should be Dothraki",
-    "Klingon": "The language used should be Klingon",
-    "Dutch": "The language used should be Dutch",
-    "Italian": "The language used should be Italian",
-    "Greek": "The language used should be Greek",
-    "Arabic": "The language used should be Arabic",
-    "Hindi": "The language used should be Hindi",
-    "Polish": "The language used should be Polish",
-    "Hebrew": "The language used should be Hebrew",
-    "Finnish": "The language used should be Finnish",
-    "Norwegian": "The language used should be Norwegian",
-    "Swedish": "The language used should be Swedish",
-    "Turkish": "The language used should be Turkish",
-    "Czech": "The language used should be Czech",
-    "Romanian": "The language used should be Romanian",
-    "Hungarian": "The language used should be Hungarian",
-    "Bulgarian": "The language used should be Bulgarian",
-    "Croatian": "The language used should be Croatian",
-    "Serbian": "The language used should be Serbian",
-    "Estonian": "The language used should be Estonian",
-    "Latvian": "The language used should be Latvian",
-    "Lithuanian": "The language used should be Lithuanian",
-    "Farsi": "The language used should be Farsi",
-    "Korean": "The language used should be Korean",
-    "Indonesian": "The language used should be Indonesian",
-    "Vietnamese": "The language used should be Vietnamese",
-    "Urdu": "The language used should be Urdu",
-    "Hebrew": "The language used should be Hebrew",
-    "Persian": "The language used should be Persian",
-    "Thai": "The language used should be Thai",
-    "Malay": "The language used should be Malay",
-    "Tagalog": "The language used should be Tagalog",
-    }
-
-len_choices = {
-    "long": "very long",
-    "short": "short",}
 
 ## CALLS TO OPEN AI API
 def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, trans_option: str = None, lang_option: str = None, 
@@ -175,18 +91,17 @@ def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, tra
                     {"role": "user", "content": prompt},
                 ]
             )
-
-    response = response['choices'][0]['message']['content'].strip()
     
+    response_ = response['choices'][0]['message']['content'].strip()
     if prompt_option == "Cloze":
-        response = add_underscores(response)
-    print(response)
-    byte_string = response.encode('utf-8')
+        response_ = add_underscores(response_)
+    print(response_)
+    byte_string = response_.encode('utf-8')
     x = byte_string.decode('utf-8')
 
     x = json.loads(x)
-
-    return x
+ 
+    return x, prompt, response, x
    
 
 def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
@@ -209,7 +124,7 @@ def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, l
     print(type(items))
     if isinstance(items, str):
         response = extract_terms(items, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-        return response
+        return response[0], response[1], response[2], response[3]
             
     else:
         print("recognized items as list")
@@ -218,12 +133,12 @@ def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, l
             api_counter = api_counter + 1
             print("api call number: " + str(api_counter))
             response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-            for dict in response:
+            for dict in response[0]:
                 ls_terms.append(dict)
             print("finished large extract term function")
             print("API calls: " + str(api_counter))
         print(ls_terms)
-        return ls_terms
+        return ls_terms, response[1], response[2], response[3]
 
 
 
