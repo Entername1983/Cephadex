@@ -27,7 +27,6 @@ encoding = tiktoken.get_encoding('gpt2')
 
 
 
-testing = "[{\"A\":\"Fibonacci sequence\",\"B\":\"$$F_n=F_{n-1}+F_{n-2}$$\",\"C\":\"The Fibonacci sequence is a sequence of integers in which each number after the first two numbers is the sum of the two preceding ones. The sequence can be defined recursively by the equation F_n = F_{n-1} + F_{n-2}, with initial conditions F_0 = 0 and F_1 = 1. \"},{\"A\":\"Binet's formula\",\"B\":\"$$F_n = \\frac{1}{\\sqrt{5}}\\left[\\left(\\frac{1+\\sqrt{5}}{2}\\right)^n -\\left(\\frac{1-\\sqrt{5}}{2}\\right)^n\\right]$$\",\"C\":\"Binet's formula is an explicit formula used to find the value of the nth term in the Fibonacci sequence. It is based on the golden ratio and can be used to efficiently calculate large Fibonacci numbers.\"}]"
 
 ## terms choices
 
@@ -98,12 +97,12 @@ def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, tra
             )
     
     response_ = response['choices'][0]['message']['content'].strip()
-    if prompt_option == "Formulas":
-        print("entered formulas")
-        print(response_)
+    ###if prompt_option == "Formulas":
+      ##  print("entered formulas")
+       ## print(response_)
         ##response_ = double_backslashes(response_)
-        response = json.dumps(response_)
-        print(response)
+       ## response_ = json.dumps(response_)
+      ##  print(response)
     
     if prompt_option == "Cloze":
         response_ = add_underscores(response_)
@@ -278,6 +277,8 @@ def text_extractor(file):
     elif file.endswith('.docx'):
         items = extract_from_docx(file)
     elif file.endswith('.wav'):
+        items = extract_audio(file)
+    elif file.endswith('.mp3'):
         items = extract_audio(file)
     elif file.endswith('.txt'):
         with open(file) as file:

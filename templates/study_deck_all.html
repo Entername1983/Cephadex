@@ -304,11 +304,16 @@
               return a.due_date - b.due_date;
             });
             currentCardIndex = cardList.indexOf(currentCard);
-    
-            // Update the card content on the page
+            var formula = cardData.formula;
+            formula = '\\[' + formula + '\\]';
+          
             jq('#card-term').html(currentCard.term);
             jq('#card-id').html(currentCard.id);
             jq('#card-content').html(currentCard.content);
+            if (currentCard.category == "Formulas") {
+              jq('#card-formula').html(formula);
+              MathJax.typeset();
+            }
             jq('#card-boc_2').html(currentCard.boc_2);
             jq('#card-boc_3').html(currentCard.boc_3);
           }
@@ -368,9 +373,16 @@
         // Sets the data for the card and cardsDue
         function setCardData(cardData,cardsDue)
         {
+          var formula = cardData.formula;
+          formula = '\\[' + formula + '\\]';
+        
           jq('#card-term').html(currentCard.term);
           jq('#card-id').html(currentCard.id);
           jq('#card-content').html(currentCard.content);
+          if (currentCard.category == "Formulas") {
+            jq('#card-formula').html(formula);
+            MathJax.typeset();
+          }
           jq('#card-boc_2').html(currentCard.boc_2);
           jq('#card-boc_3').html(currentCard.boc_3);
           jq('#card-boc_4').html(currentCard.boc_4);
@@ -525,6 +537,7 @@
     {% endblock %} {% block main_0 %}
     
     
+    {% if decks != [] %}
     <div class="d-flex align-items-center justify-content-center">
       <div style="max-width:700px">
         <div class="row m-3">
@@ -561,6 +574,7 @@
                     <div class="n-mcq" id="n-mcq">
                       <div style="min-height: 200px;">
                         <div class="box_1 my-1 p-3" id="card-extra-content" style="display: none">
+                          <div id ="card-formula"></div>
                           <p id="card-content"></p>
                         </div>
                       </div>
@@ -631,5 +645,12 @@
     </div>
     </div>
     </div>
+    {% else %}
+    <div>
+      <h4> You don't currently have any cards to study, click <a href="/extract">here</a> to create some.</h4>
+    </div>
     
+
+{% endif %}
+
     {% endblock %}

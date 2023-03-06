@@ -97,8 +97,8 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(80), nullable=True)
     email = db.Column(db.String(255), nullable=False)
     email_confirmed_at = db.Column(db.DateTime())
-    first_name = db.Column(db.String(50), nullable=False)
-    last_name = db.Column(db.String(50), nullable=False)
+    first_name = db.Column(db.String(50), nullable=True)
+    last_name = db.Column(db.String(50), nullable=True)
     decks = db.relationship("Deck", backref=db.backref("user", lazy="joined"), lazy="select")
     ## external auth + external type
     external_id = db.Column(db.String(255), nullable=True) 
@@ -167,6 +167,7 @@ class Card(db.Model):
     boc_2 = db.Column(db.String(255), nullable=True) 
     boc_3 = db.Column(db.String(255), nullable=True) 
     boc_4 = db.Column(db.String(255), nullable=True)
+    formula = db.Column(db.String(255), nullable=True)
     img = db.Column(db.String(255), nullable=True) 
     sound = db.Column(db.String(255), nullable=True) 
     boc_id = db.Column(db.Float(10), nullable=True)
@@ -352,6 +353,7 @@ class Deck(db.Model):
                     'boc_2': card.boc_2,
                     'boc_3': card.boc_3,
                     'boc_4': card.boc_4,
+                    'formula': card.formula,
                     'category': card.category,
                     'id': card.id,
                     'img': card.img,
@@ -514,6 +516,24 @@ class ResponseData(db.Model):
     content = db.Column(db.String())	
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     success = db.Column(db.Boolean)
+          
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    email = db.Column(db.String(120))
+    message = db.Column(db.String(500))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    type_feedback = db.Column(db.String(50))
+    def __repr__(self):
+        return '<Feedback {}>'.format(self.email)
+    
+    def send_feedback(self):
+        db.session.add(self)            	
+        db.session.commit()
+        
+    def delete_feedback(self):
+        db.session.delete(self)            	
+        db.session.commit()          
           
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
@@ -1099,7 +1119,7 @@ def study_deck_all():
     decks_data = [{'id': deck.id} for deck in decks]
     decks_json = json.dumps(decks_data)
     print(decks_json)
-    return render_template('study_deck_all.html', title='Study all decks', decks_json=decks_json)
+    return render_template('study_deck_all.html', title='Study all decks', decks_json=decks_json, decks=decks)
 
 @app.route("/increment/<card_id>", methods = ["POST", "GET"])
 def increment(card_id):
@@ -1188,18 +1208,27 @@ def carousel(deck_id):
         boc_3 = request.form.get('boc_3')
         boc_4 = request.form.get('boc_4')
         id = request.form['id'] ## id of card to be edited
+        formula = request.form['formula']
         print(id)
         card = Card.query.filter_by(id=id).first()
         if term != "":
-            card.term = term
+            if card.term != None:
+                card.term = term.strip()
         if content != "":
-            card.content = content
+            if card.content != None:
+                card.content = content.strip()
         if boc_2 != "":
-           card.boc_2 = boc_2
+            if boc_2 != None:
+                card.boc_2 = boc_2.strip()
         if boc_3 != "":
-            card.boc_3 = boc_3
+            if boc_3 != None:
+                card.boc_3 = boc_3.strip()
         if boc_4 != "":
-            card.boc_4 = boc_4
+            if boc_4 != None:
+                card.boc_4 = boc_4.strip()
+        if formula != "":
+            if formula != None:
+                card.formula = formula.strip()
         print(boc_2, boc_3, boc_4)
         db.session.commit()
     
@@ -1419,7 +1448,7 @@ def extract():
         elif prompt_option == "Formulas":
             x, y, z = mapping.get(prompt_option, ("A", "B", "C"))
             for item in terms:
-                entry = Card(category = cat, term=item[x].capitalize(), content="\["+(item[y])+"\]", boc_2=add_period(item[z].capitalize()), create_method=method)
+                entry = Card(category = cat, term=item[x].capitalize(), formula="\["+(item[y])+"\]", content=add_period(item[z].capitalize()), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
@@ -1576,10 +1605,21 @@ def reject_shared(deck_id):
 if __name__ == "__main__":
     app.run(debug=True)
     
-    
-    
-    
-    
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == 'POST' and 'message_feedback' in request.form:
+        name = request.form['name_feedback']
+        email = request.form['email_feedback']
+        feedback = request.form['message_feedback']
+        type_feedback = request.form['type_feedback']
+        entry = Feedback(name=name, email=email, message=feedback, type_feedback=type_feedback)
+        entry.send_feedback()
+        flash("Thank you for your feedback!", "success")
+
+    return render_template('index.html', title='Index')
+
+
+
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    
     

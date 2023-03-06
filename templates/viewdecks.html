@@ -91,32 +91,37 @@
 
 
           <td>
-
-            <a href="/carousel/{{deck.id}}" class="mx-2">
-              <img src="\static\edit-box-icon.png" alt="Edit" style="max-width:30px;max-height:30px;" class="px-1"
-                title="Edit">
-            </a>
-
-
-
-
-
-            <a data-bs-toggle="modal" data-bs-target="#Modal{{deck.id}}" class="mx-2" style="cursor: pointer;">
-              <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px;"
-                class="px-1" title="Share">
-            </a>
+<!------- STUDY DECK ----->
             <a href="/study_deck/{{deck.id}}" class="mx-2">
               <img src="\static\graduation-cap-icon.png" alt="Study" style="max-width:30px;max-height:30px;"
                 class="px-1" title="Study">
             </a>
+<!---- EDIT DECK ------>
+            <a href="/carousel/{{deck.id}}" class="mx-2">
+              <img src="\static\edit-box-icon.png" alt="Edit" style="max-width:30px;max-height:30px;" class="px-1"
+                title="Edit">
+            </a>
+<!---- SHARE DECK ------>
+            <a data-bs-toggle="modal" data-bs-target="#Modal{{deck.id}}" class="mx-2" style="cursor: pointer;">
+              <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px;"
+                class="px-1" title="Share">
+            </a>
+<!------- DOWNLOAD CSV ------->
             <a href="/downloadascsv/{{deck.id}}" class="mx-2">
               <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px;"
                 class="px-1" title="Download as CSV">
             </a>
+<!-------- SEE SOURCE DOCS ---->
             <a href="/sea_dox/{{deck.id}}" class="mx-2">
               <img src="\static\data-sources-icon.png" alt="See source docs" style="max-width:30px;max-height:30px;"
                 class="px-1" title="See source docs">
             </a>
+<!----- DECK DETAILS ------>
+            <a data-bs-toggle="modal" data-bs-target="#infoDecksModal{{deck.id}}" class="mx-2" style="cursor: pointer;">
+              <img src="\static\information-mark-circle-outline-icon.png" alt="Info" style="max-width:30px;max-height:30px;"
+                class="px-1" title="Info">
+            </a>
+<!--------- DELETE DECK ------>
             <a href="#" class="mx-2"
               onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{deck.id}}'; }">
               <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class="px-1"
@@ -175,7 +180,66 @@
 </div>
 
 
+
+
+<!----- INFO MODAL ------->
+<div class="modal fade" id="infoDecksModal{{deck.id}}" tabindex="-1" aria-labelledby="#infoDecksModalLabel{{deck.id}}" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}">Deck details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="row box_study mt-1">
+          <div class="row">
+           <h5>Deck name:</h5> {{deck.name}}
+          </div>
+          <div class="row">
+            <h5>Deck creator:</h5>{{deck.creator}}
+          </div>
+          <div class="row">
+            <h5>Deck description:</h5>{{deck.description}}
+          </div>
+          <div class="row">
+            <h5>Times accessed:</h5>{{deck.times_accessed}}
+          </div>
+          <div class="row">
+            <h5>Subject:</h5>{{deck.subject}}
+          </div>
+          <div class="row">
+            <h5>Deck topic:</h5>{{deck.topic}}
+          </div>
+          <div class="row">
+            <h5>Date created:</h5>{{deck.time_created}}
+          </div>
+          <div class="row">
+            <h5>Last access time:</h5>{{deck.time_updated}}
+          </div>
+          <div class="row">
+            <h5>Creation method:</h5>{{deck.create_method}}
+          </div>
+          <div class="row">
+            <h5>Shared?:</h5>{{deck.shared}}
+          </div>
+
+
+
+
+        </div>
+      
+
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
 {% endfor %}
+
+
 
 <!---- SHARED DECKS MODAL----->
 <div class="modal fade" id="SharedDecksModal" tabindex="-1" aria-labelledby="#SharedDecksModalLabel" aria-hidden="true">
