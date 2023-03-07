@@ -41,3 +41,6 @@ pydub
 ffmpeg
 openai
 tiktoken
+reportlab
+youtube_transcript_api
+pylatexenc

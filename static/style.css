@@ -380,3 +380,7 @@ footer {
 .bg-gradient-primary-to-secondary {
   background: linear-gradient(45deg, #1D71BA, #B25690) !important;
 }/*# sourceMappingURL=style.css.map */
+
+a:has(img) {
+  text-decoration: none;
+}
