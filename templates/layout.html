@@ -87,10 +87,7 @@
                     data: form_data,
                     success: function (response) {
                         $('#feedbackModal').modal('hide');
-                        if (response.flash_message) {
-                            // Display the flash message in an alert box
-                            alert(response.flash_message);
-                        }
+
                     },
                     error: function (error) {
                         alert('An error occurred: ' + error.responseText);

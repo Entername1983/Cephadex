@@ -5,8 +5,10 @@
         document.getElementById("extract-spinner").style.display = "inline-block";
     }
 </script>
-
+<div class = "container" style="text-align:center">
 <h3 class="p-3 d-none d-md-block"> Generate cards in 3 easy steps!</h3>
+</div>
+
 <div class="col-11 mx-auto box_0 my-3 p-4" style="border-radius: 5px;">
     <form method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data" , onsubmit="showSpinner()">
         {{form.hidden_tag()}}
@@ -46,7 +48,7 @@
                                     <button type="button" class="btn" data-bs-toggle="collapse"
                                         data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
                                         style="width:100%">
-                                        Upload a file (ppt, pdf, doc, txt)
+                                        Upload a file (ppt, pdf, doc, txt, mp3, or wav)
                                     </button>
                                 </h5>
                             </div>

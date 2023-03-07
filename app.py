@@ -533,7 +533,12 @@ class Feedback(db.Model):
         
     def delete_feedback(self):
         db.session.delete(self)            	
-        db.session.commit()          
+        db.session.commit() 
+                 
+#########################TEST TABLES#######################
+
+
+
           
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
@@ -585,7 +590,7 @@ class UploadFileForm(FlaskForm):
     file = FileField("File")
     name = StringField("Deck name", render_kw={"placeholder": "Name your deck"})
     description = StringField("Description", render_kw={"placeholder": "Describe your deck!"})
-    submit = SubmitField("Extract", render_kw={"id": "extract-submit"})
+    submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
     prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'), ('Formulas', 'Formulas')], default='Definitions')
     generate_images = BooleanField('Generate_images')
@@ -1361,9 +1366,6 @@ def extract():
             deck = Deck(name=deck_name, description=deck_description)
             db.session.add(deck) 
         print("type of data received, file, text, link")
-        print(form.file.data)
-        print(form.text_input.data)
-        print(form.link_input.data)
         ## GET TEXT FROM INPUT 
         if form.file.data != None:
             f_type = form.file.data.content_type  
@@ -1554,29 +1556,32 @@ def delete_file(deck_id, file_id):
 @app.route("/share_deck/<int:deck_id>/<string:user_email>/", methods=["GET", "POST"])
 def share_deck(deck_id, user_email):
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
-    print("entered share deck")
-    email = unquote(user_email)
-    print(email)
     sender_id = current_user.email
-    print("SENDER ID")
-    print(sender_id)
     deck_to_copy = Deck.query.get_or_404(deck_id)
-    ## make a copy of the deck and all cards in deck
-    ## add deck to user's decks
-    ## add cards to deck
-    ## add deck to user's decks
-    shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.now(), receiver=email)
-    db.session.add(shared_deck)
-    for card in deck_to_copy.cards:
-        new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-        shared_deck.cards.append(new_card)
-    print("sender is", sender_id)
-    print("deck is", deck_to_copy)
-        # Create a message object
-        
     
-    db.session.commit()
-    return redirect(url_for('viewdecks'))
+    if check_comma_list(user_email):
+        print(user_email)
+        users_emails = user_email.split(",")
+        print(users_emails)
+        for email in users_emails:
+            email = unquote(email).strip()
+            print(email)
+            shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.now(), receiver=email)
+            db.session.add(shared_deck)
+            for card in deck_to_copy.cards:
+                new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+                shared_deck.cards.append(new_card)
+            db.session.commit()
+        return redirect(url_for('viewdecks'))
+    else:
+        email = unquote(user_email)
+        shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.now(), receiver=email)
+        db.session.add(shared_deck)
+        for card in deck_to_copy.cards:
+            new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+            shared_deck.cards.append(new_card)
+        db.session.commit()
+        return redirect(url_for('viewdecks'))
 
 @app.route("/approve_shared/<int:deck_id>/", methods=["GET", "POST"])
 def approve_shared(deck_id):
