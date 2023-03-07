@@ -497,7 +497,7 @@ class Subscriber(db.Model):
     def unsubscribe(self):
         db.session.delete(self)            	
         db.session.commit()
-
+ 
 class DeckFiles(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_name = db.Column(db.String(100))
@@ -1125,8 +1125,7 @@ def study_deck_all():
 def increment(card_id):
     card = Card.query.get(card_id)
     
-    card_deck = cards.query.get(card_id)
-    deck = Deck.query.get(card_deck.deck_id)
+    deck = Deck.query.filter(Deck.cards.any(id=card_id)).first()
     if(current_user.id != deck.user_id):
         return jsonify({'error': 'Card not assigned to user'}), 403
     
@@ -1141,8 +1140,7 @@ def increment(card_id):
 def decrement(card_id):
     card = Card.query.get(card_id)
     
-    card_deck = cards.query.get(card_id)
-    deck = Deck.query.get(card_deck.deck_id)
+    deck = Deck.query.filter(Deck.cards.any(id=card_id)).first()
     if(current_user.id != deck.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
     
