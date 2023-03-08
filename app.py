@@ -602,8 +602,9 @@ class QuestionResult(db.Model):
 
 
 
-class TestResult:
+class TestResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    test_id = db.Column(db.Integer, db.ForeignKey('test.id'))
     taker = db.Column(db.Integer, db.ForeignKey('user.id'))
     creator = db.Column(db.Integer, db.ForeignKey('user.id'))
     due_date = db.Column(db.DateTime)
@@ -1855,7 +1856,7 @@ def take_test(test_id, user_id):
             print(to_call)
             answer = request.form.get(to_call, '')
             answer = answer.strip()
-            result = QuestionResult(test_id = test.id, taker = current_user.id, question_id = question.id, answer = answer, timestamp = datetime.utcnow())
+            result = QuestionResult(test_id = test.id, taker = current_user.id, question_id = question.id, answer = answer)
             db.session.add(result)
             db.session.commit()
         return redirect('/test_results/{test_id}/{user_id}'.format(test_id = test_id, user_id = user_id))
@@ -1869,7 +1870,10 @@ def test_results(test_id, user_id):
     test = Test.query.get_or_404(test_id)
     taker = User.query.get_or_404(user_id)
     results = QuestionResult.query.filter_by(test_id = test_id, taker = user_id).all()
-    test_result = TestResult(test_id = test_id, taker = user_id, timestamp = datetime.utcnow())
+    test_result = TestResult()
+    print("TEST RESULT")
+    print(test_result.id)
+    test_result = TestResult(test_id = test_id, taker = user_id)
     point_counter = 0
     correct_counter = 0
     for question in test.questions:
@@ -1877,7 +1881,7 @@ def test_results(test_id, user_id):
         if answer.answer == question.content:
             point_counter += question.points
             correct_counter += 1
-    test_result = TestResult(test_id = test_id, taker = user_id, points = point_counter, correct = correct_counter)
+    test_result = TestResult(test_id= test_id, taker = user_id, points = point_counter, correct = correct_counter)
     db.session.add(test_result)
     db.session.commit()
     
