@@ -335,7 +335,7 @@ class Deck(db.Model):
     
     def force_study(self):
         due_cards = []
-        current_time = datetime.now()
+        current_time = datetime.utcnow()
         for card in self.cards:
             time_diff = (current_time - card.time_updated).total_seconds() / 60
             due_cards.append({
@@ -356,7 +356,7 @@ class Deck(db.Model):
         
     def get_due_cards(self):
         due_cards = []
-        current_time = datetime.now()
+        current_time = datetime.utcnow()
         for card in self.cards:
             time_diff = (current_time - card.time_updated).total_seconds() / 60
             if (time_diff + 1440)>= card.interval:
@@ -378,7 +378,7 @@ class Deck(db.Model):
     
     def cards_due(self):
         due_cards = 0
-        current_time = datetime.now()
+        current_time = datetime.utcnow()
         for card in self.cards:
             time_diff = (current_time - card.time_updated).total_seconds() / 60
             if (time_diff + 1440) >= card.interval:
@@ -386,7 +386,7 @@ class Deck(db.Model):
         return due_cards
     
     def qty_cards_due(self):
-        current_time = datetime.now()
+        current_time = datetime.utcnow()
         qty = 0
         for card in self.cards:
             if card.time_updated == None:
@@ -881,7 +881,7 @@ def login():
 def subscribe():
     subscribe_form = RegSub()
     if subscribe_form.validate_on_submit():
-        subscriber = Subscriber(email=subscribe_form.email.data, first_name=subscribe_form.first_name.data, last_name=subscribe_form.last_name.data, timestamp = datetime.now())
+        subscriber = Subscriber(email=subscribe_form.email.data, first_name=subscribe_form.first_name.data, last_name=subscribe_form.last_name.data, timestamp = datetime.utcnow())
         db.session.add(subscriber)
         db.session.commit()
         flash('You are now subscribed to our newsletter!')
@@ -1070,7 +1070,7 @@ def account():
         if email_checkbox == "on":
             user.email_checkbox = True
             if not Subscriber.query.filter_by(email=user.email).first():
-                subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name, timestamp = datetime.now())
+                subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name, timestamp = datetime.utcnow())
                 db.session.add(subscriber)
                 db.session.commit()
 
@@ -1322,7 +1322,7 @@ def carousel(deck_id):
         boc_3 = request.form['new_boc_3']
         boc_4 = request.form['new_boc_4']
         category = request.form['new_category']
-        time_created = datetime.now()
+        time_created = datetime.utcnow()
         entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category, time_created=time_created)
         deck.cards.append(entry)
         db.session.commit()
@@ -1502,7 +1502,7 @@ def extract():
         response = str(terms[2])
         content = str(terms[3])
         terms = terms[0]
-        response_entry = ResponseData(prompt=prompt, response=response, content=content, timestamp = datetime.now())
+        response_entry = ResponseData(prompt=prompt, response=response, content=content, timestamp = datetime.utcnow())
         db.session.add(response_entry)
         db.session.commit()
         ## SET USER TO CURRENT USER
@@ -1533,9 +1533,9 @@ def extract():
             db.session.commit()
         elif prompt_option == "Transcribe":
             if trans_option != None:
-                name = deck.name + "_" + method + "_" + prompt_option + trans_option + "_" + str(datetime.now())
+                name = deck.name + "_" + method + "_" + prompt_option + trans_option + "_" + str(datetime.utcnow())
                 create_type = trans_option + " translation"
-                transcript_trans = DeckFiles(file_name = name, text_string = terms, time_created = datetime.now(), create_type = create_type)
+                transcript_trans = DeckFiles(file_name = name, text_string = terms, time_created = datetime.utcnow(), create_type = create_type)
                 db.session.add(transcript_trans)
                 deck.deck_files.append(transcript_trans)
                 db.session.commit()
@@ -1550,8 +1550,8 @@ def extract():
                     pass
                 
         ## SAVE TEXT TO DB
-        f_name = deck.name + "_" + method + "_" + prompt_option + "_" + str(datetime.now())
-        file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.now())
+        f_name = deck.name + "_" + method + "_" + prompt_option + "_" + str(datetime.utcnow())
+        file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.utcnow())
         db.session.add(file_storage) 
         deck.deck_files.append(file_storage)
         db.session.commit()
@@ -1643,7 +1643,7 @@ def share_deck(deck_id, user_email):
         for email in users_emails:
             email = unquote(email).strip()
             print(email)
-            shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.now(), receiver=email)
+            shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=email)
             db.session.add(shared_deck)
             for card in deck_to_copy.cards:
                 new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
@@ -1652,7 +1652,7 @@ def share_deck(deck_id, user_email):
         return redirect(url_for('viewdecks'))
     else:
         email = unquote(user_email)
-        shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.now(), receiver=email)
+        shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=email)
         db.session.add(shared_deck)
         for card in deck_to_copy.cards:
             new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
@@ -1664,7 +1664,7 @@ def share_deck(deck_id, user_email):
 def approve_shared(deck_id):
     print("entered approve shared")
     shared_deck = SharedDecks.query.get_or_404(deck_id)
-    new_deck = Deck(user_id = current_user.id, name=shared_deck.name, description=shared_deck.description, shared=True, sharer=shared_deck.sender, time_created=datetime.now())
+    new_deck = Deck(user_id = current_user.id, name=shared_deck.name, description=shared_deck.description, shared=True, sharer=shared_deck.sender, time_created=datetime.utcnow())
     db.session.add(new_deck)
     for card in shared_deck.cards:
         new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
