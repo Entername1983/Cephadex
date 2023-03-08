@@ -294,8 +294,7 @@
         currentCard = previousCard;
         // add that card to cardList and sort it
         
-        cardList.push(previousCard);
-        cardsDue = cardList.length;
+        //cardList.push(previousCard);
 
         // Add the current card back to the list and re-sort the list
         cardList.push(currentCard);
@@ -303,21 +302,10 @@
           return a.due_date - b.due_date;
         });
         currentCardIndex = cardList.indexOf(currentCard);
-
+        cardsDue = cardList.length;
+        
         // Update the card content on the page
-        var formula = cardData.formula;
-        formula = '\\[' + formula + '\\]';
-        console.log(formula)
-        jq('#card-term').html(currentCard.term);
-        jq('#card-id').html(currentCard.id);
-        jq('#card-content').html(currentCard.content);
-        if (currentCard.category == "Formulas") {
-          jq('#card-formula').html(formula);
-          MathJax.typeset();
-          }
-        jq('#card-boc_2').html(currentCard.boc_2);
-        jq('#card-boc_3').html(currentCard.boc_3);
-        jq('#card-boc_4').html(currentCard.boc_4);
+        setCardData(currentCard,cardsDue);
       }
     }
     // takes a list of cards and randomly displays each in A-btn, B-btn, C-btn, D-btn
