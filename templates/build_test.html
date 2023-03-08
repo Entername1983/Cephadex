@@ -1,0 +1,46 @@
+{% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
+main_0 %}
+
+<form action="" method="POST">
+<input type="submit" value="Submit">
+{% for card in deck.cards %}
+
+<div class = "container m-4 box_study"> 
+    
+<h3><li><input name = "term{{card.id}}" value="card{{card.term}}"> 
+</h3>
+<div class = "row">
+<div class = "col-4"><input name = "id{{card.id}}" value="{{card.id}}">  </div>
+<div class = "col-4"><input type="checkbox" name="selected_cards[]" value="{{card.id}}"> </div>
+<div class = "col-4"><li><input name = "category{{card.id}}" value="card{{card.category}}"> 
+</div>
+
+</div>
+{% if card.category == "Mcq" %}
+<li><input name = "content{{card.id}}" value="card{{card.content}}"> 
+</li>  
+<li><input name = "boc_2{{card.id}}" value="card{{card.boc_2}}"> 
+</li>
+<li><input name = "boc_3{{card.id}}" value="card{{card.boc_3}}"> 
+</li>
+<li><input name = "boc_4{{card.id}}" value="card{{card.boc_4}}"> 
+</li>
+{% elif card.category == "Formula"  %}
+<input name = "content{{card.id}}" value="card{{card.content}}"> 
+\[{{ card.formula }}\]
+
+
+{% else %}
+<input name = "content{{card.id}}" value="card{{card.content}}"> 
+{% endif%} 
+
+
+
+</div>
+{% endfor %}
+
+</form>
+
+
+
+{% endblock %}

@@ -3,7 +3,7 @@ import os
 from bs4 import BeautifulSoup
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
 from flask_session import Session
 from tempfile import mkdtemp
@@ -29,6 +29,9 @@ from datetime import datetime, timedelta
 from flask_migrate import Migrate
 import urllib.parse
 from urllib.parse import unquote
+
+
+
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -90,6 +93,16 @@ cards_shared = db.Table("cards_shared",
                  db.Column("shared_decks_id", db.Integer, db.ForeignKey("shared_decks.id")),
                  )
                       
+                      
+questions = db.Table("questions",
+                     db.Column("test_id", db.Integer, db.ForeignKey("test.id")),
+                     db.Column("question_id", db.Integer, db.ForeignKey("question.id"))
+                     )
+
+distribution = db.Table("distribution",
+                        db.Column("test_id", db.Integer, db.ForeignKey("test.id")),	
+                        db.Column("taker_id", db.Integer, db.ForeignKey("user.id"))	
+                        )	
 ## external auth + external type + external
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -106,7 +119,7 @@ class User(db.Model, UserMixin):
     
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     time_accessed= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    ##test= db.relationship('Test', secondary=distribution, backref ="test_users")
     account_type = db.Column(db.String(255), nullable=True, default="free")
     account_status = db.Column(db.String(255), nullable=True, default="active")
     account_expiration = db.Column(db.DateTime, nullable=True)
@@ -536,6 +549,72 @@ class Feedback(db.Model):
         db.session.commit() 
                  
 #########################TEST TABLES#######################
+
+
+class Test(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    points = db.Column(db.Integer)
+    num_questions = db.Column(db.Integer)
+    category = db.Column(db.String(50))
+    subject = db.Column(db.String(50))
+    topic = db.Column(db.String(50))
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)
+    due_date = db.Column(db.DateTime, default=datetime.utcnow)
+    questions = db.relationship('Question', secondary=questions)
+    taker = db.relationship('User', secondary=distribution, backref='takers')
+    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
+    result_reveal = db.Column(db.Boolean)
+    answer_reveal = db.Column(db.Boolean)
+    time_limit = db.Column(db.Integer)
+    instructions = db.Column(db.String(255))
+    description = db.Column(db.String(255))
+    shuffle = db.Column(db.Boolean)
+    
+    def sum_points(self):
+        sum = 0
+        for questions in self.questions:
+            sum = sum + questions.points
+        self.points = sum
+        return sum
+    
+
+    
+class Question(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String(255), nullable=False)
+    term = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.String(255), nullable=False)
+    boc_2 = db.Column(db.String(255), nullable=True) 
+    boc_3 = db.Column(db.String(255), nullable=True) 
+    boc_4 = db.Column(db.String(255), nullable=True)
+    formula = db.Column(db.String(255), nullable=True)
+    prompt_option = db.Column(db.String(255), nullable=True)
+    q_type = db.Column(db.String(50), nullable=True)
+    q_order = db.Column(db.Integer, nullable=True)
+    points = db.Column(db.Integer, nullable=True)
+
+class QuestionResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    test_id = db.Column(db.Integer, db.ForeignKey('test.id'))
+    taker = db.Column(db.Integer, db.ForeignKey('user.id'))
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
+    answer = db.Column(db.String(50))
+    points = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+
+class TestResult:
+    id = db.Column(db.Integer, primary_key=True)
+    taker = db.Column(db.Integer, db.ForeignKey('user.id'))
+    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
+    due_date = db.Column(db.DateTime)
+    start_time = db.Column(db.DateTime)
+    end_time = db.Column(db.DateTime)
+    points = db.Column(db.Integer)
+    correct = db.Column(db.Integer)
+    blank = db.Column(db.Integer)
 
 
 
@@ -1621,9 +1700,101 @@ def feedback():
 
     return render_template('index.html', title='Index')
 
+@app.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
+def build_test(deck_id):
+    deck = Deck.query.get_or_404(deck_id)
+    creator = current_user
+    
+    if request.method == "POST":
+        test_questions = request.form.getlist('selected_cards[]')
+        new_test = Test(creator=current_user.id)
+        db.session.add(new_test)
+        for question in test_questions:
+            card = Card.query.get_or_404(question)
+            question = Question()
+            db.session.add(question)
+            question.points = int(1)
+            if card.category == "Mcq":
+                question.question = card.term
+                question.term = card.term
+                question.content = card.Content
+                question.boc_2 = card.boc_2
+                question.boc_3 = card.boc_3
+                question.boc_4 = card.boc_4
+                question.prompt_option = card.prompt_option
+                question.q_type = "mcq"
+                
+                
+            elif card.category == "Cloze":
+                question.question = card.term
+                question.term = card.term
+                question.content = card.content
+                question.prompt_option = card.prompt_option
+                question.q_type = "cloze"
+       
+            else:
+                ## switching them around so that the test gives them a definition and they have to write the word
+                question.term = card.term
+                question.content = card.content
+                question.question = card.content
+                question.prompt_option = card.prompt_option
+                question.q_type = "jeopardy"
+    
+            db.session.add(question)
+            new_test.questions.append(question)
+        print(new_test.questions)
+        db.session.commit()
+        print("NEW TEST ID")
+        print(new_test.id)
+        return redirect('/assign_test/{test.id}'.format(test=new_test))
+    
+    
+    
+    
+    
+    return render_template('build_test.html', title='Test Builder', deck=deck, creator=creator)
 
 
+@app.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
+def assign_test(test_id):
+        test = Test.query.get_or_404(test_id)
+        print(test.questions)
+        
+        if request.method == 'POST' and 'test-name' in request.form:
+            print("entered post request3")
+            name = request.form['test-name']
+            due_date = request.form['due-date']
+            subject = request.form['subject']
+            topic = request.form['topic']
+            instructions = request.form['instructions']
+            description = request.form['description']
+            time_limit = request.form['time-limit']
+            answer_reveal = request.form['answer-reveal']
+            result_reveal = request.form['result-reveal']
+            shuffle = request.form['shuffle']
+            test_id = request.form['test-id'] ## id of card to be edited
+            print(id)
+            
+            question = Question.query.filter_by(id=id).first()
+           
+
+
+        return render_template('assign_test.html', title='Assign test', test=test, )
+    
+    
+    
+@app.route('/update_card', methods=['POST'])
+def update_card():
+    print("entered updated card")
+    question_id = request.form['question-id']
+    question = Question.query.get(question_id)
+    question.question = request.form['question']
+    question.term = request.form['answer']
+    question.points = request.form['points']
+    print(question_id)
+    print(question.points)
+    db.session.commit()
+    return jsonify(success=True)
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    
-    
     

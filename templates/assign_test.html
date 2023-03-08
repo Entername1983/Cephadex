@@ -1,0 +1,161 @@
+{% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
+main_0 %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const forms = document.querySelectorAll('.question-form');
+    console.log("javacsript loaded")
+    console.log(forms)
+    forms.forEach(form => {
+        form.addEventListener('change', (event) => {
+            console.log("change detected")
+            const formData = new FormData(form);
+            const cardId = form.getAttribute('question-id');
+
+            fetch('/update_card', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        });
+    });
+});
+
+</script>
+
+
+
+
+
+
+<div class = "container">
+<a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseTestInfo" role="button" aria-expanded="false"
+    aria-controls="#collapseTestInfo">
+    Test info
+</a>
+<a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseTestQuestions" role="button" aria-expanded="false"
+    aria-controls="collapseTestQuestions">
+    Test questions </a>
+
+
+<form action="" method="POST">
+
+    <div class="collapse" id="collapseTestInfo">
+    <div class="container m-2 p-2 box_study">
+        <input type = "hidden" name = "test-id" value = "{{test.id}}">
+        <label for = "test-name">Test name:</label>
+        <input name="test-name" class=" card-title box_study input_0 form-control form-control-lg" type="text"
+            id="test-name" placeholder="Test name" value="{{test.name}}">
+            <label for = "due-date">Due date:</label>
+        <input name="due-date" class=" card-title box_study input_0 form-control form-control-lg" type="datetime-local"
+            id="due-date" placeholder="Test due date" value="">
+            <label for = "subject">Subject:</label>
+        <input name="subject" class=" card-title box_study input_0 form-control form-control-lg" type="text"
+            id="subject" placeholder="Test topic" value="">
+            <label for = "topic">Topic:</label>
+
+        <input name="topic" class=" card-title
+         box_study input_0 form-control form-control-lg" type="text" id="topic"
+            placeholder="Supply and demand" value="">
+<label for = "topic">Instructions:</label>
+            <input name="instructions" class=" card-title box_study input_0 form-control form-control-lg" type="text"
+            id="subject" placeholder="Test instructions" value="">
+            
+            <label for = "topic">Description:</label>
+            <input name="instructions" class=" card-title box_study input_0 form-control form-control-lg" type="text"
+            id="subject" placeholder="Test description" value="">
+
+
+            <label for = "time-limit">Time limit (minutes, leave blank if no time limit):</label>
+        <input name="time-limit" class=" card-title box_study input_0 form-control form-control-lg" type="number"
+            id="time-limit" placeholder="20" value="">
+            <label for = "answer-reveal">Answer reveal</label>
+        <input name="answer-reveal"  type="checkbox"
+            id="answer-reveal" placeholder="answer reveal" value="">
+            <label for="result-reveal">Result reveal</label>
+        <input name="result-reveal"  type="checkbox"
+            id="result-reveal" value="">
+            <label for="shuffle">Shuffle</label>
+        <input type="checkbox"name="shuffle" 
+            id="shuffle"  value="">
+ <h5>Total marks: {{ test.sum_points() }}</h5>
+        </h5>
+        <input type="submit" class="btn btn-primary" value="Save changes">
+    </form>
+
+    </div>
+
+    </div>
+    <div class="collapse" id="collapseTestQuestions">
+    <div class="container m-2 box_study">
+        {% for question in test.questions %}
+
+
+        {% if question.q_type == "mcq" %}
+
+        <h5>Question:</h5>
+        {{question.question}}
+        <h5>Correct answer:</h5>
+        <li>{{question.content}}</li>
+        <h5>Incorrect answers:</h5>
+        <li>{{question.boc_2}}</li>
+        <li>{{question.boc_3}}</li>
+        <li>{{question.boc_4}}</li>
+
+        {% elif question.q_type == "cloze" %}
+        <h5>Fill in the blank</h5>
+        {{question.question}}
+        <h5>Correct answer:</h5>
+        <li>{{question.content}}</li>
+
+        {% elif question.q_type =="jeopardy" %}
+
+    <form class = "question-form">
+        <div class="card m-1">
+            <input type = "hidden" name = "question-id" value = "{{question.id}}">
+            <div class="card-header">
+                Jeopardy question
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-9 m-1">
+                        <div class="row">
+                            Question:
+                            <input name="question" class=" card-title box_study input_0 form-control form-control-lg"
+                                type="text" id="question" placeholder="{{question.question}}"
+                                value="{{question.question}}">
+                        </div>
+                        <div class="row">
+                            Correct answer:
+                            <input name="answer" class=" card-title box_study input_0 form-control form-control-lg"
+                                type="text" id="answer" placeholder="{{question.term}}" value="{{question.term}}">
+                        </div>
+                    </div>
+                    <div class="col-2 m-1">
+                        <div class="row"> Marks:
+                            <input name="points" class=" card-title box_study input_0 form-control form-control-lg"
+                                type="text" id="points" placeholder="{{question.points}}"
+                                value="{{question.points}}">
+                        </div>
+                        <div class="row">
+                            <p>remove question</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </form>
+        {% endif %}
+
+        {% endfor %}
+
+</div>
+    </div>
+    </div>
+</form>
+{% endblock %}
