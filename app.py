@@ -189,7 +189,7 @@ class Card(db.Model):
     time_created = db.Column(db.DateTime, default=datetime.utcnow) 
     category = db.Column(db.String(255), nullable=True)
     edited = db.Column(db.Integer, default=0)
-    diff_lvl = db.Column(db.Float(100), default=1)
+    diff_lvl = db.Column(db.Float(10), default=1)
     subject = db.Column(db.String(255), nullable=True)
     topic = db.Column(db.String(255), nullable=True)
     prompt_option = db.Column(db.String(255), nullable=True)
@@ -512,16 +512,16 @@ class DeckFiles(db.Model):
     file_path = db.Column(db.String(50))
     file_type = db.Column(db.String(500))	
     file_size = db.Column(db.String(50))
-    text_string = db.Column(db.String())
+    text_string = db.Column(db.Text)
     create_type = db.Column(db.String(50))
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     
        
 class ResponseData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    prompt = db.Column(db.String())	
-    response = db.Column(db.String())
-    content = db.Column(db.String())	
+    prompt = db.Column(db.Text)	
+    response = db.Column(db.Text)
+    content = db.Column(db.Text)	
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     success = db.Column(db.Boolean)
           

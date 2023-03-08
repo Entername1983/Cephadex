@@ -192,7 +192,7 @@
                             data-client_id="561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com"
                             data-context="signin"
                             data-ux_mode="popup"
-                            data-login_uri="http://localhost:5000/googleSignIn"
+                            data-login_uri="/googleSignIn"
                             data-nonce=""
                             data-auto_prompt="false">
                         </div>
@@ -376,7 +376,7 @@
                     <div class="modal-body">
                         <form id="login-form" method="POST" action="{{ url_for('login') }}">
                             <div style="text-align:center">
-                                <img src="static/logo1_small.png" alt="Avatar" style="width:30%"
+                                <img src="/static/logo1_small.png" alt="Avatar" style="width:30%"
                                     class="w3-circle w3-margin-top">
                             </div>
                             <div class="form-group">
