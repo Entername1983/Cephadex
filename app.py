@@ -573,10 +573,8 @@ class Test(db.Model):
         return sum
     
     def count_questions(self):
-        sum = 0
-        for questions in self.questions:
-            sum = sum + 1
-        self.num_questions = sum
+        ##count the number of questions in test
+        self.num_questions = len(self.questions)
 
     
 class Question(db.Model):
@@ -1847,11 +1845,44 @@ def assign(test_id, user_email):
 def take_test(test_id, user_id):
     test = Test.query.get_or_404(test_id)
     taker = User.query.get_or_404(user_id)
-    
+    print("check")
+    if request.method == 'POST':
+        print("method is post")
+        for question in test.questions:
+            print(question.id)
+            question_id = question.id
+            to_call = "answer"+str(question_id)
+            print(to_call)
+            answer = request.form.get(to_call, '')
+            answer = answer.strip()
+            result = QuestionResult(test_id = test.id, taker = current_user.id, question_id = question.id, answer = answer, timestamp = datetime.utcnow())
+            db.session.add(result)
+            db.session.commit()
+        return redirect('/test_results/{test_id}/{user_id}'.format(test_id = test_id, user_id = user_id))
+
+
     return render_template('take_test.html', test=test, taker=taker)
 
 
-
+@app.route("/test_results/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
+def test_results(test_id, user_id):
+    test = Test.query.get_or_404(test_id)
+    taker = User.query.get_or_404(user_id)
+    results = QuestionResult.query.filter_by(test_id = test_id, taker = user_id).all()
+    test_result = TestResult(test_id = test_id, taker = user_id, timestamp = datetime.utcnow())
+    point_counter = 0
+    correct_counter = 0
+    for question in test.questions:
+        answer = QuestionResult.query.filter_by(test_id = test_id, taker = user_id, question_id = question.id).first()
+        if answer.answer == question.content:
+            point_counter += question.points
+            correct_counter += 1
+    test_result = TestResult(test_id = test_id, taker = user_id, points = point_counter, correct = correct_counter)
+    db.session.add(test_result)
+    db.session.commit()
+    
+    
+    return render_template('test_results.html', test=test, taker=taker, results=results)
 
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    

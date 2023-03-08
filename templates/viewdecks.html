@@ -374,8 +374,12 @@
           <div class="col-sm-6">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title">{{test.name}}</h5>
-                <p class="card-text">{{test.description}}</p>
+                <h5 class="card-title">Name: {{test.name}}</h5>
+                <p class="card-text">Description: {{test.description}}</p>
+                <p class="card-text">Due date: {{test.due_date}}</p>
+                <p class="card-text">Marks: {{test.points}}</p>
+                <p class="card-text">Number of questions: {{test.num_questions}}</p>
+                <p class="card-text">Instructions: {{test.instructions}}</p>
                 <a href="/take_test/{{test.id}}/{{user.id}}" class="mx-2" style="cursor: pointer;">
 Click here to take the test
                 </a>

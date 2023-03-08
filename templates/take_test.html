@@ -3,20 +3,36 @@
 {% block title %} Test {% endblock %}
 
 {% block main_0 %}
+<div class="container">
+    {{ test.name }} {{test.points}}
 
-{{ test.name }} {{test.points}}
-{% for question in test.questions %}
+    <form id="my-form" method = "POST" >
+        {% for question in test.questions %}
+        {% if question.q_type == "jeopardy" %}
 
+        <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
+        <div class="card">
+            <div class="card-head">
+                <div class="row">
+                    <div class="col-10">
+                        {{question.question}}
+                    </div>
+                    <div class="col-2">
+                        {{question.points}}
+                    </div>
+                </div>
+            </div>
 
-<li>{{question.question}}</li>
-<br>
+            <div class="card-body">
+                <input type="text" id="answer{{question.id}}" name="answer{{question.id}}">
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        <input type="submit" value="Submit">
+    </form>
 
-
-
-{% endfor %}
-
-
-
+</div>
 
 
 
