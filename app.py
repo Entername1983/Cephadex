@@ -26,6 +26,7 @@ import logging
 import logging.handlers
 import json
 from datetime import datetime, timedelta
+import datetime as dt
 from flask_migrate import Migrate
 import urllib.parse
 from urllib.parse import unquote
@@ -82,23 +83,18 @@ cards = db.Table("cards",
                  db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
                  db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),
                  )
-
 source_files = db.Table("source_files",
                         db.Column("deck_file_id", db.Integer, db.ForeignKey("deck_files.id")), 
                         db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),  # 
                         )
-
 cards_shared = db.Table("cards_shared", 
                  db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
                  db.Column("shared_decks_id", db.Integer, db.ForeignKey("shared_decks.id")),
-                 )
-                      
-                      
+                 )                             
 questions = db.Table("questions",
                      db.Column("test_id", db.Integer, db.ForeignKey("test.id")),
                      db.Column("question_id", db.Integer, db.ForeignKey("question.id"))
                      )
-
 distribution = db.Table("distribution",
                         db.Column("test_id", db.Integer, db.ForeignKey("test.id")),	
                         db.Column("taker_id", db.Integer, db.ForeignKey("user.id"))	
@@ -116,10 +112,9 @@ class User(db.Model, UserMixin):
     ## external auth + external type
     external_id = db.Column(db.String(255), nullable=True) 
     external_type = db.Column(db.String(255), nullable=True)
-    
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     time_accessed= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    ##test= db.relationship('Test', secondary=distribution, backref ="test_users")
+    test= db.relationship('Test', secondary=distribution, backref ="taker")
     account_type = db.Column(db.String(255), nullable=True, default="free")
     account_status = db.Column(db.String(255), nullable=True, default="active")
     account_expiration = db.Column(db.DateTime, nullable=True)
@@ -128,7 +123,7 @@ class User(db.Model, UserMixin):
     pic = db.Column(db.String(255), nullable=True)
     contacted_email = db.Column(db.Boolean, default=False)
     dob = db.Column(db.DateTime, nullable=True)
-
+    timezone = db.Column(db.String(64))
     
     def member_since(self):
         return self.time_created.strftime('%b %Y')
@@ -562,7 +557,6 @@ class Test(db.Model):
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime, default=datetime.utcnow)
     questions = db.relationship('Question', secondary=questions)
-    taker = db.relationship('User', secondary=distribution, backref='takers')
     creator = db.Column(db.Integer, db.ForeignKey('user.id'))
     result_reveal = db.Column(db.Boolean)
     answer_reveal = db.Column(db.Boolean)
@@ -578,6 +572,11 @@ class Test(db.Model):
         self.points = sum
         return sum
     
+    def count_questions(self):
+        sum = 0
+        for questions in self.questions:
+            sum = sum + 1
+        self.num_questions = sum
 
     
 class Question(db.Model):
@@ -915,6 +914,9 @@ def change_pass():
 @login_required
 def viewdecks():
     shared_decks = SharedDecks.query.all()
+   ## check if user has any pending tests
+    tests = Test.query.filter(Test.taker.contains(current_user)).all()
+    user = current_user
     
     email = current_user.email
     print("current user email: " + current_user.email)
@@ -952,7 +954,7 @@ def viewdecks():
             print("entered search_query")
             decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()
             
-        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks)
+        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
         
     if request.method == 'POST':
         deck_id = request.form['deck_id']
@@ -962,9 +964,9 @@ def viewdecks():
             deck.name = new_name
             db.session.commit()
 
-        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks)
+        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
     print(shared_decks)
-    return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks)
+    return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
 
 
 
@@ -1762,22 +1764,29 @@ def assign_test(test_id):
         
         if request.method == 'POST' and 'test-name' in request.form:
             print("entered post request3")
-            name = request.form['test-name']
-            due_date = request.form['due-date']
-            subject = request.form['subject']
-            topic = request.form['topic']
-            instructions = request.form['instructions']
-            description = request.form['description']
-            time_limit = request.form['time-limit']
-            answer_reveal = request.form['answer-reveal']
-            result_reveal = request.form['result-reveal']
-            shuffle = request.form['shuffle']
-            test_id = request.form['test-id'] ## id of card to be edited
-            print(id)
-            
-            question = Question.query.filter_by(id=id).first()
-           
-
+            test.name= request.form['test-name']
+            test.creator = current_user.id
+            due_date = request.form.get('due-date')
+            if due_date:
+                due_date = dt.datetime.strptime(due_date,'%Y-%m-%dT%H:%M')
+                test.due_date = due_date
+            test.subject = request.form['subject']
+            test.topic = request.form['topic']
+            test.instructions = request.form['instructions']
+            test.description = request.form['description']
+            test.time_limit = request.form['time-limit']
+            test.count_questions()
+            print(test.count_questions())
+            answer_reveal = request.form.get('answer-reveal', False)
+            result_reveal = request.form.get('result-reveal', False)
+            shuffle = request.form.get('shuffle', False)
+            if answer_reveal == 'answer-reveal':
+                test.answer_reveal = True
+            if result_reveal == 'result-reveal':
+                test.result_reveal = True
+            if shuffle == 'shuffle':
+                test.shuffle = True
+            db.session.commit()
 
         return render_template('assign_test.html', title='Assign test', test=test, )
     
@@ -1795,6 +1804,55 @@ def update_card():
     print(question.points)
     db.session.commit()
     return jsonify(success=True)
+
+
+
+
+@app.route("/delete_question/<int:test_id>/<int:question_id>", methods = ["POST", "GET"])
+@login_required
+def delete_question(test_id, question_id):
+    question_to_delete = Question.query.get_or_404(question_id)
+
+    db.session.delete(question_to_delete)
+    db.session.commit()
+    return redirect(('/assign_test/{test_id}'.format(test_id = test_id)))
+
+
+
+
+
+@app.route("/assign/<int:test_id>/<string:user_email>/", methods=["GET", "POST"])
+def assign(test_id, user_email):
+    print("entered assign")
+    test = Test.query.filter_by(id=test_id).first()
+    sender = current_user
+    
+    if check_comma_list(user_email):
+        print(user_email)
+        users_emails = user_email.split(",")
+        for email in users_emails:
+            email = unquote(email).strip()
+            taker = User.query.filter_by(email=email).first()
+            test.taker.append(taker)
+    else:
+        email = unquote(user_email)
+        taker = User.query.filter_by(email=email).first()
+        test.taker.append(taker)
+    db.session.commit()
+    flash('Test assigned!', 'success')
+    return redirect('/assign_test/{test_id}'.format(test_id = test_id))
+
+
+@app.route("/take_test/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
+def take_test(test_id, user_id):
+    test = Test.query.get_or_404(test_id)
+    taker = User.query.get_or_404(user_id)
+    
+    return render_template('take_test.html', test=test, taker=taker)
+
+
+
+
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    
     

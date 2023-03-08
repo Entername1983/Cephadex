@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %} Test {% endblock %}
+
+{% block main_0 %}
+
+{{ test.name }} {{test.points}}
+{% for question in test.questions %}
+
+
+<li>{{question.question}}</li>
+<br>
+
+
+
+{% endfor %}
+
+
+
+
+
+
+
+
+
+{% endblock %}

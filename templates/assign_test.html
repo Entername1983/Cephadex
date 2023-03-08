@@ -42,6 +42,12 @@ document.addEventListener("DOMContentLoaded", function() {
     aria-controls="collapseTestQuestions">
     Test questions </a>
 
+            <!---- SHARE DECK ------>
+            <a data-bs-toggle="modal" data-bs-target="#assignModal" class="mx-2" style="cursor: pointer;">
+                <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px;"
+                  class="px-1" title="Share">
+              </a>
+
 
 <form action="" method="POST">
 
@@ -56,19 +62,19 @@ document.addEventListener("DOMContentLoaded", function() {
             id="due-date" placeholder="Test due date" value="">
             <label for = "subject">Subject:</label>
         <input name="subject" class=" card-title box_study input_0 form-control form-control-lg" type="text"
-            id="subject" placeholder="Test topic" value="">
+            id="subject" placeholder="Test subject" value="">
             <label for = "topic">Topic:</label>
 
         <input name="topic" class=" card-title
          box_study input_0 form-control form-control-lg" type="text" id="topic"
-            placeholder="Supply and demand" value="">
+            placeholder="Test topic" value="">
 <label for = "topic">Instructions:</label>
             <input name="instructions" class=" card-title box_study input_0 form-control form-control-lg" type="text"
-            id="subject" placeholder="Test instructions" value="">
+            id="instructions" placeholder="Test instructions" value="">
             
             <label for = "topic">Description:</label>
-            <input name="instructions" class=" card-title box_study input_0 form-control form-control-lg" type="text"
-            id="subject" placeholder="Test description" value="">
+            <input name="description" class=" card-title box_study input_0 form-control form-control-lg" type="text"
+            id="description" placeholder="Test description" value="">
 
 
             <label for = "time-limit">Time limit (minutes, leave blank if no time limit):</label>
@@ -76,14 +82,15 @@ document.addEventListener("DOMContentLoaded", function() {
             id="time-limit" placeholder="20" value="">
             <label for = "answer-reveal">Answer reveal</label>
         <input name="answer-reveal"  type="checkbox"
-            id="answer-reveal" placeholder="answer reveal" value="">
+            id="answer-reveal" placeholder="answer reveal" value="answer-reveal">
             <label for="result-reveal">Result reveal</label>
         <input name="result-reveal"  type="checkbox"
-            id="result-reveal" value="">
+            id="result-reveal" value="result-reveal">
             <label for="shuffle">Shuffle</label>
         <input type="checkbox"name="shuffle" 
-            id="shuffle"  value="">
+            id="shuffle"  value="shuffle">
  <h5>Total marks: {{ test.sum_points() }}</h5>
+ <h5> Number of questions: {{test.num_questions}}</h5>
         </h5>
         <input type="submit" class="btn btn-primary" value="Save changes">
     </form>
@@ -143,7 +150,11 @@ document.addEventListener("DOMContentLoaded", function() {
                                 value="{{question.points}}">
                         </div>
                         <div class="row">
-                            <p>remove question</p>
+                            <a href="#" class="mx-2"
+                            onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/delete_question/{{test.id}}/{{question.id}}'; }">
+                            <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class="px-1"
+                              title="Delete question">
+                          </a>
                         </div>
                     </div>
                 </div>
@@ -158,4 +169,43 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
     </div>
 </form>
+
+
+
+<!------- ASSIGN TEST MODAL -------->
+
+<script>
+    function assignDeck(testId) {
+        console.log('assignDeck')
+      var email = document.getElementById('assign-email').value;
+      console.log(email);
+      var encodedEmail = encodeURIComponent(email);
+      var url = '/assign/' + testId + '/' + encodedEmail;
+      console.log(url);
+      window.location.href = url;
+    }
+  </script>
+
+<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="#assignModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="assignModalLabel">Assign test</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="assign-form" method="POST">
+            <div class="form-group my-2">
+              <label for="email">Email:</label>
+              <input type="email" class="form-control" id="assign-email" name="assign-email" required placeholder="Type receiver's email here">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="assignDeck('{{ test.id }}')">Assign</button>
+
+          </form>
+        </div>
+  
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
