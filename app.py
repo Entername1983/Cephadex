@@ -30,6 +30,8 @@ import datetime as dt
 from flask_migrate import Migrate
 import urllib.parse
 from urllib.parse import unquote
+from helpers import remove_punctuation
+import difflib
 
 
 
@@ -114,7 +116,9 @@ class User(db.Model, UserMixin):
     external_type = db.Column(db.String(255), nullable=True)
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     time_accessed= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
     test= db.relationship('Test', secondary=distribution, backref ="taker")
+    
     account_type = db.Column(db.String(255), nullable=True, default="free")
     account_status = db.Column(db.String(255), nullable=True, default="active")
     account_expiration = db.Column(db.DateTime, nullable=True)
@@ -614,8 +618,6 @@ class TestResult(db.Model):
     correct = db.Column(db.Integer)
     blank = db.Column(db.Integer)
 
-
-
           
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
@@ -624,10 +626,6 @@ class RegSub(FlaskForm):
     conf_email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Confirm Email"})        
     submit = SubmitField('Subscribe')
     
-
-
-
-
       
 class RegisterForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
@@ -1701,6 +1699,10 @@ def feedback():
 
     return render_template('index.html', title='Index')
 
+
+
+
+
 @app.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
 def build_test(deck_id):
     deck = Deck.query.get_or_404(deck_id)
@@ -1743,24 +1745,14 @@ def build_test(deck_id):
     
             db.session.add(question)
             new_test.questions.append(question)
-        print(new_test.questions)
         db.session.commit()
-        print("NEW TEST ID")
-        print(new_test.id)
         return redirect('/assign_test/{test.id}'.format(test=new_test))
     
-    
-    
-    
-    
     return render_template('build_test.html', title='Test Builder', deck=deck, creator=creator)
-
 
 @app.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
 def assign_test(test_id):
         test = Test.query.get_or_404(test_id)
-        print(test.questions)
-        
         if request.method == 'POST' and 'test-name' in request.form:
             print("entered post request3")
             test.name= request.form['test-name']
@@ -1786,10 +1778,7 @@ def assign_test(test_id):
             if shuffle == 'shuffle':
                 test.shuffle = True
             db.session.commit()
-
         return render_template('assign_test.html', title='Assign test', test=test, )
-    
-    
     
 @app.route('/update_card', methods=['POST'])
 def update_card():
@@ -1799,33 +1788,23 @@ def update_card():
     question.question = request.form['question']
     question.term = request.form['answer']
     question.points = request.form['points']
-    print(question_id)
-    print(question.points)
     db.session.commit()
     return jsonify(success=True)
-
-
 
 
 @app.route("/delete_question/<int:test_id>/<int:question_id>", methods = ["POST", "GET"])
 @login_required
 def delete_question(test_id, question_id):
     question_to_delete = Question.query.get_or_404(question_id)
-
     db.session.delete(question_to_delete)
     db.session.commit()
     return redirect(('/assign_test/{test_id}'.format(test_id = test_id)))
-
-
-
-
 
 @app.route("/assign/<int:test_id>/<string:user_email>/", methods=["GET", "POST"])
 def assign(test_id, user_email):
     print("entered assign")
     test = Test.query.filter_by(id=test_id).first()
     sender = current_user
-    
     if check_comma_list(user_email):
         print(user_email)
         users_emails = user_email.split(",")
@@ -1846,47 +1825,63 @@ def assign(test_id, user_email):
 def take_test(test_id, user_id):
     test = Test.query.get_or_404(test_id)
     taker = User.query.get_or_404(user_id)
-    print("check")
     if request.method == 'POST':
-        print("method is post")
         for question in test.questions:
-            print(question.id)
             question_id = question.id
             to_call = "answer"+str(question_id)
-            print(to_call)
             answer = request.form.get(to_call, '')
             answer = answer.strip()
             result = QuestionResult(test_id = test.id, taker = current_user.id, question_id = question.id, answer = answer)
             db.session.add(result)
             db.session.commit()
         return redirect('/test_results/{test_id}/{user_id}'.format(test_id = test_id, user_id = user_id))
-
-
     return render_template('take_test.html', test=test, taker=taker)
-
 
 @app.route("/test_results/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 def test_results(test_id, user_id):
-    test = Test.query.get_or_404(test_id)
-    taker = User.query.get_or_404(user_id)
-    results = QuestionResult.query.filter_by(test_id = test_id, taker = user_id).all()
-    test_result = TestResult()
-    print("TEST RESULT")
-    print(test_result.id)
-    test_result = TestResult(test_id = test_id, taker = user_id)
     point_counter = 0
     correct_counter = 0
+    test = Test.query.get_or_404(test_id)
+    creator = test.creator
+    taker = User.query.get_or_404(user_id)
+    test_result = TestResult(test_id = test_id, taker = user_id)
     for question in test.questions:
         answer = QuestionResult.query.filter_by(test_id = test_id, taker = user_id, question_id = question.id).first()
-        if answer.answer == question.content:
+        answer_given = remove_punctuation(answer.answer)
+        answer_given = answer_given.lower()
+        answer_given = answer_given.strip()
+        answer_expected = remove_punctuation(question.term)
+        answer_expected = answer_expected.lower()
+        answer_expected = answer_expected.strip()
+        print("answer given")
+        print(answer_given)
+        print("answer expected")
+        print(answer_expected)
+        matcher = difflib.SequenceMatcher(None, answer_given.lower(), answer_expected.lower())
+        print(matcher.ratio())
+        if matcher.ratio() > 0.9:
             point_counter += question.points
             correct_counter += 1
-    test_result = TestResult(test_id= test_id, taker = user_id, points = point_counter, correct = correct_counter)
+            answer.points = question.points
+    test = db.session.query(Test).filter_by(id=test_id).first()
+    test_result = TestResult(test_id= test_id, taker = user_id, points = point_counter, correct = correct_counter, creator=creator)
+    taker = current_user
+    print("test in taker")
+    print(test.id)
+    print("taker in test")
+    print(taker)    
+    print(test.taker)
+    if taker in test.taker:
+        test.taker.remove(taker)
+    print(test.taker)
     db.session.add(test_result)
     db.session.commit()
     
-    
-    return render_template('test_results.html', test=test, taker=taker, results=results)
+    return render_template('test_results.html', test=test, taker=taker, results=test_result)
+
+
+
+
 
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    
