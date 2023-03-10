@@ -1,0 +1,21 @@
+
+{% extends "layout.html" %}
+
+{% block title %} Test id: {{results.id}} Test name: {{results.name}} {% endblock %}
+
+{% block main_0 %}
+
+
+{% for test in results %}
+
+    {% for user in takers %}
+
+        {% if user.id == test.taker %}
+        ({{user.email}})
+        {% endif %}
+<li>Taker email: {{test.taker}}, score: {{test.points}}</li>
+
+
+{% endfor %}
+{% endfor %}
+{% endblock %}

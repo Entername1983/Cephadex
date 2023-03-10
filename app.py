@@ -574,7 +574,7 @@ class Test(db.Model):
         for questions in self.questions:
             sum = sum + questions.points
         self.points = sum
-        return sum
+
     
     def count_questions(self):
         ##count the number of questions in test
@@ -1720,7 +1720,7 @@ def build_test(deck_id):
             if card.category == "Mcq":
                 question.question = card.term
                 question.term = card.term
-                question.content = card.Content
+                question.content = card.content
                 question.boc_2 = card.boc_2
                 question.boc_3 = card.boc_3
                 question.boc_4 = card.boc_4
@@ -1766,8 +1766,6 @@ def assign_test(test_id):
             test.instructions = request.form['instructions']
             test.description = request.form['description']
             test.time_limit = request.form['time-limit']
-            test.count_questions()
-            print(test.count_questions())
             answer_reveal = request.form.get('answer-reveal', False)
             result_reveal = request.form.get('result-reveal', False)
             shuffle = request.form.get('shuffle', False)
@@ -1777,6 +1775,8 @@ def assign_test(test_id):
                 test.result_reveal = True
             if shuffle == 'shuffle':
                 test.shuffle = True
+            test.count_questions()
+            test.sum_points()
             db.session.commit()
         return render_template('assign_test.html', title='Assign test', test=test, )
     
@@ -1786,8 +1786,13 @@ def update_card():
     question_id = request.form['question-id']
     question = Question.query.get(question_id)
     question.question = request.form['question']
-    question.term = request.form['answer']
     question.points = request.form['points']
+    question.term = request.form['answer']
+    if 'mcq' in request.form:
+        question.boc_2 = request.form['boc_2']
+        question.boc_3 = request.form['boc_3']
+        question.boc_4 = request.form['boc_4']
+    
     db.session.commit()
     return jsonify(success=True)
 
@@ -1804,6 +1809,8 @@ def delete_question(test_id, question_id):
 def assign(test_id, user_email):
     print("entered assign")
     test = Test.query.filter_by(id=test_id).first()
+    test.count_questions()
+    test.sum_points()
     sender = current_user
     if check_comma_list(user_email):
         print(user_email)
@@ -1847,12 +1854,13 @@ def test_results(test_id, user_id):
     test_result = TestResult(test_id = test_id, taker = user_id)
     for question in test.questions:
         answer = QuestionResult.query.filter_by(test_id = test_id, taker = user_id, question_id = question.id).first()
-        answer_given = remove_punctuation(answer.answer)
-        answer_given = answer_given.lower()
-        answer_given = answer_given.strip()
-        answer_expected = remove_punctuation(question.term)
-        answer_expected = answer_expected.lower()
-        answer_expected = answer_expected.strip()
+        answer_given = remove_punctuation(answer.answer).lower().strip()
+        if question.q_type == "jeopardy":
+            answer_expected = remove_punctuation(question.term).lower().strip()
+        elif question.q_type == "cloze":
+            answer_expected = remove_punctuation(question.content).lower().strip()
+        elif question.q_type == "mcq":
+            answer_expected = remove_punctuation(question.content).lower().strip()
         print("answer given")
         print(answer_given)
         print("answer expected")
@@ -1880,9 +1888,32 @@ def test_results(test_id, user_id):
     return render_template('test_results.html', test=test, taker=taker, results=test_result)
 
 
+@app.route("/test_results_overview/<int:user_id>/", methods=["GET", "POST"])
+def test_results_overview(user_id):
+    user = current_user
+    
+    ## results of tests taken
+    test_results_taken = TestResult.query.filter_by(taker = user.id).all()
+    
+    ## results of tests given
+    test_results_given = TestResult.query.filter_by(creator = user.id).all()
+    print(test_results_taken)
+    print(test_results_given)
+    return render_template('test_results_overview.html', taken = test_results_taken, given = test_results_given)
 
+@app.route("/test_result_details/<int:test_id>/", methods=["GET", "POST"])
+def test_result_details(test_id):
+    results = TestResult.query.filter_by(id = test_id).all()
+    print(test_id)
+    
+    subquery = db.session.query(distribution.c.taker_id).filter(distribution.c.test_id == test_id).subquery()
 
+    takers = db.session.query(User).join(subquery, User.id == subquery.c.taker_id).all()
 
+    for taker in takers:
+        print(taker.email)
+   
+    return render_template('test_result_details.html', results = results, takers = takers)
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    
     

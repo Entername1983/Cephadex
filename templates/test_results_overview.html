@@ -1,0 +1,21 @@
+
+{% extends "layout.html" %}
+
+{% block title %} Test Overview {% endblock %}
+
+{% block main_0 %}
+
+<h3>RESULTS OF TESTS TAKEN:</h3>
+{% for test in taken %}
+{{test.name}}: {{test.points}} / {{test.total_points}}
+{% endfor %}
+
+
+<h3>RESULTS FOR TESTS GIVEN:</h3>
+{% for test in given %}
+
+<a href = /test_result_details/{{test.id}}> {{test.id}} </a>
+
+{% endfor %}
+
+{% endblock %}
