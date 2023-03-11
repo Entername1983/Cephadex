@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %} Test {% endblock %}
+
+{% block main_0 %}
+
+<a href="/viewdecks">
+    <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
+      class="m-3" title="Return to decks">
+  </a>
+
+
+<div class = "col box_study m-5">
+<h4>{{ test.name }}</h4>
+<li>Your score: {{result.points}} / {{test.points}}</li>
+
+
+</div>
+{% endblock %}

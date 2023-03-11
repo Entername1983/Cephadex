@@ -1,21 +1,111 @@
-
 {% extends "layout.html" %}
-
 {% block title %} Test Overview {% endblock %}
-
 {% block main_0 %}
 
-<h3>RESULTS OF TESTS TAKEN:</h3>
-{% for test in taken %}
-{{test.name}}: {{test.points}} / {{test.total_points}}
-{% endfor %}
 
 
-<h3>RESULTS FOR TESTS GIVEN:</h3>
-{% for test in given %}
+<div class="col-10-md box_0 m-3 p-3">
+    <div class="col" id="collap">
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                data-bs-target="#multiCollapseExample1" data-bs-parent="#collap">Tests taken</button>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                data-bs-target="#multiCollapseExample2" data-bs-parent="#collap"> Tests
+                assigned(results)</button>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                data-bs-target="#multiCollapseExample3" data-bs-parent="#collap">Tests
+                created</button>
+        </p>
+        <div class="row">
 
-<a href = /test_result_details/{{test.id}}> {{test.id}} </a>
 
-{% endfor %}
+            <div class="collapse" id="multiCollapseExample1"  data-bs-parent="#collap">
+                <div class="card card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">id:</th>
+                                <th scope="col">name:</th>
+                                <th scope="col">score:</th>
+                                <th scope="col">details:</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in taken %}
+                            <tr>
+                                <th>{{ test.id }}</th>
+                                <td>{{ test.name }}</td>
+                                <td>{{test.points}} / {{test.total_points}}</td>
+                                <td><a href=/test_result/{{test.id}}> {{test.id}} </a> </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="collapse" id="multiCollapseExample2"  data-bs-parent="#collap">
+                <div class="card card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">id:</th>
+                                <th scope="col">name:</th>
+                                <th scope="col">due date:</th>
+                                <th scope="col">details:</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in created %}
+                            <tr>
+                                <th>{{ test.id }}</th>
+                                <td>{{ test.name }}</td>
+                                <td>{{test.due_date}}</td>
+                                <td><a href=/test_result_details/{{test.id}}> {{test.id}} </a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="collapse" id="multiCollapseExample3"  data-bs-parent="#collap">
+                <div class="card card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">id:</th>
+                                <th scope="col">name:</th>
+                                <th scope="col">due date:</th>
+                                <th scope="col">details:</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in created %}
+                            <tr>
+                                <th>{{ test.id }}</th>
+                                <td>{{ test.name }}</td>
+                                <td>{{test.due_date}}</td>
+                                <td> <a href=/test_created/{{test.id}}> {{test.id}} </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
 
 {% endblock %}
