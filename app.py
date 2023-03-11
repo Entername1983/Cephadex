@@ -622,6 +622,8 @@ class TestResult(db.Model):
         sum = 0
         question_results = QuestionResult.query.filter_by(test_id=self.test_id, taker=self.taker).all()
         for questions in question_results:
+            if questions.points == None:
+                questions.points = 0
             sum = sum + questions.points
         self.points = sum
 
@@ -1794,11 +1796,16 @@ def update_card():
     question = Question.query.get(question_id)
     question.question = request.form['question']
     question.points = request.form['points']
+    print(question.points)
+    category = request.form['category']
     question.term = request.form['answer']
-    if 'mcq' in request.form:
+    print(request.form)
+    if category == 'mcq':
+        print("recognized mcq")
         question.boc_2 = request.form['boc_2']
         question.boc_3 = request.form['boc_3']
         question.boc_4 = request.form['boc_4']
+        
     
     db.session.commit()
     return jsonify(success=True)
@@ -1823,7 +1830,6 @@ def delete_test(test_id):
 
 @app.route("/assign/<int:test_id>/<string:user_email>/", methods=["GET", "POST"])
 def assign(test_id, user_email):
-    print("entered assign")
     test = Test.query.filter_by(id=test_id).first()
     test.count_questions()
     test.sum_points()
@@ -1861,45 +1867,47 @@ def take_test(test_id, user_id):
     return render_template('take_test.html', test=test, taker=taker)
 
 @app.route("/test_results/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
-def test_results(test_id, user_id):
-    if request.form == 'POST':          
-        point_counter = 0
-        correct_counter = 0
-        test = Test.query.get_or_404(test_id)
-        creator = test.creator
-        taker = User.query.get_or_404(user_id)
-        test_result = TestResult(test_id = test_id, taker = user_id)
-        for question in test.questions:
-            answer = QuestionResult.query.filter_by(test_id = test_id, taker = user_id, question_id = question.id).first()
-            answer_given = remove_punctuation(answer.answer).lower().strip()
-            if question.q_type == "jeopardy":
-                answer_expected = remove_punctuation(question.term).lower().strip()
-            elif question.q_type == "cloze":
-                answer_expected = remove_punctuation(question.content).lower().strip()
-            elif question.q_type == "mcq":
-                answer_expected = remove_punctuation(question.content).lower().strip()
-            print(answer_given, answer_expected)
-            matcher = difflib.SequenceMatcher(None, answer_given.lower(), answer_expected.lower())
-            if matcher.ratio() > 0.9:
-                point_counter += question.points
-                correct_counter += 1
-                answer.points = question.points
-        test = db.session.query(Test).filter_by(id=test_id).first()
-        already_taken = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
-        if already_taken is None:
-            test_result = TestResult(test_id= test_id, taker = user_id, points = point_counter, correct = correct_counter, creator=creator, end_time = datetime.utcnow())
-            taker = current_user
-            if taker in test.taker:
-                test.taker.remove(taker)
-            db.session.add(test_result)
-            db.session.commit()
-            return render_template('test_results.html', test=test, taker=taker, results=test_result)    
+def test_results(test_id, user_id):       
+    point_counter = 0
+    correct_counter = 0
+    test = Test.query.get_or_404(test_id)
+    creator = test.creator
+    taker = User.query.get_or_404(user_id)
+    for question in test.questions:
+        answer = QuestionResult.query.filter_by(test_id = test_id, taker = user_id, question_id = question.id).first()
+        answer_given = remove_punctuation(answer.answer).lower().strip()
+        if question.q_type == "jeopardy":
+            answer_expected = remove_punctuation(question.term).lower().strip()
+        elif question.q_type == "cloze":
+            answer_expected = remove_punctuation(question.content).lower().strip()
+        elif question.q_type == "mcq":
+            answer_expected = remove_punctuation(question.content).lower().strip()
+        print(answer_given, answer_expected)
+        matcher = difflib.SequenceMatcher(None, answer_given.lower(), answer_expected.lower())
+        if matcher.ratio() > 0.9:
+            point_counter += question.points
+            correct_counter += 1
+            answer.points = int(question.points)
         else:
-            flash('you have already taken this test', 'danger')
-            return redirect('/test_results_overview/')
+            answer.points = 0
+        if not answer.points:
+            answer.points = 0
+    test = db.session.query(Test).filter_by(id=test_id).first()
+    already_taken = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
+    print(already_taken)
+    if already_taken is None:
+        test_result = TestResult(test_id= test_id, taker = user_id, points = point_counter, correct = correct_counter, creator=creator, end_time = datetime.utcnow())
+        taker = current_user
+        if taker in test.taker:
+            test.taker.remove(taker)
+        db.session.add(test_result)
+        db.session.commit()
+        return render_template('test_results.html', test=test, taker=taker, results=test_result)    
     else:
+        print("1")
         flash('you have already taken this test', 'danger')
         return redirect('/test_results_overview/')
+
 
 
 @app.route("/test_results_overview/", methods=["GET", "POST"])
@@ -1910,8 +1918,13 @@ def test_results_overview():
     ## results of tests taken
     test_results_taken = TestResult.query.filter_by(taker = user.id).all()
     ## results of tests given
+    for test_results in test_results_taken:
+        print(test_results.test_id)
     test_results_given = TestResult.query.filter_by(creator = user.id).all()
-
+    tests = []
+    for result in test_results_taken:
+        test = Test.query.filter_by(id=result.test_id).first()
+        tests.append(test)
     ## if the test has been deleted and there are are no results for user then delete
     for test in test_results_given:
         exist_test = Test.query.filter_by (id = test.test_id).first()
@@ -1920,7 +1933,7 @@ def test_results_overview():
                 db.session.delete(test)
                 db.session.commit()
 
-    return render_template('test_results_overview.html', taken = test_results_taken, given = test_results_given, created = tests_created)
+    return render_template('test_results_overview.html', taken = test_results_taken, given = test_results_given, created = tests_created,tests=tests)
 
 @app.route("/test_result_details/<int:test_id>/", methods=["GET", "POST"])
 def test_result_details(test_id):
@@ -1938,7 +1951,6 @@ def test_result_details(test_id):
 def test_created(test_id):
     test = Test.query.get_or_404(test_id)
     if request.method == 'POST' and 'test-name' in request.form:
-        print("entered post request3")
         test.name= request.form['test-name']
         test.creator = current_user.id
         due_date = request.form.get('due-date')
@@ -1964,10 +1976,13 @@ def test_created(test_id):
         db.session.commit()
     return render_template('test_created.html', test=test)
    
-@app.route("/test_result/<int:test_id>/", methods=["GET", "POST"])
-def test_result(test_id):
-    test = Test.query.filter_by(id = test_id).first()
-    result = TestResult.query.filter_by(test_id = test_id, taker = current_user.id).first()
+@app.route("/test_result/<int:result_id>/", methods=["GET", "POST"])
+def test_result(result_id):
+    result = TestResult.query.filter_by(id = result_id, taker = current_user.id).first()
+    print(result)
+    print(result.test_id)
+    test = Test.query.filter_by(id = result.test_id).first()
+
     return render_template('test_result.html', result=result, test=test)
 
 
@@ -1978,16 +1993,13 @@ def test_answers(test_id, taker_id):
     result = TestResult.query.filter_by(test_id = test_id, taker = taker_id).first()
     question_results = QuestionResult.query.filter_by(test_id = test.id, taker=taker_id).all()
     result.sum_points()  
-    for question_result in question_results:
-        if question_result.points != int:
-            question_result.points = 0
+
             
     if result.creator != current_user.id:
         flash('you are not allowed to view this page', 'danger')
         return redirect('/test_results_overview/')
     else:
         if request.method == "POST":
-            print("entered post request")
             for question_result in question_results:
                 question_points_id = 'points' + str(question_result.id)
                 points_entered = int(request.form.get(question_points_id))

@@ -121,16 +121,16 @@ main_0 %}
                                 Answers:
                                 <div class="row mt-1">
                                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                            name="content{{question.id}}" value="A - {{question.content}}">
+                                            name = "answer" id="answer" value="A - {{question.content}}">
                                     </li>
                                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                            name="boc_2{{question.id}}" value="B - {{question.boc_2}}">
+                                            name = "boc_2"  id="answer" value="B - {{question.boc_2}}">
                                     </li>
                                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                            name="boc_3{{question.id}}" value="C - {{question.boc_3}}">
+                                            name = "boc_3"  id="answer" value="C - {{question.boc_3}}">
                                     </li>
                                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                            name="boc_4{{question.id}}" value="D - {{question.boc_4}}">
+                                            name = "boc_4" id="answer"  value="D - {{question.boc_4}}">
                                     </li>
                                 </div>
                             </div>
@@ -207,6 +207,8 @@ main_0 %}
 
         <form class="question-form">
             <div class="card m-1">
+                <input type="hidden" name="category" value="{{question.q_type}}">
+
                 <input type="hidden" name="question-id" value="{{question.id}}">
                 <input type="hidden" name="jeopardy" value="{{question.q_type}}">
                 <div class="card-header">

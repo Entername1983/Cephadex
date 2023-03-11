@@ -24,19 +24,28 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">id:</th>
+                                <th scope="col">test id:</th>
                                 <th scope="col">name:</th>
                                 <th scope="col">score:</th>
-                                <th scope="col">details:</th>
+                                <th scope="col">result details:</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for test in taken %}
+                            {% for result in taken %}
                             <tr>
-                                <th>{{ test.id }}</th>
-                                <td>{{ test.name }}</td>
-                                <td>{{test.points}} / {{test.total_points}}</td>
-                                <td><a href=/test_result/{{test.id}}> {{test.id}} </a> </td>
+                                <th>{{ result.test_id }}</th>
+                                <td>{% for test in tests %}
+                                {% if result.test_id == test.id %}
+                                {{ test.name }}
+                               
+                                {% endif %}
+                                
+                                {% endfor %}</td>
+                                <td>{{ result.points}}/{% for test in tests %}
+                                    {% if result.test_id == test.id %}{{test.points}}{% endif %}
+                                
+                                    {% endfor %} </td>
+                                <td><a href=/test_result/{{result.id}}> See details </a> </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -60,7 +69,7 @@
                                 <th>{{ test.id }}</th>
                                 <td>{{ test.name }}</td>
                                 <td>{{test.due_date}}</td>
-                                <td><a href=/test_result_details/{{test.id}}> {{test.id}} </a></td>
+                                <td><a href=/test_result_details/{{test.id}}> See individual results </a></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -85,7 +94,7 @@
                                 <th>{{ test.id }}</th>
                                 <td>{{ test.name }}</td>
                                 <td>{{test.due_date}}</td>
-                                <td> <a href=/test_created/{{test.id}}> {{test.id}} </a>
+                                <td> <a href=/test_created/{{test.id}}> See test </a>
                                 </td>
                             </tr>
                             {% endfor %}
