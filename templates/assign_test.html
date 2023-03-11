@@ -24,8 +24,26 @@ main_0 %}
                     });
             });
         });
-    });
+        $(document).ready(function () {
+            // Send data to server on input change
+            $('#test-form').on('input', function () {
+                event.preventDefault();
+                $.ajax({
+                    url: "{{ url_for('assign_test', test_id=test.id) }}",
+                    method: "POST",
+                    data: $('#test-form').serialize(),
+                    success: function (data) {
+                        console.log('Data saved');
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        console.error('Error saving data:', errorThrown);
+                    }
+                });
+            });
 
+        });
+
+    });
 </script>
 
 
@@ -43,20 +61,20 @@ main_0 %}
         Test questions </a>
 
     <!---- SHARE DECK ------>
-    <a data-bs-toggle="modal" data-bs-target="#assignModal" class="mx-2" style="cursor: pointer;">
-        <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px;" class="px-1"
-            title="Share">
+    <a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignModal" class="mx-2"
+        style="cursor: pointer;">
+        Assign test
     </a>
 
 
-    <form action="" method="POST">
+    <form class ="test-form" id="test-form" action="" method="POST">
 
         <div class="collapse" id="collapseTestInfo">
             <div class="container m-2 p-2 box_study">
                 <input type="hidden" name="test-id" value="{{test.id}}">
                 <label for="test-name">Test name:</label>
                 <input name="test-name" class=" card-title box_study input_0 form-control form-control-lg" type="text"
-                    id="test-name" placeholder="Test name" value="{{test.name}}">
+                    id="test-name" placeholder="Test name" value="{{test.name}}" required>
                 <label for="due-date">Due date:</label>
                 <input name="due-date" class=" card-title box_study input_0 form-control form-control-lg"
                     type="datetime-local" id="due-date" placeholder="Test due date" value="">
@@ -81,15 +99,14 @@ main_0 %}
                     type="number" id="time-limit" placeholder="20" value="">
                 <label for="answer-reveal">Answer reveal</label>
                 <input name="answer-reveal" type="checkbox" id="answer-reveal" placeholder="answer reveal"
-                    value="answer-reveal">
+                    value="answer-reveal" disabled>
                 <label for="result-reveal">Result reveal</label>
-                <input name="result-reveal" type="checkbox" id="result-reveal" value="result-reveal">
+                <input name="result-reveal" type="checkbox" id="result-reveal" value="result-reveal" disabled>
                 <label for="shuffle">Shuffle</label>
-                <input type="checkbox" name="shuffle" id="shuffle" value="shuffle">
+                <input type="checkbox" name="shuffle" id="shuffle" value="shuffle" disabled>
                 <h5>Total marks: {{ test.points }}</h5>
                 <h5> Number of questions: {{test.num_questions}}</h5>
                 </h5>
-                <input type="submit" class="btn btn-primary" value="Save changes">
     </form>
 
 </div>
@@ -121,36 +138,37 @@ main_0 %}
                                 Answers:
                                 <div class="row mt-1">
                                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                            name = "answer" id="answer" value="A - {{question.content}}">
+                                            name="answer" id="answer" value="A - {{question.content}}">
                                     </li>
                                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                            name = "boc_2"  id="answer" value="B - {{question.boc_2}}">
+                                            name="boc_2" id="answer" value="B - {{question.boc_2}}">
                                     </li>
                                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                            name = "boc_3"  id="answer" value="C - {{question.boc_3}}">
+                                            name="boc_3" id="answer" value="C - {{question.boc_3}}">
                                     </li>
                                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                            name = "boc_4" id="answer"  value="D - {{question.boc_4}}">
+                                            name="boc_4" id="answer" value="D - {{question.boc_4}}">
                                     </li>
                                 </div>
                             </div>
-                            <div class="col-2 m-1">
-                                <div class="row"> Marks:
-                                    <input name="points"
-                                        class=" card-title box_study input_0 form-control form-control-lg" type="text"
-                                        id="points" placeholder="{{question.points}}" value="{{question.points}}">
-                                </div>
-                                <div class="row">
-                                    <a href="#" class="mx-2"
-                                        onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/delete_question/{{test.id}}/{{question.id}}'; }">
-                                        <img src="\static\delete-icon.png" alt="Delete"
-                                            style="max-width:30px;max-height:30px;" class="px-1"
-                                            title="Delete question">
-                                    </a>
-                                </div>
-                            </div>
-
                         </div>
+
+                        <div class="col-2 m-1">
+                            <div class="row"> Marks:
+                                <input name="points" class=" card-title box_study input_0 form-control form-control-lg"
+                                    type="text" id="points" placeholder="{{question.points}}"
+                                    value="{{question.points}}">
+                            </div>
+                            <div class="row">
+                                <a href="#" class="mx-2 d-flex align-items-center justify-content-center mt-4"
+                                    onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/delete_question/{{test.id}}/{{question.id}}'; }">
+                                    <img src="\static\delete-icon.png" alt="Delete"
+                                        style="max-width:30px;max-height:30px;" class="px-1" title="Delete question">
+                                </a>
+                            </div>
+                        </div>
+
+
                     </div>
                 </div>
             </div>
@@ -261,15 +279,15 @@ main_0 %}
 <!------- ASSIGN TEST MODAL -------->
 
 <script>
-    function assignDeck(testId) {
-        console.log('assignDeck')
-        var email = document.getElementById('assign-email').value;
-        console.log(email);
-        var encodedEmail = encodeURIComponent(email);
-        var url = '/assign/' + testId + '/' + encodedEmail;
-        console.log(url);
-        window.location.href = url;
-    }
+        function assignDeck(testId) {
+            console.log('assignDeck')
+            var email = document.getElementById('assign-email').value;
+            console.log(email);
+            var encodedEmail = encodeURIComponent(email);
+            var url = '/assign/' + testId + '/' + encodedEmail;
+            console.log(url);
+            window.location.href = url;
+        }
 </script>
 
 <div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="#assignModalLabel" aria-hidden="true">
@@ -284,7 +302,7 @@ main_0 %}
                     <div class="form-group my-2">
                         <label for="email">Email:</label>
                         <input type="email" class="form-control" id="assign-email" name="assign-email" required
-                            placeholder="Type receiver's email here">
+                            placeholder="Type receiver's email here (use commas for list)">
                     </div>
                     <button type="button" class="btn btn-primary" onclick="assignDeck('{{ test.id }}')">Assign</button>
 

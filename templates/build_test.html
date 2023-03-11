@@ -6,31 +6,40 @@ main_0 %}
 
 <div class="row fixed-top" style="background-color: rgba(29, 113, 186); margin-top: 75px;">
     <form action="" method="POST" class="">
-        <div class="row">
-            <input type="submit" value="Submit">
-        </div>
 
 
-        <div class="row">
-            <div class="col-2">
+        <div class="row mt-1">
+
+            <div class="col-2 d-flex justify-content-center">
+
                 <h6>Select questions:</h6>
+
             </div>
-            <div class="col-7">
+            <div class="col-6 d-flex justify-content-center">
                 <h6>Question details:</h6>
             </div>
-            <div class="col-3">
+            <div class="col-3 d-flex justify-content-center">
                 <h6>Question type:</h6>
             </div>
         </div>
 
+</div>
 
-
+<div class="card m-1">
+    <div class = "row">
+    <div class="col-1 d-flex justify-content-center align-items-center">
+        <div>
+        <input type="checkbox" class="form-check-input" id="check-all"/>
+        <label  class="form-label" for="check-all">Select All</label>
+        </div>
+    </div>
+    <div class="col-11 d-flex justify-content-end">
+        <input class="btn-primary box_study" type="submit" value="Done selecting question" onclick="return validateForm()">
+    </div>
+    </div>
 </div>
 
 
-
-
-<br>
 {% for card in deck.cards %}
 {% if card.category in ["Mcq", "Cloze"] %}
 
@@ -48,8 +57,8 @@ main_0 %}
                             value="{{card.term}}"></textarea>
                     </div>
                     <div class="col-3 box_study p-1 m-1">
-                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;" name="category{{card.id}}"
-                            value="{{card.category}}">
+                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
+                            name="category{{card.id}}" value="{{card.category}}">
                         <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
                     </div>
                 </div>
@@ -91,8 +100,8 @@ main_0 %}
                         </div>
                     </div>
                     <div class="col-3 box_study p-1 m-1">
-                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;" name="category{{card.id}}"
-                            value="{{card.category}}">
+                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
+                            name="category{{card.id}}" value="{{card.category}}">
                         <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
                     </div>
                 </div>
@@ -104,13 +113,13 @@ main_0 %}
                             value="{{card.term}}">
                     </li>
                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="formula{{card.id}}"
-                        value="{{card.formula}}">
-                </li>
+                            value="{{card.formula}}">
+                    </li>
                 </div>
             </div>
         </div>
     </div>
-</div> 
+</div>
 
 {% else %}
 
@@ -128,15 +137,15 @@ main_0 %}
                             value="{{card.content}}">
                     </div>
                     <div class="col-3 box_study p-1 m-1">
-                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;" name="category{{card.id}}"
-                            value="{{card.category}}">
+                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
+                            name="category{{card.id}}" value="{{card.category}}">
                         <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
                     </div>
                 </div>
                 <div class="row mt-1">
                     <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="term{{card.id}}"
                             value="{{card.term}}">
-                    </li>              
+                    </li>
                 </div>
             </div>
         </div>
@@ -152,5 +161,26 @@ main_0 %}
 </form>
 
 
+<script>
+    // check all checkboxes when "Check All" checkbox is checked
+    const checkAllCheckbox = document.getElementById('check-all');
+    const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]');
 
+    checkAllCheckbox.addEventListener('change', () => {
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = checkAllCheckbox.checked;
+        });
+    });
+
+
+
+    function validateForm() {
+        const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]:checked');
+        if (checkboxes.length === 0) {
+            alert("Please select at least one question.");
+            return false;
+        }
+        return true;
+    }
+</script>
 {% endblock %}

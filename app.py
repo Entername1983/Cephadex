@@ -1719,49 +1719,43 @@ def build_test(deck_id):
     
     if request.method == "POST":
         test_questions = request.form.getlist('selected_cards[]')
+        name = deck.name + " Test" + " " + str(datetime.now())
         new_test = Test(creator=current_user.id)
         db.session.add(new_test)
+
+        new_test.name = name
         for question in test_questions:
             card = Card.query.get_or_404(question)
             question = Question()
             db.session.add(question)
             question.points = int(1)
+            question.content = card.content
+            question.term = card.term
+            question.prompt_option = card.prompt_option
             if card.category == "Mcq":
                 question.question = card.term
-                question.term = card.term
-                question.content = card.content
                 question.boc_2 = card.boc_2
                 question.boc_3 = card.boc_3
                 question.boc_4 = card.boc_4
-                question.prompt_option = card.prompt_option
                 question.q_type = "mcq"
-                
-                
             elif card.category == "Cloze":
                 question.question = card.term
-                question.term = card.term
-                question.content = card.content
-                question.prompt_option = card.prompt_option
                 question.q_type = "cloze"
-       
             else:
                 ## switching them around so that the test gives them a definition and they have to write the word
-                question.term = card.term
-                question.content = card.content
                 question.question = card.content
-                question.prompt_option = card.prompt_option
                 question.q_type = "jeopardy"
-    
             db.session.add(question)
             new_test.questions.append(question)
         db.session.commit()
         return redirect('/assign_test/{test.id}'.format(test=new_test))
-    
+
     return render_template('build_test.html', title='Test Builder', deck=deck, creator=creator)
 
 @app.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
 def assign_test(test_id):
         test = Test.query.get_or_404(test_id)
+        print(request.form)
         if request.method == 'POST' and 'test-name' in request.form:
             print("entered post request3")
             test.name= request.form['test-name']
@@ -1787,6 +1781,8 @@ def assign_test(test_id):
             test.count_questions()
             test.sum_points()
             db.session.commit()
+            return jsonify({'success': True}), 200
+        
         return render_template('assign_test.html', title='Assign test', test=test, )
     
 @app.route('/update_card', methods=['POST'])
@@ -1852,19 +1848,33 @@ def assign(test_id, user_email):
 
 @app.route("/take_test/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 def take_test(test_id, user_id):
+    test_result = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
     test = Test.query.get_or_404(test_id)
-    taker = User.query.get_or_404(user_id)
-    if request.method == 'POST':
-        for question in test.questions:
-            question_id = question.id
-            to_call = "answer"+str(question_id)
-            answer = request.form.get(to_call, '')
-            answer = answer.strip()
-            result = QuestionResult(test_id = test.id, taker = current_user.id, question_id = question.id, answer = answer)
-            db.session.add(result)
+    if test_result is None:
+        start_time = datetime.now()
+        test_result = TestResult(test_id = test_id, taker = user_id, start_time = start_time, creator=test.creator)
+        taker = User.query.get_or_404(user_id)
+        db.session.add(test_result)
+        if request.method == 'POST':
+            for question in test.questions:
+                question_id = question.id
+                to_call = "answer"+str(question_id)
+                answer = request.form.get(to_call, '')
+                answer = answer.strip()
+                result = QuestionResult(test_id = test.id, taker = current_user.id, question_id = question.id, answer = answer)
+                db.session.add(result)
+                db.session.commit()
+            end_time = request.form.get('end-time')
+            end_time = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+            test_result.end_time = end_time
             db.session.commit()
-        return redirect('/test_results/{test_id}/{user_id}'.format(test_id = test_id, user_id = user_id))
-    return render_template('take_test.html', test=test, taker=taker)
+            return redirect('/test_results/{test_id}/{user_id}'.format(test_id = test_id, user_id = user_id))
+        return render_template('take_test.html', test=test, taker=taker, start_time = start_time)
+    else:
+        test.taker.remove(current_user)
+        db.session.commit()
+        flash('you have already taken this test', 'danger')
+        return redirect('/test_results_overview/')
 
 @app.route("/test_results/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 def test_results(test_id, user_id):       
@@ -1893,20 +1903,16 @@ def test_results(test_id, user_id):
         if not answer.points:
             answer.points = 0
     test = db.session.query(Test).filter_by(id=test_id).first()
-    already_taken = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
-    print(already_taken)
-    if already_taken is None:
-        test_result = TestResult(test_id= test_id, taker = user_id, points = point_counter, correct = correct_counter, creator=creator, end_time = datetime.utcnow())
-        taker = current_user
-        if taker in test.taker:
-            test.taker.remove(taker)
-        db.session.add(test_result)
-        db.session.commit()
-        return render_template('test_results.html', test=test, taker=taker, results=test_result)    
-    else:
-        print("1")
-        flash('you have already taken this test', 'danger')
-        return redirect('/test_results_overview/')
+    test_result = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
+    test_result.points = point_counter
+    test_result.correct = correct_counter
+    test_result.correct = creator
+    taker = current_user
+    if taker in test.taker:
+        test.taker.remove(taker)
+    db.session.add(test_result)
+    db.session.commit()
+    return render_template('test_results.html', test=test, taker=taker, results=test_result)    
 
 
 
