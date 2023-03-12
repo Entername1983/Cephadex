@@ -62,7 +62,7 @@
 
             {% set q_counter = loop.index %}
 
-            Question: {{q_counter}}
+      
             {% if question.q_type == "jeopardy" %}
 
             <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
@@ -70,7 +70,7 @@
                 <div class="card-head">
                     <div class="row p-1">
                         <div class="col-10 ">
-                            {{question.question}}
+                            {{q_counter}} - {{question.question}}
                         </div>
                         <div class=" col-2">
                             Marks: {{question.points}}
@@ -90,7 +90,7 @@
                 <div class="card-head">
                     <div class="row p-1">
                         <div class="col-10 ">
-                            {{question.question}}
+                            {{q_counter}} - {{question.question}}
                         </div>
                         <div class="col-2 ">
                             Marks: {{question.points}}
@@ -114,7 +114,7 @@
                 <div class="card-head">
                     <div class="row p-1">
                         <div class="col-10">
-                            <h4 class="m-1">{{question.question}}</h4>
+                            <h4 class="m-1"> {{q_counter}} - {{question.question}}</h4>
                         </div>
                         <div class="col-2 ">
                             Marks: {{question.points}}
@@ -196,8 +196,8 @@
             {% endif %}
             {% endfor %}
         </div>
-        <div class="row d-flex justify-content-end">
-            <input class="form-control justify-content-end" type="submit" value="Submit">
+        <div class="row box_study d-flex justify-content-end m-2">
+            <input class="form-control justify-content-end" type="submit" value="Submit test">
         </div>
     </form>
 

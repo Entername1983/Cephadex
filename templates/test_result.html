@@ -4,18 +4,36 @@
 
 {% block main_0 %}
 
-<a href="/viewdecks">
+<a href="/test_results_overview">
     <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
       class="m-3" title="Return to decks">
   </a>
+  <div class = "row">
+<div class = "col-3"></div>
+<div class = "col-6 box_0 m-5">
+  <div class = "card">
+    <div class = "card-body">
+  <h4 class = "card-title">
+Test name: {{ test.name }}
+  </h4>
+<h5 class="card-subtitle mb-2 text-muted">
+Your score: {{result.points}} / {{test.points}}
+</h5>
+<div class = "row">
+  <h6>Subject: {{test.subject}}</h6>
+  </div>
+  <div class = "row">
+    <h6>Topic: {{test.topic}}</h6>
+    </div>
+<div class = "row">
+<h6>Result id: {{result.id}}</h6>
+</div><div class = "row">
 
+<h6>Test id: {{test.id}}</h6>
 
-<div class = "col box_study m-5">
-<h4>test name: {{ test.name }}</h4>
-<h4>result id: {{result.id}}</h4>
-<h4>test id: {{test.id}}</h4>
-<li>Your score: {{result.points}} / {{test.points}}</li>
-
-
+</div>
+</div>
+</div>
+<div class = "col-3"></div>
 </div>
 {% endblock %}

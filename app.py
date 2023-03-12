@@ -36,6 +36,8 @@ import difflib
 
 
 
+
+
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Configure application
@@ -2018,17 +2020,13 @@ def test_answers(test_id, taker_id):
             db.session.commit()
             
         
-        
-        
-        
         return render_template('test_answers.html', result=result, question_results=question_results, test=test)
     
     
-
-
-
-
-
+@app.route("/test_print/<int:test_id>/", methods=["GET", "POST"])
+def test_print(test_id):
+    test = Test.query.filter_by(id = test_id).first()
+    return render_template('test_print.html', test=test)
 
 
 

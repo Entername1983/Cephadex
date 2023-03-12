@@ -53,6 +53,16 @@ $yellow: #FFFD98;
 
 $btn-white-space: nowrap;
 
+ 
+  @media print {
+    page-break-inside: avoid;
+  }
+  
+  .no-page-break {
+    page-break-inside: avoid;
+  }
+
+
 .responsive {
     max-width: 100%;
     height: auto;
@@ -135,11 +145,11 @@ body {
 // boxes
 
 .box_0 {
-    border: 10px solid !important;
+    border: 5px solid !important;
     align-content: center !important;
     background-color: $backgroundC !important;
-    border-width:5px !important;
-    border-radius: 20px !important;
+    border-width:3px !important;
+    border-radius: 10px !important;
     border-color: $borderC !important;
     align-self: center !important;
     color: $textC !important;
