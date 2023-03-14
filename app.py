@@ -32,8 +32,7 @@ import urllib.parse
 from urllib.parse import unquote
 from helpers import remove_punctuation
 import difflib
-
-
+from anki import anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes
 
 
 
@@ -1392,8 +1391,6 @@ def delete_account():
         flash("We'are sorry to see you go. Your account has been deleted.")
     return redirect(url_for('logout'))
 
-
-## USING FOR EXPERIMENTATION
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract():
@@ -2029,12 +2026,134 @@ def test_print(test_id):
     return render_template('test_print.html', test=test)
 
 
+@app.route("/sea_source/<int:file_id>/", methods=["GET", "POST"])
+def sea_source(file_id):
+    source = DeckFiles.query.filter_by(id = file_id).first()
+    source1 = split_string(source.text_string)
+    
+    return render_template('sea_source.html', source=source1, file=source)
+
+
+
+
+@app.route("/import_deck/", methods=["GET", "POST"])
+def import_deck():
+    print(request.form)
+    ## IMPORT ALL DECKS FROM ANKI
+    if request.method == "POST" and "import-all" in request.form:
+        print("entered import all")
+        decks = anki_import_all()
+        decks = json.loads(decks)
+        for deck in decks:
+            for key, value in deck.items():
+                if value != []:
+                    deck_name = key
+                    description = "anki import"
+                    deck = Deck(name = deck_name, description = description, user_id = current_user.id)
+                    db.session.add(deck)
+                    db.session.commit()
+                    ##print(f"Deck name: {key}")
+                    ##print(f"Cards: {value}")
+                    for i in range(len(value)):
+                        for j in range(len(value[i])):
+                            card = value[i][j]
+                            cardId = card['cardId']
+                            content = card['fields']['Back']['value']
+                            term = card['fields']['Front']['value']
+                            interval = card['interval']*1440
+                            entry = Card(term = term, content = content, interval = interval)
+                            db.session.add(entry)
+                            deck.cards.append(entry)
+                    print(deck)
+                    db.session.commit()
+        flash("Decks imported", "success")
+        return redirect(url_for('viewdecks'))
+    
+    if request.method == "POST" and "import-by-name" in request.form:
+        deck_names = request.form['deck-name']
+        if check_comma_list(deck_names):
+            deck_names = deck_names.split(",")
+            for name in deck_names:
+                deck = anki_import_deck(name)
+                deck = json.loads(deck)
+                cards = deck[0][name]
+                description = "anki import"
+                deck = Deck(name = name, description = description, user_id = current_user.id)
+                db.session.add(deck)
+                db.session.commit()
+                for i in range(len(cards)):
+                    card = cards[i][0]
+                    print(card)
+                    cardId = card['cardId']
+                    content = card['fields']['Back']['value']
+                    term = card['fields']['Front']['value']
+                    interval = card['interval']*1440
+                    entry = Card(term = term, content = content, interval = interval)
+                    db.session.add(entry)
+                    deck.cards.append(entry)
+                db.session.commit()
+        else:
+            deck = anki_import_deck(deck_names)
+            deck = json.loads(deck)
+            deck_name = deck_names
+            cards = deck[0][deck_name]
+            description = "anki import"
+            deck = Deck(name = deck_name, description = description, user_id = current_user.id)
+            db.session.add(deck)
+            db.session.commit()
+            for i in range(len(cards)):
+                card = cards[i][0]
+                print(card)
+                cardId = card['cardId']
+                content = card['fields']['Back']['value']
+                term = card['fields']['Front']['value']
+                interval = card['interval']*1440
+                entry = Card(term = term, content = content, interval = interval)
+                db.session.add(entry)
+                deck.cards.append(entry)
+                
+            db.session.commit()
+        flash("Decks imported", "success")
+        return redirect(url_for('viewdecks'))
+            
+    return render_template('import_deck.html')
+
+
+@app.route("/export_deck/<int:deck_id>/", methods=["GET", "POST"])
+@login_required
+def export_deck(deck_id):
+    deck = Deck.query.get_or_404(deck_id)
+    if deck.user != current_user:
+        flash('you are not allowed to view this page', 'danger')
+        return redirect('/home/')
+    cards = deck.cards
+    anki_create_deck(deck.name)
+    for card in cards:
+        query = card.term
+        notes = find_notes(query)
+        print(notes)
+        if notes == False:
+            interval = str(int(card.interval/1440))
+            anki_create_card(deck.name, card.term, card.content)
+    flash("Deck exported", "success")
+    return redirect(url_for('viewdecks'))
 
 
 
 
 
 
+
+
+
+
+
+###################### TO BE REORGANIZED ###############################################################################################
+
+
+def split_string(string):
+    items = string.split("&-&-&")
+    return items
 
 
   ## OBSOLETE CODE BELOW ###############################################################################################  

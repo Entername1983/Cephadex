@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %} Import Decks {% endblock %}
+
+
+
+
+{% block main_0 %}
+
+<div>
+    <div class = "container box_study p-2 ">
+<br>
+        <h5 class ="d-flex justify-content-center"> Import all decks: </h5>
+<form class ="d-flex justify-content-center" method = "POST">
+<input class ="d-flex justify-content-center box_study" type ="submit" value="Import all decks" id = "import-all" name="import-all" >
+</form>
+<br>
+<h5 class ="d-flex justify-content-center"> Or: </h5>
+<br>
+<h5 class ="d-flex justify-content-center"> Import individual decks: </h5>
+
+<form  class ="d-flex justify-content-center"method = "POST">
+    <label class ="d-flex justify-content-center" for = "deck-name">Deck name(s): </label>
+    <input type="text" name="deck-name" id="deck-name" placeholder="MyAnkiDeck1, MyAnkiDeck2,..." class =" box_study" style="width: 300px">
+        <input type ="submit" value="Import" id = "import-by-name" name="import-by-name"class =" box_study ">
+
+    
+    </form>
+    <br>
+<h6  class ="d-flex justify-content-center">Note: to import or export decks into Anki you must be on a desktop, have Anki open and have the Anki Connect add on installed</h6>
+</div>
+</div>
+
+
+
+
+{% endblock %}
