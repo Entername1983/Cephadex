@@ -8,19 +8,30 @@
 {% block main_0 %}
 
 
-{% if shared_decks|length > 0 %}
-<div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
-  <p> You have shared decks waiting for your approval, click<a class="mx-2" data-bs-toggle="modal"
-      data-bs-target="#SharedDecksModal" alt="shared decks" style="cursor: pointer;">here</a>to approve them</p>
-</div>
+  <!----<div class="row m-2" style="text-align: end">
+    <a href="/test_results_overview" class="mx-2 ">
+      <img src="\static\tester-icon.png" alt="Tests" style="max-width:30px;max-height:30px;" class="px-1" title="Tests">
+    </a>
+ </div> ---->
 
-{% endif %}
-{% if tests|length > 0 %}
-<div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
-  <p> You have a new test to! Click<a class="mx-2" data-bs-toggle="modal" data-bs-target="#testModal"
-      alt="shared decks" style="cursor: pointer;">here</a>to take it</p>
-</div>
-{% endif %}
+  {% if shared_decks|length > 0 %}
+ 
+    <div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
+      <p> You have shared decks waiting for your approval, click<a class="mx-2" data-bs-toggle="modal"
+          data-bs-target="#SharedDecksModal" alt="shared decks" style="cursor: pointer;">here</a>to approve them</p>
+    </div>
+
+  {% endif %}
+  {% if tests|length > 0 %}
+
+    <div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
+      <p> You have a new test click<a class="mx-2" data-bs-toggle="modal" data-bs-target="#testModal" alt="shared decks"
+          style="cursor: pointer;">here</a>to take it</p>
+    </div>
+ 
+  {% endif %}
+
+
 
 <div class="col-10-md box_0 m-3 p-3">
 
@@ -104,44 +115,48 @@
 
           <td>
             <!------- STUDY DECK ----->
-            <a href="/study_deck/{{deck.id}}" class="mx-2">
-              <img src="\static\graduation-cap-icon.png" alt="Study" style="max-width:30px;max-height:30px;"
+            <a href="/study_deck/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
+              <img src="\static\graduation-cap-icon.png" alt="Study" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="Study">
             </a>
             <!---- EDIT DECK ------>
-            <a href="/carousel/{{deck.id}}" class="mx-2">
-              <img src="\static\edit-box-icon.png" alt="Edit" style="max-width:30px;max-height:30px;" class="px-1"
+            <a href="/carousel/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
+              <img src="\static\edit-box-icon.png" alt="Edit" style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1"
                 title="Edit">
             </a>
             <!---- SHARE DECK ------>
-            <a data-bs-toggle="modal" data-bs-target="#Modal{{deck.id}}" class="mx-2" style="cursor: pointer;">
-              <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px;"
+            <a data-bs-toggle="modal" data-bs-target="#Modal{{deck.id}}" class="mx-2" style="cursor: pointer; text-decoration: none;">
+              <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="Share">
             </a>
             <!------- DOWNLOAD CSV ------->
-            <a href="/downloadascsv/{{deck.id}}" class="mx-2">
-              <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px;"
+            <a href="/downloadascsv/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
+              <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="Download as CSV">
             </a>
-            <a href="/build_test/{{deck.id}}" class="mx-2">
-              <img src="\static\exam-test-icon.png" alt="Build test" style="max-width:30px;max-height:30px;"
+            <a href="export_deck/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
+              <img src="\static\anki-icon.png" alt="Export to Anki" style="max-width:30px;max-height:30px; text-decoration: none;"
+                class="px-1" title="Export to Anki">
+            </a>
+            <a href="/build_test/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
+              <img src="\static\exam-test-icon.png" alt="Build test" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="Build test">
             </a>
             <!-------- SEE SOURCE DOCS ---->
-            <a href="/sea_dox/{{deck.id}}" class="mx-2">
-              <img src="\static\data-sources-icon.png" alt="See source docs" style="max-width:30px;max-height:30px;"
+            <a href="/sea_dox/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
+              <img src="\static\data-sources-icon.png" alt="See source docs" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="See source docs">
             </a>
             <!----- DECK DETAILS ------>
-            <a data-bs-toggle="modal" data-bs-target="#infoDecksModal{{deck.id}}" class="mx-2" style="cursor: pointer;">
+            <a data-bs-toggle="modal" data-bs-target="#infoDecksModal{{deck.id}}" class="mx-2" style="cursor: pointer; text-decoration: none;">
               <img src="\static\information-mark-circle-outline-icon.png" alt="Info"
-                style="max-width:30px;max-height:30px;" class="px-1" title="Info">
+                style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1" title="Info">
             </a>
-            
+
             <!--------- DELETE DECK ------>
-            <a href="#" class="mx-2"
+            <a href="#" class="mx-2"  style="cursor: pointer; text-decoration: none;"
               onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{deck.id}}'; }">
-              <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class="px-1"
+              <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1"
                 title="Delete deck">
             </a>
           </td>
@@ -276,16 +291,16 @@
           <div class="col-sm-6">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title">{{deck.name}}</h5>
+                <h5 class="card-title" >{{deck.name}}</h5>
                 <p class="card-text">{{deck.sender}}</p>
                 <a id="approve{{deck.id}}" onclick="approveSharedDeck(event, {{deck.id}})" class="mx-2"
-                  style="cursor: pointer;">
+                style="cursor: pointer; text-decoration: none;">
                   <img src="\static\approve-accept-icon.png" alt="See source docs"
                     style="max-width:30px;max-height:30px;" class="px-1" title="Approve">
                 </a>
 
                 <a id="reject{{deck.id}}" class="mx-2" onclick="rejectSharedDeck(event, {{deck.id}})"
-                  style="cursor: pointer;">
+                style="cursor: pointer; text-decoration: none;">
                   <img src="\static\remove-cross-icon.png" alt="Reject" style="max-width:30px;max-height:30px;"
                     class="px-1" title="Reject">
                 </a>
@@ -363,7 +378,7 @@
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="testModalLabel">Shared Decks</h5>
+        <h5 class="modal-title" id="testModalLabel">Tests</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -381,7 +396,7 @@
                 <p class="card-text">Number of questions: {{test.num_questions}}</p>
                 <p class="card-text">Instructions: {{test.instructions}}</p>
                 <a href="/take_test/{{test.id}}/{{user.id}}" class="mx-2" style="cursor: pointer;">
-Click here to take the test
+                  Click here to take the test
                 </a>
 
 

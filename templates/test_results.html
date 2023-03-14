@@ -4,7 +4,14 @@
 
 {% block main_0 %}
 
-{{ results.points}}
+<a href="/viewdecks">
+    <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
+      class="m-3" title="Return to decks">
+  </a>
 
 
+<div class = "col box_study m-5 d-flex justify-content-center">
+Your score: {{results.points}} / {{test.points}}
+
+</div>
 {% endblock %}

@@ -17,11 +17,12 @@ import tiktoken
 import io
 import textwrap
 from reportlab.lib.pagesizes import letter
-from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
+from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices, new_prompt_choices
 from bs4 import BeautifulSoup
 import requests
 from pylatexenc.latex2text import LatexNodes2Text
 import re
+from helpers import split_text
 
 encoding = tiktoken.get_encoding('gpt2')
 
@@ -34,85 +35,105 @@ encoding = tiktoken.get_encoding('gpt2')
 def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, trans_option: str = None, lang_option: str = None, 
                   len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     print("entered extract term function")
-    print(prompt_option)
-    print(prompt_option2)
-    print(lang_option)
-    print(trans_option)
-    print(len_option)
-    print(qmin_option)
-    print(qmax_option)
-    
-    ## get prompt choice
-    prompt_select = prompt_choices[prompt_option]
-    ## get prompt chocie 2
-    if prompt_option2 != None:
-        c2 = "related to the subject of " + prompt_choices2[prompt_option2]
-    else:
-        c2 = ""
-    ## get language
-    if lang_option != None:
-        lang = lang_choices[lang_option]
-    else:
-        lang = ""
-    ## get len_option
-    if len_option:
-        length = len_choices[len_option]
-    else:
-        length = ""
+    print(prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+    retries = 0
+    while retries < 3:
+        print("attempt:", retries)
+        try:
 
-    if qmin_option:
-        qmin = "at least " + qmin_option 
-    else:
-        qmin = "all"
-    if qmax_option:
-        qmax = ", and at most " + qmax_option
-    else:
-        qmax = ""
-    if prompt_option2:    
-        option_2 = prompt_choices2[prompt_option2]
-    elif trans_option:
-        option_2 = trans_option
-    
-    option_1 = f"You are a helpful teacher who wants to help students learn {prompt_option2}."
-    if prompt_option not in prompt_choices:
-        raise ValueError("Invalid prompt option")
-    prompt_select = prompt_select.replace('{qmin}', qmin)
-    prompt_select = prompt_select.replace('{c2}', c2)
-    prompt_select = prompt_select.replace('{qmax}', qmax)
-    prompt_select = prompt_select.replace('{length}', length)
-    prompt_select = prompt_select.replace('{lang}', lang)
+            ## get prompt choice
+            prompt_select = prompt_choices[prompt_option]
+            ## get prompt chocie 2
+            if prompt_option2 != None:
+                c2 = "related to the subject of " + prompt_choices2[prompt_option2]
+            else:
+                c2 = ""
+            ## get language
+            if lang_option != None:
+                lang = lang_choices[lang_option]
+            else:
+                lang = ""
+            ## get len_option
+            if len_option:
+                length = len_choices[len_option]
+            else:
+                length = ""
 
-    if trans_option != None:
-        print(prompt_select)
-        prompt_select = prompt_select.replace('{option_2}', option_2)
-    print("TEXT TO BE SENT TO OPEN AI")
-    print(text)
-    prompt = (prompt_select + text + 'The JSON object: \n')
+            if qmin_option:
+                qmin = "at least " + qmin_option 
+            else:
+                qmin = "all"
+            if qmax_option:
+                qmax = ", and at most " + qmax_option
+            else:
+                qmax = ""
+            if prompt_option2:    
+                option_2 = prompt_choices2[prompt_option2]
+            elif trans_option:
+                option_2 = trans_option
+
+            option_1 = f"You are a helpful teacher who wants to help students learn {prompt_option2}."
+            if prompt_option not in prompt_choices:
+                raise ValueError("Invalid prompt option")
+            prompt_select = prompt_select.replace('{qmin}', qmin)
+            prompt_select = prompt_select.replace('{c2}', c2)
+            prompt_select = prompt_select.replace('{qmax}', qmax)
+            prompt_select = prompt_select.replace('{length}', length)
+            prompt_select = prompt_select.replace('{lang}', lang)
+
+            if trans_option != None:
+                print(prompt_select)
+                prompt_select = prompt_select.replace('{option_2}', option_2)
+            print("TEXT TO BE SENT TO OPEN AI")
+            print(text)
+            prompt = (prompt_select + text + 'The JSON object: \n')
+            response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                            {"role": "system", "content": option_1},
+                            {"role": "user", "content": prompt},
+                        ]
+                    )
+
+
+            response_ = response['choices'][0]['message']['content'].strip()
+            print(response_)
+
+            if prompt_option == "Cloze":
+                response_ = add_underscores(response_)
+            byte_string = response_.encode('utf-8')
+            x = byte_string.decode('utf-8')
+            ##x = extract_data(x)
+            print(x)
+            x = json.loads(x)
+
+            return x, prompt, response, x
+        except Exception as e:
+            retries += 1
+            print(f"Error: {e}. Retrying ({retries}/3)")
+   
+
+##def extract_data(string):
+   ## pattern = r'\$@\$(.+?)\$\$.*?@\$(.+?)@@'
+   ## matches = re.findall(pattern, string, re.DOTALL)
+   ## result = [{"Key": k.strip(), "Value": v.strip()} for k, v in matches]
+  ##  return json.dumps(result)
+
+
+def insert_paragraph(text):
+    prompt = "Go through the following block of text and insert '&-&-&' where you think a paragraph break should be. \n  block of text: \n" + text + "\n The JSON object: \n"
     response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                    {"role": "system", "content": option_1},
+                    {"role": "system", "content": "You are an expert at the written word"},
                     {"role": "user", "content": prompt},
                 ]
             )
-    
-    response_ = response['choices'][0]['message']['content'].strip()
-    ###if prompt_option == "Formulas":
-      ##  print("entered formulas")
-       ## print(response_)
-        ##response_ = double_backslashes(response_)
-       ## response_ = json.dumps(response_)
-      ##  print(response)
-    
-    if prompt_option == "Cloze":
-        response_ = add_underscores(response_)
-    byte_string = response_.encode('utf-8')
-    x = byte_string.decode('utf-8')
+    x = response['choices'][0]['message']['content']
+    print(x)
+    return x
 
-    x = json.loads(x)
- 
-    return x, prompt, response, x
-   
+
 
 
 def render_latex(latex_code):
@@ -181,8 +202,9 @@ def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, l
             api_counter = api_counter + 1
             print("api call number: " + str(api_counter))
             response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
-            for dict in response[0]:
-                ls_terms.append(dict)
+            if response[0] != None:
+                for dict in response[0]:
+                    ls_terms.append(dict)
             print("finished large extract term function")
             print("API calls: " + str(api_counter))
         print(ls_terms)
@@ -236,7 +258,17 @@ def transcribe_whisper(audio_file):
     audio_file= open(audio_file, "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
     transcript = transcript["text"]
-    return transcript
+    
+    ## split text up into element of at most 3000 tokens
+    split_transcript = split_text(transcript, 3000)
+    ## insert paragraphs
+    formatted_transcript = ""
+    for item in split_transcript:
+        x = insert_paragraph(item)
+        formatted_transcript = formatted_transcript + x
+    print("----------------------FORMATTED TRANSCRIPT------------------------")
+    print(formatted_transcript)
+    return formatted_transcript
 
 ## REGENERATE A DEFINITION
 def regenerate_def(term):

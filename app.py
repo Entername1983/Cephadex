@@ -30,6 +30,9 @@ import datetime as dt
 from flask_migrate import Migrate
 import urllib.parse
 from urllib.parse import unquote
+from helpers import remove_punctuation
+import difflib
+from anki import anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes
 
 
 
@@ -114,7 +117,9 @@ class User(db.Model, UserMixin):
     external_type = db.Column(db.String(255), nullable=True)
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     time_accessed= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
     test= db.relationship('Test', secondary=distribution, backref ="taker")
+    
     account_type = db.Column(db.String(255), nullable=True, default="free")
     account_status = db.Column(db.String(255), nullable=True, default="active")
     account_expiration = db.Column(db.DateTime, nullable=True)
@@ -570,7 +575,7 @@ class Test(db.Model):
         for questions in self.questions:
             sum = sum + questions.points
         self.points = sum
-        return sum
+
     
     def count_questions(self):
         ##count the number of questions in test
@@ -613,8 +618,15 @@ class TestResult(db.Model):
     points = db.Column(db.Integer)
     correct = db.Column(db.Integer)
     blank = db.Column(db.Integer)
-
-
+    
+    def sum_points(self):
+        sum = 0
+        question_results = QuestionResult.query.filter_by(test_id=self.test_id, taker=self.taker).all()
+        for questions in question_results:
+            if questions.points == None:
+                questions.points = 0
+            sum = sum + questions.points
+        self.points = sum
 
           
 class RegSub(FlaskForm):
@@ -624,10 +636,6 @@ class RegSub(FlaskForm):
     conf_email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Confirm Email"})        
     submit = SubmitField('Subscribe')
     
-
-
-
-
       
 class RegisterForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
@@ -1383,8 +1391,6 @@ def delete_account():
         flash("We'are sorry to see you go. Your account has been deleted.")
     return redirect(url_for('logout'))
 
-
-## USING FOR EXPERIMENTATION
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract():
@@ -1701,6 +1707,10 @@ def feedback():
 
     return render_template('index.html', title='Index')
 
+
+
+
+
 @app.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
 def build_test(deck_id):
     deck = Deck.query.get_or_404(deck_id)
@@ -1708,59 +1718,43 @@ def build_test(deck_id):
     
     if request.method == "POST":
         test_questions = request.form.getlist('selected_cards[]')
+        name = deck.name + " Test" + " " + str(datetime.now())
         new_test = Test(creator=current_user.id)
         db.session.add(new_test)
+
+        new_test.name = name
         for question in test_questions:
             card = Card.query.get_or_404(question)
             question = Question()
             db.session.add(question)
             question.points = int(1)
+            question.content = card.content
+            question.term = card.term
+            question.prompt_option = card.prompt_option
             if card.category == "Mcq":
                 question.question = card.term
-                question.term = card.term
-                question.content = card.Content
                 question.boc_2 = card.boc_2
                 question.boc_3 = card.boc_3
                 question.boc_4 = card.boc_4
-                question.prompt_option = card.prompt_option
                 question.q_type = "mcq"
-                
-                
             elif card.category == "Cloze":
                 question.question = card.term
-                question.term = card.term
-                question.content = card.content
-                question.prompt_option = card.prompt_option
                 question.q_type = "cloze"
-       
             else:
                 ## switching them around so that the test gives them a definition and they have to write the word
-                question.term = card.term
-                question.content = card.content
                 question.question = card.content
-                question.prompt_option = card.prompt_option
                 question.q_type = "jeopardy"
-    
             db.session.add(question)
             new_test.questions.append(question)
-        print(new_test.questions)
         db.session.commit()
-        print("NEW TEST ID")
-        print(new_test.id)
         return redirect('/assign_test/{test.id}'.format(test=new_test))
-    
-    
-    
-    
-    
-    return render_template('build_test.html', title='Test Builder', deck=deck, creator=creator)
 
+    return render_template('build_test.html', title='Test Builder', deck=deck, creator=creator)
 
 @app.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
 def assign_test(test_id):
         test = Test.query.get_or_404(test_id)
-        print(test.questions)
-        
+        print(request.form)
         if request.method == 'POST' and 'test-name' in request.form:
             print("entered post request3")
             test.name= request.form['test-name']
@@ -1774,8 +1768,6 @@ def assign_test(test_id):
             test.instructions = request.form['instructions']
             test.description = request.form['description']
             test.time_limit = request.form['time-limit']
-            test.count_questions()
-            print(test.count_questions())
             answer_reveal = request.form.get('answer-reveal', False)
             result_reveal = request.form.get('result-reveal', False)
             shuffle = request.form.get('shuffle', False)
@@ -1785,11 +1777,12 @@ def assign_test(test_id):
                 test.result_reveal = True
             if shuffle == 'shuffle':
                 test.shuffle = True
+            test.count_questions()
+            test.sum_points()
             db.session.commit()
-
+            return jsonify({'success': True}), 200
+        
         return render_template('assign_test.html', title='Assign test', test=test, )
-    
-    
     
 @app.route('/update_card', methods=['POST'])
 def update_card():
@@ -1797,35 +1790,45 @@ def update_card():
     question_id = request.form['question-id']
     question = Question.query.get(question_id)
     question.question = request.form['question']
-    question.term = request.form['answer']
     question.points = request.form['points']
-    print(question_id)
     print(question.points)
+    category = request.form['category']
+    question.term = request.form['answer']
+    print(request.form)
+    if category == 'mcq':
+        print("recognized mcq")
+        question.boc_2 = request.form['boc_2']
+        question.boc_3 = request.form['boc_3']
+        question.boc_4 = request.form['boc_4']
+        
+    
     db.session.commit()
     return jsonify(success=True)
-
-
 
 
 @app.route("/delete_question/<int:test_id>/<int:question_id>", methods = ["POST", "GET"])
 @login_required
 def delete_question(test_id, question_id):
     question_to_delete = Question.query.get_or_404(question_id)
-
     db.session.delete(question_to_delete)
     db.session.commit()
     return redirect(('/assign_test/{test_id}'.format(test_id = test_id)))
 
-
-
+@app.route("/delete_test/<int:test_id>/", methods = ["POST", "GET"])
+@login_required
+def delete_test(test_id):
+    test_to_delete = Test.query.get_or_404(test_id)
+    db.session.delete(test_to_delete)
+    db.session.commit()
+    return redirect('/test_results_overview/')
 
 
 @app.route("/assign/<int:test_id>/<string:user_email>/", methods=["GET", "POST"])
 def assign(test_id, user_email):
-    print("entered assign")
     test = Test.query.filter_by(id=test_id).first()
+    test.count_questions()
+    test.sum_points()
     sender = current_user
-    
     if check_comma_list(user_email):
         print(user_email)
         users_emails = user_email.split(",")
@@ -1844,49 +1847,314 @@ def assign(test_id, user_email):
 
 @app.route("/take_test/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 def take_test(test_id, user_id):
+    test_result = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
     test = Test.query.get_or_404(test_id)
-    taker = User.query.get_or_404(user_id)
-    print("check")
-    if request.method == 'POST':
-        print("method is post")
-        for question in test.questions:
-            print(question.id)
-            question_id = question.id
-            to_call = "answer"+str(question_id)
-            print(to_call)
-            answer = request.form.get(to_call, '')
-            answer = answer.strip()
-            result = QuestionResult(test_id = test.id, taker = current_user.id, question_id = question.id, answer = answer)
-            db.session.add(result)
+    if test_result is None:
+        start_time = datetime.now()
+        test_result = TestResult(test_id = test_id, taker = user_id, start_time = start_time, creator=test.creator)
+        taker = User.query.get_or_404(user_id)
+        db.session.add(test_result)
+        if request.method == 'POST':
+            for question in test.questions:
+                question_id = question.id
+                to_call = "answer"+str(question_id)
+                answer = request.form.get(to_call, '')
+                answer = answer.strip()
+                result = QuestionResult(test_id = test.id, taker = current_user.id, question_id = question.id, answer = answer)
+                db.session.add(result)
+                db.session.commit()
+            end_time = request.form.get('end-time')
+            end_time = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+            test_result.end_time = end_time
             db.session.commit()
-        return redirect('/test_results/{test_id}/{user_id}'.format(test_id = test_id, user_id = user_id))
-
-
-    return render_template('take_test.html', test=test, taker=taker)
-
+            return redirect('/test_results/{test_id}/{user_id}'.format(test_id = test_id, user_id = user_id))
+        return render_template('take_test.html', test=test, taker=taker, start_time = start_time)
+    else:
+        test.taker.remove(current_user)
+        db.session.commit()
+        flash('you have already taken this test', 'danger')
+        return redirect('/test_results_overview/')
 
 @app.route("/test_results/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
-def test_results(test_id, user_id):
-    test = Test.query.get_or_404(test_id)
-    taker = User.query.get_or_404(user_id)
-    results = QuestionResult.query.filter_by(test_id = test_id, taker = user_id).all()
-    test_result = TestResult()
-    print("TEST RESULT")
-    print(test_result.id)
-    test_result = TestResult(test_id = test_id, taker = user_id)
+def test_results(test_id, user_id):       
     point_counter = 0
     correct_counter = 0
+    test = Test.query.get_or_404(test_id)
+    creator = test.creator
+    taker = User.query.get_or_404(user_id)
     for question in test.questions:
         answer = QuestionResult.query.filter_by(test_id = test_id, taker = user_id, question_id = question.id).first()
-        if answer.answer == question.content:
+        answer_given = remove_punctuation(answer.answer).lower().strip()
+        if question.q_type == "jeopardy":
+            answer_expected = remove_punctuation(question.term).lower().strip()
+        elif question.q_type == "cloze":
+            answer_expected = remove_punctuation(question.content).lower().strip()
+        elif question.q_type == "mcq":
+            answer_expected = remove_punctuation(question.content).lower().strip()
+        print(answer_given, answer_expected)
+        matcher = difflib.SequenceMatcher(None, answer_given.lower(), answer_expected.lower())
+        if matcher.ratio() > 0.9:
             point_counter += question.points
             correct_counter += 1
-    test_result = TestResult(test_id= test_id, taker = user_id, points = point_counter, correct = correct_counter)
+            answer.points = int(question.points)
+        else:
+            answer.points = 0
+        if not answer.points:
+            answer.points = 0
+    test = db.session.query(Test).filter_by(id=test_id).first()
+    test_result = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
+    test_result.points = point_counter
+    test_result.correct = correct_counter
+    test_result.correct = creator
+    taker = current_user
+    if taker in test.taker:
+        test.taker.remove(taker)
     db.session.add(test_result)
     db.session.commit()
+    return render_template('test_results.html', test=test, taker=taker, results=test_result)    
+
+
+
+@app.route("/test_results_overview/", methods=["GET", "POST"])
+def test_results_overview():
+    user = current_user
+    
+    tests_created = Test.query.filter_by(creator = user.id).all()
+    ## results of tests taken
+    test_results_taken = TestResult.query.filter_by(taker = user.id).all()
+    ## results of tests given
+    for test_results in test_results_taken:
+        print(test_results.test_id)
+    test_results_given = TestResult.query.filter_by(creator = user.id).all()
+    tests = []
+    for result in test_results_taken:
+        test = Test.query.filter_by(id=result.test_id).first()
+        tests.append(test)
+    ## if the test has been deleted and there are are no results for user then delete
+    for test in test_results_given:
+        exist_test = Test.query.filter_by (id = test.test_id).first()
+        if not exist_test:
+            if not test.taker:
+                db.session.delete(test)
+                db.session.commit()
+
+    return render_template('test_results_overview.html', taken = test_results_taken, given = test_results_given, created = tests_created,tests=tests)
+
+@app.route("/test_result_details/<int:test_id>/", methods=["GET", "POST"])
+def test_result_details(test_id):
+    results = TestResult.query.filter_by(test_id = test_id).all()
+    test = Test.query.filter_by(id = test_id).first()
+    # Get the list of taker ids from the TestResult objects
+    taker_ids = [result.taker for result in results]
+
+    # Filter the User objects by the taker ids
+    takers = User.query.filter(User.id.in_(taker_ids)).all()
+    print(takers)
+
+    return render_template('test_result_details.html', results = results, test = test, takers = takers)
+@app.route("/test_created/<int:test_id>/", methods=["GET", "POST"])
+def test_created(test_id):
+    test = Test.query.get_or_404(test_id)
+    if request.method == 'POST' and 'test-name' in request.form:
+        test.name= request.form['test-name']
+        test.creator = current_user.id
+        due_date = request.form.get('due-date')
+        if due_date:
+            due_date = dt.datetime.strptime(due_date,'%Y-%m-%dT%H:%M')
+            test.due_date = due_date
+        test.subject = request.form['subject']
+        test.topic = request.form['topic']
+        test.instructions = request.form['instructions']
+        test.description = request.form['description']
+        test.time_limit = request.form['time-limit']
+        answer_reveal = request.form.get('answer-reveal', False)
+        result_reveal = request.form.get('result-reveal', False)
+        shuffle = request.form.get('shuffle', False)
+        if answer_reveal == 'answer-reveal':
+            test.answer_reveal = True
+        if result_reveal == 'result-reveal':
+            test.result_reveal = True
+        if shuffle == 'shuffle':
+            test.shuffle = True
+        test.count_questions()
+        test.sum_points()
+        db.session.commit()
+    return render_template('test_created.html', test=test)
+   
+@app.route("/test_result/<int:result_id>/", methods=["GET", "POST"])
+def test_result(result_id):
+    result = TestResult.query.filter_by(id = result_id, taker = current_user.id).first()
+    print(result)
+    print(result.test_id)
+    test = Test.query.filter_by(id = result.test_id).first()
+
+    return render_template('test_result.html', result=result, test=test)
+
+
+
+@app.route("/test_answers/<int:test_id>/<int:taker_id>/", methods=["GET", "POST"])
+def test_answers(test_id, taker_id):
+    test = Test.query.filter_by(id = test_id).first()
+    result = TestResult.query.filter_by(test_id = test_id, taker = taker_id).first()
+    question_results = QuestionResult.query.filter_by(test_id = test.id, taker=taker_id).all()
+    result.sum_points()  
+
+            
+    if result.creator != current_user.id:
+        flash('you are not allowed to view this page', 'danger')
+        return redirect('/test_results_overview/')
+    else:
+        if request.method == "POST":
+            for question_result in question_results:
+                question_points_id = 'points' + str(question_result.id)
+                points_entered = int(request.form.get(question_points_id))
+
+                question_result.points = int(points_entered)
+                for question in test.questions:
+                    if question_result.points == question.points:
+                        question_result.correct = True
+            result.sum_points()        
+            db.session.commit()
+            
+        
+        return render_template('test_answers.html', result=result, question_results=question_results, test=test)
     
     
-    return render_template('test_results.html', test=test, taker=taker, results=results)
+@app.route("/test_print/<int:test_id>/", methods=["GET", "POST"])
+def test_print(test_id):
+    test = Test.query.filter_by(id = test_id).first()
+    return render_template('test_print.html', test=test)
+
+
+@app.route("/sea_source/<int:file_id>/", methods=["GET", "POST"])
+def sea_source(file_id):
+    source = DeckFiles.query.filter_by(id = file_id).first()
+    source1 = split_string(source.text_string)
+    
+    return render_template('sea_source.html', source=source1, file=source)
+
+
+
+
+@app.route("/import_deck/", methods=["GET", "POST"])
+def import_deck():
+    print(request.form)
+    ## IMPORT ALL DECKS FROM ANKI
+    if request.method == "POST" and "import-all" in request.form:
+        print("entered import all")
+        decks = anki_import_all()
+        decks = json.loads(decks)
+        for deck in decks:
+            for key, value in deck.items():
+                if value != []:
+                    deck_name = key
+                    description = "anki import"
+                    deck = Deck(name = deck_name, description = description, user_id = current_user.id)
+                    db.session.add(deck)
+                    db.session.commit()
+                    ##print(f"Deck name: {key}")
+                    ##print(f"Cards: {value}")
+                    for i in range(len(value)):
+                        for j in range(len(value[i])):
+                            card = value[i][j]
+                            cardId = card['cardId']
+                            content = card['fields']['Back']['value']
+                            term = card['fields']['Front']['value']
+                            interval = card['interval']*1440
+                            entry = Card(term = term, content = content, interval = interval)
+                            db.session.add(entry)
+                            deck.cards.append(entry)
+                    print(deck)
+                    db.session.commit()
+        flash("Decks imported", "success")
+        return redirect(url_for('viewdecks'))
+    
+    if request.method == "POST" and "import-by-name" in request.form:
+        deck_names = request.form['deck-name']
+        if check_comma_list(deck_names):
+            deck_names = deck_names.split(",")
+            for name in deck_names:
+                deck = anki_import_deck(name)
+                deck = json.loads(deck)
+                cards = deck[0][name]
+                description = "anki import"
+                deck = Deck(name = name, description = description, user_id = current_user.id)
+                db.session.add(deck)
+                db.session.commit()
+                for i in range(len(cards)):
+                    card = cards[i][0]
+                    print(card)
+                    cardId = card['cardId']
+                    content = card['fields']['Back']['value']
+                    term = card['fields']['Front']['value']
+                    interval = card['interval']*1440
+                    entry = Card(term = term, content = content, interval = interval)
+                    db.session.add(entry)
+                    deck.cards.append(entry)
+                db.session.commit()
+        else:
+            deck = anki_import_deck(deck_names)
+            deck = json.loads(deck)
+            deck_name = deck_names
+            cards = deck[0][deck_name]
+            description = "anki import"
+            deck = Deck(name = deck_name, description = description, user_id = current_user.id)
+            db.session.add(deck)
+            db.session.commit()
+            for i in range(len(cards)):
+                card = cards[i][0]
+                print(card)
+                cardId = card['cardId']
+                content = card['fields']['Back']['value']
+                term = card['fields']['Front']['value']
+                interval = card['interval']*1440
+                entry = Card(term = term, content = content, interval = interval)
+                db.session.add(entry)
+                deck.cards.append(entry)
+                
+            db.session.commit()
+        flash("Decks imported", "success")
+        return redirect(url_for('viewdecks'))
+            
+    return render_template('import_deck.html')
+
+
+@app.route("/export_deck/<int:deck_id>/", methods=["GET", "POST"])
+@login_required
+def export_deck(deck_id):
+    deck = Deck.query.get_or_404(deck_id)
+    if deck.user != current_user:
+        flash('you are not allowed to view this page', 'danger')
+        return redirect('/home/')
+    cards = deck.cards
+    anki_create_deck(deck.name)
+    for card in cards:
+        query = card.term
+        notes = find_notes(query)
+        print(notes)
+        if notes == False:
+            interval = str(int(card.interval/1440))
+            anki_create_card(deck.name, card.term, card.content)
+    flash("Deck exported", "success")
+    return redirect(url_for('viewdecks'))
+
+
+
+
+
+
+
+
+
+
+
+###################### TO BE REORGANIZED ###############################################################################################
+
+
+def split_string(string):
+    items = string.split("&-&-&")
+    return items
+
 
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    

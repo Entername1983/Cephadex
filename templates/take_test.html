@@ -1,40 +1,214 @@
+{% set q_counter = 0 %}
 {% extends "layout.html" %}
+
+
+
+
 
 {% block title %} Test {% endblock %}
 
 {% block main_0 %}
+
+{% if test.time_limit %}
+
+<div class="row fixed-top d-flex justify-content-center"
+    style="background-color: rgba(29, 113, 186); margin-top: 75px;">
+    <div class = "row">
+        <div class = "col-4">
+            <h5>Test name: {{ test.name }}</h5></div>
+            <div class = "col-4"> <h5>Time allowed: {{test.time_limit}}</h5></div>
+            <div class = "col-4">  <h5 class="d-flex justify-content-center" id="timer"></h5></div>
+    </div>
+</div>
+
+<script>
+    const timer = document.querySelector('#timer');
+    const duration = {{test.time_limit}}* 60;
+    console.log(duration);
+    function updateTimer() {
+        const remainingTime = Math.max(duration - Math.floor((new Date() - startTime) / 1000), 0);
+        console.log(remainingTime)
+        const minutes = Math.floor(remainingTime / 60);
+        console.log(minutes)
+        const seconds = Math.floor(remainingTime % 60).toString().padStart(2, '0');
+        console.log(seconds)
+        timer.textContent = `${minutes}:${seconds}`;
+        if (remainingTime <= 0) {
+            clearInterval(timerInterval);
+            timer.textContent = 'Time is up!';
+            document.querySelector('#my-form').submit(); // submit the form when the timer expires
+        }
+    }
+    const startTime = new Date();
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+</script>
+
+{% endif %}
+
+
+
+
+
 <div class="container">
-    {{ test.name }} {{test.points}}
+    <div class="row mx-auto">
+        <h3>{{ test.name }} {{test.points}}</h3>
+    </div>
+    <form id="my-form" method="POST" onsubmit="captureEndTime()">
+        <input type="hidden" name="start-time" value="{{ start_time }}">
+        <input type="hidden" name="end-time" va lue="">
+        <div class="container box_study">
+            {% for question in test.questions %}
 
-    <form id="my-form" method = "POST" >
-        {% for question in test.questions %}
-        {% if question.q_type == "jeopardy" %}
+            {% set q_counter = loop.index %}
 
-        <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
-        <div class="card">
-            <div class="card-head">
-                <div class="row">
-                    <div class="col-10">
-                        {{question.question}}
+      
+            {% if question.q_type == "jeopardy" %}
+
+            <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
+            <div class="card">
+                <div class="card-head">
+                    <div class="row p-1">
+                        <div class="col-10 ">
+                            {{q_counter}} - {{question.question}}
+                        </div>
+                        <div class=" col-2">
+                            Marks: {{question.points}}
+                        </div>
                     </div>
-                    <div class="col-2">
-                        {{question.points}}
+                </div>
+
+                <div class="card-body">
+                    <label for="answer{{question.id}}">Answer:</label>
+                    <input type="text" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                </div>
+            </div>
+            {% elif question.q_type == "cloze" %}
+
+            <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
+            <div class="card">
+                <div class="card-head">
+                    <div class="row p-1">
+                        <div class="col-10 ">
+                            {{q_counter}} - {{question.question}}
+                        </div>
+                        <div class="col-2 ">
+                            Marks: {{question.points}}
+                        </div>
                     </div>
+                </div>
+
+                <div class="card-body">
+                    <label for="answer{{question.id}}">Answer:</label>
+
+                    <input type="text" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
                 </div>
             </div>
 
-            <div class="card-body">
-                <input type="text" id="answer{{question.id}}" name="answer{{question.id}}">
+
+
+
+            {% elif question.q_type == "mcq" %}
+            <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
+            <div class="card">
+                <div class="card-head">
+                    <div class="row p-1">
+                        <div class="col-10">
+                            <h4 class="m-1"> {{q_counter}} - {{question.question}}</h4>
+                        </div>
+                        <div class="col-2 ">
+                            Marks: {{question.points}}
+                        </div>
+                    </div>
+                </div>
+                <div class="row my-1">
+                    <div class=" d-flex align-items-center justify-content-center">
+                        <button class="btn box_study  form-control answer-button{{question.id}}" style="width: 100%"
+                            id="A-btn{{question.id}}">A</button>
+                    </div>
+                </div>
+                <div class="row my-1">
+                    <div class=" d-flex align-items-center justify-content-center">
+                        <button class="btn box_study form-control answer-button{{question.id}}"
+                            id="B-btn{{question.id}}" style="width: 100%">B</button>
+                    </div>
+                </div>
+
+                <div class="row my-1">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <button class="btn box_study form-control answer-button{{question.id}}" style="width: 100%"
+                            id="C-btn{{question.id}}">C</button>
+                    </div>
+                </div>
+                <div class="row my-1">
+                    <div class=" d-flex align-items-center justify-content-center">
+                        <button class="btn box_study form-control answer-button{{question.id}}" style="width: 100%"
+                            id="D-btn{{question.id}}">D </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <input type="hidden" id="answer{{question.id}}" name="answer{{question.id}}">
+                </div>
+
+
+                <script>
+                    const answers{{ question.id }} =["{{question.content}}", "{{question.boc_2}}", "{{question.boc_3}}", "{{question.boc_4}}"];
+                    function shuffle(array) {
+                        for (let i = array.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [array[i], array[j]] = [array[j], array[i]];
+                        }
+                        return array;
+                    }
+                    const shuffledAnswers{{ question.id }} = shuffle(answers{{ question.id }});
+                    const answer_buttons{{ question.id }} = document.querySelectorAll('.answer-button{{question.id}}');
+                        //const buttons = document.querySelectorAll('.answer-button'+{{ question.id }});
+                    answer_buttons{{ question.id }}.forEach((button, index) => {
+
+                        button.innerText = shuffledAnswers{{ question.id }}[index];
+                        button.value = shuffledAnswers{{ question.id }}[index];
+                    });
+                    const answerInput{{ question.id }} = document.querySelector(`#answer{{question.id}}`);
+                    const buttons_to_deselect{{ question.id }} = document.querySelectorAll('#A-btn{{question.id}}, #B-btn{{question.id}}, #C-btn{{question.id}}, #D-btn{{question.id}}');
+                    console.log(buttons_to_deselect{{ question.id }})
+
+                    answer_buttons{{ question.id }}.forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            event.preventDefault();
+                    answerInput{{ question.id }}.value = button.value;
+                            console.log(answerInput{{ question.id }}.value)
+                        const buttonA = document.querySelector('#A-btn{{question.id}}');
+                        const buttonB = document.querySelector('#B-btn{{question.id}}');
+                        const buttonC = document.querySelector('#C-btn{{question.id}}');
+                        const buttonD = document.querySelector('#D-btn{{question.id}}');
+                        buttonA.classList.remove('selected');
+                        buttonB.classList.remove('selected');
+                        buttonC.classList.remove('selected');
+                        buttonD.classList.remove('selected');
+                        button.classList.add('selected')
+                    });
+            });
+                </script>
             </div>
+
+
+
+            {% endif %}
+            {% endfor %}
         </div>
-        {% endif %}
-        {% endfor %}
-        <input type="submit" value="Submit">
+        <div class="row box_study d-flex justify-content-end m-2">
+            <input class="form-control justify-content-end" type="submit" value="Submit test">
+        </div>
     </form>
 
 </div>
 
-
+<script>
+    function captureEndTime() {
+        const endTime = new Date();
+        document.getElementsByName('end-time')[0].value = endTime.toISOString();
+    }
+</script>
 
 
 

@@ -1,5 +1,5 @@
-{% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
-main_0 %}
+{% extends "layout.html" %}{% block title %} {{test.name}} {% endblock %}
+{% block main_0 %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const forms = document.querySelectorAll('.question-form');
@@ -42,13 +42,8 @@ main_0 %}
             });
 
         });
-
     });
 </script>
-
-
-
-
 <div class="col" id="collap">
     <div class="container">
         <div class="row">
@@ -283,7 +278,6 @@ main_0 %}
 </div>
 
 <!------- ASSIGN TEST MODAL -------->
-
 <script>
     function assignDeck(testId) {
         console.log('assignDeck')
@@ -295,7 +289,6 @@ main_0 %}
         window.location.href = url;
     }
 </script>
-
 <div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="#assignModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -308,15 +301,12 @@ main_0 %}
                     <div class="form-group my-2">
                         <label for="email">Email:</label>
                         <input type="email" class="form-control" id="assign-email" name="assign-email" required
-                            placeholder="Type receiver's email here (use commas for list)">
+                            placeholder="Type receiver's email here">
                     </div>
                     <button type="button" class="btn btn-primary" onclick="assignDeck('{{ test.id }}')">Assign</button>
-
                 </form>
             </div>
-
         </div>
     </div>
-</div>
 </div>
 {% endblock %}
