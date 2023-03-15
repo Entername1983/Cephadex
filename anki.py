@@ -37,7 +37,7 @@ def request_params(deckName, term, content, interval=None):
 
 def invoke(action, **params):
     requestJson = json.dumps(request(action, **params)).encode('utf-8')
-    response = json.load(urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8765/', requestJson)))
+    response = request_anki(requestJson)
     if len(response) != 2:
         raise Exception('response has an unexpected number of fields')
     if 'error' not in response:
@@ -76,7 +76,7 @@ def anki_create_card(deck_name, term, content):
     requestJson = json.dumps(payload).encode('utf-8')
     
     # Send the API request and handle errors
-    response = json.load(urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8765/', requestJson)))
+    response = request_anki(requestJson)
     print("anki json response", response)
     
 
@@ -153,10 +153,15 @@ def find_notes(query):
     }
     }
     payload = json.dumps(payload).encode('utf-8')
-    response = json.load(urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8765/', payload)))
+    response = request_anki(payload)
     print("Find notes", response)
     if response['result'] != []:
         print("matches found")
         return True
     else:
         return False
+
+
+def request_anki(payload):
+    response = json.load(urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8765/', payload)))
+    return response

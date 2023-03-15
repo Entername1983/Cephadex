@@ -7,7 +7,7 @@
 </script>
 <div class = "container" style="text-align:center">
 <h3 class="p-3 d-none d-md-block"> Generate cards in 3 easy steps!</h3>
-<h5 class="p-3 d-none d-sm-block"> Want to import decks from Anki?  Click <a href = "/import_deck/">here!</a></h5>
+<h6 class="p-3 d-none d-sm-block"> Looking to import decks from Anki?  Click <a href = "/import_deck/">here!</a></h6>
 </div>
 
 <div class="col-11 mx-auto box_0 my-3 p-4" style="border-radius: 5px;">
@@ -18,18 +18,18 @@
             <li class="nav-item " role="presentation">
                 <button class="nav-link active" id="extract-input-tab" data-bs-toggle="pill"
                     data-bs-target="#extract-input" type="button" role="tab" aria-controls="extract-input"
-                    aria-selected="true" style="font-size: 20px !important"> 1 - What goes in?</button>
+                    aria-selected="true" style="font-size: 20px !important" title="Enter the content you want processed here"> 1 - What goes in?</button>
             </li>
             <li class="nav-item " role="presentation">
                 <button class="nav-link" id="extract-output-tab" data-bs-toggle="pill"
                     data-bs-target="#extract-output" type="button" role="tab" aria-controls="extract-output"
-                    aria-selected="false" style="font-size: 20px !important"> 2 - What comes
+                    aria-selected="false" style="font-size: 20px !important" title="Choose what type of material you want to create here"> 2 - What comes
                     out?</button>
             </li>
             <li class="nav-item " role="presentation">
                 <button class="nav-link" id="extract-name-tab" data-bs-toggle="pill"
                     data-bs-target="#extract-name" type="button" role="tab" aria-controls="extract-name"
-                    aria-selected="false" style="font-size: 20px !important"> 3 - What it's
+                    aria-selected="false" style="font-size: 20px !important" title="Create a new deck, or add your content to an existing deck"> 3 - What's
                     called?</button>
             </li>
 
@@ -49,7 +49,7 @@
                                     <button type="button" class="btn" data-bs-toggle="collapse"
                                         data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
                                         style="width:100%">
-                                        Upload a file (ppt, pdf, doc, txt, mp3, or wav)
+                                        Upload a file
                                     </button>
                                 </h5>
                             </div>
@@ -61,6 +61,7 @@
                                     {{form.file(class="form-control form-control-lg box_study")}}
 
                                 </div>
+                                <i class = "d-flex justify-content-center"> Accepted formats: ppt, pdf, doc, txt, mp3, wav.  Feel free to put in a request if you're desired file type is not accepted.  </i>
                             </div>
                         </div>
                         <div class="card extract-boxes">
@@ -76,10 +77,11 @@
                                 data-bs-parent="#accordion">
                                 <div class="card-body extract-boxes1">
                                     {{form.text_input(class="form-control form-control-lg box_study full-w",
-                                    style="height:100%, width:100%" )}}
+                                    style="height:100%; width:100%; font-size:20px" )}}
 
 
                                 </div>
+                                
                             </div>
                         </div>
                         <div class="card extract-boxes">
@@ -88,7 +90,7 @@
                                     <button type="button" class="btn collapsed" data-bs-toggle="collapse"
                                         data-bs-target="#collapseThree" aria-expanded="false"
                                         aria-controls="collapseThree" style="width:100%">
-                                        Insert a link (youtube or wikipedia.  Can insert a list of comma seperated links)</button>
+                                        Insert a link</button>
                                 </h5>
                             </div>
                             <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
@@ -97,6 +99,7 @@
                                     {{form.link_input(class="form-control form-control-lg box_study")}}
 
                                 </div>
+                                <i class ="d-flex justify-content-center">Both wikipedia and youtube links are accepted.  If you would like to insert more than one link seperate them with a comma.</i>
                             </div>
                         </div>
                     </div>
@@ -119,11 +122,12 @@
                                 data-bs-parent="#accordion2">
                                 <div class="card-body extract-boxes1">
 
-                                    <p>
+                                    <div class = "row">
                                         {% for subfield in form.prompt %}
-                                        {{ subfield }} {{ subfield.label }}
+                                       <div class = "col-md-3 col-sm-6"> {{ subfield }} {{ subfield.label }} </div>
+                                     
                                         {% endfor %}
-                                    </p>
+                                    </div>
 
 
 
@@ -131,7 +135,12 @@
 
                                         {{form.languages (class="border-0 form-control-lg")}}
                                     </div>
+                                    <div class = "row d-flex justify-content-center">
 
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" style = "max-width:max-content"  data-bs-toggle="modal" data-bs-target="#promptInfoModal">
+Options explained  </button>
+  </div>
                                     <script type="text/javascript">
                                         $(document).ready(function () {
                                             $('input[name="prompt"]').change(function () {
@@ -155,7 +164,7 @@
                                     <button type="button" class="btn collapsed" data-bs-toggle="collapse"
                                         data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
                                         style="width:100%">
-                                        ADvanced options </button>
+                                        Advanced options </button>
                                 </h5>
                             </div>
                             <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
@@ -181,12 +190,16 @@
                                         {{ form.main_lang(class="form-control form-control-lg box_study")}}
                                     </div>
                                     <div class="row m-1">
-                                        <p> Generate images {{ form.generate_images}} (generating images can
-                                            significantly
-                                            affect processing time)</p>
+                                        <p> Generate images {{ form.generate_images}} </p>
                                     </div>
-
+                                    <div class = "row d-flex justify-content-center">
+                                   <!-- Button trigger modal --> 
+<button type="button" class="btn btn-primary" style = "max-width:max-content"  data-bs-toggle="modal" data-bs-target="#promptInfoAdvancedModal">
+    Options explained
+      </button></div>
                                 </div>
+                                
+
                             </div>
                         </div>
                     </div>
@@ -263,4 +276,71 @@
 
 
 </div>
+
+
+
+<!-- Prompt options modal-->
+<div class="modal fade" id="promptInfoModal" tabindex="-1" aria-labelledby="promptInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="promptInfoModalLabel">Main options explained:</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+<ul>
+<li><b>Definitions:</b> Our basic type of card, we will look for key terms in the content submitted and provide you with a definition for each.</li>
+<li><b>Multiple Choice Questions:</b>  One of our favourites, we look for the key ideas and provide you with multiple choice questions to test your understanding.</li>
+<li><b>Translate:</b>  Are you learning a new language?  This option will look for key terms and provide you with a translation.  Make sure to choose the language in which you want your content translated</li>
+<li><b>Formulas:</b>  For the quantitavely inclined.  This will look for any formula associated with the content and created a card with said formula as well as an explanation.</li>
+<li><b>Fill in the blanks:</b>  A great one for language learners, the name says it all.  We will select some key passages from the content and omit one or more words.</li>
+<li><b>Theories:</b>  More academically oriented, this option identifies key theories and concepts identified in the passage and creates a card with an explanation.</li>
+<li><b>Rhyme:</b>  Perhaps the most memorable way to learn.  We identify key terms in the text and create a short descriptive poem to ensure that you'll never forget it.</li>
+<li><b>Comprehension:</b>  Great for testing yourelf or students.  We create a bunch of questions that test your overall comprehension of the material.</li>
+<li><b>People:</b>  Are you passionate about biographical information?  This one is for you.  We identitify people named in the passage submitted and provide a short biography.</li>
+<li><b>Vocabulary builder:</b>  Another great one for language learners, like definitions but this time we are looking at every single word in the passage.</li>
+<li><b>Transcribe:</b>  Use this to transcribe an audio file or in combination with our language option to translate entire documents.</li>
+<li><b>Summarize:</b>  Have big documents or audio files that need to be summarized?  Use this option.  Note: not yet implemented</li>
+<li><b>Turn to notes:</b> Do you have an audio recording of a lecture?  Did you take notes but need them reorganized?  This option is for you.  Note: not yet implemented</li>
+</ul>       
+
+</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+ <!-- Prompt advanced options modal-->
+<div class="modal fade" id="promptInfoAdvancedModal" tabindex="-1" aria-labelledby="promptInfoAdvancedModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="promptInfoAdvancedModalLabel">Advanced options explained:</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+<ul>
+    <i> For advanced users who want to refine their results.</i>
+<li><b>Minimum items per page:</b> Sets a minimum amount of cards per page submitted.</li>
+<li><b>Minimum items per page:</b> Sets a maximum amount of cards per page submitted.</li>
+<li><b>Subject:</b> Are you trying to focus on a particular subject?  Choose this option to have the results be more specialized.</li>
+<li><b>Content length:</b>This will affect the amount of detail in the card produced.  For example you could choose whether you want brief definitions or lengthy ones.</li>
+<li><b>Output language:</b>Perhaps you want a term in English but the definition to be in another language?  In that case you can use this option.  <i>Note: it is not necessary to use this option if you are looking for regular translations</i></li>
+<li><b>Generate images:</b>We will generate an image for each card created.  <i>Note: this can significantly affect the time it takes to generate results. </i></li>
+
+</ul>       
+
+</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+        </div>
+      </div>
+    </div>
+  </div> 
 {% endblock %}

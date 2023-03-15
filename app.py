@@ -674,10 +674,10 @@ class ChangePassForm(FlaskForm):
 class UploadFileForm(FlaskForm):
     file = FileField("File")
     name = StringField("Deck name", render_kw={"placeholder": "Name your deck"})
-    description = StringField("Description", render_kw={"placeholder": "Describe your deck!"})
+    description = StringField("Description", render_kw={"placeholder": "Describe your deck"})
     submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Translate', 'Translate'), ('Rhyme', 'Rhyme'), ('People', 'People'), ('Theories', 'Theories'), ('Cloze', 'Cloze'), ('Mcq', 'MCQ'), ('Comprehension', 'Comprehension'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'), ('Formulas', 'Formulas')], default='Definitions')
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'), ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'), ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'), ('Turn2notes', 'Turn to notes')], default='Definitions')
     generate_images = BooleanField('Generate_images')
     languages = SelectField('Languages', choices=[("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
@@ -2061,7 +2061,7 @@ def import_deck():
                             content = card['fields']['Back']['value']
                             term = card['fields']['Front']['value']
                             interval = card['interval']*1440
-                            entry = Card(term = term, content = content, interval = interval)
+                            entry = Card(term = term, content = content, interval = interval, category = "anki")
                             db.session.add(entry)
                             deck.cards.append(entry)
                     print(deck)
@@ -2108,7 +2108,7 @@ def import_deck():
                 content = card['fields']['Back']['value']
                 term = card['fields']['Front']['value']
                 interval = card['interval']*1440
-                entry = Card(term = term, content = content, interval = interval)
+                entry = Card(term = term, content = content, interval = interval, category = "anki")
                 db.session.add(entry)
                 deck.cards.append(entry)
                 
