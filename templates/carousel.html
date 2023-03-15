@@ -74,19 +74,18 @@
 
     <div class="col-1">
         <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
+            <img src = "/static/caret-left-outline-icon.png" style="max-width:30px;max-height:30px;">
         </button>
     </div>
 
-    <div class="col-10 ">
+    <div class="col-8 ">
 
         <div class="carousel-inner">
             {% for card in cards %}
             {% if loop.index0 == 0 %}
             <div class="carousel-item active">
-                <div class="card m-2 bg-light" style="min-height:500px">
-                    <div class="card-body d-flex flex-column" style="min-height:500px">
+                <div class="card m-2 bg-light" style="min-height:400px">
+                    <div class="card-body">
                         {% if card.img is not none %}
                         <div class="row align-items-center justify-content-center">
                             <img class="card-img-top pb-3" src="\{{card.img}}" alt="Card image cap"
@@ -95,12 +94,12 @@
                         {% endif %}
 
                         <form action="" method="post">
-                            <div class="container flex-grow-1 align-items-end" style="min-height:500px">
+                           
                                 <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
                                     placeholder="{{ card.id }}" />
                                 <div class="row">
                                     <input name="term"
-                                        class=" card-title box_study input_0 form-control form-control-lg" type="text"
+                                        class=" card-title box_study input_0 form-control form-control-lg  flex-grow-1" type="text"
                                         id="card.id" placeholder="{{ card.term }}" value="{{ card.term }}" />
                                 </div>
                                 {% if card.category == "Formulas" %}
@@ -118,7 +117,7 @@
                                 {% endif %}
                                 <div class="row mt-1">
                                     <textarea name="content"
-                                        class="form-control card-text box_study input_0 form-control form-control-lg"
+                                        class="form-control card-text box_study input_0 form-control form-control-lg flex-grow-1"
                                         type="text" id="card.id" rows="4"
                                         placeholder="{{ card.content }}"> {{ card.content }}</textarea>
                                 </div>
@@ -128,39 +127,39 @@
 
                                 <div class="row mt-1">
                                     <textarea name="boc_2"
-                                        class="form-control card-text box_study input_0 form-control form-control-lg"
+                                        class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
                                         type="text" id="card.id" rows="1"
                                         placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
                                 </div>
                                 {% if card.category != "Formulas" %}
                                 <div class="row mt-1">
                                     <textarea name="boc_3"
-                                        class="form-control card-text box_study input_0 form-control form-control-lg"
+                                        class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
                                         type="text" id="card.id" rows="1"
                                         placeholder="{{ card.boc_3 }}"> {{ card.boc_3 }}</textarea>
                                 </div>
                                 <div class="row mt-1">
                                     <textarea name="boc_4"
-                                        class="form-control card-text box_study input_0 form-control form-control-lg"
+                                        class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
                                         type="text" id="card.id" rows="1"
                                         placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
                                 </div>
                                 {% endif %}
                                 {% endif %}
 
-                                <div class="row mt-3 align-item-end align-bottom">
-                                    <div class=" text-center col-4 align-items-center justify-content-center">
+                                <div class="row mt-3 align-item-end align-bottom align-self-end">
+                                    <div class=" text-center col-4 align-items-center justify-content-center align-self-end">
                                         <input type="image" src="\static\save-outline-icon.png"
-                                            style="max-width:30px;max-height:30px;" name="edit-card" value="Save" />
+                                            style="max-width:30px;max-height:30px;" name="edit-card" value="Save" title="Save changes" />
 
                                     </div>
-                                    <div class=" col-4 text-center align-items-center justify-content-center">
+                                    <div class=" col-4 text-center align-items-center justify-content-center align-self-end">
                                         <a href="/regen_def/{{deck.id}}/{{card.id}}">
                                             <img src="\static\recycle-sign-icon.png" alt="Regenerate"
-                                                style="max-width:30px;max-height:30px;" class="px-1" title="Regenerate">
+                                                style="max-width:30px;max-height:30px;" class="px-1" title="Regenerate content">
                                         </a>
                                     </div>
-                                    <div class=" col-4 text-center align-items-center justify-content-center">
+                                    <div class=" col-4 text-center align-items-center justify-content-center align-self-end">
                                         <a href="/deletecard/{{deck.id}}/{{card.id}}"
                                             onclick="if (confirm('Are you sure you want to delete this card?')) { window.location.href = '/deletecard/{{deck.id}}/{{card.id}}'; }">
                                             <img src="\static\delete-icon.png" alt="Delete"
@@ -168,7 +167,7 @@
                                         </a>
                                     </div>
                                 </div>
-                            </div>
+                           
                     </div>
 
 
@@ -192,7 +191,7 @@
                             <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
                                 placeholder="{{ card.id }}" />
                             <div class="row">
-                                <input name="term" class="card-title box_study input_0 form-control form-control-lg"
+                                <input name="term" class="card-title box_study input_0 form-control form-control-lg  flex-grow-1"
                                     type="text" id="card.id" placeholder="{{ card.term }}" value="{{ card.term }}" />
                             </div>
                             {% if card.category == "Formulas" %}
@@ -211,7 +210,7 @@
  
                             <div class="row mt-1">
                                 <textarea name="content"
-                                    class="form-control card-text box_study input_0 form-control form-control-lg"
+                                    class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
                                     type="text" id="card.id" rows="3"
                                     placeholder="{{ card.content }}"> {{ card.content }}</textarea>
                             </div>
@@ -219,39 +218,40 @@
                             {% if card.boc_2 is not none %}
                             <div class="row mt-1">
                                 <textarea name="boc_2"
-                                    class="form-control card-text box_study input_0 form-control form-control-lg"
+                                    class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
                             </div>
                             {% if card.category != "Formulas" %}
                             <div class="row mt-1">
                                 <textarea name="boc_3"
-                                    class="form-control card-text box_study input_0 form-control form-control-lg"
+                                    class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.boc_3 }}"> {{ card.boc_3 }}</textarea>
                             </div>
                             <div class="row mt-1">
                                 <textarea name="boc_4"
-                                    class="form-control card-text box_study input_0 form-control form-control-lg"
+                                    class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
                             </div>
                             {% endif %}
                             {% endif %}
-                            <div class="row mt-2 align-items-end justify-content-center ">
-                                <div class=" col-4 text-center align-items-center justify-content-center">
+                            
+                            <div class="row mt-3 align-item-end align-bottom align-self-end">
+                                <div class=" text-center col-4 align-items-center justify-content-center align-self-end">
                                     <input type="image" src="\static\save-outline-icon.png"
-                                        style="max-width:30px;max-height:30px;" name="edit-card" value="Save" />
+                                        style="max-width:30px;max-height:30px;" name="edit-card" value="Save" title="Save changes" />
 
                                 </div>
-                                <div class=" col-4 text-center align-items-center justify-content-center">
+                                <div class=" col-4 text-center align-items-center justify-content-center align-self-end">
                                     <a href="/regen_def/{{deck.id}}/{{card.id}}">
                                         <img src="\static\recycle-sign-icon.png" alt="Regenerate"
-                                            style="max-width:30px;max-height:30px;" class="px-1" title="Regenerate">
+                                            style="max-width:30px;max-height:30px;" class="px-1" title="Regenerate content">
                                     </a>
                                 </div>
-                                <div class=" col-4 text-center align-items-center justify-content-center">
-                                    <a href="#"
+                                <div class=" col-4 text-center align-items-center justify-content-center align-self-end">
+                                    <a href="/deletecard/{{deck.id}}/{{card.id}}"
                                         onclick="if (confirm('Are you sure you want to delete this card?')) { window.location.href = '/deletecard/{{deck.id}}/{{card.id}}'; }">
                                         <img src="\static\delete-icon.png" alt="Delete"
                                             style="max-width:30px;max-height:30px;" class="px-1" title="Delete">
@@ -273,10 +273,11 @@
     </div>
 
     <div class="col-1">
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
+        <div class="col-1">
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+                <img src = "/static/caret-right-outline-icon.png" style="max-width:30px;max-height:30px;">
+            </button>
+        </div>
     </div>
     <!--- MODAL -->
     <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"

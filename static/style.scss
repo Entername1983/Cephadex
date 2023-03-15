@@ -428,6 +428,13 @@ footer {
 
   }
 
+
+  .carousel-indicators {
+    position: fixed !important;
+    bottom: 100px !important;
+    z-index: 1030 !important; /* Adjust z-index if needed to ensure the indicators appear above other elements */
+  }
+
 // TABLE REFORMATTING 22222222222
 
 @media screen and (max-width: 540px) {

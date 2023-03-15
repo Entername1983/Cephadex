@@ -354,24 +354,44 @@ class Deck(db.Model):
         return jsonify(due_cards)
      
         
-    def get_due_cards(self):
+    def get_due_cards(self, n):
         due_cards = []
         current_time = datetime.now()
+        new_card_counter = 0
         for card in self.cards:
             time_diff = (current_time - card.time_updated).total_seconds() / 60
             if (time_diff + 1440)>= card.interval:
-                due_cards.append({
-                    'term': card.term,
-                    'content': card.content,
-                    'boc_2': card.boc_2,
-                    'boc_3': card.boc_3,
-                    'boc_4': card.boc_4,
-                    'formula': card.formula,
-                    'category': card.category,
-                    'id': card.id,
-                    'img': card.img,
-                    'sound': card.sound,
-                })
+                if card.box_id > 0:
+                    due_cards.append({
+                        'term': card.term,
+                        'content': card.content,
+                        'boc_2': card.boc_2,
+                        'boc_3': card.boc_3,
+                        'boc_4': card.boc_4,
+                        'formula': card.formula,
+                        'category': card.category,
+                        'id': card.id,
+                        'img': card.img,
+                        'sound': card.sound,
+                    })
+                if card.box_id == 0 and new_card_counter < n:
+                    print("card box = 0")
+                    print("new card counter = ", new_card_counter)
+                    new_card_counter += 1
+                    due_cards.append({
+                        'term': card.term,
+                        'content': card.content,
+                        'boc_2': card.boc_2,
+                        'boc_3': card.boc_3,
+                        'boc_4': card.boc_4,
+                        'formula': card.formula,
+                        'category': card.category,
+                        'id': card.id,
+                        'img': card.img,
+                        'sound': card.sound,
+                    })
+
+        due_cards.sort(key=lambda x: x['id'])
         if not due_cards:
             return jsonify({'info': 'No due cards found'}), 204
         return jsonify(due_cards)
@@ -1187,11 +1207,13 @@ def regenerate_def(deck_id, card_id):
 @app.route("/get-due-cards/<deck_id>")
 def get_due_cards(deck_id):
     deck = Deck.query.get(deck_id)
+    ## later add in option to modify number of new cards to be shown
+    n=20
     if(current_user.id != deck.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
     if deck is None:
         return jsonify({'error': 'Deck not found'}), 404
-    return deck.get_due_cards()
+    return deck.get_due_cards(n)
 
 
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])

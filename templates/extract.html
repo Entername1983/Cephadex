@@ -3,6 +3,7 @@
 <script>
     function showSpinner() {
         document.getElementById("extract-spinner").style.display = "inline-block";
+        document.getElementById("extract-message").style.display = "inline-block";
     }
 </script>
 <div class = "container" style="text-align:center">
@@ -29,7 +30,7 @@
             <li class="nav-item " role="presentation">
                 <button class="nav-link" id="extract-name-tab" data-bs-toggle="pill"
                     data-bs-target="#extract-name" type="button" role="tab" aria-controls="extract-name"
-                    aria-selected="false" style="font-size: 20px !important" title="Create a new deck, or add your content to an existing deck"> 3 - What's
+                    aria-selected="false" style="font-size: 20px !important" title="Create a new deck, or add your content to an existing deck"> 3 - What's it
                     called?</button>
             </li>
 
@@ -45,13 +46,13 @@
                     <div id="accordion">
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes" id="headingOne">
-                                <h5 class="mb-0">
-                                    <button type="button" class="btn" data-bs-toggle="collapse"
+                                
+                                    <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
                                         data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
-                                        style="width:100%">
-                                        Upload a file
-                                    </button>
-                                </h5>
+                                        style="width:100%; color: grey">
+                                        Upload a file:
+                                </h4>
+                                
                             </div>
 
                             <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
@@ -66,12 +67,12 @@
                         </div>
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes" id="headingTwo">
-                                <h5 class="mb-0">
-                                    <button type="button" class="btn collapsed" data-bs-toggle="collapse"
+                                
+                                <h4 type="" class="d-flex justify-content-center collapsed" data-bs-toggle="collapse"
                                         data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
-                                        style="width:100%">
-                                        Paste some text</button>
-                                </h5>
+                                        style="width:100%; color: grey">
+                                        Paste some text:</h4>
+                               
                             </div>
                             <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
                                 data-bs-parent="#accordion">
@@ -86,12 +87,12 @@
                         </div>
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes" id="headingThree">
-                                <h5 class="mb-0">
-                                    <button type="button" class="btn collapsed" data-bs-toggle="collapse"
+                                
+                                <h4 type="button" class="d-flex justify-content-center collapsed" data-bs-toggle="collapse"
                                         data-bs-target="#collapseThree" aria-expanded="false"
-                                        aria-controls="collapseThree" style="width:100%">
-                                        Insert a link</button>
-                                </h5>
+                                        aria-controls="collapseThree" style="width:100%;color: grey">
+                                        OR insert a link:</h4>
+                               
                             </div>
                             <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
                                 data-bs-parent="#accordion">
@@ -111,12 +112,11 @@
                     <div id="accordion1">
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes " id="headingOne">
-                                <h5 class="mb-0">
-                                    <button type="button" class="btn" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseOne" aria-expanded="true" style="width:100%"
-                                        aria-controls="collapseOne">
-                                        Select type of card to create: </button>
-                                </h5>
+                                    <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
+                                        style="width:100%; color: grey">
+                                        Select type of card to create:
+                                </h4>
                             </div>
                             <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
                                 data-bs-parent="#accordion2">
@@ -160,12 +160,11 @@ Options explained  </button>
 
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes" id="headingTwo">
-                                <h5 class="mb-0">
-                                    <button type="button" class="btn collapsed" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
-                                        style="width:100%">
-                                        Advanced options </button>
-                                </h5>
+                                <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo"
+                                        style="width:100%; color: grey">
+                                        Advanced options:
+                                </h4>
                             </div>
                             <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
                                 data-bs-parent="#accordion2">
@@ -217,12 +216,11 @@ Options explained  </button>
                         <div id="accordion2">
                             <div class="card extract-boxes">
                                 <div class="card-header extract-boxes " id="headingOne">
-                                    <h5 class="mb-0">
-                                        <button type="button" class="btn" data-bs-toggle="collapse"
-                                            data-bs-target="#collapseOne" aria-expanded="true" style="width:100%"
-                                            aria-controls="collapseOne">
-                                            New deck </button>
-                                    </h5>
+                                    <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
+                                        style="width:100%; color: grey">
+                                            New deck: </h4>
+                                   
                                 </div>
 
                                 <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
@@ -238,12 +236,11 @@ Options explained  </button>
                             </div>
                             <div class="card extract-boxes">
                                 <div class="card-header extract-boxes" id="headingTwo">
-                                    <h5 class="mb-0">
-                                        <button type="button" class="btn collapsed" data-bs-toggle="collapse"
-                                            data-bs-target="#collapseTwo" aria-expanded="false"
-                                            aria-controls="collapseTwo" style="width:100%">
-                                            Existing deck </button>
-                                    </h5>
+                                    <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo"
+                                        style="width:100%; color: grey">
+                                            Existing deck:
+                                    </h4>
                                 </div>
                                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
                                     data-bs-parent="#accordion2">
@@ -260,11 +257,11 @@ Options explained  </button>
                         </div>
                 </div>
                 <div class="row justify-content-end">
+<div class ="col d-flex align-items-center justify-content-end"><div  id = "extract-message" style = "display:none"><i>Your cards are being generated, this can take a few minutes.  When your deck is ready you will be able to find it in "Decks"</i></div></div>
                     <div class="col d-flex justify-content-end">
-                        <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
 
+                        <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
+                        </div>
                         {{form.submit(class="form-control form-control-lg m-2 box_study", style = "max-width: 200px")}}
                     </div>
                 </div>
