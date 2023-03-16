@@ -17,7 +17,7 @@ from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from cardcreator import create_image, creator
-from extractors import regenerate_def, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
+from extractors import regenerate_def, count_tokens, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import sys
@@ -33,7 +33,12 @@ from urllib.parse import unquote
 from helpers import remove_punctuation
 import difflib
 from anki import anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes
+from flask import abort
+from celery import Celery
+import time
+import schedule
 
+app = Celery('myapp', broker='redis://localhost:6379/0')
 
 
 
@@ -117,9 +122,7 @@ class User(db.Model, UserMixin):
     external_type = db.Column(db.String(255), nullable=True)
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     time_accessed= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
     test= db.relationship('Test', secondary=distribution, backref ="taker")
-    
     account_type = db.Column(db.String(255), nullable=True, default="free")
     account_status = db.Column(db.String(255), nullable=True, default="active")
     account_expiration = db.Column(db.DateTime, nullable=True)
@@ -129,7 +132,10 @@ class User(db.Model, UserMixin):
     contacted_email = db.Column(db.Boolean, default=False)
     dob = db.Column(db.DateTime, nullable=True)
     timezone = db.Column(db.String(64))
-    
+    subscription_plan = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=False, default=1)
+    subscription_start_date = db.Column(db.DateTime)
+    latest_roll_over = db.Column(db.DateTime)
+
     def member_since(self):
         return self.time_created.strftime('%b %Y')
     
@@ -170,6 +176,42 @@ class User(db.Model, UserMixin):
 #    given_name = db.Column(db.String(50), nullable=False)
 #    family_name = db.Column(db.String(50), nullable=False)
 #    enabled = db.Column(db.Boolean, default=True)
+
+class SubscriptionPlan(db.Model):
+    __tablename__ = 'subscription_plans'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.String(200))
+    limit_count = db.Column(db.Integer, nullable=False)
+    limit_time_period = db.Column(db.String(50), nullable=False, default='month')
+    price = db.Column(db.Float, nullable=False)
+    duration = db.Column(db.Integer, default = 31)
+
+    users = db.relationship('User', backref='subscription_plan_id')
+
+    def __repr__(self):
+        return f'<SubscriptionPlan {self.id}>'
+
+class UsageRecord(db.Model):
+    __tablename__ = 'usage_records'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    operation_type = db.Column(db.String(50), nullable=False)
+    operation_details = db.Column(db.String(1000))
+    operation_count = db.Column(db.Integer, nullable=False)
+    remaining_count = db.Column(db.Integer, nullable=False)
+    time_period = db.Column(db.String(50), nullable=False)
+    limit_count = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    status = db.Column(db.String(50), nullable=False, default='active')
+    source_ip = db.Column(db.String(50))
+    payment_status = db.Column(db.String(50), default='unpaid')
+
+    def __repr__(self):
+        return f'<UsageRecord {self.id}>'
+
+
+
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -772,6 +814,7 @@ class AddTermForm(FlaskForm):
     content = StringField(validators=[InputRequired(), Length(min=1, max=50)])
     submit = SubmitField("Save")
     
+    
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -782,6 +825,42 @@ def after_request(response):
     ##TODO ONLY FOR http AND LOCALHOST, FOR GOOGLE AUTH
     response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
     return response    
+
+def run_task():
+    app.send_task('my_task')
+
+# Schedule the task to run once a day at a specific time
+    schedule.every().day.at('10:30').do(run_task)
+
+# Run the scheduled tasks
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+
+        subscriptions = User.query.filter(account_status == 'active').all()
+
+    # Loop through each subscription and check if 30 days have passed
+        for subscription in subscriptions:
+            if subscription.latest_roll_over == None:
+                subscription.latest_roll_over == subscription.subscription_start_date 
+            else:
+                if subscription.latest_roll_over + timedelta(days=30) >= datetime.utcnow():
+                    subscription.latest_roll_over = datetime.utcnow()
+                    # Reset the usage limit for this subscription type
+                    user = User.query.filter_by(id=subscription.id).first()
+                    subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()
+                    usage_limit = subscription_plan.usage_limit
+                    new_record = UsageRecord(user_id = subscription.id, operation_type ="reset", limit_count=usage_limit, operation_count = 0, remaining_count = usage_limit, date = datetime.utcnow())
+                    db.session.add(new_record)
+
+        # Save changes to the database
+        db.session.commit()
+        return "Usage limits have been reset successfully."
+
+
+
+
     
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -1518,7 +1597,12 @@ def extract():
                 print("youtube link inputted")
                 link_input = get_video_id(link_input)
                 text = extract_from_youtube(link_input)
-         ## RETURN OUTPUT    
+         ## RETURN OUTPUT
+        tokens = count_tokens(text)
+        operation_details = prompt_option  
+        if perform_operation(current_user, operation_details, tokens) == False:
+            flash('You have reached your monthly usage limit.  Please upgrade your account to continue.')
+            return redirect (url_for('viewdecks'))
         terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
         ## IF CHOSING TRANSSLATE SET CATEGORY TO LANGUAGE OTHERWISE TAKES ON TYPE OF CARD
         if prompt_option == "Translate":
@@ -1569,14 +1653,15 @@ def extract():
                 deck.deck_files.append(transcript_trans)
                 db.session.commit()
                 return redirect("sea_dox/{deck.id}".format(deck = deck))
-        ## ADD DECK)        
-        if form.generate_images.data == True: 
-            for card in deck.cards:
-                try:
-                    card.img = create_image(card.term)
-                    db.session.commit()
-                except:
-                    pass
+        ## ADD DECK) 
+        if check_subscription_plan(current_user) == "premium":       
+            if form.generate_images.data == True: 
+                for card in deck.cards:
+                    try:
+                        card.img = create_image(card.term)
+                        db.session.commit()
+                    except:
+                        pass
                 
         ## SAVE TEXT TO DB
         f_name = deck.name + "_" + method + "_" + prompt_option + "_" + str(datetime.now())
@@ -2165,8 +2250,42 @@ def export_deck(deck_id):
 
 
 
+#################  USAGE CHECKS  ###############################################################################################
 
 
+
+
+def perform_operation(user, operation_type, n):
+    # Check the user's remaining count for this time period
+    print("checking operation", operation_type, n)
+    sub_start_date = current_user.subscription_start_date
+    usage_record = UsageRecord.query.filter_by(user_id=user.id).order_by(UsageRecord.date.desc()).first()
+    subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()
+    if usage_record is None:
+        
+        remaining_count = subscription_plan.limit_count
+    else:
+        remaining_count = usage_record.remaining_count
+    if remaining_count <= 0:
+        return False
+    # Perform the operation and update the usage record
+    # ...
+    
+    # Update the usage record
+    new_record = UsageRecord(user_id=user.id, operation_type=operation_type, time_period='month', limit_count=subscription_plan.limit_count)
+
+    if usage_record is None:
+        new_record.operation_count = n
+        new_record.remaining_count = subscription_plan.limit_count - n
+    else:
+        new_record.operation_count = usage_record.operation_count + n
+        new_record.remaining_count = usage_record.remaining_count - n
+    db.session.add(new_record)
+    db.session.commit()
+
+def check_subscription_plan(user):
+    subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()
+    return subscription_plan
 
 
 
