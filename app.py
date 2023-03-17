@@ -276,7 +276,9 @@ class Card(db.Model):
         db.session.commit()
         
     def regen_def(self):
-        self.content = regenerate_def(self.term)
+        term = self.term
+        print(term)
+        self.content = regenerate_def(term)
         db.session.commit()
     
     def copy_card(self, deck):
@@ -838,7 +840,7 @@ def run_task():
         time.sleep(60)
 
 
-        subscriptions = User.query.filter(account_status == 'active').all()
+        subscriptions = User.query.filter_by(account_status = 'active').all()
 
     # Loop through each subscription and check if 30 days have passed
         for subscription in subscriptions:
@@ -1213,11 +1215,8 @@ def update_profile_pic():
 
 @app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
 @login_required
-def deletecard(card_id, deck_id):
-    print("card to delete")
-    print(card_id)
-    print("from deck")
-    print(deck_id)
+def deletecard(deck_id, card_id):
+
     deck = Deck.query.get_or_404(deck_id)
     if(current_user.id != deck.user_id):
        return jsonify({'error': 'Deck not assigned to user'}), 403
@@ -1226,8 +1225,9 @@ def deletecard(card_id, deck_id):
     if card_to_delete != None:
         db.session.delete(card_to_delete)
         db.session.commit()
-
-    return redirect(("/carousel/{deck}").format(deck=deck_id))  
+        flash("Card deleted")
+    cards = deck.cards
+    return render_template('carousel.html', deck=deck, cards=cards)
 
 @app.route("/addterms/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
@@ -1274,12 +1274,14 @@ def downloadascsv(deck_id):
     csvstring = "".join(termsstrings)            
     return Response(csvstring, mimetype="text/csv")
 
-@app.route("/regen_def/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
+@app.route("/regenerate_def/<int:card_id>", methods = ["POST", "GET"])
 @login_required
-def regenerate_def(deck_id, card_id):
+def regenerate_def(card_id):
+    print(card_id)
     card = Card.query.filter(Card.id==card_id).first()
+    print("card is...")
+    print(card)
     card.regen_def()           
-    return redirect(("/currentdeck/{deck}").format(deck=deck_id))
 
 
 
@@ -1603,7 +1605,12 @@ def extract():
         if perform_operation(current_user, operation_details, tokens) == False:
             flash('You have reached your monthly usage limit.  Please upgrade your account to continue.')
             return redirect (url_for('viewdecks'))
-        terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
+        
+        try:
+            terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
+        except:
+            flash('It looks like our AI is being overworked!  Please try again in a moment')
+            redirect('viewdecks')
         ## IF CHOSING TRANSSLATE SET CATEGORY TO LANGUAGE OTHERWISE TAKES ON TYPE OF CARD
         if prompt_option == "Translate":
             cat = prompt_option2
@@ -1611,36 +1618,55 @@ def extract():
             cat = prompt_option
             
         ## DATA LOGGING
-        prompt = str(terms[1])
-        response = str(terms[2])
-        content = str(terms[3])
+        try:
+            for i in range (0, len(terms[1])):
+                prompt = str(terms[1][i])
+                response = str(terms[2][i])
+                content = str(terms[3][i])
+                response_entry = ResponseData(prompt=prompt, response=response, content=content, timestamp = datetime.now())
+                db.session.add(response_entry)
+                db.session.commit()
+
+        except:
+            print("no response data")
+
         terms = terms[0]
-        response_entry = ResponseData(prompt=prompt, response=response, content=content, timestamp = datetime.now())
-        db.session.add(response_entry)
-        db.session.commit()
         ## SET USER TO CURRENT USER
         deck.user_id = current_user.id
         ## ADD CARDS TO DECK
-        
-        
         if prompt_option == "Mcq":
             v, w, x, y, z = mapping.get(prompt_option, ("A", "B", "C", "D", "E"))
             for item in terms:
-                entry = Card(category = cat, term=item[v].capitalize(), content=(add_period(item[w].capitalize())), boc_2=(add_period(item[x].capitalize())), boc_3=(add_period(item[y].capitalize())), boc_4=(add_period(item[z].capitalize())), create_method = method)
+                term = item[v].capitalize()
+                exists = Card.query.filter_by(term=term).first()
+                if exists:
+                    print("card {} already exists".format(term))
+                    continue
+                entry = Card(category = cat, term=term, content=(add_period(item[w].capitalize())), boc_2=(add_period(item[x].capitalize())), boc_3=(add_period(item[y].capitalize())), boc_4=(add_period(item[z].capitalize())), create_method = method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option != "Mcq" and prompt_option != "Transcribe" and prompt_option != "Formulas":
             x, y = mapping.get(prompt_option, ("A", "B"))
             for item in terms:
-                entry = Card(category = cat, term=item[x].capitalize(), content=add_period(item[y].capitalize()), create_method=method)
+                term=item[x].capitalize()
+                exists = Card.query.filter_by(term=term).first()
+                if exists:
+                    print("card {} already exists".format(term))
+                    continue
+                entry = Card(category = cat, term=term, content=add_period(item[y].capitalize()), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
         elif prompt_option == "Formulas":
             x, y, z = mapping.get(prompt_option, ("A", "B", "C"))
             for item in terms:
-                entry = Card(category = cat, term=item[x].capitalize(), formula="\["+(item[y])+"\]", content=add_period(item[z].capitalize()), create_method=method)
+                term=item[x].capitalize()
+                exists = Card.query.filter_by(term=term).first()
+                if exists:
+                    print("card {} already exists".format(term))
+                    continue
+                entry = Card(category = cat, term=term, formula="\["+(item[y])+"\]", content=add_period(item[z].capitalize()), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
             db.session.commit()
@@ -1654,29 +1680,25 @@ def extract():
                 db.session.commit()
                 return redirect("sea_dox/{deck.id}".format(deck = deck))
         ## ADD DECK) 
-        if check_subscription_plan(current_user) == "premium":       
+        if check_subscription_plan(current_user) == 5:       
             if form.generate_images.data == True: 
                 for card in deck.cards:
                     try:
                         card.img = create_image(card.term)
                         db.session.commit()
                     except:
-                        pass
-                
+                        pass       
         ## SAVE TEXT TO DB
         f_name = deck.name + "_" + method + "_" + prompt_option + "_" + str(datetime.now())
         file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.now())
         db.session.add(file_storage) 
         deck.deck_files.append(file_storage)
-        db.session.commit()
-        
+        db.session.commit() 
         return redirect('/carousel/{deck.id}'.format(deck = deck))
     else:
         print("form not valid")
         print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
-
     return render_template("extract.html", title="Extract", form=form)
-
 
 @app.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
 def sea_dox(deck_id):
@@ -1685,7 +1707,6 @@ def sea_dox(deck_id):
     ## GET source files
     files = deck.deck_files
     files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.desc()).all()
-    
     if request.method == 'GET':
         print("entered get request")
         sort_method =request.args.get('sort')
@@ -1702,7 +1723,6 @@ def sea_dox(deck_id):
                     files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.time_created.desc()).all()
         elif search_query:
                 files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).filter(DeckFiles.file_name.contains(search_query)).all()
-        
         return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
     if request.method == 'POST':
         file_id = request.form['file_id']
@@ -1712,10 +1732,7 @@ def sea_dox(deck_id):
             file.file_name = new_name
             db.session.commit()
         return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
-    
     return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
-
-
 
 @app.route("/source_file/<int:file_id>", methods=["GET", "POST"])
 def source_file(file_id):
@@ -1732,8 +1749,6 @@ def download_source(file_id):
     ## turn file.text_string into a pdf
     pdf_buffer = create_pdf(text)
     return send_file(pdf_buffer, download_name = name)
-
-
 
 @app.route("/delete_file/<int:deck_id>/<int:file_id>/", methods=["GET", "POST"])
 def delete_file(deck_id, file_id):
@@ -1811,24 +1826,17 @@ def feedback():
         entry = Feedback(name=name, email=email, message=feedback, type_feedback=type_feedback)
         entry.send_feedback()
         flash("Thank you for your feedback!", "success")
-
     return render_template('index.html', title='Index')
-
-
-
-
 
 @app.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
 def build_test(deck_id):
     deck = Deck.query.get_or_404(deck_id)
     creator = current_user
-    
     if request.method == "POST":
         test_questions = request.form.getlist('selected_cards[]')
         name = deck.name + " Test" + " " + str(datetime.now())
         new_test = Test(creator=current_user.id)
         db.session.add(new_test)
-
         new_test.name = name
         for question in test_questions:
             card = Card.query.get_or_404(question)
@@ -1855,7 +1863,6 @@ def build_test(deck_id):
             new_test.questions.append(question)
         db.session.commit()
         return redirect('/assign_test/{test.id}'.format(test=new_test))
-
     return render_template('build_test.html', title='Test Builder', deck=deck, creator=creator)
 
 @app.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
@@ -1888,7 +1895,6 @@ def assign_test(test_id):
             test.sum_points()
             db.session.commit()
             return jsonify({'success': True}), 200
-        
         return render_template('assign_test.html', title='Assign test', test=test, )
     
 @app.route('/update_card', methods=['POST'])
@@ -1907,8 +1913,6 @@ def update_card():
         question.boc_2 = request.form['boc_2']
         question.boc_3 = request.form['boc_3']
         question.boc_4 = request.form['boc_4']
-        
-    
     db.session.commit()
     return jsonify(success=True)
 
@@ -2025,7 +2029,6 @@ def test_results(test_id, user_id):
 @app.route("/test_results_overview/", methods=["GET", "POST"])
 def test_results_overview():
     user = current_user
-    
     tests_created = Test.query.filter_by(creator = user.id).all()
     ## results of tests taken
     test_results_taken = TestResult.query.filter_by(taker = user.id).all()
@@ -2044,7 +2047,6 @@ def test_results_overview():
             if not test.taker:
                 db.session.delete(test)
                 db.session.commit()
-
     return render_template('test_results_overview.html', taken = test_results_taken, given = test_results_given, created = tests_created,tests=tests)
 
 @app.route("/test_result_details/<int:test_id>/", methods=["GET", "POST"])
@@ -2053,7 +2055,6 @@ def test_result_details(test_id):
     test = Test.query.filter_by(id = test_id).first()
     # Get the list of taker ids from the TestResult objects
     taker_ids = [result.taker for result in results]
-
     # Filter the User objects by the taker ids
     takers = User.query.filter(User.id.in_(taker_ids)).all()
     print(takers)
@@ -2094,19 +2095,14 @@ def test_result(result_id):
     print(result)
     print(result.test_id)
     test = Test.query.filter_by(id = result.test_id).first()
-
     return render_template('test_result.html', result=result, test=test)
-
-
 
 @app.route("/test_answers/<int:test_id>/<int:taker_id>/", methods=["GET", "POST"])
 def test_answers(test_id, taker_id):
     test = Test.query.filter_by(id = test_id).first()
     result = TestResult.query.filter_by(test_id = test_id, taker = taker_id).first()
     question_results = QuestionResult.query.filter_by(test_id = test.id, taker=taker_id).all()
-    result.sum_points()  
-
-            
+    result.sum_points()   
     if result.creator != current_user.id:
         flash('you are not allowed to view this page', 'danger')
         return redirect('/test_results_overview/')
@@ -2122,8 +2118,6 @@ def test_answers(test_id, taker_id):
                         question_result.correct = True
             result.sum_points()        
             db.session.commit()
-            
-        
         return render_template('test_answers.html', result=result, question_results=question_results, test=test)
     
     
@@ -2132,16 +2126,11 @@ def test_print(test_id):
     test = Test.query.filter_by(id = test_id).first()
     return render_template('test_print.html', test=test)
 
-
 @app.route("/sea_source/<int:file_id>/", methods=["GET", "POST"])
 def sea_source(file_id):
     source = DeckFiles.query.filter_by(id = file_id).first()
     source1 = split_string(source.text_string)
-    
     return render_template('sea_source.html', source=source1, file=source)
-
-
-
 
 @app.route("/import_deck/", methods=["GET", "POST"])
 def import_deck():
@@ -2245,15 +2234,7 @@ def export_deck(deck_id):
     flash("Deck exported", "success")
     return redirect(url_for('viewdecks'))
 
-
-
-
-
-
 #################  USAGE CHECKS  ###############################################################################################
-
-
-
 
 def perform_operation(user, operation_type, n):
     # Check the user's remaining count for this time period
@@ -2281,7 +2262,7 @@ def perform_operation(user, operation_type, n):
         new_record.operation_count = usage_record.operation_count + n
         new_record.remaining_count = usage_record.remaining_count - n
     db.session.add(new_record)
-    db.session.commit()
+
 
 def check_subscription_plan(user):
     subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()

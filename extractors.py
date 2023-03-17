@@ -185,8 +185,6 @@ def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, la
 def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
                         len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     print("entered large extract term function")
-    print(prompt_option)
-    print(prompt_option2)
     api_counter = 0
     ls_terms = []
     print("________________________ITEMS TYPE________________________________")
@@ -198,6 +196,9 @@ def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, l
     else:
         print("recognized items as list")
         print(len(items))
+        prompt = []
+        response_ =[]
+        content = []
         for item in items:
             api_counter = api_counter + 1
             print("api call number: " + str(api_counter))
@@ -205,10 +206,14 @@ def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, l
             if response[0] != None:
                 for dict in response[0]:
                     ls_terms.append(dict)
+                prompt.append(response[1])
+                response_.append(response[2]) 
+                content.append(response[3])
+            print(prompt, response_, content)
             print("finished large extract term function")
             print("API calls: " + str(api_counter))
         print(ls_terms)
-        return ls_terms, response[1], response[2], response[3]
+        return ls_terms, prompt, response_, content
 
 
 
