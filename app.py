@@ -738,6 +738,30 @@ class ChangePassForm(FlaskForm):
     def confirm_new_pass(self, new_password, conf_new_password):
         if new_password.data != conf_new_password.data:
             raise ValidationError("Passwords must match")
+        
+        
+        
+class TryOut(FlaskForm):
+    text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+                                           ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
+                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
+                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
+    languages = SelectField('Languages', choices=[("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
+                                                  ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
+                                                  ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
+                                                  ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
+                                                  ("Italian", "Italian"), ("Japanese", "Japanese"), ("Korean", "Korean"), ("Klingon", "Klingon"),
+                                                  ("Latvian", "Latvian"), ("Lithuanian", "Lithuanian"), ("Malay", "Malay"), ("Norwegian", "Norwegian"),
+                                                  ("Polish", "Polish"), ("Portuguese", "Portuguese"), ("Romanian", "Romanian"), ("Russian",  "Russian"),
+                                                  ("Spanish", "Spanish"), ("Serbian", "Serbian"), ("Swahili", "Swahili"), ("Swedish", "Swedish"),
+                                                  ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
+                                                  ( "Vietnamese", "Vietnamese")], default = None)
+    custom_term = StringField('Custom extraction', render_kw={"placeholder": "What do you want us to get out of the text?"})
+    custom_content = StringField('Custom content', render_kw={"placeholder": "What do you want us to do with what you extracted?"})
+    submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
+
+        
 class UploadFileForm(FlaskForm):
     file = FileField("File")
     name = StringField("Deck name", render_kw={"placeholder": "Name your deck"})
@@ -874,8 +898,31 @@ def run_task():
     
 @app.route("/", methods=["GET", "POST"])
 def index():
-
-    return render_template('index.html')
+    form = TryOut()
+    terms = []
+    if form.validate_on_submit():
+        print("form validated")
+        text = form.text_input.data
+        prompt_options = {
+            'main_opt': form.prompt.data or None,
+            'trans_opt': form.languages.data or None,
+            'lang_opt': None,
+            'detail_lvl_opt': "long",
+            'min_opt':  None,
+            'max_opt':  None,
+            'images_opt':  None,
+            'save_text_opt':  None,
+            'subject_opt':  None,
+            'custom_term':  form.custom_term.data or None,
+            'custom_content': form.custom_content.data or None,
+        }
+        terms = creator(text, prompt_options)[0]
+        for item in terms:
+            print(item['A'])
+            print(item['B'])
+        return render_template('index.html', form = form, terms = terms, option = prompt_options['main_opt'])
+            
+    return render_template('index.html', form = form)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -976,6 +1023,7 @@ def login():
     print("entered login")
     app.logger.info('0')
     email = request.form.get('email')
+    form = TryOut()
     print(email)
     if email is not None:
         user = User.query.filter(User.email.ilike(email)).first()
@@ -989,7 +1037,7 @@ def login():
         else:
             flash('Login Unsuccessful. Please check username and password')
             return render_template('index.html', title='Index')
-    return render_template('index.html', title='Index')
+    return render_template('index.html', title='Index', form=form)
 
 
 @app.route('/subscribe', methods=['GET', 'POST'])

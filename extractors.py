@@ -90,6 +90,8 @@ def build_prompt(prompt_options: dict):
             custom_term = ""
         if prompt_options['custom_content']:
             custom_content = prompt_options['custom_content']
+        else:
+            custom_content = ""
         prompt = prompt.replace('{qmin}', qmin).replace('{subject}', subject).replace('{qmax}', qmax).replace('{length}', detail).replace('{lang}', lang).replace('{trans}', trans_opt).replace('{custom_term}', custom_term).replace('{custom_content}', custom_content)
         print("prompt built")
         print(prompt)
