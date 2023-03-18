@@ -17,7 +17,7 @@ from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from cardcreator import create_image, creator
-from extractors import regenerate_def, count_tokens, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
+from extractors import regenerate_definition, count_tokens, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import sys
@@ -32,7 +32,7 @@ import urllib.parse
 from urllib.parse import unquote
 from helpers import remove_punctuation
 import difflib
-from anki import anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes
+from anki import anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes, check_anki_connect
 from flask import abort
 from celery import Celery
 import time
@@ -277,8 +277,11 @@ class Card(db.Model):
         
     def regen_def(self):
         term = self.term
-        print(term)
-        self.content = regenerate_def(term)
+        content = regenerate_definition(term)
+        print("regen_def method")
+        print(self.content)
+        self.content = content
+        print(self.content)
         db.session.commit()
     
     def copy_card(self, deck):
@@ -741,8 +744,12 @@ class UploadFileForm(FlaskForm):
     description = StringField("Description", render_kw={"placeholder": "Describe your deck"})
     submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'), ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'), ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'), ('Turn2notes', 'Turn to notes')], default='Definitions')
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+                                           ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
+                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
+                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
     generate_images = BooleanField('Generate_images')
+    save_text = BooleanField('Save_text')
     languages = SelectField('Languages', choices=[("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
                                                   ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
@@ -776,7 +783,8 @@ class UploadFileForm(FlaskForm):
                                                   ("Spanish", "Spanish"), ("Serbian", "Serbian"), ("Swahili", "Swahili"), ("Swedish", "Swedish"),
                                                   ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
                                                   ( "Vietnamese", "Vietnamese")], default = None)
-    
+    custom_term = StringField('Custom extraction', render_kw={"placeholder": "What do you want us to get out of the text?"})
+    custom_content = StringField('Custom content', render_kw={"placeholder": "What do you want us to do with what you extracted?"})
     ##def validate_deck_list(self, name, deck_list):
        ## if name == '' and deck_list == '':            
         ##    raise ValidationError("You must select an existing deck OR enter a name for a new deck")
@@ -1254,24 +1262,24 @@ def addterms(deck_id):
 @app.route("/downloadascsv/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
 def downloadascsv(deck_id):
+    print("entered download as csv")
     deck = Deck.query.filter_by(id=deck_id).first()
     if(current_user.id != deck.user_id):
        return jsonify({'error': 'Deck not assigned to user'}), 403
-    cards = Card.query.filter(Card.decks.any(id=deck_id)).all()
     termsstrings = []
-
-    for card in cards:
+    for card in deck.cards:
+        print("entered cards")
+        print(card.term)
         if card.boc_2 == None:
             card.boc_2 = "null"
         if card.boc_3 == None:
             card.boc_3 = "null"
         if card.boc_4 == None:
-            card.boc_4 = "null"    
-        
-        
-        string = card.term + "," + card.content + "," + card.boc_2 + "," + card.boc_3 + "," + card.boc_4 + "," + card.category + "\n"
+            card.boc_4 = "null"
+        ## replace commas with semicolons
+        string = card.term.replace(",", ";")  + "," + card.content.replace(",", ";")  + "," + card.boc_2.replace(",", ";")  + "," + card.boc_3.replace(",", ";")  + "," + card.boc_4.replace(",", ";")  + "," + card.category.replace(",", ";")  + "\n"
         termsstrings.append(string)            
-    csvstring = "".join(termsstrings)            
+    csvstring = "".join(termsstrings)        
     return Response(csvstring, mimetype="text/csv")
 
 @app.route("/regenerate_def/<int:card_id>", methods = ["POST", "GET"])
@@ -1279,13 +1287,15 @@ def downloadascsv(deck_id):
 def regenerate_def(card_id):
     print(card_id)
     card = Card.query.filter(Card.id==card_id).first()
-    print("card is...")
     print(card)
-    card.regen_def()           
+    term = card.term 
+    content = regenerate_definition(term)
+    card.content = content
+    db.session.commit()           
+    return jsonify('success')
 
 
-
-@app.route("/get-due-cards/<deck_id>")
+@app.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])
 def get_due_cards(deck_id):
     deck = Deck.query.get(deck_id)
     ## later add in option to modify number of new cards to be shown
@@ -1386,24 +1396,18 @@ def generate_img(deck_id):
 
 @app.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
 def carousel(deck_id):
-    
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     cards = Card.query.filter(Card.decks_backref.any(id=deck_id)).order_by(Card.id.desc()).all()
     if(current_user.id != deck.user_id):
          return jsonify({'error': 'Deck not assigned to user'}), 403
-        
     if request.method == 'POST' and 'term' in request.form:
-        print("entered post request3")
         term = request.form['term'] ## new term for card
         content = request.form['content']
-        
-        
         boc_2 = request.form.get('boc_2')
         boc_3 = request.form.get('boc_3')
         boc_4 = request.form.get('boc_4')
         id = request.form['id'] ## id of card to be edited
-        formula = request.form['formula']
-        print(id)
+        formula = request.form.get('formula')
         card = Card.query.filter_by(id=id).first()
         if term != "":
             if card.term != None:
@@ -1423,11 +1427,8 @@ def carousel(deck_id):
         if formula != "":
             if formula != None:
                 card.formula = formula.strip()
-        print(boc_2, boc_3, boc_4)
         db.session.commit()
-    
     if request.method == 'POST' and 'new_term' in request.form:
-        print("entered post request for adding new card")
         term = request.form['new_term']
         content = request.form['new_content']
         boc_2 = request.form['new_boc_2']
@@ -1438,7 +1439,6 @@ def carousel(deck_id):
         entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category, time_created=time_created)
         deck.cards.append(entry)
         db.session.commit()
-    
     if request.method == 'POST' and 'new_deck_name' in request.form:
         print("entered post request for editing deck")
         name = request.form['new_deck_name']
@@ -1450,7 +1450,6 @@ def carousel(deck_id):
         deck.subject = subject
         deck.topic = topic
         db.session.commit()   
-    
     return render_template("carousel.html", title="Carousel", deck=deck, cards=cards) 
 
 @app.route("/add_new_card/<int:deck_id>", methods = ["GET", "POST"])
@@ -1459,7 +1458,6 @@ def add_new_card(deck_id):
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     if(current_user.id != deck.user_id):
          return jsonify({'error': 'Deck not assigned to user'}), 403
-        
     term = request.form['new_term'] 
     content = request.form['new_content']
     boc_2 = request.form['new_boc_2']
@@ -1480,8 +1478,6 @@ def landingpage():
 def terms_and_conditions():
     return render_template("terms_and_conditions.html", title="Terms and Conditions")
 
-
-    
 @login_required
 @app.route("/delete_account", methods = ["POST"])
 def delete_account():
@@ -1497,7 +1493,112 @@ def delete_account():
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract():
+    ## plan level requried for genereting images
+    CONST_PLAN = 5
     form = UploadFileForm()
+    if form.validate_on_submit():
+        deck, text, prompt_options = handle_form_submission(form)
+        tokens = count_tokens(text)      
+        print(tokens)
+        if perform_operation(current_user, prompt_options['main_opt'], tokens) == False:
+            flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
+            return redirect(url_for('viewdecks'))
+        else:
+            try:
+                terms = creator(text, prompt_options)[0]
+            except:
+                flash('It looks like our AI is being overworked! Please try again in a moment')
+                return redirect('extract')
+            save_terms_to_deck(deck, terms, prompt_options)
+            if prompt_options['main_opt'] == "Transcribe" or prompt_options['save_text_opt'] == True:
+                save_source_text_to_deck(deck, text, prompt_options)
+            if check_subscription_plan(current_user) == CONST_PLAN:
+                if prompt_options['images_opt'] == True:
+                    generate_images(deck)
+        return redirect('/carousel/{deck.id}'.format(deck=deck))
+    return render_template("extract.html", title="Extract", form=form)
+
+## Functions for extract:
+def handle_form_submission(form):
+    prompt_options = process_prompt_options(form)
+    deck = get_or_create_deck(form, prompt_options)
+    text = get_text_from_form_input(form)
+    return deck, text, prompt_options
+
+def process_prompt_options(form):
+    prompt_options = {
+        'main_opt': form.prompt.data or None,
+        'subject_opt': form.subject.data or None,
+        'trans_opt': form.languages.data or None,
+        'lang_opt': form.main_lang.data or None,
+        'detail_lvl_opt': form.length.data or None,
+        'min_opt': form.qmin_option.data or None,
+        'max_opt': form.qmax_option.data or None,
+        'images_opt': form.generate_images.data or None,
+        'save_text_opt': form.save_text.data or None,
+        'custom_term': form.custom_term.data or None,
+        'custom_content': form.custom_content.data or None,
+    }
+    return prompt_options
+
+def get_or_create_deck(form, prompt_options):
+    main_opt = prompt_options['main_opt']
+    if form.deck_list.data:
+        deck = form.deck_list.data
+    else:
+        deck_name = form.name.data
+        deck_description = form.description.data or "".join(main_opt + "deck")
+        deck = Deck(name=deck_name, description=deck_description)
+        db.session.add(deck)
+    deck.user_id = current_user.id
+    return deck
+
+def get_text_from_form_input(form):
+    if form.file.data:
+        text = get_text_from_file(form.file.data)
+    elif form.text_input.data and form.text_input.data.strip():
+        text = form.text_input.data
+    elif form.link_input.data and form.link_input.data.strip():
+        text = get_text_from_link(form.link_input.data)
+    else:
+        text = None
+    return text
+
+def get_text_from_file(file_data):
+    file = file_data
+    file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
+    file.save(file_loc)
+    text = text_extractor(file_loc)
+    return text
+
+def get_text_from_link(link_input):
+    text = None
+    link_input = link_input
+    if "wikipedia" in link_input:
+        if check_comma_list(link_input):
+            link_input = link_input.split(",")
+            for link in link_input:
+                part = extract_from_wiki(link_input)
+            if text == None:
+                text = part
+            text = text + part
+        else:
+            text = extract_from_wiki(link_input)   
+    else:
+        if check_comma_list(link_input):
+            link_input = link_input.split(",")
+            for link in link_input:
+                link = get_video_id(link)
+                part = extract_from_youtube(link)
+                if text == None:
+                    text = part
+                text = text + part
+        else:
+            link_input = get_video_id(link_input)
+            text = extract_from_youtube(link_input)
+    return text
+
+def save_terms_to_deck(deck, terms, prompt_options, method="extract"):
     mapping = {
     "Definitions": ("A", "B"),
     "Translate": ("A", "B"),
@@ -1510,195 +1611,77 @@ def extract():
     "Vocab_builder": ("A", "B"),
     "Formulas": ("A", "B", "C"),
     }
-    
-    prompt_option2 = None
-    lang_option = None
-    trans_option = None
-    len_option = None
-    qmin_option = None
-    qmax_option = None
-    if form.validate_on_submit():
-        print("form submitted")
-        ## load type of card to be made to prompt_option
-        if form.prompt.data != None:       
-            prompt_option = form.prompt.data
-            print(prompt_option)
-        ## load translate option  
-        if form.languages.data != None:    
-            trans_option = form.languages.data
-            print("------------------TRANS OPTION------------------")
-            print(trans_option)    
-        ## load secondary prompt option
-        if form.subject.data:
-            prompt_option2 = form.subject.data
-        ## load language output option (defaults to English)
-        if form.main_lang.data:
-            lang_option = form.main_lang.data
-        if form.length.data:
-            len_option = form.length.data
-        if form.qmin_option.data:
-            qmin_option = form.qmin_option.data
-        if form.qmax_option.data:
-            qmax_option = form.qmax_option.data
-                
-        ## use existing deck or create a new one
-        if form.deck_list.data != None:
-            deck = form.deck_list.data
-        else:
-            deck_name = form.name.data
-            if form.description.data != None:
-                deck_description = form.description.data
-            else:
-                deck_description = " ".join(prompt_option + "deck")
-            deck = Deck(name=deck_name, description=deck_description)
-            db.session.add(deck) 
-        print("type of data received, file, text, link")
-        ## GET TEXT FROM INPUT 
-        if form.file.data != None:
-            f_type = form.file.data.content_type  
-            print("file inputted3")
-            method = "file upload"
-            file = form.file.data
-            file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
-            file.save(file_loc)
-            text = text_extractor(file_loc)
-        elif form.text_input.data is not None and form.text_input.data.strip() != '':
-            f_type = "text"
-            print("text inputted")
-            method = "text input"
-            text = form.text_input.data  
-        elif form.link_input.data != None and form.link_input.data.strip() != '':
-            f_type = "link"
-            method = "link input"
-            text = None
-            link_input = form.link_input.data
-            if "wikipedia" in form.link_input.data:
-                if check_comma_list(link_input):
-                    link_input = link_input.split(",")
-                    print(link_input)
-                    for link in link_input:
-                        part = extract_from_wiki(link_input)
-                    if text == None:
-                        text = part
-                    text = text + part
-                print(link_input)
-                text = extract_from_wiki(link_input)   
-                    
-            else:
-                if check_comma_list(link_input):
-                    link_input = link_input.split(",")
-                    print(link_input)
-                    for link in link_input:
-                        print(link)
-                        print(type(link))
-                        link = get_video_id(link)
-                        part = extract_from_youtube(link)
-                        if text == None:
-                            text = part
-                        text = text + part
-                print("youtube link inputted")
-                link_input = get_video_id(link_input)
-                text = extract_from_youtube(link_input)
-         ## RETURN OUTPUT
-        tokens = count_tokens(text)
-        operation_details = prompt_option  
-        if perform_operation(current_user, operation_details, tokens) == False:
-            flash('You have reached your monthly usage limit.  Please upgrade your account to continue.')
-            return redirect (url_for('viewdecks'))
-        
-        try:
-            terms = creator(text, prompt_option, prompt_option2, trans_option, lang_option, len_option, qmin_option, qmax_option)
-        except:
-            flash('It looks like our AI is being overworked!  Please try again in a moment')
-            redirect('viewdecks')
-        ## IF CHOSING TRANSSLATE SET CATEGORY TO LANGUAGE OTHERWISE TAKES ON TYPE OF CARD
-        if prompt_option == "Translate":
-            cat = prompt_option2
-        else:
-            cat = prompt_option
-            
-        ## DATA LOGGING
-        try:
-            for i in range (0, len(terms[1])):
-                prompt = str(terms[1][i])
-                response = str(terms[2][i])
-                content = str(terms[3][i])
-                response_entry = ResponseData(prompt=prompt, response=response, content=content, timestamp = datetime.now())
-                db.session.add(response_entry)
-                db.session.commit()
-
-        except:
-            print("no response data")
-
-        terms = terms[0]
-        ## SET USER TO CURRENT USER
-        deck.user_id = current_user.id
-        ## ADD CARDS TO DECK
-        if prompt_option == "Mcq":
-            v, w, x, y, z = mapping.get(prompt_option, ("A", "B", "C", "D", "E"))
-            for item in terms:
-                term = item[v].capitalize()
-                exists = Card.query.filter_by(term=term).first()
-                if exists:
-                    print("card {} already exists".format(term))
-                    continue
+    main_opt = prompt_options['main_opt']
+    trans_opt = prompt_options['trans_opt']
+    cat = main_opt
+    print("terms passed to save_terms_to_deck")
+    print(terms)
+    if main_opt == "Mcq":
+        v, w, x, y, z = mapping.get(main_opt, ("A", "B", "C", "D", "E"))
+        for item in terms:
+            term = item[v].capitalize()
+            exists = Card.query.filter_by(term=term).first()
+            if check_card_exist(deck, term) == False:
                 entry = Card(category = cat, term=term, content=(add_period(item[w].capitalize())), boc_2=(add_period(item[x].capitalize())), boc_3=(add_period(item[y].capitalize())), boc_4=(add_period(item[z].capitalize())), create_method = method)
                 db.session.add(entry)
                 deck.cards.append(entry)
-            db.session.commit()
-        elif prompt_option != "Mcq" and prompt_option != "Transcribe" and prompt_option != "Formulas":
-            x, y = mapping.get(prompt_option, ("A", "B"))
-            for item in terms:
-                term=item[x].capitalize()
-                exists = Card.query.filter_by(term=term).first()
-                if exists:
-                    print("card {} already exists".format(term))
-                    continue
+                db.session.commit()
+    elif main_opt != "Mcq" and main_opt != "Transcribe" and main_opt != "Formulas":
+        x, y = mapping.get(main_opt, ("A", "B"))
+        for item in terms:
+            term=item[x].capitalize()
+            if check_card_exist(deck, term) == False:
                 entry = Card(category = cat, term=term, content=add_period(item[y].capitalize()), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
-            db.session.commit()
-        elif prompt_option == "Formulas":
-            x, y, z = mapping.get(prompt_option, ("A", "B", "C"))
-            for item in terms:
-                term=item[x].capitalize()
-                exists = Card.query.filter_by(term=term).first()
-                if exists:
-                    print("card {} already exists".format(term))
-                    continue
+        db.session.commit()
+    elif main_opt == "Formulas":
+        x, y, z = mapping.get(main_opt, ("A", "B", "C"))
+        for item in terms:
+            term=item[x].capitalize()
+            if check_card_exist(deck, term) == False:
                 entry = Card(category = cat, term=term, formula="\["+(item[y])+"\]", content=add_period(item[z].capitalize()), create_method=method)
                 db.session.add(entry)
                 deck.cards.append(entry)
+        db.session.commit()
+    elif main_opt == "Transcribe":
+        if trans_opt != None:
+            name = deck.name + "_" + method + "_" + main_opt + trans_opt + "_" + str(datetime.utcnow())
+            create_type = trans_opt + " translation"
+            transcript_trans = DeckFiles(file_name = name, text_string = terms, time_created = datetime.utcnow(), create_type = create_type)
+            db.session.add(transcript_trans)
+            deck.deck_files.append(transcript_trans)
             db.session.commit()
-        elif prompt_option == "Transcribe":
-            if trans_option != None:
-                name = deck.name + "_" + method + "_" + prompt_option + trans_option + "_" + str(datetime.utcnow())
-                create_type = trans_option + " translation"
-                transcript_trans = DeckFiles(file_name = name, text_string = terms, time_created = datetime.utcnow(), create_type = create_type)
-                db.session.add(transcript_trans)
-                deck.deck_files.append(transcript_trans)
-                db.session.commit()
-                return redirect("sea_dox/{deck.id}".format(deck = deck))
-        ## ADD DECK) 
-        if check_subscription_plan(current_user) == 5:       
-            if form.generate_images.data == True: 
-                for card in deck.cards:
-                    try:
-                        card.img = create_image(card.term)
-                        db.session.commit()
-                    except:
-                        pass       
-        ## SAVE TEXT TO DB
-        f_name = deck.name + "_" + method + "_" + prompt_option + "_" + str(datetime.utcnow())
-        file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.utcnow())
-        db.session.add(file_storage) 
-        deck.deck_files.append(file_storage)
-        db.session.commit() 
-        return redirect('/carousel/{deck.id}'.format(deck = deck))
+            return redirect("sea_dox/{deck.id}".format(deck = deck))
+    return True
+
+def check_card_exist(deck, term):
+    deck = Deck.query.filter_by(id=deck.id).first()
+    for card in deck.cards:
+        if card.term == term:
+            print("card {} already exists".format(term))
+            return True
     else:
-        print("form not valid")
-        print("name", form.name.data, "/n", "description" ,form.description.data, "/n", "deck_list", form.deck_list.data, "/n", "prompt", form.prompt.data, "/n", "text_input", form.text_input.data, "/n", "file", form.file.data)
-    return render_template("extract.html", title="Extract", form=form)
+        return False
+def save_source_text_to_deck(deck, text, prompt_options, method="extract"):
+
+    main_opt = prompt_options['main_opt']
+    f_name = deck.name + "_" + method + "_" + main_opt + "_" + str(datetime.utcnow())
+    file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.utcnow())
+    db.session.add(file_storage) 
+    deck.deck_files.append(file_storage)
+    db.session.commit() 
+    return True
+
+def generate_images(deck):
+    for card in deck.cards:
+        if card.img == None:
+            try:
+                card.img = create_image(card.term)
+                db.session.commit()
+            except:
+                pass
+    return True
 
 @app.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
 def sea_dox(deck_id):
@@ -2136,45 +2119,66 @@ def sea_source(file_id):
 def import_deck():
     print(request.form)
     ## IMPORT ALL DECKS FROM ANKI
-    if request.method == "POST" and "import-all" in request.form:
-        print("entered import all")
-        decks = anki_import_all()
-        decks = json.loads(decks)
-        for deck in decks:
-            for key, value in deck.items():
-                if value != []:
-                    deck_name = key
+    if check_anki_connect() == True:
+        if request.method == "POST" and "import-all" in request.form:
+            print("entered import all")
+            decks = anki_import_all()
+            decks = json.loads(decks)
+            for deck in decks:
+                for key, value in deck.items():
+                    if value != []:
+                        deck_name = key
+                        description = "anki import"
+                        deck = Deck(name = deck_name, description = description, user_id = current_user.id)
+                        db.session.add(deck)
+                        db.session.commit()
+                        ##print(f"Deck name: {key}")
+                        ##print(f"Cards: {value}")
+                        for i in range(len(value)):
+                            for j in range(len(value[i])):
+                                card = value[i][j]
+                                cardId = card['cardId']
+                                content = card['fields']['Back']['value']
+                                term = card['fields']['Front']['value']
+                                interval = card['interval']*1440
+                                entry = Card(term = term, content = content, interval = interval, category = "anki")
+                                db.session.add(entry)
+                                deck.cards.append(entry)
+                        print(deck)
+                        db.session.commit()
+            flash("Decks imported", "success")
+            return redirect(url_for('viewdecks'))
+        
+        if request.method == "POST" and "import-by-name" in request.form:
+            deck_names = request.form['deck-name']
+            if check_comma_list(deck_names):
+                deck_names = deck_names.split(",")
+                for name in deck_names:
+                    deck = anki_import_deck(name)
+                    deck = json.loads(deck)
+                    cards = deck[0][name]
                     description = "anki import"
-                    deck = Deck(name = deck_name, description = description, user_id = current_user.id)
+                    deck = Deck(name = name, description = description, user_id = current_user.id)
                     db.session.add(deck)
                     db.session.commit()
-                    ##print(f"Deck name: {key}")
-                    ##print(f"Cards: {value}")
-                    for i in range(len(value)):
-                        for j in range(len(value[i])):
-                            card = value[i][j]
-                            cardId = card['cardId']
-                            content = card['fields']['Back']['value']
-                            term = card['fields']['Front']['value']
-                            interval = card['interval']*1440
-                            entry = Card(term = term, content = content, interval = interval, category = "anki")
-                            db.session.add(entry)
-                            deck.cards.append(entry)
-                    print(deck)
+                    for i in range(len(cards)):
+                        card = cards[i][0]
+                        print(card)
+                        cardId = card['cardId']
+                        content = card['fields']['Back']['value']
+                        term = card['fields']['Front']['value']
+                        interval = card['interval']*1440
+                        entry = Card(term = term, content = content, interval = interval)
+                        db.session.add(entry)
+                        deck.cards.append(entry)
                     db.session.commit()
-        flash("Decks imported", "success")
-        return redirect(url_for('viewdecks'))
-    
-    if request.method == "POST" and "import-by-name" in request.form:
-        deck_names = request.form['deck-name']
-        if check_comma_list(deck_names):
-            deck_names = deck_names.split(",")
-            for name in deck_names:
-                deck = anki_import_deck(name)
+            else:
+                deck = anki_import_deck(deck_names)
                 deck = json.loads(deck)
-                cards = deck[0][name]
+                deck_name = deck_names
+                cards = deck[0][deck_name]
                 description = "anki import"
-                deck = Deck(name = name, description = description, user_id = current_user.id)
+                deck = Deck(name = deck_name, description = description, user_id = current_user.id)
                 db.session.add(deck)
                 db.session.commit()
                 for i in range(len(cards)):
@@ -2184,55 +2188,41 @@ def import_deck():
                     content = card['fields']['Back']['value']
                     term = card['fields']['Front']['value']
                     interval = card['interval']*1440
-                    entry = Card(term = term, content = content, interval = interval)
+                    entry = Card(term = term, content = content, interval = interval, category = "anki")
                     db.session.add(entry)
                     deck.cards.append(entry)
+                    
                 db.session.commit()
-        else:
-            deck = anki_import_deck(deck_names)
-            deck = json.loads(deck)
-            deck_name = deck_names
-            cards = deck[0][deck_name]
-            description = "anki import"
-            deck = Deck(name = deck_name, description = description, user_id = current_user.id)
-            db.session.add(deck)
-            db.session.commit()
-            for i in range(len(cards)):
-                card = cards[i][0]
-                print(card)
-                cardId = card['cardId']
-                content = card['fields']['Back']['value']
-                term = card['fields']['Front']['value']
-                interval = card['interval']*1440
-                entry = Card(term = term, content = content, interval = interval, category = "anki")
-                db.session.add(entry)
-                deck.cards.append(entry)
-                
-            db.session.commit()
-        flash("Decks imported", "success")
-        return redirect(url_for('viewdecks'))
-            
+            flash("Decks imported", "success")
+            return redirect(url_for('viewdecks'))
+    else:
+        return jsonify('There was an error.  Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled')
+        
+        
     return render_template('import_deck.html')
 
 
 @app.route("/export_deck/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
 def export_deck(deck_id):
-    deck = Deck.query.get_or_404(deck_id)
-    if deck.user != current_user:
-        flash('you are not allowed to view this page', 'danger')
-        return redirect('/home/')
-    cards = deck.cards
-    anki_create_deck(deck.name)
-    for card in cards:
-        query = card.term
-        notes = find_notes(query)
-        print(notes)
-        if notes == False:
-            interval = str(int(card.interval/1440))
-            anki_create_card(deck.name, card.term, card.content)
-    flash("Deck exported", "success")
-    return redirect(url_for('viewdecks'))
+    if check_anki_connect() == True:
+        deck = Deck.query.get_or_404(deck_id)
+        if deck.user != current_user:
+            flash('you are not allowed to view this page', 'danger')
+            return redirect('/home/')
+        cards = deck.cards
+        anki_create_deck(deck.name)
+        for card in cards:
+            query = card.term
+            notes = find_notes(query)
+            print(notes)
+            if notes == False:
+                interval = str(int(card.interval/1440))
+                anki_create_card(deck.name, card.term, card.content)
+        flash("Deck exported", "success")
+        return redirect(url_for('viewdecks'))
+    else:
+        return jsonify('There was an error.  Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled')
 
 #################  USAGE CHECKS  ###############################################################################################
 

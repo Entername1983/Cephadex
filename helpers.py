@@ -50,6 +50,9 @@ def split_tokens(tokens, n):
     return [tokens[i:i+n] for i in range(0, len(tokens), n)]
 
 
+## replace commas with semi colons
 
+def replace_commas(string):
+    return string.replace(',', ';')
 
 

@@ -26,99 +26,89 @@ from helpers import split_text
 
 encoding = tiktoken.get_encoding('gpt2')
 
-
-
-
-## terms choices
-
 ## CALLS TO OPEN AI API
-def extract_terms(text: str, prompt_option: str, prompt_option2: str = None, trans_option: str = None, lang_option: str = None, 
-                  len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+def extract_terms(text: str, prompt_options: dict):
     print("entered extract term function")
-    print(prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+    print(prompt_options)
+    main_opt = prompt_options['main_opt']
     retries = 0
+    prompt = build_prompt(prompt_options)
+    print("prompt is:", prompt)
     while retries < 3:
         print("attempt:", retries)
         try:
-
-            ## get prompt choice
-            prompt_select = prompt_choices[prompt_option]
-            ## get prompt chocie 2
-            if prompt_option2 != None:
-                c2 = "related to the subject of " + prompt_choices2[prompt_option2]
-            else:
-                c2 = ""
-            ## get language
-            if lang_option != None:
-                lang = lang_choices[lang_option]
-            else:
-                lang = ""
-            ## get len_option
-            if len_option:
-                length = len_choices[len_option]
-            else:
-                length = ""
-
-            if qmin_option:
-                qmin = "at least " + qmin_option 
-            else:
-                qmin = "all"
-            if qmax_option:
-                qmax = ", and at most " + qmax_option
-            else:
-                qmax = ""
-            if prompt_option2:    
-                option_2 = prompt_choices2[prompt_option2]
-            elif trans_option:
-                option_2 = trans_option
-
-            option_1 = f"You are a helpful teacher who wants to help students learn {prompt_option2}."
-            if prompt_option not in prompt_choices:
-                raise ValueError("Invalid prompt option")
-            prompt_select = prompt_select.replace('{qmin}', qmin)
-            prompt_select = prompt_select.replace('{c2}', c2)
-            prompt_select = prompt_select.replace('{qmax}', qmax)
-            prompt_select = prompt_select.replace('{length}', length)
-            prompt_select = prompt_select.replace('{lang}', lang)
-
-            if trans_option != None:
-                print(prompt_select)
-                prompt_select = prompt_select.replace('{option_2}', option_2)
-            print("TEXT TO BE SENT TO OPEN AI")
-            print(text)
-            prompt = (prompt_select + text + 'The JSON object: \n')
-            response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                            {"role": "system", "content": option_1},
-                            {"role": "user", "content": prompt},
-                        ]
-                    )
-
-
+            sys_instruct = f"You are a helpful teacher who wants to help students learn {prompt_options['subject_opt']}."
+            user_prompt = (prompt + text + 'The JSON object: \n')
+            response = call_ai_terms(sys_instruct, user_prompt)
             response_ = response['choices'][0]['message']['content'].strip()
-            print(response_)
-
-            if prompt_option == "Cloze":
+            
+            if main_opt == "Cloze":
                 response_ = add_underscores(response_)
+                
             byte_string = response_.encode('utf-8')
             x = byte_string.decode('utf-8')
-            ##x = extract_data(x)
-            print(x)
             x = json.loads(x)
-
-            return x, prompt, response, x
+            return x, user_prompt, response, x
+        
         except Exception as e:
             retries += 1
             print(f"Error: {e}. Retrying ({retries}/3)")
    
+def build_prompt(prompt_options: dict):
+    if prompt_options['main_opt'] not in prompt_choices:
+        print("Invalid prompt option")
+        raise ValueError("Invalid prompt option")
+    else:
+        prompt = prompt_choices[prompt_options['main_opt']]
+        if prompt_options['subject_opt'] != None:
+            subject = "related to the subject of " + prompt_choices2[prompt_options['subject_opt']]
+        else:
+            subject = ""
+        if prompt_options['lang_opt']!= None:
+            lang = lang_choices[prompt_options['lang_opt']]
+        else:
+            lang = ""
+        if prompt_options['detail_lvl_opt']:
+            detail = len_choices[prompt_options['detail_lvl_opt']]
+        else:
+            detail = ""
+        if prompt_options['min_opt']:
+            qmin = "at least " + prompt_options['min_opt']
+        else:
+            qmin = "all"
+        if prompt_options['max_opt']:
+            qmax = ", and at most " + prompt_options['max_opt']
+        else:
+            qmax = ""
+        if prompt_options['trans_opt']:
+            trans_opt = prompt_options['trans_opt']
+        else:
+            trans_opt = ""
+        if prompt_options['custom_term']:
+            custom_term = prompt_options['custom_term']
+        else:
+            custom_term = ""
+        if prompt_options['custom_content']:
+            custom_content = prompt_options['custom_content']
+        prompt = prompt.replace('{qmin}', qmin).replace('{subject}', subject).replace('{qmax}', qmax).replace('{length}', detail).replace('{lang}', lang).replace('{trans}', trans_opt).replace('{custom_term}', custom_term).replace('{custom_content}', custom_content)
+        print("prompt built")
+        print(prompt)
+    return prompt
 
-##def extract_data(string):
-   ## pattern = r'\$@\$(.+?)\$\$.*?@\$(.+?)@@'
-   ## matches = re.findall(pattern, string, re.DOTALL)
-   ## result = [{"Key": k.strip(), "Value": v.strip()} for k, v in matches]
-  ##  return json.dumps(result)
+def get_replacement_value(value, prefix='', suffix=''):
+    if value:
+        return prefix + value + suffix
+    return ''
 
+def call_ai_terms(sys_instruct, user_prompt):
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": sys_instruct},
+                {"role": "user", "content": user_prompt},
+            ]
+        )
+    return response
 
 def insert_paragraph(text):
     prompt = "Go through the following block of text and insert '&-&-&' where you think a paragraph break should be. \n  block of text: \n" + text + "\n The JSON object: \n"
@@ -133,13 +123,8 @@ def insert_paragraph(text):
     print(x)
     return x
 
-
-
-
 def render_latex(latex_code):
-
     unicode_str = LatexNodes2Text().latex_to_text(latex_code)
-
     return unicode_str
 
 def double_backslashes(s):
@@ -159,19 +144,14 @@ def double_backslashes(s):
 def decode_latex_in_string(string):
     # Define a regular expression pattern to match LaTeX formulas
     pattern = r'(\$[^\$]*\$|\\\([^\)]*\\\))'
-    
     # Use the pattern to find all LaTeX formulas in the string
     matches = re.findall(pattern, string)
-    
     # Loop over the matches and replace each LaTeX formula with its decoded equivalent
     for match in matches:
         decoded = render_latex(match)
         string = string.replace(match, decoded)
     
     return string
-
-
-
 
 def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
                         len_option: str = None, qmin_option: int = None, qmax_option: int = None):
@@ -182,15 +162,14 @@ def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, la
     return ls_terms
 
 ## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
-def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
-                        len_option: str = None, qmin_option: int = None, qmax_option: int = None):
+def large_extract_terms(items, prompt_options):
     print("entered large extract term function")
     api_counter = 0
     ls_terms = []
     print("________________________ITEMS TYPE________________________________")
     print(type(items))
     if isinstance(items, str):
-        response = extract_terms(items, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+        response = extract_terms(items, prompt_options)
         return response[0], response[1], response[2], response[3]
             
     else:
@@ -202,7 +181,7 @@ def large_extract_terms(items, prompt_option: str, prompt_option2: str = None, l
         for item in items:
             api_counter = api_counter + 1
             print("api call number: " + str(api_counter))
-            response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
+            response = extract_terms(item, prompt_options)
             if response[0] != None:
                 for dict in response[0]:
                     ls_terms.append(dict)
@@ -276,25 +255,27 @@ def transcribe_whisper(audio_file):
     return formatted_transcript
 
 ## REGENERATE A DEFINITION
-def regenerate_def(term):
-        prompt = "Provide the definition for the following term: "
-        prompt1 = (prompt + term)
-        response = openai.Completion.create(
-        engine="text-davinci-003", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001.  HAVE TO USE DA VINCI TO GET PROPER FORMATTING
-        temperature = 0.7,
-        top_p = 1,
-        prompt=prompt1,
-        max_tokens=100)
-        x = response.choices[0]["text"].strip()
-        z = [term, ":"]
-        y = "".join(z)
-        if x.startswith(term):
-            x = x.replace(term, "",)
-        if x.startswith(y):
-            x = x.replace(y, "", 1)
-        x = x.strip()
-        x = add_period(x)
-        return x    
+def regenerate_definition(term):
+    print("entered regenerate_def function")
+    prompt = "Provide the definition for the following term: "
+    prompt1 = (prompt + term)
+    response = openai.Completion.create(
+    engine="text-davinci-003", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001.  HAVE TO USE DA VINCI TO GET PROPER FORMATTING
+    temperature = 0.7,
+    top_p = 1,
+    prompt=prompt1,
+    max_tokens=100)
+    x = response.choices[0]["text"].strip()
+    print(x)
+    z = [term, ":"]
+    y = "".join(z)
+    if x.startswith(term):
+        x = x.replace(term, "",)
+    if x.startswith(y):
+        x = x.replace(y, "", 1)
+    x = x.strip()
+    x = add_period(x)
+    return x    
 
 
 
@@ -501,7 +482,7 @@ def extract_terms_obs(text: str, prompt_option: str, prompt_option2: str = None,
     print("entered extract term function")
     
     ## get prompt choice
-    prompt_select = prompt_choices[prompt_option]
+    prompt = prompt_choices[prompt_option]
     ## get prompt chocie 2
     if prompt_option2 != None:
         c2 = "related to the subject of " + prompt_choices2[prompt_option2]
@@ -530,16 +511,16 @@ def extract_terms_obs(text: str, prompt_option: str, prompt_option2: str = None,
     if prompt_option not in prompt_choices:
         raise ValueError("Invalid prompt option")
     
-    prompt_select = prompt_select.replace('{qmin}', qmin)
-    prompt_select = prompt_select.replace('{c2}', c2)
-    prompt_select = prompt_select.replace('{qmax}', qmax)
-    prompt_select = prompt_select.replace('{length}', length)
-    prompt_select = prompt_select.replace('{lang}', lang)
+    prompt = prompt.replace('{qmin}', qmin)
+    prompt = prompt.replace('{c2}', c2)
+    prompt = prompt.replace('{qmax}', qmax)
+    prompt = prompt.replace('{length}', length)
+    prompt = prompt.replace('{lang}', lang)
 
     if trans_option != None:
-        print(prompt_select)
-        prompt_select = prompt_select.replace('{}', trans_option)
-    prompt = (prompt_select + text + 'The JSON object: \n')
+        print(prompt)
+        prompt = prompt.replace('{}', trans_option)
+    prompt = (prompt + text + 'The JSON object: \n')
     response = openai.Completion.create(
         engine="text-davinci-003",
         temperature=0.7,

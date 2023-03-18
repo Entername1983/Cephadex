@@ -1,7 +1,6 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
 main_0 %}
-
-
+<div class = "container">
 
 
 <div class="row fixed-top" style="background-color: rgba(29, 113, 186); margin-top: 75px;">
@@ -9,18 +8,19 @@ main_0 %}
 
 
         <div class="row mt-1">
-
-            <div class="col-2 d-flex justify-content-center">
+            <div class="col-1 d-flex justify-content-center"></div>
+            <div class="col-3 d-flex justify-content-center">
 
                 <h6>Select questions:</h6>
 
             </div>
-            <div class="col-6 d-flex justify-content-center">
+            <div class="col-4 d-flex justify-content-center">
                 <h6>Question details:</h6>
             </div>
             <div class="col-3 d-flex justify-content-center">
                 <h6>Question type:</h6>
             </div>
+            <div class="col-1 d-flex justify-content-center"></div>
         </div>
 
 </div>
@@ -28,12 +28,12 @@ main_0 %}
 <div class="card m-1">
     <div class = "row">
     <div class="col-1 d-flex justify-content-center align-items-center">
-        <div>
+        <div class = "p-2">
         <input type="checkbox" class="form-check-input" id="check-all"/>
         <label  class="form-label" for="check-all">Select All</label>
         </div>
     </div>
-    <div class="col-11 d-flex justify-content-end">
+    <div class="col-11 d-flex justify-content-end p-4">
         <input class="btn-primary box_study" type="submit" value="Done selecting question" onclick="return validateForm()">
     </div>
     </div>
@@ -160,7 +160,7 @@ main_0 %}
 
 </form>
 
-
+</div>
 <script>
     // check all checkboxes when "Check All" checkbox is checked
     const checkAllCheckbox = document.getElementById('check-all');

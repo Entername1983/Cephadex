@@ -129,8 +129,15 @@
                                         {% endfor %}
                                     </div>
 
-
-
+                                    <div class = "row">
+                                        <p> Save text {{ form.save_text}} </p>
+                                    </div>
+                                    <div class="extract-boxes" id="custom-select" style="display: none;">
+                                        <div class = "row">
+                                        {{form.custom_term (class="box_study form-control-lg")}}
+                                  </div>      <div class = "row">
+                                        {{form.custom_content (class=" box_study form-control-lg my-1")}}
+                                        </div></div>
                                     <div class="extract-boxes" id="language-select" style="display: none;">
 
                                         {{form.languages (class="border-0 form-control-lg")}}
@@ -148,6 +155,17 @@ Options explained  </button>
                                                     $('#language-select').show();
                                                 } else {
                                                     $('#language-select').hide();
+                                                }
+                                            });
+                                        });
+                                    </script>
+                                    <script type="text/javascript">
+                                        $(document).ready(function () {
+                                            $('input[name="prompt"]').change(function () {
+                                                if ($(this).val() === 'Custom') {
+                                                    $('#custom-select').show();
+                                                } else {
+                                                    $('#custom-select').hide();
                                                 }
                                             });
                                         });
@@ -257,7 +275,7 @@ Options explained  </button>
                         </div>
                 </div>
                 <div class="row justify-content-end">
-<div class ="col d-flex align-items-center justify-content-end"><div  id = "extract-message" style = "display:none"><i>Your cards are being generated, this can take a few minutes.  When your deck is ready you will be able to find it in "Decks"</i></div></div>
+<div class ="col d-flex align-items-center justify-content-end"><div  id = "extract-message" style = "display:none"><i>Your cards are being generated, this can take a few minutes.  When your deck is ready you will be able to find it in "Decks".  In the meantime feel free to study navigate to another page or start studying a sample deck we made for you.  </i></div></div>
                     <div class="col d-flex justify-content-end">
 
                         <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
@@ -299,6 +317,7 @@ Options explained  </button>
 <li><b>Transcribe:</b>  Use this to transcribe an audio file or in combination with our language option to translate entire documents.</li>
 <li><b>Summarize:</b>  Have big documents or audio files that need to be summarized?  Use this option.  Note: not yet implemented</li>
 <li><b>Turn to notes:</b> Do you have an audio recording of a lecture?  Did you take notes but need them reorganized?  This option is for you.  Note: not yet implemented</li>
+<li><b>Save text:</b> If you check this box we will save the text you submitted in source docs.  If you select the transcribe option this will automatically be checked.  You can delete these files at any time.</li>
 </ul>       
 
 </div>

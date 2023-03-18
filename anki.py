@@ -78,7 +78,26 @@ def anki_create_card(deck_name, term, content):
     # Send the API request and handle errors
     response = request_anki(requestJson)
     print("anki json response", response)
-    
+
+def check_anki_connect():
+    """Checks if the Anki Connect server is running and if the required API version is available."""
+    try:
+        response = urllib.request.urlopen('http://localhost:8765', timeout=1)
+        if response.status == 200:
+            result = json.loads(response.read().decode('utf-8'))
+            if result['error'] is not None:
+                raise ValueError(result['error'])
+            else:
+                api_version = result['result']['version']
+                if api_version < 6:
+                    raise ValueError('Anki Connect API version is too low: {}'.format(api_version))
+                else:
+                    return True
+        else:
+            raise ValueError('Anki Connect server returned non-200 status: {}'.format(response.status))
+    except:
+        return False
+
 
     
 def anki_import_all():
