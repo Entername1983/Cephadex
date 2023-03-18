@@ -1,6 +1,8 @@
 import string
 import tiktoken 
 import numpy as np
+from flask import redirect, render_template, request, session
+
 
 encoding = tiktoken.get_encoding('gpt2')
 
@@ -52,7 +54,16 @@ def split_tokens(tokens, n):
 
 ## replace commas with semi colons
 
-def replace_commas(string):
-    return string.replace(',', ';')
+def apology(message, code=400):
+    """Render message as an apology to user."""
+    def escape(s):
+        """
+        Escape special characters.
 
-
+        https://github.com/jacebrowning/memegen#special-characters
+        """
+        for old, new in [("-", "--"), ("_", "__"), ("?", "~q"),
+                            ("%", "~p"), ("#", "~h"), ("/", "~s"), ("\"", "''")]:
+            s = s.replace(old, new)
+        return s
+    return render_template("apology.html", top=code, bottom=escape(message)), code

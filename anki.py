@@ -3,6 +3,7 @@
 import json
 import urllib.request
 import requests
+from helpers import apology
 
 ## action deckNamesAndIds --> returns deck IDs use as param for findCards
 ## action findCards --> returns card IDs use as param for cardsInfo
@@ -94,6 +95,7 @@ def check_anki_connect():
                 else:
                     return True
         else:
+            
             raise ValueError('Anki Connect server returned non-200 status: {}'.format(response.status))
     except:
         return False

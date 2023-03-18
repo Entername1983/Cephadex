@@ -30,13 +30,14 @@ import datetime as dt
 from flask_migrate import Migrate
 import urllib.parse
 from urllib.parse import unquote
-from helpers import remove_punctuation
+from helpers import remove_punctuation, apology
 import difflib
 from anki import anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes, check_anki_connect
 from flask import abort
 from celery import Celery
 import time
 import schedule
+
 
 app = Celery('myapp', broker='redis://localhost:6379/0')
 
@@ -742,7 +743,8 @@ class ChangePassForm(FlaskForm):
         
         
 class TryOut(FlaskForm):
-    text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
+    text_input = StringField('Text Input', validators=[Length(max=250)], render_kw={"placeholder": "Paste your text here (max 250 characters)"})
+
     prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
                                            ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
                                            ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
@@ -760,6 +762,8 @@ class TryOut(FlaskForm):
     custom_term = StringField('Custom extraction', render_kw={"placeholder": "What do you want us to get out of the text?"})
     custom_content = StringField('Custom content', render_kw={"placeholder": "What do you want us to do with what you extracted?"})
     submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
+    
+    
 
         
 class UploadFileForm(FlaskForm):
@@ -2244,7 +2248,7 @@ def import_deck():
             flash("Decks imported", "success")
             return redirect(url_for('viewdecks'))
     else:
-        return jsonify('There was an error.  Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled')
+        return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)
         
         
     return render_template('import_deck.html')
@@ -2270,7 +2274,7 @@ def export_deck(deck_id):
         flash("Deck exported", "success")
         return redirect(url_for('viewdecks'))
     else:
-        return jsonify('There was an error.  Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled')
+        return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)
 
 #################  USAGE CHECKS  ###############################################################################################
 
