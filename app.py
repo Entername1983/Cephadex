@@ -999,8 +999,8 @@ def googleSignIn():
         given_name = idinfo['given_name']
         family_name = idinfo['family_name']
         
-        
-        user = User(email=email, first_name=given_name, last_name=family_name,external_id=userid)
+    
+        user = User(email=email, first_name=given_name, last_name=family_name,external_id=userid, external_type='google', subscription_plan=1)
         
         #user = User(email = email, external_id = userid, given_name = given_name, family_name = family_name, enabled = True)
         db.session.add(user)
@@ -1085,23 +1085,13 @@ def viewdecks():
    ## check if user has any pending tests
     tests = Test.query.filter(Test.taker.contains(current_user)).all()
     user = current_user
-    
     email = current_user.email
-    print("current user email: " + current_user.email)
-    
     shared_decks = SharedDecks.query.filter(SharedDecks.receiver.ilike(f"%{email}%")).all()
-
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
-    print("SHARED DECKS")
-    for deck in shared_decks:
-        print(deck.sender)
-    
     if request.method == 'GET':
-        print("entered get request")
         sort_method =request.args.get('sort')
         search_query = None
         search_query = request.args.get('search', '').strip()
-        
         if sort_method != 'default':
             if sort_method == 'name_asc':
                 decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.name.asc()).all()
@@ -1116,14 +1106,11 @@ def viewdecks():
             elif sort_method == "create_time_asc":
                 decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.asc()).all()
             elif sort_method == "create_time_dsc":
-                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.desc()).all()
-                     
+                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.desc()).all()          
         elif search_query:
             print("entered search_query")
-            decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()
-            
+            decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()   
         return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
-        
     if request.method == 'POST':
         deck_id = request.form['deck_id']
         deck = Deck.query.filter(Deck.id == deck_id).first()
@@ -1131,11 +1118,8 @@ def viewdecks():
         if new_name != '':
             deck.name = new_name
             db.session.commit()
-
         return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
-    print(shared_decks)
     return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
-
 
 
 @app.route("/createdeck", methods = ["GET", "POST"])
@@ -1152,9 +1136,6 @@ def account_settings():
 @login_required
 def study():
     return render_template("study.html", title="Study")
-
-
-
 
 @app.route("/currentdeck/<deck_id>", methods = ["POST", "GET"])
 @login_required
@@ -1196,7 +1177,6 @@ def delete(id):
     deck_to_delete = Deck.query.get_or_404(id)
     if(current_user.id != deck_to_delete.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
-
     db.session.delete(deck_to_delete)
     db.session.commit()
     return redirect(url_for('viewdecks'))
@@ -1215,8 +1195,6 @@ def rename_deck(id, new_name):
 @login_required
 def account():
     user = User.query.filter_by(id=current_user.id).first()
-    
-    
     if request.method == 'POST':
         print(request.form)
         first_name = request.form.get('first_name')
@@ -1243,8 +1221,6 @@ def account():
                 subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name, timestamp = datetime.utcnow())
                 db.session.add(subscriber)
                 db.session.commit()
-
-
     return render_template("account.html", title="Account", user = user)
 
 @app.route('/update_profile_pic', methods=['POST'])
@@ -1254,33 +1230,21 @@ def update_profile_pic():
   if profile_picture:
   # save the file to our server
     pic = os.path.join('static', 'profile_pictures', profile_picture.filename)
-
     user = User.query.filter_by(id=current_user.id).first()
     ##save the file to the server
     profile_picture.save(pic)
     user.pic = pic
-    print(pic)
     db.session.commit()
-    print(user.pic)
-    
   else:
       flash('No file selected')
-  # update the user's profile picture in the database
-  # (replace this with your own code to update the database)
-  
-  # redirect back to the user's profile page
   return redirect(url_for('account'))
-
-
 
 @app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
 @login_required
 def deletecard(deck_id, card_id):
-
     deck = Deck.query.get_or_404(deck_id)
     if(current_user.id != deck.user_id):
-       return jsonify({'error': 'Deck not assigned to user'}), 403
-      
+       return apology('Deck not assigned to user', 403)
     card_to_delete = Card.query.get_or_404(card_id)
     if card_to_delete != None:
         db.session.delete(card_to_delete)
@@ -1295,8 +1259,7 @@ def addterms(deck_id):
     form = AddTermForm()
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     if(current_user.id != deck.user_id):
-       return jsonify({'error': 'Deck not assigned to user'}), 403
-    
+       return apology('Deck not assigned to user', 403)
     cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
     if form.validate_on_submit():
         key = form.term.data
@@ -1308,7 +1271,6 @@ def addterms(deck_id):
         deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
         cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
         return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
-
     return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
 
 @app.route("/downloadascsv/<int:deck_id>", methods = ["POST", "GET"])
@@ -1346,16 +1308,15 @@ def regenerate_def(card_id):
     db.session.commit()           
     return jsonify('success')
 
-
 @app.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])
 def get_due_cards(deck_id):
     deck = Deck.query.get(deck_id)
     ## later add in option to modify number of new cards to be shown
     n=20
     if(current_user.id != deck.user_id):
-        return jsonify({'error': 'Deck not assigned to user'}), 403
+        return apology('Deck not assigned to user', 403)
     if deck is None:
-        return jsonify({'error': 'Deck not found'}), 404
+        return apology('Deck not found', 404)
     return deck.get_due_cards(n)
 
 
@@ -1363,32 +1324,27 @@ def get_due_cards(deck_id):
 def study_deck(deck_id):
     deck = Deck.query.get(deck_id)
     if(current_user.id != deck.user_id):
-        return jsonify({'error': 'Deck not assigned to user'}), 403
+        return apology('Deck not assigned to user', 403)
     return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck) 
 
 @app.route("/study_deck_all", methods = ["POST", "GET"])   
 @login_required   
 def study_deck_all():
     ## loads all decks for a user
-    
     ## get list of decks for user with id user id
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
-    print(decks)
     decks_data = [{'id': deck.id} for deck in decks]
     decks_json = json.dumps(decks_data)
-    print(decks_json)
     return render_template('study_deck_all.html', title='Study all decks', decks_json=decks_json, decks=decks)
 
 @app.route("/increment/<card_id>", methods = ["POST", "GET"])
 def increment(card_id):
     card = Card.query.get(card_id)
-    
     deck = Deck.query.filter(Deck.cards.any(id=card_id)).first()
     if(current_user.id != deck.user_id):
-        return jsonify({'error': 'Card not assigned to user'}), 403
-    
+        return apology('Deck not assigned to user', 403)
     if card is None:
-        return jsonify({'error': 'Card not found'}), 404
+            return apology('Card not found', 404)
     card.increment()
     card.update_time()
     return jsonify({'success': 'Card incremented'}), 200
@@ -1400,10 +1356,10 @@ def decrement(card_id):
     
     deck = Deck.query.filter(Deck.cards.any(id=card_id)).first()
     if(current_user.id != deck.user_id):
-        return jsonify({'error': 'Deck not assigned to user'}), 403
+        return apology('Deck not assigned to user', 403)
     
     if card is None:
-        return jsonify({'error': 'Card not found'}), 404
+        return apology('Card not found', 404)
     card.decrement()
     card.update_time()
     return jsonify({'success': 'Card decremented'}), 200
@@ -1411,47 +1367,37 @@ def decrement(card_id):
 @app.route("/forcestudy/<deck_id>")
 def force_study(deck_id):
     deck = Deck.query.get(deck_id)
-    
     if(current_user.id != deck.user_id):
-         return jsonify({'error': 'Deck not assigned to user'}), 403
-    
+         return apology('Deck not assigned to user', 403)
     if deck is None:
-        return jsonify({'error': 'Deck not found'}), 404
+        return apology('Deck not found', 404)
     return deck.force_study()
     
 @app.route("/casualmode/<int:deck_id>")
 def casual_mode(deck_id):
     return render_template("casualmode.html", title="Casual Mode", deck=deck_id)   
 
-
- 
- 
 @app.route('/generate_img/<int:deck_id>', methods=['GET', 'POST'])
 def generate_img(deck_id):
     deck = Deck.query.get(deck_id)
     if(current_user.id != deck.user_id):
-         return jsonify({'error': 'Deck not assigned to user'}), 403
-        
+         return apology('Deck not assigned to user', 403)
     if deck is None:
-        return jsonify({'error': 'Deck not found'}), 404
+        return apology('Deck not found', 404)
     for card in deck.cards:
         try:
             card.img = create_image(card.term)
             db.session.commit()
         except:
             pass
-
     return redirect(("/currentdeck/{deck}").format(deck=deck_id))
     
-    
-
-
 @app.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
 def carousel(deck_id):
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     cards = Card.query.filter(Card.decks_backref.any(id=deck_id)).order_by(Card.id.desc()).all()
     if(current_user.id != deck.user_id):
-         return jsonify({'error': 'Deck not assigned to user'}), 403
+         return apology('Deck not assigned to user', 403)
     if request.method == 'POST' and 'term' in request.form:
         term = request.form['term'] ## new term for card
         content = request.form['content']
@@ -1481,26 +1427,16 @@ def carousel(deck_id):
                 card.formula = formula.strip()
         db.session.commit()
     if request.method == 'POST' and 'new_term' in request.form:
-        term = request.form['new_term']
-        content = request.form['new_content']
-        boc_2 = request.form['new_boc_2']
-        boc_3 = request.form['new_boc_3']
-        boc_4 = request.form['new_boc_4']
-        category = request.form['new_category']
-        time_created = datetime.utcnow()
-        entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category, time_created=time_created)
+        entry = Card(term=request.form['new_term'], content=request.form['new_content'], boc_2=request.form['new_boc_2'],
+                     boc_3=request.form['new_boc_3'], boc_4=request.form['new_boc_4'], category=request.form['new_category'],
+                     time_created=datetime.utcnow())
         deck.cards.append(entry)
         db.session.commit()
     if request.method == 'POST' and 'new_deck_name' in request.form:
-        print("entered post request for editing deck")
-        name = request.form['new_deck_name']
-        description = request.form['new_deck_description']
-        subject = request.form['new_deck_subject']
-        topic = request.form['new_deck_topic']
-        deck.name = name
-        deck.description = description
-        deck.subject = subject
-        deck.topic = topic
+        deck.name = request.form['new_deck_name']
+        deck.description = request.form['new_deck_description']
+        deck.subject = request.form['new_deck_subject']
+        deck.topic = request.form['new_deck_topic']
         db.session.commit()   
     return render_template("carousel.html", title="Carousel", deck=deck, cards=cards) 
 
@@ -1509,14 +1445,10 @@ def add_new_card(deck_id):
     print("entered add new card")
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     if(current_user.id != deck.user_id):
-         return jsonify({'error': 'Deck not assigned to user'}), 403
-    term = request.form['new_term'] 
-    content = request.form['new_content']
-    boc_2 = request.form['new_boc_2']
-    boc_3 = request.form['new_boc_3']
-    boc_4 = request.form['new_boc_4']
-    category = request.form['new_category']
-    entry = Card(term=term, content=content, boc_2=boc_2, boc_3=boc_3, boc_4=boc_4, category=category)
+        return apology('Deck not assigned to user', 403)
+    entry = Card(term=request.form['new_term'] , content=request.form['new_content'], boc_2=request.form['new_boc_2'],
+                 boc_3=request.form['new_boc_3'], boc_4=request.form['new_boc_4'],
+                 category=request.form['new_category'])
     db.session().add(entry)
     deck.cards.append(entry)
     db.session.commit()
@@ -1534,9 +1466,7 @@ def terms_and_conditions():
 @app.route("/delete_account", methods = ["POST"])
 def delete_account():
     user = User.query.filter_by(id=current_user.id).first()
-    del_email = request.form['del_email']
-    del_password = request.form['del_password']
-    if user.email == del_email and bcrypt.check_password_hash(user.password, del_password):
+    if user.email == request.form['del_email'] and bcrypt.check_password_hash(user.password, request.form['del_password']):
         db.session.delete(user)
         db.session.commit()
         flash("We'are sorry to see you go. Your account has been deleted.")
@@ -1551,7 +1481,6 @@ def extract():
     if form.validate_on_submit():
         deck, text, prompt_options = handle_form_submission(form)
         tokens = count_tokens(text)      
-        print(tokens)
         if perform_operation(current_user, prompt_options['main_opt'], tokens) == False:
             flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
             return redirect(url_for('viewdecks'))
@@ -1666,8 +1595,6 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract"):
     main_opt = prompt_options['main_opt']
     trans_opt = prompt_options['trans_opt']
     cat = main_opt
-    print("terms passed to save_terms_to_deck")
-    print(terms)
     if main_opt == "Mcq":
         v, w, x, y, z = mapping.get(main_opt, ("A", "B", "C", "D", "E"))
         for item in terms:
@@ -1715,8 +1642,8 @@ def check_card_exist(deck, term):
             return True
     else:
         return False
+    
 def save_source_text_to_deck(deck, text, prompt_options, method="extract"):
-
     main_opt = prompt_options['main_opt']
     f_name = deck.name + "_" + method + "_" + main_opt + "_" + str(datetime.utcnow())
     file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.utcnow())
@@ -1741,7 +1668,7 @@ def sea_dox(deck_id):
     deck = Deck.query.get_or_404(deck_id)
     ## GET source files
     files = deck.deck_files
-    files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.desc()).all()
+    ##files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.desc()).all()
     if request.method == 'GET':
         print("entered get request")
         sort_method =request.args.get('sort')
@@ -1796,17 +1723,12 @@ def delete_file(deck_id, file_id):
 
 @app.route("/share_deck/<int:deck_id>/<string:user_email>/", methods=["GET", "POST"])
 def share_deck(deck_id, user_email):
-    decks = Deck.query.filter(Deck.user_id == current_user.id).all()
     sender_id = current_user.email
     deck_to_copy = Deck.query.get_or_404(deck_id)
-    
     if check_comma_list(user_email):
-        print(user_email)
         users_emails = user_email.split(",")
-        print(users_emails)
         for email in users_emails:
             email = unquote(email).strip()
-            print(email)
             shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=email)
             db.session.add(shared_deck)
             for card in deck_to_copy.cards:
@@ -1826,7 +1748,6 @@ def share_deck(deck_id, user_email):
 
 @app.route("/approve_shared/<int:deck_id>/", methods=["GET", "POST"])
 def approve_shared(deck_id):
-    print("entered approve shared")
     shared_deck = SharedDecks.query.get_or_404(deck_id)
     new_deck = Deck(user_id = current_user.id, name=shared_deck.name, description=shared_deck.description, shared=True, sharer=shared_deck.sender, time_created=datetime.utcnow())
     db.session.add(new_deck)
@@ -1854,11 +1775,7 @@ if __name__ == "__main__":
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
     if request.method == 'POST' and 'message_feedback' in request.form:
-        name = request.form['name_feedback']
-        email = request.form['email_feedback']
-        feedback = request.form['message_feedback']
-        type_feedback = request.form['type_feedback']
-        entry = Feedback(name=name, email=email, message=feedback, type_feedback=type_feedback)
+        entry = Feedback(name=request.form['name_feedback'], email=request.form['email_feedback'], message=request.form['message_feedback'], type_feedback=request.form['type_feedback'])
         entry.send_feedback()
         flash("Thank you for your feedback!", "success")
     return render_template('index.html', title='Index')
@@ -1939,10 +1856,8 @@ def update_card():
     question = Question.query.get(question_id)
     question.question = request.form['question']
     question.points = request.form['points']
-    print(question.points)
     category = request.form['category']
     question.term = request.form['answer']
-    print(request.form)
     if category == 'mcq':
         print("recognized mcq")
         question.boc_2 = request.form['boc_2']
@@ -1974,7 +1889,6 @@ def assign(test_id, user_email):
     test = Test.query.filter_by(id=test_id).first()
     test.count_questions()
     test.sum_points()
-    sender = current_user
     if check_comma_list(user_email):
         print(user_email)
         users_emails = user_email.split(",")
@@ -1996,7 +1910,7 @@ def take_test(test_id, user_id):
     test_result = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
     test = Test.query.get_or_404(test_id)
     if test_result is None:
-        start_time = datetime.now()
+        start_time = datetime.utcnow()
         test_result = TestResult(test_id = test_id, taker = user_id, start_time = start_time, creator=test.creator)
         taker = User.query.get_or_404(user_id)
         db.session.add(test_result)
@@ -2059,8 +1973,6 @@ def test_results(test_id, user_id):
     db.session.commit()
     return render_template('test_results.html', test=test, taker=taker, results=test_result)    
 
-
-
 @app.route("/test_results_overview/", methods=["GET", "POST"])
 def test_results_overview():
     user = current_user
@@ -2068,8 +1980,6 @@ def test_results_overview():
     ## results of tests taken
     test_results_taken = TestResult.query.filter_by(taker = user.id).all()
     ## results of tests given
-    for test_results in test_results_taken:
-        print(test_results.test_id)
     test_results_given = TestResult.query.filter_by(creator = user.id).all()
     tests = []
     for result in test_results_taken:
@@ -2092,9 +2002,8 @@ def test_result_details(test_id):
     taker_ids = [result.taker for result in results]
     # Filter the User objects by the taker ids
     takers = User.query.filter(User.id.in_(taker_ids)).all()
-    print(takers)
-
     return render_template('test_result_details.html', results = results, test = test, takers = takers)
+
 @app.route("/test_created/<int:test_id>/", methods=["GET", "POST"])
 def test_created(test_id):
     test = Test.query.get_or_404(test_id)
@@ -2127,8 +2036,6 @@ def test_created(test_id):
 @app.route("/test_result/<int:result_id>/", methods=["GET", "POST"])
 def test_result(result_id):
     result = TestResult.query.filter_by(id = result_id, taker = current_user.id).first()
-    print(result)
-    print(result.test_id)
     test = Test.query.filter_by(id = result.test_id).first()
     return render_template('test_result.html', result=result, test=test)
 
@@ -2146,7 +2053,6 @@ def test_answers(test_id, taker_id):
             for question_result in question_results:
                 question_points_id = 'points' + str(question_result.id)
                 points_entered = int(request.form.get(question_points_id))
-
                 question_result.points = int(points_entered)
                 for question in test.questions:
                     if question_result.points == question.points:
@@ -2154,7 +2060,6 @@ def test_answers(test_id, taker_id):
             result.sum_points()        
             db.session.commit()
         return render_template('test_answers.html', result=result, question_results=question_results, test=test)
-    
     
 @app.route("/test_print/<int:test_id>/", methods=["GET", "POST"])
 def test_print(test_id):
@@ -2169,23 +2074,18 @@ def sea_source(file_id):
 
 @app.route("/import_deck/", methods=["GET", "POST"])
 def import_deck():
-    print(request.form)
     ## IMPORT ALL DECKS FROM ANKI
     if check_anki_connect() == True:
         if request.method == "POST" and "import-all" in request.form:
-            print("entered import all")
             decks = anki_import_all()
             decks = json.loads(decks)
             for deck in decks:
                 for key, value in deck.items():
                     if value != []:
-                        deck_name = key
                         description = "anki import"
-                        deck = Deck(name = deck_name, description = description, user_id = current_user.id)
+                        deck = Deck(name = key, description = description, user_id = current_user.id)
                         db.session.add(deck)
                         db.session.commit()
-                        ##print(f"Deck name: {key}")
-                        ##print(f"Cards: {value}")
                         for i in range(len(value)):
                             for j in range(len(value[i])):
                                 card = value[i][j]
@@ -2196,41 +2096,20 @@ def import_deck():
                                 entry = Card(term = term, content = content, interval = interval, category = "anki")
                                 db.session.add(entry)
                                 deck.cards.append(entry)
-                        print(deck)
                         db.session.commit()
             flash("Decks imported", "success")
             return redirect(url_for('viewdecks'))
-        
         if request.method == "POST" and "import-by-name" in request.form:
             deck_names = request.form['deck-name']
-            if check_comma_list(deck_names):
-                deck_names = deck_names.split(",")
-                for name in deck_names:
-                    deck = anki_import_deck(name)
-                    deck = json.loads(deck)
-                    cards = deck[0][name]
-                    description = "anki import"
-                    deck = Deck(name = name, description = description, user_id = current_user.id)
-                    db.session.add(deck)
-                    db.session.commit()
-                    for i in range(len(cards)):
-                        card = cards[i][0]
-                        print(card)
-                        cardId = card['cardId']
-                        content = card['fields']['Back']['value']
-                        term = card['fields']['Front']['value']
-                        interval = card['interval']*1440
-                        entry = Card(term = term, content = content, interval = interval)
-                        db.session.add(entry)
-                        deck.cards.append(entry)
-                    db.session.commit()
-            else:
-                deck = anki_import_deck(deck_names)
+            if not check_comma_list(deck_names):
+                deck_names = [deck_names]
+            deck_names = deck_names.split(",")
+            for name in deck_names:
+                deck = anki_import_deck(name)
                 deck = json.loads(deck)
-                deck_name = deck_names
-                cards = deck[0][deck_name]
+                cards = deck[0][name]
                 description = "anki import"
-                deck = Deck(name = deck_name, description = description, user_id = current_user.id)
+                deck = Deck(name = name, description = description, user_id = current_user.id)
                 db.session.add(deck)
                 db.session.commit()
                 for i in range(len(cards)):
@@ -2240,19 +2119,15 @@ def import_deck():
                     content = card['fields']['Back']['value']
                     term = card['fields']['Front']['value']
                     interval = card['interval']*1440
-                    entry = Card(term = term, content = content, interval = interval, category = "anki")
+                    entry = Card(term = term, content = content, interval = interval)
                     db.session.add(entry)
                     deck.cards.append(entry)
-                    
                 db.session.commit()
             flash("Decks imported", "success")
             return redirect(url_for('viewdecks'))
     else:
-        return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)
-        
-        
+        return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)     
     return render_template('import_deck.html')
-
 
 @app.route("/export_deck/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
@@ -2285,18 +2160,14 @@ def perform_operation(user, operation_type, n):
     usage_record = UsageRecord.query.filter_by(user_id=user.id).order_by(UsageRecord.date.desc()).first()
     subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()
     if usage_record is None:
-        
         remaining_count = subscription_plan.limit_count
     else:
         remaining_count = usage_record.remaining_count
     if remaining_count <= 0:
         return False
     # Perform the operation and update the usage record
-    # ...
-    
     # Update the usage record
     new_record = UsageRecord(user_id=user.id, operation_type=operation_type, time_period='month', limit_count=subscription_plan.limit_count)
-
     if usage_record is None:
         new_record.operation_count = n
         new_record.remaining_count = subscription_plan.limit_count - n
@@ -2304,7 +2175,6 @@ def perform_operation(user, operation_type, n):
         new_record.operation_count = usage_record.operation_count + n
         new_record.remaining_count = usage_record.remaining_count - n
     db.session.add(new_record)
-
 
 def check_subscription_plan(user):
     subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()
