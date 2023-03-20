@@ -1,0 +1,160 @@
+{% extends "layout.html" %} {% block title %} Register {% endblock %} {% block head
+%}
+
+{% endblock %} {% block main_0 %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-4 d-none d-lg-block">
+            <img src="/static/logo1.png" alt="logo" width="100%" height="100%">
+
+
+        </div>
+        <div class="col-md-2 d-none d-md-block">
+
+
+        </div>
+        <div class="col-md-6 order-md-1">
+            <form novalidate method="post" action="{{ url_for('register') }}">
+
+                <div class="form-group mt-1">
+                    <div class="row">
+                        <h1>Almost there!</h1>
+                    </div>
+                    <div class="form-floating mt-1">
+
+                        
+                        <input class="form-control" type="text" name="username" id="username" placeholder="EasyLearning2023"required >
+                        <label for="name">Username:</label>
+                    </div>
+                    <div class="form-floating mt-1">
+                        
+                        <select class="form-select" name="role" id="role" placeholder = "Choose role" required>
+                            <option value="" disabled selected>Choose role</option>"
+                            <option value="teacher">Teacher</option>
+                            <option value="student">Full time student</option>
+                            <option value="student">Part time student</option>
+                            <option value="language">Language learner</option>
+                            <option value="other">other</option>
+                        </select>
+                        <label for="role">Role:</label>
+                    </div>
+                    <div class="form-group mt-1">
+                        <input class="form-check-input" type="checkbox" value="contacted" name="contacted"
+                            id="contacted">
+
+                        <label class="form-check-label" for="contacted">I agree to be contacted</label>
+                    </div>
+                    <div class="form-group mt-1">
+                        <input class="form-check-input" type="checkbox" value="subscribe" name="subscribe"
+                            id="subscribe">
+
+                        <label class="form-check-label" for="subscribe">I would like to stay up to date with the latest developments</label>
+                    </div>
+                    <div class="form-group mt-1">
+                        <input class="form-check-input" type="checkbox" value="tos" name="tos" id="tos" required>
+
+                        <label class="form-check-label" for="tos">I agree to the <a
+                                style="text-decoration: underline" data-bs-toggle="modal"
+                                data-bs-target="#tcModal">terms
+                                and conditions</a>?</label>
+                    </div>
+                    <div class="form-group mt-1">
+                    <input class="btn btn-primary" type="submit" value="Register">
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+</div>
+
+
+</div>
+
+<!----- TERMS AND CONDITIONS MODAL ----->
+<div class="modal fade" id="tcModal" tabindex="-1" aria-labelledby="tcModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tcModalLabel">Terms and conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Welcome to Octoply, an educational platform where you can create, share, and study educational
+                    content. These terms and conditions govern your use of the Octoply website, mobile application, and
+                    any related services (collectively, the "Services"). By accessing or using the Services, you agree
+                    to be bound by these terms and conditions.</p>
+
+                <h5>1-Your Use of the Services</h5>
+                <p>a. Eligibility: You must be at least 13 years old to use the Services. If you are under 18, you may
+                    only use the Services with the involvement of a parent or guardian.</p>
+                <p>b. User Accounts: To access some features of the Services, you may be required to create an account.
+                    You must provide accurate and complete information when creating your account, and you are
+                    responsible for keeping your login information confidential. You are also responsible for all
+                    activities that occur under your account.</p>
+
+                <p>c. User Content: You may create, upload, or share educational content on the Services. You retain all
+                    rights to any intellectual property rights that you hold in that content. By uploading or sharing
+                    content on the Services, you grant Octoply a non-exclusive, transferable, sub-licensable,
+                    royalty-free, and worldwide license to use, store, display, reproduce, modify, and distribute your
+                    content in connection with the operation of the Services.</p>
+
+                <p>d. Prohibited Activities: You may not use the Services for any illegal or unauthorized purpose. You
+                    may not post or share any content that is false, misleading, defamatory, or infringes on any
+                    intellectual property rights. Octoply reserves the right to remove any content that violates these
+                    terms and conditions.</p>
+
+                <h5>2-Disclaimer of Warranties</h5>
+                <p>The Services are provided on an "as is" and "as available" basis, and Octoply makes no
+                    representations or warranties of any kind, express or implied, as to the operation of the Services
+                    or the information, content, materials, or products included on the Services.</p>
+
+                <h5>3-Limitation of Liability</h5>
+                <p>To the fullest extent permitted by applicable law, Octoply will not be liable for any damages of any
+                    kind arising from the use of the Services, including, but not limited to, direct, indirect,
+                    incidental, punitive, and consequential damages.</p>
+
+                <h5>4-Indemnification</h5>
+                <p>You agree to indemnify, defend, and hold harmless Octoply and its affiliates, officers, directors,
+                    employees, agents, and licensors from any claim or demand, including reasonable attorneys' fees,
+                    made by any third party due to or arising out of your use of the Services, your violation of these
+                    terms and conditions, or your violation of any rights of another.</p>
+
+                <h5>5-Termination</h5>
+                <p>Octoply may terminate your access to the Services at any time, with or without cause, without notice,
+                    and without liability to you.</p>
+
+                <h5>6-Modifications</h5>
+                <p>Octoply may revise these terms and conditions at any time without notice. By using the Services, you
+                    are agreeing to be bound by the then-current version of these terms and conditions.</p>
+
+                <h5>7-Governing Law and Dispute Resolution</h5>
+                <p>These terms and conditions are governed by and construed in accordance with the laws of the European
+                    Union. Any dispute arising under these terms and conditions shall be resolved exclusively by the
+                    courts of the European Union, and you agree to submit to the personal jurisdiction of those courts
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+const form = document.querySelector("form")
+
+
+form.addEventListener('submit', e => {
+    if (!form.checkValidity()) {
+        e.preventDefault()
+    }
+    form.classList.add('was-validated')
+})
+
+
+</script>
+{% endblock %}

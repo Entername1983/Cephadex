@@ -22,18 +22,13 @@ def creator(text, prompt_options):
     trans_opt = prompt_options['trans_opt']
     text_ = text
     if main_opt != "Transcribe":
-        print("entered not transcribe")
         text_ = split_text(text_)
-        print(text_)
         terms = large_extract_terms(text_, prompt_options)
         return terms[0], terms[1], terms[2], terms[3]
     elif main_opt  == "Transcribe":
-        print("entered transcribe")
         if trans_opt == None:
-            print("trans_option is none")
             return text_
         else:
-            print("trans option is not none")
             text_ = transcribe_and_translate(text_, prompt_options)
             return text_   
     elif main_opt  == "List":

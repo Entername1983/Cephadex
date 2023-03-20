@@ -3,8 +3,7 @@ main_0 %}
 
 
 
-
-<div class="col box_0 p-3 m-2">
+<div class = "container">
   <form method="POST" action="{{ url_for('account') }}">
     <div class="accordion" id="accordionExample">
       <div class="accordion-item">
@@ -20,68 +19,115 @@ main_0 %}
             <div class="row">
 
               <div class="col-6">
-                <div class="row">
+                <div class="form-floating mt-1">
+
+                  <input name="first_name" class="input_0 form-control form-control-lg" type="text" id="first_name"
+                    placeholder="{{ user.first_name }}" value="{{ user.first_name }}" />
                   <label for="first_name">First Name:</label>
-                  <input name="first_name" class="card-title box_study input_0 form-control form-control-lg" type="text"
-                    id="first_name" placeholder="{{ user.first_name }}" value="{{ user.first_name }}" />
                 </div>
-                <div class="row">
+
+                <div class="form-floating mt-1">
+
+                  <input name="last_name" class=" input_0 form-control form-control-lg" type="text" id="last_name"
+                    placeholder="{{ user.last_name }}" value="{{ user.last_name }}" />
                   <label for="last_name">Last Name:</label>
-                  <input name="last_name" class="card-title box_study input_0 form-control form-control-lg" type="text"
-                    id="last_name" placeholder="{{ user.last_name }}" value="{{ user.last_name }}" />
                 </div>
-                <div class="row">
+                <div class="form-floating mt-1">
+
+                  <input name="username" class=" input_0 form-control form-control-lg" type="text" id="username"
+                    placeholder="{{ user.username }}" value="{{ user.username }}" />
                   <label for="username">Username:</label>
-                  <input name="username" class="card-title box_study input_0 form-control form-control-lg" type="text"
-                    id="username" placeholder="{{ user.username }}" value="{{ user.username }}" />
+
                 </div>
-                <div class="row">
+                <div class="form-floating mt-1">
+                  <input name="email" class="form-control form-control-lg" type="text" id="email"
+                    placeholder="{{ user.email }}" value="{{ user.email }}" disabled>
                   <label for="email">Email:</label>
-                  <p name="email" class="card-title box_study input_0 form-control form-control-lg" type="text"
-                    id="email" placeholder="{{ user.email }}" value="{{ user.email }}"> {{ user.email }} </p>
+
                 </div>
-                <div class="row">
-                  <label for="gender">Gender:</label>
-                  <select id="gender" name="gender" class="card-title box_study input_0 form-control form-control-lg">
+                <div class="form-floating mt-1">
+                  <select id="gender" name="gender" class="form-select" placeholder="">
                     <option value="default">{{user.gender}}</option>
                     <option value="Female">Female</option>
                     <option value="Male">Male</option>
                     <option value="Other">Other</option>
                     <option value="Prefer not to say">Prefer not to say</option>
+
                   </select>
+                  <label for="gender">Gender:</label>
                 </div>
+                <div class="form-floating mt-2">
 
+                  <select class="form-select" name="role" id="role" placeholder="Choose role">
+                    <option value="" disabled selected>Choose role</option>"
+                    <option value="teacher">Teacher</option>
+                    <option value="student">Full time student</option>
+                    <option value="student">Part time student</option>
+                    <option value="language">Language learner</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <label for="role">Role:</label>
+                </div>
               </div>
-            
-            <br>
 
-            <div class="col-6">
-              <div class="row justify-content-center" style="text-align:center">
-                {% if user.pic == None %}
-                <img src="static/logo1.png" style="max-height:fit-content; max-width:fit-content;" alt="logo">
-                {% else %}
-                <img src="\{{user.pic}}" style="max-height:400px; max-width:400px;" alt="profile pic">
-                {% endif %}
+              <br>
+
+              <div class="col-6">
+                <div class="row justify-content-center" style="text-align:center">
+                  {% if user.pic == None %}
+                  <img src="static/logo1.png" style="max-height:fit-content; max-width:fit-content;" alt="logo">
+                  {% else %}
+                  <img src="\{{user.pic}}" style="max-height:400px; max-width:400px;" alt="profile pic">
+                  {% endif %}
+                </div>
+                <div class="row justify-content-center mt-2">
+                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                    style="max-width:300px;">Change profile picture</button>
+                </div>
               </div>
-              <div class="row justify-content-center mt-2">
-                <button type="button" class="btn box_study" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                  style="max-width:300px;">Change profile picture</button>
+
+            </div>
+            <div class=" input-group form-floating mt-2">
+              {% set account_type = {'1':'Free', '2':'Junior', '3':'Beta', '4':'Premium', '5':'Enterprise',
+              '6':'Administrator'}%}
+
+              {% set type = user.subscription_plan %}
+              <input name="term" id="accountType" aria-describedby="accountTypeUpgrade"
+                class="form-control form-control-lg" type="text" id="email" placeholder=""
+                value="{{account_type[user.subscription_plan|string]}}" disabled>
+              <label for="email">Account type:</label>
+              <div class="d-flex justify-content-center">
+
+                <button href="/upgrade/" type="button" id="accountTypeUpgrade"
+                  class="btn btn-primary text-center mx-auto">Upgrade account</button>
               </div>
             </div>
 
-          </div>
-          <div class="row">
-            <label for="email">Account type:</label>
-            <p name="term" class="card-title box_study input_0 form-control form-control-lg" type="text" id="email"
-              placeholder="" value=""> {{user.account_type}} </p>
-            <button type="button" class="btn box_study" style="max-width:300px;">Upgrade account</button>
-            <label for="email">Member since:</label>
-            <p name="term" class="card-title box_study input_0 form-control form-control-lg" type="text" id="email"
-              placeholder="" value=""> {{user.time_created}} </p>
-            <div class="row">
-              <label for="checkbox">Receive email notifications:</label>
-              <input class=" " type="checkbox" id="email-checkbox" name="email-checkbox" value="on" />
+
+
+            <div class="form-floating mt-2">
+
+
+              <input name="" class=" form-control form-control-lg" type="text" id="email" placeholder=""
+                value="{{user.time_created.strftime('%Y-%m-%d')}}" disabled>
+              <label for="email">Member since:</label>
+
             </div>
+
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" name="email-checkbox" id="email-checkbox" value="contacted" {% if
+                user.contacted_email %} checked {% endif %}>
+              <label class="form-check-label" for="email-checkbox" value="contacted">Agree to be contacted by
+                email</label>
+            </div>
+
+
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" name="subscriber-checkbox" id="subscriber-checkbox" value="subscribe" {% if
+                subscriber %} checked {% endif %}>
+              <label class="form-check-label" for="subscriber-checkbox" value="subscribe">Sign up to our mailing list</label>
+            </div>
+
 
           </div>
         </div>
@@ -102,65 +148,96 @@ main_0 %}
 
 
           <div class="row">
-<div class = "col-md-4">
-            <label for="email">Hours spent studying:</label>
-            <p name="term" class="card-title box_study input_0 form-control form-control-lg" style="max-width:200px"type="text" id="email"
-              placeholder="" value=""> 25 (placeholder) </p>
-</div>   <div class = "col-md-4">           
-            <label for="email">Number of decks:</label>
-            <p name="term" class="card-title box_study input_0 form-control form-control-lg" style="max-width:200px" type="text" id="email"
-              placeholder="" value=""> {{user.quantity_decks()}} </p>
-            </div>   <div class = "col-md-4">           
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
 
-            <label for="email">Number of cards:</label>
-            <p name="term" class="card-title box_study input_0 form-control form-control-lg" style="max-width:200px"type="text" id="email"
-              placeholder="" value=""> {{user.quantity_cards()}} </p>
-            </div>   <div class = "col-md-4">           
+                <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text" id="email"
+                  placeholder="" value="" disabled>
+                <label for="email">Hours spent studying</label>
 
-            <label for="email">Cards mastered:</label>
-            <p name="term" class="card-title box_study input_0 form-control form-control-lg" style="max-width:200px"type="text" id="email"
-              placeholder="" value=""> {{user.quantity_cards_mastered()}} </p>
-            </div>   <div class = "col-md-4">           
+              </div>
 
-            <label for="email">Cards learning:</label>
-            <p name="term" class="card-title box_study input_0 form-control form-control-lg" style="max-width:200px"type="text" id="email"
-              placeholder="" value=""> {{user.quantity_cards_learning()}} </p>
-            </div>   <div class = "col-md-4">           
 
-            <label for="email">New cards:</label>
-            <p name="term" class="card-title box_study input_0 form-control form-control-lg" style="max-width:200px"type="text" id="email"
-              placeholder="" value=""> {{user.quantity_cards_new()}} </p>
-            </div>          
 
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+                <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
+                  id="qty-decks" placeholder="" value="{{user.quantity_decks()}}" disabled>
+                <label for="qty-decks">Number of decks</label>
+
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+
+
+                <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
+                  id="qty-cards" placeholder="" value="{{user.quantity_cards()}}" disabled>
+                <label for="qty-cards">Number of cards</label>
+
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+
+
+                <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text"
+                  id="cards-mastered" placeholder="" value="{{user.quantity_cards_mastered()}}" disabled>
+                <label for="cards-mastered">Cards mastered</label>
+
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+
+                <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text"
+                  id="cards-learning" placeholder="" value="{{user.quantity_cards_learning()}}" disabled>
+
+                <label for="cards-learning">Cards learning</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+
+
+
+                <input name="term" class="form-control form-control-lg" style="max-width:200px" type="text"
+                  id="new-cards" placeholder="" value="{{user.quantity_cards_new()}}" disabled>
+                <label for="new-cards">New cards:</label>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingThree">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree"
+            aria-expanded="true" aria-controls="collapseThree">
+            Additional information:
+          </button>
+        </h2>
+        <div id="collapseThree" class="accordion-collapse collapse show" aria-labelledby="headingThree"
+          data-bs-parent="#accordionExample">
+          <div class="accordion-body">
+            <div class="row">
+
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingThree">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree"
-          aria-expanded="true" aria-controls="collapseThree">
-          Additional information:
-        </button>
-      </h2>
-      <div id="collapseThree" class="accordion-collapse collapse show" aria-labelledby="headingThree"
-        data-bs-parent="#accordionExample">
-        <div class="accordion-body">
-          <div class="row">
 
-          </div>
-        </div>
+    <div class="row my-2">
+      <div class="col-6">
+        <button type="submit" class="btn btn-primary" value="Save">Save changes</button>
       </div>
-    </div>
-</div>
-
-<div class="row mt-2">
-  <div class="col-6">
-    <button type="submit" class="btn btn-primary" value="Save">Save changes</button>
-  </div>
   </form>
   <div class="col-6">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#delModal">Delete account</button>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#delModal">Delete
+      account</button>
   </div>
 </div>
 </div>
@@ -196,10 +273,15 @@ main_0 %}
       </div>
       <div class="modal-body">
         <form action="{{ url_for('delete_account') }}" id="delForm" method="POST" enctype="multipart/form-data">
-          <p> Deleting your account is permanent and you will lose all cards and decks as well any progress!  If you are sure you want to delete your account enter your email and password</p>
-          <input  class="card-title box_study input_0 form-control form-control-lg" type ="email" name="del_email" autocomplete="off" value="">
-          <input class="card-title box_study input_0 form-control form-control-lg" type="password" name="del_password" autocomplete="off" value="">
-          <button type="submit" id = "del_submit">Delete account </button>
+          <p> Deleting your account is permanent and you will lose all cards and decks as well any progress! If you are
+            sure you want to delete your account enter your email and password</p>
+
+          <div class="form-floating">
+            <input class=" form-control form-control-lg" type="email" name="del_email" autocomplete="off" value="">
+            <label for="del_email">Email</label>
+          </div>
+
+          <button type="submit" id="del_submit">Delete account </button>
         </form>
       </div>
       <div class="modal-footer">
@@ -210,12 +292,13 @@ main_0 %}
   </div>
 </div>
 </div>
+
 <script>
-  $(document).ready(function() {
-  var deleteAccountModal = document.getElementById('delModal');
-deleteAccountModal.addEventListener('hidden.bs.modal', function () {
-    document.getElementById('delForm').reset();
-});
-});
+  $(document).ready(function () {
+    var deleteAccountModal = document.getElementById('delModal');
+    deleteAccountModal.addEventListener('hidden.bs.modal', function () {
+      document.getElementById('delForm').reset();
+    });
+  });
 </script>
 {% endblock %}

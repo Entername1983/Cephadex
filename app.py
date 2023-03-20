@@ -564,8 +564,8 @@ class Deck(db.Model):
     
 class Subscriber(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(50), unique=True)
-    last_name = db.Column(db.String(50), unique=True)
+    first_name = db.Column(db.String(50))
+    last_name = db.Column(db.String(50))
     email = db.Column(db.String(120), unique=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     def __repr__(self):
@@ -791,17 +791,17 @@ class UploadFileForm(FlaskForm):
     
     text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
     link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional()])
-    qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Min. items per page"})
-    qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Max. items per page"})
-    subject = SelectField('Subject', choices=[("", 'Select subject'),('Art', 'Art'), ('Anatomy', 'Anatomy'), ('Astron', 'Astronomy'), ('Bus', 'Business'), 
+    qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Minimum"})
+    qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Maximum"})
+    subject = SelectField('Subject', choices=[('', ''),('Art', 'Art'), ('Anatomy', 'Anatomy'), ('Astron', 'Astronomy'), ('Bus', 'Business'), 
                                               ('Bio', 'Biology'), ('Chem', 'Chemistry'), ('CS', 'Computer Science'), ('Econ', 'Economics'), 
                                               ('Eng', 'Engineering'), ('Film', 'Film'), ('Geo', 'Geography'), ('Hist', 'History'), 
                                               ('Lit', 'Literature'), ('Law', 'Law'),
                                               ('Math', 'Math'), ('Music', 'Music'), ('Med', 'Medecine'), 
                                               ('Politics', 'Politics'), ('Physics', 'Physics'), ('Psych', 'Psychology'), ('Phil', 'Philosophy'), ('Phys', 'Physiology'),
-                                              ('Science', 'Science'), ('Soc', 'Sociology'),], default = None)
-    length = SelectField('Length', choices=[("", "Content length"), ('long', 'Long'), ('short', 'Short')], default = None)
-    main_lang = SelectField('Main Language', choices=[("", "Select output language"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
+                                              ('Science', 'Science'), ('Soc', 'Sociology'),], default = None, render_kw={"placeholder": "Select subject"})
+    length = SelectField('Length', choices=[('', ''), ('long', 'Long'), ('short', 'Short')], default = None,  render_kw={"placeholder": ""})
+    main_lang = SelectField('Main Language', choices=[('', ''), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
                                                   ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
                                                   ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
@@ -810,7 +810,7 @@ class UploadFileForm(FlaskForm):
                                                   ("Polish", "Polish"), ("Portuguese", "Portuguese"), ("Romanian", "Romanian"), ("Russian",  "Russian"),
                                                   ("Spanish", "Spanish"), ("Serbian", "Serbian"), ("Swahili", "Swahili"), ("Swedish", "Swedish"),
                                                   ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
-                                                  ( "Vietnamese", "Vietnamese")], default = None)
+                                                  ( "Vietnamese", "Vietnamese")], default = None, render_kw={"placeholder": ""})
     custom_term = StringField('Custom extraction', render_kw={"placeholder": "What do you want us to get out of the text?"})
     custom_content = StringField('Custom content', render_kw={"placeholder": "What do you want us to do with what you extracted?"})
     ##def validate_deck_list(self, name, deck_list):
@@ -896,9 +896,6 @@ def run_task():
         db.session.commit()
         return "Usage limits have been reset successfully."
 
-
-
-
     
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -928,7 +925,7 @@ def index():
             
     return render_template('index.html', form = form)
 
-
+""""
 @app.route("/register", methods=["GET", "POST"])
 def register():
     
@@ -962,7 +959,7 @@ def register():
             flash('You have been registered succesfully!', 'success')
 
     return render_template('index.html', title='Index')
-
+"""
     
     
 @app.route("/googleSignIn", methods=["POST"])
@@ -984,7 +981,6 @@ def googleSignIn():
         credential = request.form.get('credential')
         # Decrypt credential, third parameter comes from google API console client ID
         idinfo = id_token.verify_oauth2_token(credential, requests.Request(),'561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com')
-        print(idinfo);
         # ID token is valid. Get the user's Google Account ID from the decoded token. (UniqueID to use for login)
         userid = idinfo['sub']
         
@@ -995,23 +991,55 @@ def googleSignIn():
             flash('You have been logged in!', 'success')
             return redirect(url_for('index'))
         
-        email = idinfo['email']
-        given_name = idinfo['given_name']
-        family_name = idinfo['family_name']
-        
-    
-        user = User(email=email, first_name=given_name, last_name=family_name,external_id=userid, external_type='google', subscription_plan=1)
-        
-        #user = User(email = email, external_id = userid, given_name = given_name, family_name = family_name, enabled = True)
-        db.session.add(user)
-        db.session.commit()
-        login_user(user)
-        return redirect(url_for('index'))
+        else:
+
+            session['google_id_token'] = idinfo['sub']
+            session['google_email'] = idinfo['email']
+            session['given_name'] = idinfo['given_name']
+            session['family_name'] = idinfo['family_name']
+            return redirect(url_for('register'))
     
     except ValueError:
         # Invalid token
         pass
     return render_template('index.html', title='Index')
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == 'POST':
+        print("entered register post request")
+        # Get the user's name and password from the form data
+        username = request.form['username']
+        ##timezone = request.form['password']
+        ##role = request.form['role']
+        contacted = request.form.get('contacted')
+        subscribe = request.form.get('subscribe')
+        print(contacted)
+        print(subscribe)
+        if contacted == 'contacted':
+            contacted = True
+        else:
+            contacted = False
+        # Get the user's email address and ID token from the session
+        email = session['google_email']
+        userid= session['google_id_token']
+        given_name = session['given_name']
+        family_name = session['family_name']
+        user = User(email=email, first_name=given_name, last_name=family_name,external_id=userid, external_type='google', subscription_plan = 1, contacted_email=contacted, username=username)
+        if subscribe == "subscribe":
+            sub_exists = Subscriber.query.filter_by(email=email).first()
+            if not sub_exists:
+                timestamp = datetime.utcnow()
+                subscriber = Subscriber(email=email, first_name=given_name, last_name=family_name, timestamp = timestamp)
+                db.session.add(subscriber)
+
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+        flash("You have been registered and logged in!", "success")
+        return redirect(url_for('index'))
+    return render_template('register.html', title='Register')
     
     ##register_form = RegisterForm()
     ## if register_form.validate_on_submit():
@@ -1195,15 +1223,19 @@ def rename_deck(id, new_name):
 @login_required
 def account():
     user = User.query.filter_by(id=current_user.id).first()
+    subscriber = Subscriber.query.filter_by(email=user.email).first()
     if request.method == 'POST':
-        print(request.form)
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         username = request.form.get('username')
         gender = request.form.get('gender')
         email_checkbox = request.form.get('email-checkbox')
-        print(user, first_name, last_name, username, gender, email_checkbox)
-        print("Entered account post request")
+        role = request.form.get('role')
+        if email_checkbox == "contacted":
+            user.contacted_email = True
+
+        subscribe_checkbox = request.form.get('subscriber-checkbox')
+        print(subscribe_checkbox)
         if first_name != "":
             user.first_name = first_name
         if last_name != "":
@@ -1215,13 +1247,24 @@ def account():
                 user.username = username
         if gender != "":
             user.gender = gender
-        if email_checkbox == "on":
-            user.email_checkbox = True
+        if role != "":
+            user.role = role
+        if subscribe_checkbox == "subscribe":
             if not Subscriber.query.filter_by(email=user.email).first():
                 subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name, timestamp = datetime.utcnow())
                 db.session.add(subscriber)
                 db.session.commit()
-    return render_template("account.html", title="Account", user = user)
+                print("subscribe")
+                flash("You have been subscribed to our mailing list")
+        else:
+            if Subscriber.query.filter_by(email=user.email).first():
+                subscriber = Subscriber.query.filter_by(email=user.email).first()
+                db.session.delete(subscriber)
+                db.session.commit()
+                flash("You have been unsubscribed from our mailing list")
+        db.session.commit()
+        flash("Your account has been updated")
+    return render_template("account.html", title="Account", user = user, subscriber = subscriber)
 
 @app.route('/update_profile_pic', methods=['POST'])
 def update_profile_pic():
@@ -1466,10 +1509,12 @@ def terms_and_conditions():
 @app.route("/delete_account", methods = ["POST"])
 def delete_account():
     user = User.query.filter_by(id=current_user.id).first()
-    if user.email == request.form['del_email'] and bcrypt.check_password_hash(user.password, request.form['del_password']):
-        db.session.delete(user)
+    if user.email == request.form['del_email']:
+        user.account_status = 'inactive'
+        user.expiration = datetime.utcnow()
+        user.account_expiration_reason = "Deleted"
         db.session.commit()
-        flash("We'are sorry to see you go. Your account has been deleted.")
+        flash("We'are sorry to see you go. Your account is now inactive and will be permanently deleted within 48 hours.")
     return redirect(url_for('logout'))
 
 @app.route("/extract", methods = ["GET", "POST"])

@@ -298,8 +298,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle">Add card</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close">
                     </button>
 
                 </div>
@@ -307,29 +306,38 @@
                 <div class="modal-body">
                     <form id="newCardForm" action="" method="post">
 
-                        <div class="row mt-1">
+                        <div class="form-floating mt-1">
 
-                            <input class="box_study" name="new_term" type="text" id="new_term" placeholder="Term" />
+                            <input class="form-control" name="new_term" type="text" id="new_term" placeholder="Term" />
+                            <label for = "new_term">Front of card</label>
                         </div>
-                        <div class="row mt-1">
-                            <input class="box_study" name="new_content" type="text" id="new_content"
+                        <div class="form-floating mt-1">
+                            <input class="form-control" name="new_content" type="text" id="new_content"
                                 placeholder="Main content" />
+                                <label for = "new_content">Main content</label>
+
                         </div>
-                        <div class="row mt-1">
-                            <input class="box_study" name="new_boc_2" type="text" id="new_boc_2"
+                        <div class="form-floating mt-1">
+                            <input class="form-control" name="new_boc_2" type="text" id="new_boc_2"
                                 placeholder="Optional content" />
+                                <label for = "new_boc_2">Extra content</label>
+
                         </div>
-                        <div class="row mt-1">
-                            <input class="box_study" name="new_boc_3" type="text" id="new_boc_3"
+                        <div class="form-floating mt-1">
+                            <input class="form-control" name="new_boc_3" type="text" id="new_boc_3"
                                 placeholder="Optional content" />
+                                <label for = "new_boc_3">Extra content</label>
+
                         </div>
-                        <div class="row mt-1">
-                            <input class="box_study" name="new_boc_4" type="text" id="new_boc_4"
+                        <div class="form-floating mt-1">
+                            <input class="form-control" name="new_boc_4" type="text" id="new_boc_4"
                                 placeholder="Optional content" />
+                                <label for = "new_boc_2">Extra content</label>
+
                         </div>
-                        <div class="row mt-1 box_study">
-                            <select name="new_category">
-                                <option value="" selected>Choose a card type</option>
+                        <div class="form-floating mt-1">
+                            <select class="form-select" name="new_category" id="choose-card" placeholder="Choose card type" required>
+                                <option value="" disabled selected>Choose a card type</option>
                                 <option value="Definitions">Definitions</option>
                                 <option value="Translate">Translate</option>
                                 <option value="Rhyme">Rhyme</option>
@@ -339,6 +347,7 @@
                                 <option value="MCQ">MCQ</option>
                                 <option value="Comprehension">Comprehension</option>
                             </select>
+                            <label for="choose-card">Card type</label>
                         </div>
 
                 </div>
@@ -359,8 +368,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editDeckModalLongTitle">Edit Deck</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                     </button>
 
                 </div>
@@ -368,27 +376,34 @@
                 <div class="modal-body">
                     <form id="newCardForm" action="" method="post">
 
-                        <div class="row mt-1">
-                            <label class="form-label" for="new_deck_name">Name</label>
-                            <input class="box_study" name="new_deck_name" type="text" id="new_deck_name"
-                                placeholder="{{deck.name}}" />
-                        </div>
-                        <div class="row mt-1">
-                            <label class="form-label" for="new_deck_description">Description</label>
-                            <input class="box_study" name="new_deck_description" type="text" id="new_deck_description"
-                                placeholder="{{deck.description}}" />
-                        </div>
-                        <div class="row mt-1">
-                            <label class="form-label" for="new_deck_subject">Subject</label>
+                        <div class="form-floating mt-1">
+                            <input class="form-control" name="new_deck_name" type="text" id="new_deck_name"
+                                placeholder="{{deck.name}}" value = "{{deck.name}}"/>
+                                                            <label for="new_deck_name">Name</label>
 
-                            <input class="box_study" name="new_deck_subject" type="text" id="new_deck_subject"
-                                placeholder="{{deck.subject}}" />
                         </div>
-                        <div class="row mt-1">
-                            <label class="form-label" for="new_deck_subject">Topic</label>
 
-                            <input class="box_study" name="new_deck_topic" type="text" id="new_deck_topic"
-                                placeholder="{{deck.topic}}" />
+
+                        <div class="form-floating mt-1">
+                         
+                            <input class="form-control" name="new_deck_description" type="text" id="new_deck_description"
+                                placeholder="{{deck.description}}" value = "{{deck.description}}"/>
+                                  <label for="new_deck_description">Description</label> 
+                        </div>
+
+                        <div class="form-floating mt-1">
+                            
+                            <input class="form-control" name="new_deck_subject" type="text" id="new_deck_subject"
+                                placeholder="{{deck.subject}}" value = "{{deck.subject}}"/>
+                            <label  for="new_deck_subject">Subject</label>
+
+                        </div>
+                        <div class="form-floating mt-1">
+                                         <input class="form-control" name="new_deck_topic" type="text" id="new_deck_topic"
+                                placeholder="{{deck.topic}}" value=" {{deck.topic}}"/>
+                            <label for="new_deck_subject">Topic</label>
+
+               
                         </div>
                         <div class="modal-footer">
                             <input type="image" id="saveButton" src="\static\save-outline-icon.png"
