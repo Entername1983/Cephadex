@@ -1891,7 +1891,6 @@ def assign_test(test_id):
             test.count_questions()
             test.sum_points()
             db.session.commit()
-            return jsonify({'success': True}), 200
         return render_template('assign_test.html', title='Assign test', test=test, )
     
 @app.route('/update_card', methods=['POST'])

@@ -1,186 +1,186 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
-main_0 %}
-<div class = "container">
-
-
-<div class="row fixed-top" style="background-color: rgba(29, 113, 186); margin-top: 75px;">
-    <form action="" method="POST" class="">
-
-
-        <div class="row mt-1">
-            <div class="col-1 d-flex justify-content-center"></div>
-            <div class="col-3 d-flex justify-content-center">
-
-                <h6>Select questions:</h6>
-
-            </div>
-            <div class="col-4 d-flex justify-content-center">
-                <h6>Question details:</h6>
-            </div>
-            <div class="col-3 d-flex justify-content-center">
-                <h6>Question type:</h6>
-            </div>
-            <div class="col-1 d-flex justify-content-center"></div>
-        </div>
-
-</div>
-
-<div class="card m-1">
-    <div class = "row">
-    <div class="col-1 d-flex justify-content-center align-items-center">
-        <div class = "p-2">
-        <input type="checkbox" class="form-check-input" id="check-all"/>
-        <label  class="form-label" for="check-all">Select All</label>
-        </div>
-    </div>
-    <div class="col-11 d-flex justify-content-end p-4">
-        <input class="btn-primary box_study" type="submit" value="Done selecting question" onclick="return validateForm()">
-    </div>
-    </div>
-</div>
-
-
-{% for card in deck.cards %}
-{% if card.category in ["Mcq", "Cloze"] %}
-
-<div class="card m-1" style="">
-    <div class="card-body box_study w-100">
-        <div class="row">
-            <div class="col-1 ">
-
-                <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
-            </div>
-            <div class="col-11">
-                <div class="row ">
-                    <div class="col-8 box_study p-1">
-                        <input class="card-title border-0 w-100 " id="term{{card.id}}" rows="2"
-                            value="{{card.term}}"></textarea>
-                    </div>
-                    <div class="col-3 box_study p-1 m-1">
-                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
-                            name="category{{card.id}}" value="{{card.category}}">
-                        <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
-                    </div>
+    main_0 %}
+    <div class = "container">
+    
+    
+    <div class="row fixed-top" style="background-color: rgba(29, 113, 186); margin-top: 75px;">
+        <form action="" method="POST" class="">
+    
+    
+            <div class="row mt-1">
+                <div class="col-1 d-flex justify-content-center"></div>
+                <div class="col-3 d-flex justify-content-center">
+    
+                    <h6>Select questions:</h6>
+    
                 </div>
-                <div class="row mt-1">
-                    <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="content{{card.id}}"
-                            value="A - {{card.content}}">
-                    </li>
-                    <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_2{{card.id}}"
-                            value="B - {{card.boc_2}}">
-                    </li>
-                    <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_3{{card.id}}"
-                            value="C - {{card.boc_3}}">
-                    </li>
-                    <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_4{{card.id}}"
-                            value="D - {{card.boc_4}}">
-                    </li>
+                <div class="col-4 d-flex justify-content-center">
+                    <h6>Question details:</h6>
                 </div>
+                <div class="col-3 d-flex justify-content-center">
+                    <h6>Question type:</h6>
+                </div>
+                <div class="col-1 d-flex justify-content-center"></div>
+            </div>
+    
+    </div>
+    
+    <div class="card m-1">
+        <div class = "row">
+        <div class="col-1 d-flex justify-content-center align-items-center">
+            <div class = "p-2">
+            <input type="checkbox" class="form-check-input" id="check-all"/>
+            <label  class="form-label" for="check-all">Select All</label>
             </div>
         </div>
+        <div class="col-11 d-flex justify-content-end p-4">
+            <input class="btn-primary box_study" type="submit" value="Done selecting question" onclick="return validateForm()">
+        </div>
+        </div>
     </div>
-</div>
-
-
-
-
-{% elif card.category == "Formulas" %}
-<div class="card m-1" style="">
-    <div class="card-body box_study w-100">
-        <div class="row">
-            <div class="col-1 ">
-
-                <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
-            </div>
-            <div class="col-11">
-                <div class="row ">
-                    <div class="col-8 box_study p-1">
-                        <div>
-                            \[{{ card.formula}}\]
+    
+    
+    {% for card in deck.cards %}
+    {% if card.category in ["Mcq", "Cloze"] %}
+    
+    <div class="card m-1" style="">
+        <div class="card-body box_study w-100">
+            <div class="row">
+                <div class="col-1 ">
+    
+                    <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
+                </div>
+                <div class="col-11">
+                    <div class="row ">
+                        <div class="col-8 box_study p-1">
+                            <input class="card-title border-0 w-100 " id="term{{card.id}}" rows="2"
+                                value="{{card.term}}"></textarea>
+                        </div>
+                        <div class="col-3 box_study p-1 m-1">
+                            <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
+                                name="category{{card.id}}" value="{{card.category}}">
+                            <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
                         </div>
                     </div>
-                    <div class="col-3 box_study p-1 m-1">
-                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
-                            name="category{{card.id}}" value="{{card.category}}">
-                        <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
+                    <div class="row mt-1">
+                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="content{{card.id}}"
+                                value="A - {{card.content}}">
+                        </li>
+                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_2{{card.id}}"
+                                value="B - {{card.boc_2}}">
+                        </li>
+                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_3{{card.id}}"
+                                value="C - {{card.boc_3}}">
+                        </li>
+                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_4{{card.id}}"
+                                value="D - {{card.boc_4}}">
+                        </li>
                     </div>
-                </div>
-                <div class="row mt-1">
-                    <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="content{{card.id}}"
-                            value="{{card.content}}">
-                    </li>
-                    <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="term{{card.id}}"
-                            value="{{card.term}}">
-                    </li>
-                    <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="formula{{card.id}}"
-                            value="{{card.formula}}">
-                    </li>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-{% else %}
-
-<div class="card m-1" style="">
-    <div class="card-body box_study w-100">
-        <div class="row">
-            <div class="col-1 ">
-
-                <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
-            </div>
-            <div class="col-11">
-                <div class="row ">
-                    <div class="col-8 box_study p-1">
-                        <input class="card-title border-0 w-100 " id="content{card.id}}" rows="2"
-                            value="{{card.content}}">
-                    </div>
-                    <div class="col-3 box_study p-1 m-1">
-                        <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
-                            name="category{{card.id}}" value="{{card.category}}">
-                        <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
-                    </div>
+    
+    
+    
+    
+    {% elif card.category == "Formulas" %}
+    <div class="card m-1" style="">
+        <div class="card-body box_study w-100">
+            <div class="row">
+                <div class="col-1 ">
+    
+                    <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
                 </div>
-                <div class="row mt-1">
-                    <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="term{{card.id}}"
-                            value="{{card.term}}">
-                    </li>
+                <div class="col-11">
+                    <div class="row ">
+                        <div class="col-8 box_study p-1">
+                            <div>
+                                \[{{ card.formula}}\]
+                            </div>
+                        </div>
+                        <div class="col-3 box_study p-1 m-1">
+                            <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
+                                name="category{{card.id}}" value="{{card.category}}">
+                            <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
+                        </div>
+                    </div>
+                    <div class="row mt-1">
+                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="content{{card.id}}"
+                                value="{{card.content}}">
+                        </li>
+                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="term{{card.id}}"
+                                value="{{card.term}}">
+                        </li>
+                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="formula{{card.id}}"
+                                value="{{card.formula}}">
+                        </li>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-
-
-
-{% endif%}
-{% endfor %}
-
-</form>
-
-</div>
-<script>
-    // check all checkboxes when "Check All" checkbox is checked
-    const checkAllCheckbox = document.getElementById('check-all');
-    const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]');
-
-    checkAllCheckbox.addEventListener('change', () => {
-        checkboxes.forEach((checkbox) => {
-            checkbox.checked = checkAllCheckbox.checked;
+    
+    {% else %}
+    
+    <div class="card m-1" style="">
+        <div class="card-body box_study w-100">
+            <div class="row">
+                <div class="col-1 ">
+    
+                    <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
+                </div>
+                <div class="col-11">
+                    <div class="row ">
+                        <div class="col-8 box_study p-1">
+                            <input class="card-title border-0 w-100 " id="content{card.id}}" rows="2"
+                                value="{{card.content}}">
+                        </div>
+                        <div class="col-3 box_study p-1 m-1">
+                            <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
+                                name="category{{card.id}}" value="{{card.category}}">
+                            <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
+                        </div>
+                    </div>
+                    <div class="row mt-1">
+                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="term{{card.id}}"
+                                value="{{card.term}}">
+                        </li>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    
+    {% endif%}
+    {% endfor %}
+    
+    </form>
+    
+    </div>
+    <script>
+        // check all checkboxes when "Check All" checkbox is checked
+        const checkAllCheckbox = document.getElementById('check-all');
+        const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]');
+    
+        checkAllCheckbox.addEventListener('change', () => {
+            checkboxes.forEach((checkbox) => {
+                checkbox.checked = checkAllCheckbox.checked;
+            });
         });
-    });
-
-
-
-    function validateForm() {
-        const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]:checked');
-        if (checkboxes.length === 0) {
-            alert("Please select at least one question.");
-            return false;
+    
+    
+    
+        function validateForm() {
+            const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]:checked');
+            if (checkboxes.length === 0) {
+                alert("Please select at least one question.");
+                return false;
+            }
+            return true;
         }
-        return true;
-    }
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}
