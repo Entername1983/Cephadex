@@ -24,41 +24,6 @@
     <!-- SUBMIT FORMS JAVASCRIPT-->
     <script>
         $(document).ready(function () {
-            // Register form handler
-            $('#register-form').submit(function (event) {
-                event.preventDefault();
-                var form_data = $(this).serialize();
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ url_for("register") }}',
-                    data: form_data,
-                    success: function (response) {
-                        $('#registerModal').modal('hide');
-                    },
-                    error: function (error) {
-                        alert('An error occurred: ' + error.responseText);
-                    }
-                });
-            });
-
-            // Sign in form handler
-            $('#login-form').submit(function (event) {
-                event.preventDefault();
-                var form_data = $(this).serialize();
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ url_for("login") }}',
-                    data: form_data,
-                    success: function (response) {
-                        console.log("login-form success");
-                        $('#loginModal').modal('hide');
-                        location.reload();
-                    },
-                    error: function (error) {
-                        alert('An error occurred: ' + error.responseText);
-                    }
-                });
-            });
 
             // Subscribe form handler
             $('#subscribe-form').submit(function (event) {
@@ -257,7 +222,7 @@
                         </div>
                         <div>
                             <div id="g_id_onload"
-                                data-client_id="561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com"
+                                data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
                                 data-context="signin" data-ux_mode="popup" data-login_uri="/googleSignIn" data-nonce=""
                                 data-auto_prompt="false">
                             </div>
@@ -389,7 +354,8 @@
                         </div>
                         <div class = "row d-flex justify-content-center">
                             <div id="g_id_onload"
-                                data-client_id="561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com"
+                                data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com
+                                "
                                 data-context="signin" data-ux_mode="popup" data-login_uri="/googleSignIn" data-nonce=""
                                 data-auto_prompt="false">
                             </div>
@@ -505,7 +471,43 @@
 
 
 
+       
+        <!---- // Register form handler
+        $('#register-form').submit(function (event) {
+            event.preventDefault();
+            var form_data = $(this).serialize();
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for("register") }}',
+                data: form_data,
+                success: function (response) {
+                    $('#registerModal').modal('hide');
+                },
+                error: function (error) {
+                    alert('An error occurred: ' + error.responseText);
+                }
+            });
+        });
 
+        // Sign in form handler
+        $('#login-form').submit(function (event) {
+            event.preventDefault();
+            var form_data = $(this).serialize();
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for("login") }}',
+                data: form_data,
+                success: function (response) {
+                    console.log("login-form success");
+                    $('#loginModal').modal('hide');
+                    location.reload();
+                },
+                error: function (error) {
+                    alert('An error occurred: ' + error.responseText);
+                }
+            });
+        });
+---->
 
 
 

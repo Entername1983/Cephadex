@@ -1,0 +1,98 @@
+{% extends "layout.html" %} {% block title %} Study {% endblock %} {% block head
+%}
+
+{% endblock %} {% block main_0 %}
+<a href="/viewdecks" class="m-3">
+    <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
+        title="Return to decks">
+</a>
+<a href="/add_new_card/<int:deck_id>" class="m-3">
+    <img src="\static\mathematics-sign-plus-outline-icon.png" alt="Add new card" style="max-width:30px;max-height:30px;"
+        title="Add cards">
+</a>
+
+
+                <div class="card m-2 bg-light" style="min-height:400px">
+                    <div class="card-body ">
+                       
+                        <form action="" method="post">
+                            <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
+                                placeholder="{{ card.id }}" />
+                            <div class="row">
+                                <input name="term" class="card-title box_study input_0 form-control form-control-lg"
+                                    type="text" id="card.id" placeholder="{{ card.term }}" value="{{ card.term }}" />
+                            </div>
+                            <div class="row">
+                                <textarea name="content"
+                                    class="form-control card-text box_study input_0 form-control form-control-lg"
+                                    type="text" id="card.id" rows="3"
+                                    placeholder="{{ card.content }}"> {{ card.content }}</textarea>
+                            </div>
+                           
+                            <div class="row mt-1">
+                                <textarea name="content"
+                                    class="form-control card-text box_study input_0 form-control form-control-lg"
+                                    type="text" id="card.id" rows="1"
+                                    placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
+                            </div>
+                            <div class="row mt-1">
+                                <textarea name="content"
+                                    class="form-control card-text box_study input_0 form-control form-control-lg"
+                                    type="text" id="card.id" rows="1"
+                                    placeholder="{{ card.boc_3 }}"> {{ card.boc_3 }}</textarea>
+                            </div>
+                            <div class="row mt-1">
+                                <textarea name="content"
+                                    class="form-control card-text box_study input_0 form-control form-control-lg"
+                                    type="text" id="card.id" rows="1"
+                                    placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
+                            </div>
+                           
+                            <div class="row mt-2 align-items-end justify-content-center ">
+                                <div class=" col-4 text-center align-items-center justify-content-center">
+                                    <input type="image" src="\static\save-outline-icon.png"
+                                        style="max-width:30px;max-height:30px;" value="Save" />
+
+                                </div>
+                                <div class=" col-4 text-center align-items-center justify-content-center">
+                                    <a href="/regen_def/{{deck.id}}/{{card.id}}">
+                                        <img src="\static\recycle-sign-icon.png" alt="Regenerate"
+                                            style="max-width:30px;max-height:30px;" class="px-1" title="Regenerate">
+                                    </a>
+                                </div>
+                                <div class=" col-4 text-center align-items-center justify-content-center">
+                                    <a href="#"
+                                        onclick="if (confirm('Are you sure you want to delete this card?')) { window.location.href = '/deletecard/{{deck.id}}/{{card.id}}'; }">
+                                        <img src="\static\delete-icon.png" alt="Delete"
+                                            style="max-width:30px;max-height:30px;" class="px-1" title="Delete">
+                                    </a>
+                                </div>
+                            </div>
+                    </div>
+                    
+                </div>
+
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+        </form>
+        </div>
+    </div>
+
+</div>
+
+
+{% endblock %}

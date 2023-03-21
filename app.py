@@ -76,11 +76,6 @@ app.config["SESSION_TYPE"] = "filesystem"
 
 
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -899,6 +894,7 @@ def run_task():
     
 @app.route("/", methods=["GET", "POST"])
 def index():
+    print("index")
     form = TryOut()
     terms = []
     if form.validate_on_submit():
@@ -964,7 +960,10 @@ def register():
     
 @app.route("/googleSignIn", methods=["POST"])
 def googleSignIn():
+    form = TryOut(form)
+
     #Security validation
+    print("entered google sign in")
     csrf_token_cookie = request.cookies.get('g_csrf_token')
     if not csrf_token_cookie:
         print('No CSRF token in Cookie.')#webapp2.abort(400, 'No CSRF token in Cookie.')
@@ -980,7 +979,7 @@ def googleSignIn():
         #encrypted credential
         credential = request.form.get('credential')
         # Decrypt credential, third parameter comes from google API console client ID
-        idinfo = id_token.verify_oauth2_token(credential, requests.Request(),'561849198746-i5jlgmh2jgdti2sh9rhbvotjtv1r81bs.apps.googleusercontent.com')
+        idinfo = id_token.verify_oauth2_token(credential, requests.Request(),'945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com')
         # ID token is valid. Get the user's Google Account ID from the decoded token. (UniqueID to use for login)
         userid = idinfo['sub']
         
@@ -1002,7 +1001,7 @@ def googleSignIn():
     except ValueError:
         # Invalid token
         pass
-    return render_template('index.html', title='Index')
+    return render_template('index.html', title='Index', form = form)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -1819,11 +1818,12 @@ if __name__ == "__main__":
     
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
+    form = TryOut(form)
     if request.method == 'POST' and 'message_feedback' in request.form:
         entry = Feedback(name=request.form['name_feedback'], email=request.form['email_feedback'], message=request.form['message_feedback'], type_feedback=request.form['type_feedback'])
         entry.send_feedback()
         flash("Thank you for your feedback!", "success")
-    return render_template('index.html', title='Index')
+    return render_template('index.html', title='Index', form = form)
 
 @app.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
 def build_test(deck_id):

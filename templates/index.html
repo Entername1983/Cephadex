@@ -225,7 +225,7 @@
             <div class="row gx-5 align-items-center justify-content-center justify-content-lg-between">
                 <h5> Try it out! </h5>
                 <div class="col-12 col-lg-12">
-                    <form method="POST" enctype="multipart/form-data" onsubmit="showSpinner(); clearform()">
+                    <form method="POST"  action="" enctype="multipart/form-data" onsubmit="showSpinner(); clearform()">
                         {{form.hidden_tag()}}
                         {{ form.csrf_token }}
                         <div class="row">
@@ -234,7 +234,7 @@
                                 {{form.text_input(id="text-input", class="form-control form-control-lg box_study full-w",
                                 style="height:100%; width:100%; font-size:20px" )}}
                                 <label for = "text-input">Enter your text here <i>(250 characters limit, only applies to demo)</i></label>
-</div>
+                    </div>
                             </div>
                         </div>
 
