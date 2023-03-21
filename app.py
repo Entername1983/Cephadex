@@ -960,7 +960,7 @@ def register():
     
 @app.route("/googleSignIn", methods=["POST"])
 def googleSignIn():
-    form = TryOut(form)
+    form = TryOut()
 
     #Security validation
     print("entered google sign in")
@@ -1818,7 +1818,7 @@ if __name__ == "__main__":
     
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
-    form = TryOut(form)
+    form = TryOut()
     if request.method == 'POST' and 'message_feedback' in request.form:
         entry = Feedback(name=request.form['name_feedback'], email=request.form['email_feedback'], message=request.form['message_feedback'], type_feedback=request.form['type_feedback'])
         entry.send_feedback()
