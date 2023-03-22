@@ -74,7 +74,7 @@
                         <div class="card extract-boxes">
                             <div class="card-header extract-boxes" id="headingTwo">
 
-                                <h4 type="" class="d-flex justify-content-center collapsed" data-bs-toggle="collapse"
+                                <h4 type="button" class="d-flex justify-content-center collapsed" data-bs-toggle="collapse"
                                     data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
                                     style="width:100%; color: grey">
                                     Paste some text:</h4>
@@ -308,9 +308,9 @@
 
                                         <div class="form-floating my-2">
 
-                                        {{form.deck_list (id="existing-input", class=" form-select full-w",
-                                        placeholder="Select a deck")}}
-<label for = "existing-input">Select a deck</label>
+                                            {{form.deck_list (id="existing-input", class=" form-select full-w",
+                                            placeholder="Select a deck")}}
+                                            <label for="existing-input">Select a deck</label>
                                         </div>
 
 
@@ -331,7 +331,8 @@
 
                         <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
                         </div>
-                        {{form.submit(class="form-control form-control-lg m-2 box_study", style = "max-width: 200px")}}
+                        {{form.submit(id="generate-btn", class="btn btn-primary form-control form-control-lg m-2", style
+                        = "max-width: 200px", disabled="disabled")}}
                     </div>
                 </div>
         </div>
@@ -343,7 +344,50 @@
 
 </div>
 
+<script>
+    // Disable generate button by default
+    document.getElementById('generate-btn').disabled = true;
 
+    // Add event listeners to file input field
+    const fileInput = document.getElementById('file-input');
+    fileInput.addEventListener('input', validateInputs);
+
+    // Add event listeners to text input field
+    const textInput = document.getElementById('text-input');
+    textInput.addEventListener('input', validateInputs);
+
+    // Add event listeners to link input field
+    const linkInput = document.getElementById('link-input');
+    linkInput.addEventListener('input', validateInputs);
+
+    // Add event listeners to deck select dropdowns
+    const deckNew = document.getElementById('name-input');
+    deckNew.addEventListener('input', validateInputs);
+
+    const deckExisting = document.getElementById('existing-input');
+    deckExisting.addEventListener('input', validateInputs);
+
+    // Validate input fields and enable/disable generate button accordingly
+    function validateInputs() {
+        const fileInput = document.getElementById('file-input');
+        const textInput = document.getElementById('text-input');
+        const linkInput = document.getElementById('link-input');
+        const deckNew = document.getElementById('name-input');
+        const deckExisting = document.getElementById('existing-input');
+        const generateBtn = document.getElementById('generate-btn');
+        console.log(fileInput, textInput, linkInput, deckNew, deckExisting, generateBtn)
+        // Enable generate button if file, text or link input is provided AND deck input is selected
+        if (((fileInput && fileInput.value !== '') || (textInput && textInput.value !== '') || (linkInput && linkInput.value !== '')) && 
+        ((deckExisting && deckExisting.value !== '' && deckExisting.value !== '__none') || (deckNew && deckNew.value !== ''))) {
+            generateBtn.disabled = false;
+            generateBtn.removeAttribute('disabled');
+
+        } else {
+            generateBtn.disabled = true;
+            generateBtn.setAttribute('disabled', 'disabled');
+        }
+    }
+</script>
 
 <!-- Prompt options modal-->
 <div class="modal fade" id="promptInfoModal" tabindex="-1" aria-labelledby="promptInfoModalLabel" aria-hidden="true">

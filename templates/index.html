@@ -63,7 +63,10 @@
 <br>
 <br>
 <br>
-<!-- Quote/testimonial aside-->
+
+
+{% if current_user.is_authenticated %}
+{% else %}
 <aside class="text-center bg-gradient-primary-to-secondary">
 
 
@@ -93,6 +96,7 @@
                 </div>
             </div>--->
 </aside>
+{% endif %}
 <!-- App features section-->
 <section id="features">
     <div class="container px-5">
@@ -171,7 +175,7 @@
 <div class="container">
     {% if terms %}
     <section class="m-4" style="background-color: rgba(29, 113, 186, 0.1);">
-     <h5> Here are your generated cards, if you want to try out more options <a class="" data-bs-toggle="modal" data-bs-target="#registerModal" style="cursor:default"> sign up here. </a>Its free!</h5>
+     <h5 class = "m-3 p-3"> Here is a sample of the type of cards you can generate, if you want to try out more options <a class="" data-bs-toggle="modal" data-bs-target="#registerModal" style="cursor:default"> sign up here</a>.  Its free!</h5>
 
         <div class="container px-5">
             <div class="row gx-5 align-items-center justify-content-center justify-content-lg-between">
@@ -232,8 +236,8 @@
                             <div class="extract-boxes1">
                                 <div class = "form-floating my-1">
                                 {{form.text_input(id="text-input", class="form-control form-control-lg box_study full-w",
-                                style="height:100%; width:100%; font-size:20px" )}}
-                                <label for = "text-input">Enter your text here <i>(250 characters limit, only applies to demo)</i></label>
+                                style="height:100%; width:100%; font-size:20px", minlength=80 )}}
+                                <label for = "text-input">Enter your text here <i>(Enter between 80 and 250 characters)</i></label>
                     </div>
                             </div>
                         </div>

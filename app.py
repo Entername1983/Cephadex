@@ -992,8 +992,14 @@ def googleSignIn():
 
             session['google_id_token'] = idinfo['sub']
             session['google_email'] = idinfo['email']
-            session['given_name'] = idinfo['given_name']
-            session['family_name'] = idinfo['family_name']
+            if idinfo['given_name']:
+                session['given_name'] = idinfo['given_name']
+            else: 
+                session['given_name'] = ""
+            if idinfo['family_name']:
+                session['family_name'] = idinfo['family_name']
+            else: 
+                session['family_name'] = ""
             return redirect(url_for('register'))
     
     except ValueError:
@@ -2191,6 +2197,12 @@ def export_deck(deck_id):
         return redirect(url_for('viewdecks'))
     else:
         return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)
+
+@app.route("/about/", methods=['GET', 'POST'])
+def about():
+    return render_template('about.html')
+
+
 
 #################  USAGE CHECKS  ###############################################################################################
 
