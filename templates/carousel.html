@@ -25,9 +25,7 @@
                 $('#addCardMessage').text('Card "' + newTerm + '" created successfully.')
                 $('#newCardForm')[0].reset();
             },
-            error: function (response) {
-                alert('An error occurred while saving the card.');
-            }
+
         });
 
         // Keep the modal open
@@ -304,16 +302,16 @@
                 </div>
                 <div class="m-2" id="addCardMessage"></div>
                 <div class="modal-body">
-                    <form id="newCardForm" action="" method="post">
+                    <form id="newCardForm" action="" method="post" novalidate>
 
                         <div class="form-floating mt-1">
 
-                            <input class="form-control" name="new_term" type="text" id="new_term" placeholder="Term" />
+                            <input class="form-control" name="new_term" type="text" id="new_term" placeholder="Term" required/>
                             <label for = "new_term">Front of card</label>
                         </div>
                         <div class="form-floating mt-1">
                             <input class="form-control" name="new_content" type="text" id="new_content"
-                                placeholder="Main content" />
+                                placeholder="Main content" required/>
                                 <label for = "new_content">Main content</label>
 
                         </div>
@@ -359,6 +357,23 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const form = document.querySelector('#newCardForm');
+        const saveButton = document.querySelector('#saveButton');
+    
+        saveButton.addEventListener('click', e => {
+            e.preventDefault();
+            if (form.checkValidity()) {
+                // Perform form submission
+                form.submit();
+            } else {
+                // Show validation feedback
+                form.classList.add('was-validated');
+            }
+        });
+    </script>
+
 
     <!-- END MODAL -->
     <!---- EDIT DECK ATTRIBUTES MODAL -->

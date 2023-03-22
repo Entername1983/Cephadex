@@ -4,3 +4,4 @@ api.txt
 __pycache__/*
 migrations/versions/__pycache__/*
 migrations/__pycache__/*
+database1.db
