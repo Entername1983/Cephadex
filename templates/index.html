@@ -225,7 +225,7 @@
     {% else %}
     <section class="p-4" style="background-color: rgba(29, 113, 186, 0.1);">
 
-        <div class="container px-5">
+        <div class="container px-2">
             <div class="row gx-5 align-items-center justify-content-center justify-content-lg-between">
                 <h5> Try it out! </h5>
                 <div class="col-12 col-lg-12">
@@ -269,8 +269,8 @@
 
                                 <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
                                 </div>
-                                {{form.submit(class="form-control form-control-lg m-2 box_study", style = "max-width:
-                                200px")}}
+                                {{form.submit(class="form-control form-control-lg m-2 btn btn-primary", style = "max-width:
+                                200px", disabled="disabled")}}
                             </div>
                         </div>
                     </form>
@@ -280,8 +280,26 @@
                 </div>
             </div>
         </div>
-    </section>
+ 
 
+    <script>
+        function checkTextLength() {
+            var textInput = document.getElementById("text-input");
+            var submitButton = document.getElementById("extract-submit");
+        
+            if (textInput.value.length >= 80 && textInput.value.length <= 250) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        }
+        
+        // Call the function whenever the text input field is changed
+        var textInput = document.getElementById("text-input");
+        textInput.addEventListener("input", checkTextLength);
+    </script>
+
+   </section>    
     {% endif %}
     {% endif %}
 

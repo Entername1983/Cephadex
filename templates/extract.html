@@ -367,6 +367,7 @@
     const deckExisting = document.getElementById('existing-input');
     deckExisting.addEventListener('input', validateInputs);
 
+    console.log("deck new", deckNew.value, "deck existing", deckExisting.value)
     // Validate input fields and enable/disable generate button accordingly
     function validateInputs() {
         const fileInput = document.getElementById('file-input');
@@ -378,7 +379,7 @@
         console.log(fileInput, textInput, linkInput, deckNew, deckExisting, generateBtn)
         // Enable generate button if file, text or link input is provided AND deck input is selected
         if (((fileInput && fileInput.value !== '') || (textInput && textInput.value !== '') || (linkInput && linkInput.value !== '')) && 
-        ((deckExisting && deckExisting.value !== '' && deckExisting.value !== '__none') || (deckNew && deckNew.value !== ''))) {
+        ((deckExisting && deckExisting.value !== '' && deckExisting.value !== '__None') || (deckNew && deckNew.value.trim() !== ''))) {
             generateBtn.disabled = false;
             generateBtn.removeAttribute('disabled');
 

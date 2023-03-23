@@ -741,10 +741,8 @@ class TryOut(FlaskForm):
     text_input = StringField('Text Input', validators=[Length(max=250)], render_kw={"placeholder": "Paste your text here (max 250 characters)"})
 
     prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
-                                           ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
-                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
-                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
-    languages = SelectField('Languages', choices=[("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
+                                           ('Comprehension', 'Comprehension'), ('Custom', 'Custom')], default='Definitions')
+    languages = SelectField('Languages', choices=[("",  "Choose a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
                                                   ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
                                                   ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
@@ -1084,7 +1082,7 @@ def subscribe():
         db.session.commit()
         flash('You are now subscribed to our newsletter!')
 
-    return render_template('subscribe.html', title='Login', subscribe_form=subscribe_form)
+    return render_template('subscribe.html', title='Subscribe', subscribe_form=subscribe_form)
 
 
 

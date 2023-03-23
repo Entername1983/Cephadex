@@ -260,8 +260,8 @@
             {
               location.reload(true);
               cardsDue = cardList.length;
-              jq("#force-study").show();
-              jq("#contain-main").hide();
+            //$$BUG jq("#force-study").show();
+            //$$BUG jq("#contain-main").hide();
               jq('#cards-due').html(cardsDue);
     
               return;
@@ -596,7 +596,7 @@
                         </div>
                       </div>
                     </div>
-                    <div class="mcq" id="mcq">
+                    <div class="mcq" id="mcq" style="display:none">
                       <div class="row my-1">
                         <div class=" d-flex align-items-center justify-content-center">
                           <button class="btn box_study " style="width: 100%" id="A-btn"></button>
@@ -630,19 +630,26 @@
     </div>
     </div>
     </div>
+    
     <div class="row d-flex align-items-center justify-content-center">
+    
       <div class="col-3"></div>
-      <div class="col-6 mx-auto">
+    
+      <div class="col-6">
+        
+      <!---- identified problematic line-->
+          <div class="row d-flex align-items-center text-center justify-content-center" style="display:none"  id="no-cards"></div>
+      
+        
         <div class="row d-flex align-items-center justify-content-center">
-          <p class="d-flex align-items-center justify-content-center" id="no-cards"></p>
-        </div>
-        <div class="row d-flex align-items-center justify-content-center">
-          <a class="btn box_warning eq_buttons ml-5" style="max-width: 300px" href="/casualmode/{{deck}}" id="force-study"
+          <a class="btn box_warning eq_buttons ml-5" style="max-width: 300px; display:none" href="/casualmode/{{deck}}" id="force-study"
             style="display: none">Study anyway</a>
         </div>
-      </div>
+      
+        </div>
       <div class="col-3"></div>
     </div>
+    
     </div>
     </div>
     {% else %}
