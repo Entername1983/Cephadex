@@ -7,3 +7,4 @@ migrations/__pycache__/*
 database1.db
 config.py
 dump.sql
+static/files/*
