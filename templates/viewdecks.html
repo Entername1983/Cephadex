@@ -13,7 +13,7 @@
       <img src="\static\tester-icon.png" alt="Tests" style="max-width:30px;max-height:30px;" class="px-1" title="Tests">
     </a>
  </div> ---->
-<div class = "m-5">
+<div class = "m-2">
   {% if shared_decks|length > 0 %}
  
     <div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
@@ -92,7 +92,7 @@
           <th>Deck Name: </th>
           <th>Description: </th>
           <th>Category: </th>
-          <th>Number of cards: </th>
+          <th>Number of cards(due): </th>
           <th>Actions:</th>
         </tr>
       </thead>
@@ -131,7 +131,7 @@
               <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="Share">
             </a>
-            <!------- DOWNLOAD CSV ----- -->
+            <!------- DOWNLOAD CSV ------->
             <a href="/downloadascsv/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
               <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="Download as CSV">
@@ -195,7 +195,7 @@
 <div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header bg-gradient-primary-to-secondary p-4">
         <h5 class="modal-title" id="ModalLabel{{deck.id}}">Share deck</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -226,7 +226,7 @@
   aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header bg-gradient-primary-to-secondary p-4">
         <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}">Deck details:</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -285,7 +285,7 @@
 <div class="modal fade" id="SharedDecksModal" tabindex="-1" aria-labelledby="#SharedDecksModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header bg-gradient-primary-to-secondary p-4">
         <h5 class="modal-title" id="SharedDecksModalLabel">Shared Decks</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -383,7 +383,7 @@
 <div class="modal fade" id="testModal" tabindex="-1" aria-labelledby="#testModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header bg-gradient-primary-to-secondary p-4">
         <h5 class="modal-title" id="testModalLabel">Tests</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>

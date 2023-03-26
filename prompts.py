@@ -104,3 +104,16 @@ new_prompt_choices = {
     "Formulas": 'Given the passage below, extract all mentions of math or scientic formulas or terms, and provide the name of the formula (or term), the formula itself (or formula associated with the term) in LaTeX format, and an explanation of the formula.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the formulas extracted and have a property named "A", for the name of the formula, "B" for the formula itself in latex format, and "C" for the explanation of the formula.  \n The resulting JSON object should be in this format: [{"A":"name of formula","B":"LaTeX formula","C":"explanation of formula"}] \n The passage: \n',
     } 
 
+regen_choices = {
+    'Definitions': 'Provide a {length} definition for the following term {term} {lang}',
+    "Translate": 'Provide a {length} translation for the following term {term} {lang}',
+    "Rhyme": 'Create a four verse poem for the following term {term} {lang}.',
+    "People": 'Provide a {length} biography for the following person {term} {lang}',    
+    "Theories": 'Provide a {length} explanation for the following theory or concept {term} {lang}',
+    "Cloze": 'Provide a {length} definition for the following term {term} {lang}',
+    "Mcq": 'Create 4 multiple choice answers for the following question {term} {lang}. 1 answer should be correct, the other 3 should be incorrect.',
+    "Comprehension":'Create a {length} question to test comprehension of {term} {lang}.',  
+    "Vocab_builder": 'Provide a {length} definition for the following term {term} {lang}',
+    "Formulas": 'Provide a detailed explanation of the following formula {term} {lang}',
+    "Custom": 'Provide a {length} definition for the following term {term} {lang}',
+    } 

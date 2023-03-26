@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
 from flask_session import Session
 from tempfile import mkdtemp
+
 from sqlalchemy_utils import database_exists, create_database
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from wtforms import StringField, PasswordField, SubmitField, RadioField, SelectField, BooleanField, TextAreaField
@@ -37,30 +38,38 @@ from flask import abort
 from celery import Celery
 import time
 import schedule
+from beta import BetaKeys
+from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS
+from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
+from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
 
 
-app = Celery('myapp', broker='redis://localhost:6379/0')
 
+##app = Celery('myapp', broker=BROKER)
 
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Configure application
 app = Flask(__name__)
+app.config.from_object('config')
+
 
 bcrypt = Bcrypt(app)
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max limi
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database1.db'
-app.config['SECRET_KEY'] = 'whynot'
-app.config['UPLOAD_FOLDER'] = 'static\\files'
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 werkzeug_logger = logging.getLogger('werkzeug')
 werkzeug_logger.setLevel(logging.INFO)
 
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.INFO)
 
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx'}
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
 
-db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 login_manager = LoginManager()
@@ -75,623 +84,17 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Create database
 
-# relational database cards & decks
-cards = db.Table("cards", 
-                 db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
-                 db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),
-                 )
-source_files = db.Table("source_files",
-                        db.Column("deck_file_id", db.Integer, db.ForeignKey("deck_files.id")), 
-                        db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),  # 
-                        )
-cards_shared = db.Table("cards_shared", 
-                 db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
-                 db.Column("shared_decks_id", db.Integer, db.ForeignKey("shared_decks.id")),
-                 )                             
-questions = db.Table("questions",
-                     db.Column("test_id", db.Integer, db.ForeignKey("test.id")),
-                     db.Column("question_id", db.Integer, db.ForeignKey("question.id"))
-                     )
-distribution = db.Table("distribution",
-                        db.Column("test_id", db.Integer, db.ForeignKey("test.id")),	
-                        db.Column("taker_id", db.Integer, db.ForeignKey("user.id"))	
-                        )	
-## external auth + external type + external
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), nullable=True, unique=True)
-    password = db.Column(db.String(80), nullable=True)
-    email = db.Column(db.String(255), nullable=False)
-    email_confirmed_at = db.Column(db.DateTime())
-    first_name = db.Column(db.String(50), nullable=True)
-    last_name = db.Column(db.String(50), nullable=True)
-    decks = db.relationship("Deck", backref=db.backref("user", lazy="joined"), lazy="select")
-    ## external auth + external type
-    external_id = db.Column(db.String(255), nullable=True) 
-    external_type = db.Column(db.String(255), nullable=True)
-    time_created = db.Column(db.DateTime, default=datetime.utcnow)
-    time_accessed= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    test= db.relationship('Test', secondary=distribution, backref ="taker")
-    account_type = db.Column(db.String(255), nullable=True, default="free")
-    account_status = db.Column(db.String(255), nullable=True, default="active")
-    account_expiration = db.Column(db.DateTime, nullable=True)
-    account_expiration_reason = db.Column(db.String(255), nullable=True)
-    gender = db.Column(db.String(255), nullable=True)
-    pic = db.Column(db.String(255), nullable=True)
-    contacted_email = db.Column(db.Boolean, default=False)
-    dob = db.Column(db.DateTime, nullable=True)
-    timezone = db.Column(db.String(64))
-    subscription_plan = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=False, default=1)
-    subscription_start_date = db.Column(db.DateTime)
-    latest_roll_over = db.Column(db.DateTime)
 
-    def member_since(self):
-        return self.time_created.strftime('%b %Y')
-    
-    def quantity_decks(self):
-        return len(self.decks)
-    
-    def quantity_cards(self):
-        return sum([len(deck.cards) for deck in self.decks])
-    
-    def quantity_cards_mastered(self):
-        counter = 0
-        for deck in self.decks:
-            for card in deck.cards:
-                if card.box_id == 3:
-                    counter += 1
-        return counter
-
-    def quantity_cards_learning(self):
-        counter = 0
-        for deck in self.decks:
-            for card in deck.cards:
-                if card.box_id != 3 and card.times_asked != 0:
-                    counter += 1
-        return counter
-    
-    def quantity_cards_new(self):
-        counter = 0
-        for deck in self.decks:
-            for card in deck.cards:
-                if card.times_asked == 0:
-                    counter += 1
-        return counter
-        
-
-#class GoogleUser(db.Model, UserMixin):
-#    email = db.Column(db.String(255), nullable=False)
-#    external_id = db.Column(db.String(64), nullable=False,  primary_key=True)
-#    given_name = db.Column(db.String(50), nullable=False)
-#    family_name = db.Column(db.String(50), nullable=False)
-#    enabled = db.Column(db.Boolean, default=True)
-
-class SubscriptionPlan(db.Model):
-    __tablename__ = 'subscription_plans'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    description = db.Column(db.String(200))
-    limit_count = db.Column(db.Integer, nullable=False)
-    limit_time_period = db.Column(db.String(50), nullable=False, default='month')
-    price = db.Column(db.Float, nullable=False)
-    duration = db.Column(db.Integer, default = 31)
-
-    users = db.relationship('User', backref='subscription_plan_id')
-
-    def __repr__(self):
-        return f'<SubscriptionPlan {self.id}>'
-
-class UsageRecord(db.Model):
-    __tablename__ = 'usage_records'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    operation_type = db.Column(db.String(50), nullable=False)
-    operation_details = db.Column(db.String(1000))
-    operation_count = db.Column(db.Integer, nullable=False)
-    remaining_count = db.Column(db.Integer, nullable=False)
-    time_period = db.Column(db.String(50), nullable=False)
-    limit_count = db.Column(db.Integer, nullable=False)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    status = db.Column(db.String(50), nullable=False, default='active')
-    source_ip = db.Column(db.String(50))
-    payment_status = db.Column(db.String(50), default='unpaid')
-
-    def __repr__(self):
-        return f'<UsageRecord {self.id}>'
+print("IS THIS SOWWWRKING?")
 
 
-
-
-class Card(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    term = db.Column(db.String(50), nullable=False) 
-    # content == Back of card 1
-    content = db.Column(db.String(255), nullable=False)
-    ## used for MCQ wrong answers
-    boc_2 = db.Column(db.String(255), nullable=True) 
-    boc_3 = db.Column(db.String(255), nullable=True) 
-    boc_4 = db.Column(db.String(255), nullable=True)
-    formula = db.Column(db.String(255), nullable=True)
-    img = db.Column(db.String(255), nullable=True) 
-    sound = db.Column(db.String(255), nullable=True) 
-    boc_id = db.Column(db.Float(10), nullable=True)
-    box_id = db.Column(db.Float(10), nullable=True, default=0)
-    interval = db.Column(db.Integer, default=1)
-    time_updated = db.Column(db.DateTime, default=datetime.utcnow)
-    times_asked = db.Column(db.Integer, default=0)
-    times_correct = db.Column(db.Integer, default=0)
-    times_correct_row = db.Column(db.Integer, default=0)
-    create_method = db.Column(db.String(255), nullable=True)
-    time_created = db.Column(db.DateTime, default=datetime.utcnow) 
-    category = db.Column(db.String(255), nullable=True)
-    edited = db.Column(db.Integer, default=0)
-    diff_lvl = db.Column(db.Float(10), default=1)
-    subject = db.Column(db.String(255), nullable=True)
-    topic = db.Column(db.String(255), nullable=True)
-    prompt_option = db.Column(db.String(255), nullable=True)
-    prompt_option2 = db.Column(db.String(255), nullable=True)
-    trans_option = db.Column(db.String(255), nullable=True)
-    len_option = db.Column(db.String(255), nullable=True)
-    qmin_option = db.Column(db.String(255), nullable=True)
-    qmax_option = db.Column(db.String(255), nullable=True)
-    
-    # unused
-    #data_1 = db.Column(db.float(100), nullable = True)
-    #data_2 = db.Column(db.float(100), nullable = True)
-    #data_3 = db.Column(db.float(100), nullable = True)
-    #data_time = db.Column(db.Interval, nullable = True)
-    ## consider including a field for explanation of answer
-    ## how can we keep track of time studied deck?  
-    
-    def to_json(self):
-        return {
-            "id": self.id,
-            "term": self.term,
-            "content": self.content,               
-        }
-        
-    def update_interval(self, value):
-        self.interval = self.interval * value
-        db.session.commit()
-        
-        
-    def edit_card(self, term, content):
-        self.term = term
-        self.content = content
-        db.session.commit()
-    
-    def delete_card(self):
-        db.session.delete(self)
-        db.session.commit()
-        
-    def regen_def(self):
-        term = self.term
-        content = regenerate_definition(term)
-        print("regen_def method")
-        print(self.content)
-        self.content = content
-        print(self.content)
-        db.session.commit()
-    
-    def copy_card(self, deck):
-        new_card = Card(term=self.term, content=self.content)
-        deck.cards.append(new_card)
-        db.session.add(new_card)            
-        db.session.commit()
-        
-    def increment(self):
-        self.times_correct = self.times_correct + 1
-        self.times_asked = self.times_asked + 1
-        self.times_correct_row = self.times_correct_row + 1
-        if self.times_correct_row > 3:
-            self.box_id = self.box_id + 1
-            if self.box_id > 3:
-                self.box_id = 3
-        if self.box_id == 0:
-            self.interval = self.interval * 1.2    
-        if self.box_id == 1:
-            self.interval = self.interval * 2
-        if self.box_id == 2:
-            self.interval = self.interval * 5
-        if self.box_id == 3:
-            self.interval = self.interval * 10
-        if self.interval > 525600:
-            self.interval = 525600
-        ## ensure that at minimum if someone answer 3 questions in a row correctly, they will be asked again in 24 hours
-        if self.times_correct_row > 3:
-            self.interval += 1440
-        db.session.commit()
-        
-    def decrement(self):
-        self.times_asked = self.times_asked + 1
-        self.times_correct_row = 0
-        if self.box_id == 1:
-            self.interval = self.interval * 0.5
-        if self.box_id == 2:
-            self.interval - self.interval * 0.8
-        if self.box_id == 3:
-            self.interval - self.interval * 0.9
-            
-        if not self.box_id == 1 and self.interval < 5:
-            self.interval = 5
-            
-        if self.box_id > 0:
-            self.box_id = self.box_id-1; 
-             
-        db.session.commit()
-    
-    def reset_interval(self):
-        self.interval = 10
-        db.session.commit()
-        
-    def update_time(self):
-        self.time_updated = datetime.utcnow()
-        db.session.commit()
-    
-class SharedDecks(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    description = db.Column(db.String(255), nullable=False) 
-    sender = db.Column(db.Integer, db.ForeignKey('user.id'))
-    receiver = db.Column(db.Integer, db.ForeignKey('user.id'))
-    time_created = db.Column(db.DateTime, default=datetime.utcnow)
-    creator = db.Column(db.Integer) 
-    public = db.Column(db.Integer, default=0) 
-    edited = db.Column(db.Integer, default=0)
-    cards = db.relationship('Card', secondary=cards_shared, backref="decks", lazy="select")
-    
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-    
-class Deck(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    description = db.Column(db.String(255), nullable=False) 
-    ## make relational table instead of using user_id?
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
-    cards = db.relationship('Card', secondary=cards, backref="decks_backref", lazy="select")
-    deck_files = db.relationship('DeckFiles', secondary=source_files, backref="decks", lazy="select")
-    time_created = db.Column(db.DateTime, default=datetime.utcnow)   
-    time_updated = db.Column(db.DateTime, default=datetime.utcnow)
-    creator = db.Column(db.Integer) 
-    public = db.Column(db.Integer, default=0) 
-    edited = db.Column(db.Integer, default=0)
-    create_method = db.Column(db.String(255), nullable=True)
-    category = db.Column(db.String(255), nullable=True)
-    times_accessed = db.Column(db.Integer, default=0)
-    access_date = db.Column(db.DateTime, default=datetime.utcnow)
-    subject = db.Column(db.String(255), nullable=True)
-    topic = db.Column(db.String(255), nullable=True)
-    shared = db.Column(db.Boolean, default=False)
-    accepted = db.Column(db.Boolean, default=False)
-    sharer = db.Column(db.Integer) 
-    share_date = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def force_study(self):
-        due_cards = []
-        current_time = datetime.utcnow()
-        for card in self.cards:
-            time_diff = (current_time - card.time_updated).total_seconds() / 60
-            due_cards.append({
-                'term': card.term,
-                'content': card.content,
-                'boc_2': card.boc_2,
-                'boc_3': card.boc_3,
-                'boc_4': card.boc_4,
-                'category': card.category,
-                'id': card.id,
-                'img': card.img,
-                'sound': card.sound,
-                'time_remain': card.interval - time_diff,
-            })
-        due_cards.sort(key=lambda x: x['time_remain'])
-        return jsonify(due_cards)
-     
-        
-    def get_due_cards(self, n):
-        due_cards = []
-        current_time = datetime.utcnow()
-        new_card_counter = 0
-        for card in self.cards:
-            time_diff = (current_time - card.time_updated).total_seconds() / 60
-            if (time_diff + 1440)>= card.interval:
-                if card.box_id > 0:
-                    due_cards.append({
-                        'term': card.term,
-                        'content': card.content,
-                        'boc_2': card.boc_2,
-                        'boc_3': card.boc_3,
-                        'boc_4': card.boc_4,
-                        'formula': card.formula,
-                        'category': card.category,
-                        'id': card.id,
-                        'img': card.img,
-                        'sound': card.sound,
-                    })
-                if card.box_id == 0 and new_card_counter < n:
-                    print("card box = 0")
-                    print("new card counter = ", new_card_counter)
-                    new_card_counter += 1
-                    due_cards.append({
-                        'term': card.term,
-                        'content': card.content,
-                        'boc_2': card.boc_2,
-                        'boc_3': card.boc_3,
-                        'boc_4': card.boc_4,
-                        'formula': card.formula,
-                        'category': card.category,
-                        'id': card.id,
-                        'img': card.img,
-                        'sound': card.sound,
-                    })
-
-        due_cards.sort(key=lambda x: x['id'])
-        if not due_cards:
-            return jsonify({'info': 'No due cards found'}), 204
-        return jsonify(due_cards)
-    
-    def cards_due(self):
-        due_cards = 0
-        current_time = datetime.utcnow()
-        for card in self.cards:
-            time_diff = (current_time - card.time_updated).total_seconds() / 60
-            if (time_diff + 1440) >= card.interval:
-                due_cards = due_cards + 1
-        return due_cards
-    
-    def qty_cards_due(self):
-        current_time = datetime.utcnow()
-        qty = 0
-        for card in self.cards:
-            if card.time_updated == None:
-                card.time_updated = current_time
-            else:
-                time_diff = (current_time - card.time_updated).total_seconds() / 60
-                if time_diff >= card.interval:
-                    qty = qty + 1
-        return qty
-
-    def check_cat(self):
-        Mcq = 0
-        Cloze = 0
-        Definitions = 0
-        Comprehension = 0
-        Vocab_builder = 0
-        Theories = 0
-        Rhyme = 0
-        Translate = 0
-        counter = 0
-        People = 0
-        ## check if all cards have same category
-        for card in self.cards:
-            if card.category == "Mcq":
-                Mcq += 1
-            elif card.category == "Cloze":
-                Cloze += 1
-            elif card.category == "Definitions":
-                Definitions += 1
-            elif card.category == "Comprehension":
-                Comprehension += 1
-            elif card.category == "Vocab_builder":
-                Vocab_builder += 1
-            elif card.category == "Theories":
-                Theories += 1
-            elif card.category == "Rhyme":
-                Rhyme += 1
-            elif card.category == "Translate":
-                Translate += 1
-            elif card.category == "People":
-                People += 1
-        ## loop through each category and check if it is the highest count
-        categories = {'Mcq': Mcq, 'Cloze': Cloze, 'Definitions': Definitions,
-                  'Comprehension': Comprehension, 'Vocab_builder': Vocab_builder,
-                  'Theories': Theories, 'Rhyme': Rhyme, 'Translate': Translate,
-                  'People': People}
-        max_category, max_count = max(categories.items(), key=lambda x: x[1])
-        if max_count > len(self.cards) / 2:
-            self.category = max_category
-            db.session.commit()
-            return max_category
-        else:
-            self.category = "Mixed"
-            db.session.commit()
-            return "Mixed"
-        
-    def to_json(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "user_id": self.user_id,
-            "cards": [card.to_json() for card in self.cards]
-        }
-        
-    def quantity_cards(self):
-        return len(self.cards)
-    
-    def add_card(self, card):
-        self.cards.append(card)            
-        db.session.commit()
-        
-    def remove_card(self, card):
-        self.cards.remove(card)            
-        db.session.commit()
-        
-    def rename_deck(self, new_name):
-        Deck.name = new_name
-        db.session.commit()            
-        
-    def delete_deck(self):
-        db.session.delete(self)            
-        db.session.commit()
-    
-    def rename(self, new_name):
-        self.name = new_name
-        db.session.commit()            
-        
-        
-    def copy_deck(self, new_deck_name):
-        new_deck = Deck(name=self.name, description=self.description, user_id=self.user_id)  
-        new_deck.name = new_deck_name                      
-        db.session.add(new_deck)            
-        db.session.commit()
-        
-    
-    def assign_deck(self, user):
-        pass
-    
-    def export_deck_csv(self):
-        pass
-    
-    def import_deck_csv(self):
-        pass
-    
-    
-    
-class Subscriber(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(50))
-    last_name = db.Column(db.String(50))
-    email = db.Column(db.String(120), unique=True)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    def __repr__(self):
-        return '<Newsletter {}>'.format(self.email)
-    
-    def subscribe(self):
-        db.session.add(self)            	
-        db.session.commit()
-        
-    def unsubscribe(self):
-        db.session.delete(self)            	
-        db.session.commit()
- 
-class DeckFiles(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    file_name = db.Column(db.String(100))
-    file_path = db.Column(db.String(50))
-    file_type = db.Column(db.String(500))	
-    file_size = db.Column(db.String(50))
-    text_string = db.Column(db.Text)
-    create_type = db.Column(db.String(50))
-    time_created = db.Column(db.DateTime, default=datetime.utcnow)
-    
-       
-class ResponseData(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    prompt = db.Column(db.Text)	
-    response = db.Column(db.Text)
-    content = db.Column(db.Text)	
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    success = db.Column(db.Boolean)
-          
-class Feedback(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50))
-    email = db.Column(db.String(120))
-    message = db.Column(db.String(500))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    type_feedback = db.Column(db.String(50))
-    def __repr__(self):
-        return '<Feedback {}>'.format(self.email)
-    
-    def send_feedback(self):
-        db.session.add(self)            	
-        db.session.commit()
-        
-    def delete_feedback(self):
-        db.session.delete(self)            	
-        db.session.commit() 
-                 
-#########################TEST TABLES#######################
-
-
-class Test(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50))
-    points = db.Column(db.Integer)
-    num_questions = db.Column(db.Integer)
-    category = db.Column(db.String(50))
-    subject = db.Column(db.String(50))
-    topic = db.Column(db.String(50))
-    time_created = db.Column(db.DateTime, default=datetime.utcnow)
-    due_date = db.Column(db.DateTime, default=datetime.utcnow)
-    questions = db.relationship('Question', secondary=questions)
-    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
-    result_reveal = db.Column(db.Boolean)
-    answer_reveal = db.Column(db.Boolean)
-    time_limit = db.Column(db.Integer)
-    instructions = db.Column(db.String(255))
-    description = db.Column(db.String(255))
-    shuffle = db.Column(db.Boolean)
-    
-    def sum_points(self):
-        sum = 0
-        for questions in self.questions:
-            sum = sum + questions.points
-        self.points = sum
-
-    
-    def count_questions(self):
-        ##count the number of questions in test
-        self.num_questions = len(self.questions)
-
-    
-class Question(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    question = db.Column(db.String(255), nullable=False)
-    term = db.Column(db.String(255), nullable=False)
-    content = db.Column(db.String(255), nullable=False)
-    boc_2 = db.Column(db.String(255), nullable=True) 
-    boc_3 = db.Column(db.String(255), nullable=True) 
-    boc_4 = db.Column(db.String(255), nullable=True)
-    formula = db.Column(db.String(255), nullable=True)
-    prompt_option = db.Column(db.String(255), nullable=True)
-    q_type = db.Column(db.String(50), nullable=True)
-    q_order = db.Column(db.Integer, nullable=True)
-    points = db.Column(db.Integer, nullable=True)
-
-class QuestionResult(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    test_id = db.Column(db.Integer, db.ForeignKey('test.id'))
-    taker = db.Column(db.Integer, db.ForeignKey('user.id'))
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
-    answer = db.Column(db.String(50))
-    points = db.Column(db.Integer)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-
-class TestResult(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    test_id = db.Column(db.Integer, db.ForeignKey('test.id'))
-    taker = db.Column(db.Integer, db.ForeignKey('user.id'))
-    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
-    due_date = db.Column(db.DateTime)
-    start_time = db.Column(db.DateTime)
-    end_time = db.Column(db.DateTime)
-    points = db.Column(db.Integer)
-    correct = db.Column(db.Integer)
-    blank = db.Column(db.Integer)
-    
-    def sum_points(self):
-        sum = 0
-        question_results = QuestionResult.query.filter_by(test_id=self.test_id, taker=self.taker).all()
-        for questions in question_results:
-            if questions.points == None:
-                questions.points = 0
-            sum = sum + questions.points
-        self.points = sum
-
-          
+######################## WTFORMS ###########################################          
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
     last_name = StringField('Last Name', validators=[InputRequired()], render_kw= {"placeholder": "Last Name"})           
@@ -767,8 +170,8 @@ class UploadFileForm(FlaskForm):
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
     prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
                                            ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
-                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
-                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
+                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize (coming soon)'),
+                                           ('Turn2notes', 'Turn to notes (coming soon)'), ('Custom', 'Custom')], default='Definitions')
     generate_images = BooleanField('Generate_images')
     save_text = BooleanField('Save_text')
     languages = SelectField('Languages', choices=[("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
@@ -845,7 +248,7 @@ class AddTermForm(FlaskForm):
     content = StringField(validators=[InputRequired(), Length(min=1, max=50)])
     submit = SubmitField("Save")
     
-    
+
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -889,9 +292,11 @@ def run_task():
         db.session.commit()
         return "Usage limits have been reset successfully."
 
-    
 @app.route("/", methods=["GET", "POST"])
 def index():
+    app.logger.info("1111")
+    print("111111111111111")    
+    
     print("index")
     form = TryOut()
     terms = []
@@ -1016,6 +421,7 @@ def register():
         ##role = request.form['role']
         contacted = request.form.get('contacted')
         subscribe = request.form.get('subscribe')
+        betakey = request.form.get('betakey')
         print(contacted)
         print(subscribe)
         if contacted == 'contacted':
@@ -1027,7 +433,15 @@ def register():
         userid= session['google_id_token']
         given_name = session['given_name']
         family_name = session['family_name']
-        user = User(email=email, first_name=given_name, last_name=family_name,external_id=userid, external_type='google', subscription_plan = 1, contacted_email=contacted, username=username)
+        account_type = "free"
+        subscription_plan = 1
+        if betakey:
+            if betakey in BetaKeys:
+                subscription_plan = 3
+                account_type = betakey
+            else:
+                return apology("Invalid Beta Key", 403)
+        user = User(email=email, first_name=given_name, account_type = account_type, last_name=family_name,external_id=userid, external_type='google', subscription_plan = subscription_plan, contacted_email=contacted, username=username)
         if subscribe == "subscribe":
             sub_exists = Subscriber.query.filter_by(email=email).first()
             if not sub_exists:
@@ -1082,7 +496,7 @@ def subscribe():
         db.session.commit()
         flash('You are now subscribed to our newsletter!')
 
-    return render_template('subscribe.html', title='Subscribe', subscribe_form=subscribe_form)
+    return render_template('subscribe.html', title='Subscribe', form=subscribe_form)
 
 
 
@@ -1093,18 +507,7 @@ def logout():
     flash('You have been logged out!')
     return redirect(url_for('login'))
 
-@app.route("/change_password", methods=["GET", "POST"])
-def change_pass():
-    form = ChangePassForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
-                hashed_password = bcrypt.generate_password_hash(form.new_password.data)
-                user.password = hashed_password
-                db.session.commit()
-    flash('Your password has been updated!')
-    return redirect(url_for('index'))
+
 
 
 @app.route("/viewdecks", methods = ["GET", "POST"])
@@ -1283,19 +686,28 @@ def update_profile_pic():
       flash('No file selected')
   return redirect(url_for('account'))
 
-@app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST", "GET"])
+
+@app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST"])
 @login_required
 def deletecard(deck_id, card_id):
+    print("entered delete card")
     deck = Deck.query.get_or_404(deck_id)
     if(current_user.id != deck.user_id):
-       return apology('Deck not assigned to user', 403)
+        print("deck not assigned to user")
+        return apology('Deck not assigned to user', 403)
     card_to_delete = Card.query.get_or_404(card_id)
+    print("what is happening here?")
+    print(card_to_delete)
     if card_to_delete != None:
+        print("going to to delete this card now")
         db.session.delete(card_to_delete)
         db.session.commit()
         flash("Card deleted")
-    cards = deck.cards
-    return render_template('carousel.html', deck=deck, cards=cards)
+        return jsonify({"status": "success", "message": "Card deleted"})
+    else:
+        return jsonify({"status": "error", "message": "Card not found"})
+    ##cards = deck.cards
+ ##   return render_template('carousel.html', title="Deck", deck=deck, cards=cards)
 
 @app.route("/addterms/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
@@ -1340,17 +752,40 @@ def downloadascsv(deck_id):
     csvstring = "".join(termsstrings)        
     return Response(csvstring, mimetype="text/csv")
 
-@app.route("/regenerate_def/<int:card_id>", methods = ["POST", "GET"])
+@app.route("/regenerate_def", methods = ["POST", "GET"])
 @login_required
-def regenerate_def(card_id):
+def regenerate_def():
+    print("entered regen")
+    card_id = request.form["id"]
     print(card_id)
     card = Card.query.filter(Card.id==card_id).first()
-    print(card)
+    prompt_options = process_prompt_options_regen(card)
     term = card.term 
-    content = regenerate_definition(term)
+    content = regenerate_definition(term, prompt_options)[0]
+    print("in card")
+    print(card.content)
     card.content = content
-    db.session.commit()           
-    return jsonify('success')
+    print(card.content)
+    try:
+        db.session.add(card)
+        db.session.commit()
+        print("card updated succesfully")
+    except:
+        print("An error occurred while updating the card")      
+    return jsonify({'content': content})
+
+def process_prompt_options_regen(card):
+    if card.prompt_option == None:
+        card.prompt_option = "Definitions"
+    prompt_options = {
+        'main_opt': card.prompt_option,
+        'subject_opt': card.prompt_option2,
+        'trans_opt': card.trans_option,
+        'lang_opt': card.trans_option,
+        'detail_lvl_opt': card.len_option,
+    }
+    return prompt_options
+
 
 @app.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])
 def get_due_cards(deck_id):
@@ -1522,7 +957,6 @@ def delete_account():
 @login_required
 def extract():
     ## plan level requried for genereting images
-    CONST_PLAN = 5
     form = UploadFileForm()
     if form.validate_on_submit():
         deck, text, prompt_options = handle_form_submission(form)
@@ -1531,18 +965,18 @@ def extract():
             flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
             return redirect(url_for('viewdecks'))
         else:
-            try:
-                terms = creator(text, prompt_options)[0]
-            except:
-                flash('It looks like our AI is being overworked! Please try again in a moment')
-                return redirect('extract')
-            save_terms_to_deck(deck, terms, prompt_options)
-            if prompt_options['main_opt'] == "Transcribe" or prompt_options['save_text_opt'] == True:
-                save_source_text_to_deck(deck, text, prompt_options)
-            if check_subscription_plan(current_user) == CONST_PLAN:
-                if prompt_options['images_opt'] == True:
-                    generate_images(deck)
-        return redirect('/carousel/{deck.id}'.format(deck=deck))
+            payload_dict = {'deck': deck.id, 'text': text, 'prompt_options': prompt_options}
+            payload = json.dumps(payload_dict)
+            now = datetime.utcnow().isoformat()
+            current_user_id = current_user.id
+            slug = str(current_user_id) + now
+            session['slug'] = slug
+            task_type = prompt_options['main_opt']
+            data = Job(slug=slug, user = current_user_id, task_type=task_type, payload=payload)
+            db.session.add(data)
+            db.session.commit()
+            flash('Yor cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
+        return redirect('/viewdecks')
     return render_template("extract.html", title="Extract", form=form)
 
 ## Functions for extract:
@@ -1550,6 +984,7 @@ def handle_form_submission(form):
     prompt_options = process_prompt_options(form)
     deck = get_or_create_deck(form, prompt_options)
     text = get_text_from_form_input(form)
+    text = text.replace('\u00a0', '')
     return deck, text, prompt_options
 
 def process_prompt_options(form):
@@ -1593,6 +1028,22 @@ def get_text_from_form_input(form):
 
 def get_text_from_file(file_data):
     file = file_data
+    print("filename", )
+    print(file.filename)
+    current_user_id = current_user.id
+    now = datetime.utcnow()
+    filename = file.filename
+    extension = os.path.splitext(filename)[1].lower()
+    ##if extension not in ALLOWED_EXTENSIONS:
+      ###  print("filetype not supported")
+      ####  flash('File type not supported')
+       ## return redirect(url_for('extract'))
+    file.filename = "file" + str(current_user_id) + str(now) + extension
+
+    print(file.filename)
+    folder_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
     file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
     file.save(file_loc)
     text = text_extractor(file_loc)
@@ -1625,88 +1076,9 @@ def get_text_from_link(link_input):
             text = extract_from_youtube(link_input)
     return text
 
-def save_terms_to_deck(deck, terms, prompt_options, method="extract"):
-    mapping = {
-    "Definitions": ("A", "B"),
-    "Translate": ("A", "B"),
-    "Rhyme": ("A", "B"),
-    "People": ("A", "B"),
-    "Theories": ("A", "B"),
-    "Cloze": ("A", "B"),
-    "Mcq": ("A", "B", "C", "D", "E"),
-    "Comprehension": ("A", "B"),
-    "Vocab_builder": ("A", "B"),
-    "Formulas": ("A", "B", "C"),
-    }
-    main_opt = prompt_options['main_opt']
-    trans_opt = prompt_options['trans_opt']
-    cat = main_opt
-    if main_opt == "Mcq":
-        v, w, x, y, z = mapping.get(main_opt, ("A", "B", "C", "D", "E"))
-        for item in terms:
-            term = item[v].capitalize()
-            exists = Card.query.filter_by(term=term).first()
-            if check_card_exist(deck, term) == False:
-                entry = Card(category = cat, term=term, content=(add_period(item[w].capitalize())), boc_2=(add_period(item[x].capitalize())), boc_3=(add_period(item[y].capitalize())), boc_4=(add_period(item[z].capitalize())), create_method = method)
-                db.session.add(entry)
-                deck.cards.append(entry)
-                db.session.commit()
-    elif main_opt != "Mcq" and main_opt != "Transcribe" and main_opt != "Formulas":
-        x, y = mapping.get(main_opt, ("A", "B"))
-        for item in terms:
-            term=item[x].capitalize()
-            if check_card_exist(deck, term) == False:
-                entry = Card(category = cat, term=term, content=add_period(item[y].capitalize()), create_method=method)
-                db.session.add(entry)
-                deck.cards.append(entry)
-        db.session.commit()
-    elif main_opt == "Formulas":
-        x, y, z = mapping.get(main_opt, ("A", "B", "C"))
-        for item in terms:
-            term=item[x].capitalize()
-            if check_card_exist(deck, term) == False:
-                entry = Card(category = cat, term=term, formula="\["+(item[y])+"\]", content=add_period(item[z].capitalize()), create_method=method)
-                db.session.add(entry)
-                deck.cards.append(entry)
-        db.session.commit()
-    elif main_opt == "Transcribe":
-        if trans_opt != None:
-            name = deck.name + "_" + method + "_" + main_opt + trans_opt + "_" + str(datetime.utcnow())
-            create_type = trans_opt + " translation"
-            transcript_trans = DeckFiles(file_name = name, text_string = terms, time_created = datetime.utcnow(), create_type = create_type)
-            db.session.add(transcript_trans)
-            deck.deck_files.append(transcript_trans)
-            db.session.commit()
-            return redirect("sea_dox/{deck.id}".format(deck = deck))
-    return True
 
-def check_card_exist(deck, term):
-    deck = Deck.query.filter_by(id=deck.id).first()
-    for card in deck.cards:
-        if card.term == term:
-            print("card {} already exists".format(term))
-            return True
-    else:
-        return False
+
     
-def save_source_text_to_deck(deck, text, prompt_options, method="extract"):
-    main_opt = prompt_options['main_opt']
-    f_name = deck.name + "_" + method + "_" + main_opt + "_" + str(datetime.utcnow())
-    file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.utcnow())
-    db.session.add(file_storage) 
-    deck.deck_files.append(file_storage)
-    db.session.commit() 
-    return True
-
-def generate_images(deck):
-    for card in deck.cards:
-        if card.img == None:
-            try:
-                card.img = create_image(card.term)
-                db.session.commit()
-            except:
-                pass
-    return True
 
 @app.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
 def sea_dox(deck_id):
@@ -1815,9 +1187,8 @@ def reject_shared(deck_id):
     db.session.commit()
     success = True
     return jsonify({'success': success})
-if __name__ == "__main__":
-    app.run(debug=True)
-    
+
+
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
     if request.method == 'POST' and 'message_feedback' in request.form:
@@ -2137,8 +1508,8 @@ def import_deck():
                                 cardId = card['cardId']
                                 content = card['fields']['Back']['value']
                                 term = card['fields']['Front']['value']
-                                interval = card['interval']*1440
-                                entry = Card(term = term, content = content, interval = interval, category = "anki")
+                                srs_interval = card['srs_interval']*1440
+                                entry = Card(term = term, content = content, srs_interval = srs_interval, category = "anki")
                                 db.session.add(entry)
                                 deck.cards.append(entry)
                         db.session.commit()
@@ -2163,8 +1534,8 @@ def import_deck():
                     cardId = card['cardId']
                     content = card['fields']['Back']['value']
                     term = card['fields']['Front']['value']
-                    interval = card['interval']*1440
-                    entry = Card(term = term, content = content, interval = interval)
+                    srs_interval = card['srs_interval']*1440
+                    entry = Card(term = term, content = content, srs_interval = srs_interval)
                     db.session.add(entry)
                     deck.cards.append(entry)
                 db.session.commit()
@@ -2189,7 +1560,7 @@ def export_deck(deck_id):
             notes = find_notes(query)
             print(notes)
             if notes == False:
-                interval = str(int(card.interval/1440))
+                srs_interval = str(int(card.srs_interval/1440))
                 anki_create_card(deck.name, card.term, card.content)
         flash("Deck exported", "success")
         return redirect(url_for('viewdecks'))
@@ -2201,7 +1572,40 @@ def about():
     return render_template('about.html')
 
 
+@app.route("/query", methods=["POST"])
+def query():
+    print("entered query")
+    # The id of the queried request comes in with a new request
+    # sent from the frontend JS code
+    job_id = request.form["id"]
+    # Now we can ask database about the state of that request
+    data = Job.query.filter_by(slug=job_id).first()
+    # And return a response containing the state and the result
+    print(data)
+    if data:
+        return jsonify(
+            {
+                "state": data.state,
+                "result": data.result,
+            }
+        )
 
+@app.route("/notification_complete", methods=["POST"])
+def notification_complete():
+    print("entered notification")
+    slug_id= request.form["id"]
+    job = Job.query.filter_by(slug=slug_id).first()
+    print(job)
+    print(job.result)
+    job.result = 2
+    print(job.result)
+    db.session.commit()
+
+    
+    
+    return jsonify("success")
+    
+ 
 #################  USAGE CHECKS  ###############################################################################################
 
 def perform_operation(user, operation_type, n):
@@ -2239,8 +1643,34 @@ def check_subscription_plan(user):
 def split_string(string):
     items = string.split("&-&-&")
     return items
+################## CURRENTLY UNUSED ###############################################################################################
+
+@app.route("/change_password", methods=["GET", "POST"])
+def change_pass():
+    form = ChangePassForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user:
+            if bcrypt.check_password_hash(user.password, form.password.data):
+                hashed_password = bcrypt.generate_password_hash(form.new_password.data)
+                user.password = hashed_password
+                db.session.commit()
+    flash('Your password has been updated!')
+    return redirect(url_for('index'))
+
+
 
 
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    
-    
+
+
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
+else:
+    # For Alembic
+    from models import db
+    db.init_app(app)

@@ -17,7 +17,7 @@ import tiktoken
 import io
 import textwrap
 from reportlab.lib.pagesizes import letter
-from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices, new_prompt_choices
+from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices, new_prompt_choices, regen_choices
 from bs4 import BeautifulSoup
 import requests
 from pylatexenc.latex2text import LatexNodes2Text
@@ -257,30 +257,62 @@ def transcribe_whisper(audio_file):
     return formatted_transcript
 
 ## REGENERATE A DEFINITION
-def regenerate_definition(term):
+def regenerate_definition(term, prompt_options):
+    retries = 0
+
+    prompt = build_prompt_regen(term, prompt_options)
     print("entered regenerate_def function")
-    prompt = "Provide the definition for the following term: "
-    prompt1 = (prompt + term)
-    response = openai.Completion.create(
-    engine="text-davinci-003", ## using ada for cost, switch to curie-001 or davinci-003, babbage-001, ada-001.  HAVE TO USE DA VINCI TO GET PROPER FORMATTING
-    temperature = 0.7,
-    top_p = 1,
-    prompt=prompt1,
-    max_tokens=100)
-    x = response.choices[0]["text"].strip()
-    print(x)
-    z = [term, ":"]
-    y = "".join(z)
-    if x.startswith(term):
-        x = x.replace(term, "",)
-    if x.startswith(y):
-        x = x.replace(y, "", 1)
-    x = x.strip()
-    x = add_period(x)
-    return x    
+    while retries < 3:
+        print("attempt:", retries)
+        try:
+            sys_instruct = f"You are a helpful teacher who wants to help students learn."
+            user_prompt = prompt
+            response = call_ai_terms(sys_instruct, user_prompt)
+            x = response['choices'][0]['message']['content'].strip()
+            print(x)
+            z = [term, ":"]
+            y = "".join(z)
+            if x.startswith(term):
+                x = x.replace(term, "",)
+            if x.startswith(y):
+                x = x.replace(y, "", 1)
+            x = x.strip()
+            x = add_period(x)
+            return x, user_prompt, response, x
+        
+        except Exception as e:
+            retries += 1
+            print(f"Error: {e}. Retrying ({retries}/3)")
 
 
 
+def build_prompt_regen(term, prompt_options: dict):
+    if prompt_options['main_opt'] not in regen_choices:
+        print("Invalid prompt option")
+        raise ValueError("Invalid prompt option")
+    else:
+        prompt = regen_choices[prompt_options['main_opt']]
+        if prompt_options['subject_opt'] != None:
+            subject = "related to the subject of " + prompt_choices2[prompt_options['subject_opt']]
+        else:
+            subject = ""
+        if prompt_options['lang_opt']!= None:
+            lang = lang_choices[prompt_options['lang_opt']]
+        else:
+            lang = ""
+        if prompt_options['detail_lvl_opt']:
+            detail = len_choices[prompt_options['detail_lvl_opt']]
+        else:
+            detail = ""
+        if prompt_options['trans_opt']:
+            trans_opt = prompt_options['trans_opt']
+        else:
+            trans_opt = ""
+
+        prompt = prompt.replace('{length}', detail).replace('{lang}', lang).replace('{trans}', trans_opt).replace('{term}', term)
+        print("prompt built")
+        print(prompt)
+    return prompt
 
 
 ###################################
@@ -290,11 +322,18 @@ def regenerate_definition(term):
 
 ## TEXT EXTRACTORS
 def text_extractor(file):
+    print("entered text extractor function")
+    print(file)
     if file.endswith('.pdf'):
+        print("entered extract from pdf")
         items = extract_from_pdf(file) 
     elif file.endswith('.pptx'):
         items = extract_from_pptx(file) 
+    elif file.endswith('.ppt'):
+        items = extract_from_pptx(file) 
     elif file.endswith('.docx'):
+        items = extract_from_docx(file)
+    elif file.endswith('.doc'):
         items = extract_from_docx(file)
     elif file.endswith('.wav'):
         items = extract_audio(file)
@@ -303,6 +342,7 @@ def text_extractor(file):
     elif file.endswith('.txt'):
         with open(file) as file:
             items = file.read()
+    print(items)
     print(count_tokens(items))
     return items
 
@@ -438,9 +478,12 @@ def split_tokens(tokens, n):
 
 ## MISC FORMATTERS
 def add_period(s):
-    if s[-1] != ".":
-        s += "."
-    return s
+    if not s:
+        return s
+    else:
+        if s[-1] != ".":
+            s += "."
+        return s
 
 def check_comma_list(string):
     if "," in string:

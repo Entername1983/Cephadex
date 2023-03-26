@@ -433,11 +433,18 @@
         currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
 
         if (cardList.length === 0) {
+          location.reload(true);
           cardsDue = cardList.length;
-          jq("#force-study").show();
-          jq("#contain-main").hide();
+        //$$BUG jq("#force-study").show();
+        //$$BUG jq("#contain-main").hide();
           jq('#cards-due').html(cardsDue);
-          jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
+          
+         // location.reload(true);
+         // cardsDue = cardList.length;
+         // jq("#force-study").show();
+         // jq("#contain-main").hide();
+         // jq('#cards-due').html(cardsDue);
+        //  jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
 
           return;
 

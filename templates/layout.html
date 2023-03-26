@@ -19,7 +19,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script type="text/plain" data-cookie-consent="strictly-necessary" src="https://accounts.google.com/gsi/client"
+        async defer></script>
 
     <!-- SUBMIT FORMS JAVASCRIPT-->
     <script>
@@ -88,8 +89,9 @@
 
 </head>
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6NB4ZPCNB0"></script>
-<script>
+<script type="text/plain" data-cookie-consent="tracking" async
+    src="https://www.googletagmanager.com/gtag/js?id=G-6NB4ZPCNB0"></script>
+<script type="text/plain" data-cookie-consent="tracking">
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
@@ -98,6 +100,77 @@
 </script>
 
 <body>
+    <input type="hidden" id="slug_id" value="{{ session['slug'] }}">
+    <script>
+        var slug_id = document.getElementById("slug_id").value;
+        function doPoll() {
+            $.post(
+                '/query',        
+                { id: slug_id },   
+               
+                function (data) {  // <- when the response comes, we'll process
+                    // its data with this function
+                    $('#status').text(data.state);
+                    if (data.result == 0) {
+                        console.log("no data yet")
+                        // We're setting the timeout for 5 seconds
+                        // so the page will update itself
+                        // every 5 seconds until we get a non-zero result
+                        setTimeout(doPoll, 5000);
+                    } else if (data.result == 1) {
+                        // When we finally get the result we update it on the page
+                        console.log("just before notification complete"),
+                        console.log(slug_id)
+                        $.post(
+                            '/notification_complete',
+                            { id: slug_id },
+                            function(response) {
+                              console.log(response);
+                            });
+                        $('#slugModal').modal('show');
+                    }
+                }
+            );
+        }
+        // Here we actually instruct the browser to call the function for the effect:
+        $(document).ready(function () {
+            doPoll();
+        });
+
+    </script>
+
+    <!-- Cookie Consent by TermsFeed https://www.TermsFeed.com -->
+    <script type="text/javascript" src="https://www.termsfeed.com/public/cookie-consent/4.1.0/cookie-consent.js"
+        charset="UTF-8"></script>
+    <script type="text/javascript" charset="UTF-8">
+        document.addEventListener('DOMContentLoaded', function () {
+            cookieconsent.run({ "notice_banner_type": "interstitial", "consent_type": "express", "palette": "light", "language": "en", "page_load_consent_levels": ["strictly-necessary"], "notice_banner_reject_button_hide": false, "preferences_center_close_button_hide": false, "page_refresh_confirmation_buttons": false, "website_name": "www.cephadex.com", "website_privacy_policy_url": "www.cephadex.com/privacy_policy" });
+        });
+    </script>
+
+    <!-- Google Analytics -->
+    <script type="text/plain" data-cookie-consent="tracking" async
+        src="https://www.googletagmanager.com/gtag/js?id=G-6NB4ZPCNB0"></script>
+    <script type="text/plain" data-cookie-consent="tracking">
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-6NB4ZPCNB0');
+</script>
+    <!-- end of Google Analytics-->
+
+    <noscript>Free cookie consent management tool by <a href="https://www.termsfeed.com/">TermsFeed</a></noscript>
+    <!-- End Cookie Consent by TermsFeed https://www.TermsFeed.com -->
+
+
+
+
+
+    <!-- Below is the link that users can use to open Preferences Center to change their preferences. Do not modify the ID parameter. Place it where appropriate, style it as needed. -->
+
+
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
@@ -107,12 +180,12 @@
 
 
     <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm"
-        style="background-color: rgba(29, 113, 186, 0.7);">
+        style="background-color: #609BCF">
         <div class="container px-5">
             <a class="navbar-brand pl-2" href="/">
                 <img src="\static\logo1_small.png" width="50" height="50" alt="logo">
             </a>
-            <a class="navbar-brand fw-bold" href="/">Cephadex</a>
+            <a class="navbar-brand fw-bold" href="/">Cephadex-BETA</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
                 aria-controls="#navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                 Menu
@@ -210,7 +283,7 @@
             aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-gradient-primary-to-secondary p-4">
                         <h5 class="modal-title" id="exampleModalLabel">Register</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -334,7 +407,7 @@
         <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-gradient-primary-to-secondary p-4">
                         <h5 class="modal-title" id="loginModalLabel">Log in</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -381,7 +454,28 @@
                 </div>
 
             </div>
-        
+
+        </div>
+            <!------ MODAL CARD COMPLETE NOTIFICATION ------- -->
+
+
+            <div class="modal fade" id="slugModal" tabindex="-1" aria-labelledby="slugModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-gradient-primary-to-secondary p-4">
+                            <h5 class="modal-title font-alt" id="slugModalLabel">Deck ready</h5>
+                            <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body border-0 p-4">
+                            <h4>Your deck is now ready!</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
     </main>
 
 

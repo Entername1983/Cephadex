@@ -21,7 +21,51 @@
 {% block main_0 %}
 
 <!-- Navigation-->
+{% if current_user.is_authenticated %}
 
+<header class="masthead">
+    <div class="container px-5">
+        <div class="row gx-5 align-items-center">
+            <div class="col-lg-6">
+                <!-- Mashead text and app badges-->
+                <div class="mb-5 mb-lg-0 text-center text-lg-start">
+                    <h1 class="display-1 lh-1 mb-3">Welcome to the Cephadex BETA</h1>
+                    <p class="lead fw-normal text-muted mb-5">Thank you for your participation!</p>
+                    <div class="d-flex flex-column flex-lg-row align-items-center">
+                        <!--- removed app store ... links, consider putting something else here-->
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <!-- Masthead device mockup feature-->
+                <div class="masthead-device-mockup">
+
+                    <div class="device-wrapper">
+                        <div class="device" data-device="iPhoneX" data-orientation="portrait" data-color="black">
+                            <div class="">
+ <h4>Updates</h4>
+ <ul>
+    <li>Thanks to your participation more and more bugs are uncovered every day!  Particular thanks to Michael, Gracie, and Drew who have notified me of several over the last few days.</li>
+    <li>I have made some big system updates related to how the server processes the request and how data is stored, you may encounter some new issues.</li>
+    <li>When creating decks your request will now be queued, once it is ready you will get a pop up on your screen letting you know.</li>
+    <li>Thank you again for your participation!  I know it can be frustrating trying out a product that doesn't always work.  Know that all the bug reports and feedback is extremely meaningful!</li>
+
+</ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</header>
+
+
+
+
+
+{% else %}
 <!-- Mashead header-->
 <header class="masthead">
     <div class="container px-5">
@@ -65,8 +109,7 @@
 <br>
 
 
-{% if current_user.is_authenticated %}
-{% else %}
+
 <aside class="text-center bg-gradient-primary-to-secondary">
 
 
@@ -96,7 +139,7 @@
                 </div>
             </div>--->
 </aside>
-{% endif %}
+
 <!-- App features section-->
 <section id="features">
     <div class="container px-5">
@@ -170,6 +213,7 @@
 </section>
 <br>
 <br>
+{% endif %}
 {% if current_user.is_authenticated %}
 {% else %}
 <div class="container">
@@ -237,7 +281,8 @@
                                 <div class = "form-floating my-1">
                                 {{form.text_input(id="text-input", class="form-control form-control-lg box_study full-w",
                                 style="height:100%; width:100%; font-size:20px", minlength=80 )}}
-                                <label for = "text-input">Enter your text here <i>(Enter between 80 and 250 characters)</i></label>
+                                <label for = "text-input">Enter your text here</label>
+                                <div id="textinputhelp" class="form-text">Enter between 80 and 250 characters.</div>
                     </div>
                             </div>
                         </div>
@@ -307,7 +352,8 @@
 
 <br>
 <br>
-
+{% if current_user.is_authenticated %}
+{% else %}
 <!-- Basic features section-->
 <section class="bg-light">
     <div class="container px-5">
@@ -349,6 +395,7 @@
         <br>
     </div>
 </section>
+{% endif %}
 <!-- Footer-->
 
 <!-- Feedback Modal-->

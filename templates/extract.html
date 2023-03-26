@@ -11,26 +11,26 @@
     <h6 class="p-3 d-none d-sm-block"> Looking to import decks from Anki? Click <a href="/import_deck/">here!</a></h6>
 </div>
 
-<div class="col-11 mx-auto box_0 my-3 p-4" style="border-radius: 5px;">
+<div class="col-11 mx-auto box_0 my-3 p-2" style="border-radius: 5px;">
     <form method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data" , onsubmit="showSpinner()">
         {{form.hidden_tag()}}
         {{ form.csrf_token }}
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
             <li class="nav-item " role="presentation">
-                <button class="nav-link active" id="extract-input-tab" data-bs-toggle="pill"
+                <button class="nav-link active bg-gradient-primary-to-secondary p-4 text-light" id="extract-input-tab" data-bs-toggle="pill"
                     data-bs-target="#extract-input" type="button" role="tab" aria-controls="extract-input"
                     aria-selected="true" style="font-size: 20px !important"
                     title="Enter the content you want processed here"> 1 - What goes in?</button>
             </li>
             <li class="nav-item " role="presentation">
-                <button class="nav-link" id="extract-output-tab" data-bs-toggle="pill" data-bs-target="#extract-output"
+                <button class="nav-link bg-gradient-primary-to-secondary p-4 text-light" id="extract-output-tab" data-bs-toggle="pill" data-bs-target="#extract-output"
                     type="button" role="tab" aria-controls="extract-output" aria-selected="false"
                     style="font-size: 20px !important" title="Choose what type of material you want to create here"> 2 -
                     What comes
                     out?</button>
             </li>
             <li class="nav-item " role="presentation">
-                <button class="nav-link" id="extract-name-tab" data-bs-toggle="pill" data-bs-target="#extract-name"
+                <button class="nav-link bg-gradient-primary-to-secondary p-4 text-light" id="extract-name-tab" data-bs-toggle="pill" data-bs-target="#extract-name"
                     type="button" role="tab" aria-controls="extract-name" aria-selected="false"
                     style="font-size: 20px !important"
                     title="Create a new deck, or add your content to an existing deck"> 3 - What's it
@@ -47,8 +47,8 @@
 
                 <! SECTION ON WHAT>
                     <div id="accordion">
-                        <div class="card extract-boxes">
-                            <div class="card-header extract-boxes" id="headingOne">
+                        <div class="card extract-boxes ">
+                            <div class="card-header extract-boxes " id="headingOne">
 
                                 <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
                                     data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
@@ -64,11 +64,11 @@
 
 
                                     {{form.file( id ="file-input", class=" form-control form-control-lg")}}
-
+                                    <div id="fileinputhelp" class="form-text">Accepted formats: ppt, pdf, doc, txt, mp3,
+                                        wav. Feel free to put in a request if you're desired file type is not accepted.</div>
 
                                 </div>
-                                <i class="d-flex justify-content-center"> Accepted formats: ppt, pdf, doc, txt, mp3,
-                                    wav. Feel free to put in a request if you're desired file type is not accepted. </i>
+
                             </div>
                         </div>
                         <div class="card extract-boxes">
@@ -111,17 +111,19 @@
                                         {{form.link_input(id="link-input", class="form-control form-control-lg
                                         ")}}
                                         <label for="link-input" class="form-label">Insert your link(s) here</label>
+                                        <div id="fileinputhelp" class="form-text">Both wikipedia and youtube links are accepted.
+                                            If you would like to insert more than one link seperate them with a comma.</div>
+    
                                     </div>
                                 </div>
-                                <i class="d-flex justify-content-center">Both wikipedia and youtube links are accepted.
-                                    If you would like to insert more than one link seperate them with a comma.</i>
+
                             </div>
                         </div>
                     </div>
             </div>
 
             <! SECTION ON HOW>
-                <div class="tab-pane fade extract-boxes1 p-3" id="extract-output" role="tabpanel"
+                <div class="tab-pane fade extract-boxes1 p-2" id="extract-output" role="tabpanel"
                     aria-labelledby="extract-output-tab">
                     <div id="accordion1">
                         <div class="card extract-boxes">
@@ -204,14 +206,13 @@
                                 <div class="card-body extract-boxes1">
 
 
-                                    <label for="min-max">Select the average amount of items per page:</label>
                                     <div class="input-group my-2" id="min-max">
 
                                         <div class="input-group-text ">Min</div>
                                         {{ form.qmin_option(type ="number", class="form-control form-control-lg ")}}
                                         <div class="input-group-text">Max</div>
                                         {{ form.qmax_option(type ="number", class="form-control form-control-lg")}}
-
+                                        <div id="fileinputhelp" class="form-text ml-1"> Select the average amount of items per page.</div>
                                     </div>
 
 
@@ -228,10 +229,10 @@
                                     <div class="form-floating mt-2">
 
                                         {{ form.main_lang(id="main-lang", class="form-select")}}
-                                        <label for="main-lang">Choose a language <i> (Only necessary if you would like
-                                                the content to be in a different language thant the source
-                                                material)</i></label>
-
+                                        <label for="main-lang">Choose a language </label>
+                                                <div id="fileinputhelp" class="form-text">Only necessary if you would like
+                                                    the content to be in a different language thant the source
+                                                    material</div>
                                     </div>
 
                                     <div class="form-group mt-2">
@@ -324,7 +325,7 @@
                     <div class="col d-flex align-items-center justify-content-end">
                         <div id="extract-message" style="display:none"><i>Your cards are being generated, this can take
                                 a few minutes. When your deck is ready you will be able to find it in "Decks". In the
-                                meantime feel free to study navigate to another page or start studying a sample deck we
+                                meantime feel free to navigate to another page or start studying a sample deck we
                                 made for you. </i></div>
                     </div>
                     <div class="col d-flex justify-content-end">
@@ -394,7 +395,7 @@
 <div class="modal fade" id="promptInfoModal" tabindex="-1" aria-labelledby="promptInfoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-gradient-primary-to-secondary p-4">
                 <h5 class="modal-title" id="promptInfoModalLabel">Main options explained:</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -448,7 +449,7 @@
     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-gradient-primary-to-secondary p-4">
                 <h5 class="modal-title" id="promptInfoAdvancedModalLabel">Advanced options explained:</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

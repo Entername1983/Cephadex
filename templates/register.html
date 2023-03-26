@@ -39,6 +39,12 @@
                         </select>
                         <label for="role">Role:</label>
                     </div>
+                    <div class="form-floating mt-1">
+
+                        
+                        <input class="form-control" type="text" name="betakey" id="betakey" placeholder=""  oninput="showBetaAgreement()">
+                        <label for="name">Beta Key:</label>
+                    </div>
                     <div class="form-group mt-1">
                         <input class="form-check-input" type="checkbox" value="contacted" name="contacted"
                             id="contacted">
@@ -49,7 +55,7 @@
                         <input class="form-check-input" type="checkbox" value="subscribe" name="subscribe"
                             id="subscribe">
 
-                        <label class="form-check-label" for="subscribe">Stay up to date with the latest developments</label>
+                        <label class="form-check-label" for="subscribe">Join our mailing list</label>
                     </div>
                     <div class="form-group mt-1">
                         <input class="form-check-input" type="checkbox" value="tos" name="tos" id="tos" required>
@@ -58,6 +64,13 @@
                                 style="text-decoration: underline" data-bs-toggle="modal"
                                 data-bs-target="#tcModal">terms
                                 and conditions</a>?</label>
+                    </div>
+                    <div class="form-group mt-1" id="beta-group"style="display:none">
+                        <input class="form-check-input" type="checkbox" value="beta-agree" name="beta-agree" id="beta-agree" ">
+
+                        <label class="form-check-label" for="tos">I agree to the <a
+                                style="text-decoration: underline" data-bs-toggle="modal"
+                                data-bs-target="#betaModal">beta agreement</a>?</label>
                     </div>
                     <div class="form-group mt-1">
                     <input class="btn btn-primary" type="submit" value="Register">
@@ -73,11 +86,84 @@
 
 </div>
 
+<script>
+    function showBetaAgreement() {
+        var betaKey = document.getElementById("betakey").value;
+        var betaCheckbox = document.getElementById("beta-agree");
+        var betaGroup = document.getElementById("beta-group");
+      
+        if (betaKey.length > 0) {
+          betaGroup.style.display = "block";
+          betaCheckbox.required = true;
+        } else {
+          betaGroup.style.display = "none";
+          betaCheckbox.required = false;
+        }
+    }
+    </script>
+<!---- BETA AGREEMENT MODAL ---->
+<div class="modal fade" id="betaModal" tabindex="-1" aria-labelledby="betaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary-to-secondary p-4">
+                <h5 class="modal-title" id="betaModalLabel">Terms and conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+
+    <h1>Beta Tester Agreement</h1>
+
+    <p>Welcome to the Cephadex Beta Testing program!</p>
+
+    <h2>Purpose and Goals</h2>
+
+    <p>The purpose of this Beta Testing program is to improve the quality and usability of Cephadex's products and
+        services. By participating in this program, you agree to help us achieve this goal by providing feedback and
+        reporting any issues or bugs you may encounter.</p>
+
+    <h2>Termination</h2>
+
+    <p>You may revoke your participation and delete your account at any time. We reserve the right to terminate your
+        participation in the Beta Testing program at any time, for any reason, without notice.</p>
+
+    <h2>Data Collection and Privacy</h2>
+
+    <p>We will collect and track your usage activity on our website for the purposes of improving our product. Your
+        personal information will be kept confidential in accordance with our privacy policy.</p>
+
+    <h2>Bugs and Feature Requests</h2>
+
+    <p>We encourage you to report any bugs or issues you encounter during the Beta Testing program, as well as any
+        feature requests or suggestions you may have. Your feedback is valuable to us and will help shape the future of
+        our product.</p>
+
+    <h2>AI Responses</h2>
+
+    <p>Please understand that AI can give back unpredictable responses and Cephadex will not be held responsible for any
+        content created using our product or service.</p>
+
+    <h2>Special Rate</h2>
+
+    <p>As a participant in our beta test we promise to reward you by offering our lowest possible rate (at cost) for life. </p>
+
+    <p>Thank you for joining us on this journey! We're excited to have you on board.</p>
+
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>
+</div>
+</div>
+</div>
+
+
+
 <!----- TERMS AND CONDITIONS MODAL ----->
 <div class="modal fade" id="tcModal" tabindex="-1" aria-labelledby="tcModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-gradient-primary-to-secondary p-4">
                 <h5 class="modal-title" id="tcModalLabel">Terms and conditions</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
