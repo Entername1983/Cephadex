@@ -40,13 +40,28 @@ def process_job(slug):
     deck = Deck.query.filter_by(id=deck_id).first()
     text = payload["text"]
     prompt_options = payload["prompt_options"]
-    terms = creator(text, prompt_options)[0]
-    save_terms_to_deck(deck, terms, prompt_options)
+    
+    response = creator(text, prompt_options)
+    terms = response[0]
+    print("RESPONSE")
+    print(response[0])
+    print(response[1])
+    print(response[2])
+    print(response[3])
+    try:
+        save_terms_to_deck(deck, terms, prompt_options)
+    except:
+        app.logger.info = "unable to save terms to deck"
+        
     if prompt_options['main_opt'] == "Transcribe" or prompt_options['save_text_opt'] == True:
         save_source_text_to_deck(deck, text, prompt_options)
     if check_subscription_plan(slug.user) == CONST_PLAN:
         if prompt_options['images_opt'] == True:
             generate_images(deck)
+    try:
+        log_response_data(response[1], response[2], response[3], True)
+    except:
+        app.logger.info = "No response data to log"
 
     # The heavy processing happens here:
     # I use a short wait time here to ease development,
@@ -65,6 +80,13 @@ def process_job(slug):
     print(f"{slug.slug} finished processing!")
 
 
+def log_response_data(prompt, response, content, success):
+    prompt_json = json.dumps(prompt)
+    response_json = json.dumps(response)
+    content_json = json.dumps(content)
+    response_log = ResponseData(prompt=prompt_json, response=response_json, content=content_json, success=success)
+    db.session.add(response_log)
+    db.session.commit()
 
 def save_terms_to_deck(deck, terms, prompt_options, method="extract"):
     mapping = {
@@ -82,6 +104,8 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract"):
     main_opt = prompt_options['main_opt']
     trans_opt = prompt_options['trans_opt']
     cat = main_opt
+    if isinstance(terms, dict):
+        terms = [terms]
     if main_opt == "Mcq":
         v, w, x, y, z = mapping.get(main_opt, ("A", "B", "C", "D", "E"))
         for item in terms:
@@ -94,6 +118,7 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract"):
     elif main_opt != "Mcq" and main_opt != "Transcribe" and main_opt != "Formulas":
         x, y = mapping.get(main_opt, ("A", "B"))
         for item in terms:
+            print(item)
             term=item[x].capitalize()
             if check_card_exist(deck, term) == False:
                 entry = Card(category = cat, term=term, content=add_period(item[y].capitalize()), create_method=method)

@@ -294,10 +294,7 @@ def run_task():
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    app.logger.info("1111")
-    print("111111111111111")    
-    
-    print("index")
+
     form = TryOut()
     terms = []
     if form.validate_on_submit():
@@ -1582,13 +1579,12 @@ def query():
     data = Job.query.filter_by(slug=job_id).first()
     # And return a response containing the state and the result
     print(data)
-    if data:
-        return jsonify(
-            {
-                "state": data.state,
-                "result": data.result,
-            }
-        )
+    return jsonify(
+        {
+            "state": data.state,
+            "result": data.result,
+        }
+    )
 
 @app.route("/notification_complete", methods=["POST"])
 def notification_complete():
@@ -1600,12 +1596,13 @@ def notification_complete():
     job.result = 2
     print(job.result)
     db.session.commit()
-
-    
-    
     return jsonify("success")
     
  
+ 
+@app.route("/documentation/", methods=['GET', 'POST'])
+def documentation():
+    return render_template('documentation.html')
 #################  USAGE CHECKS  ###############################################################################################
 
 def perform_operation(user, operation_type, n):

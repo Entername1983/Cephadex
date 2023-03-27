@@ -332,7 +332,7 @@
 
                         <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
                         </div>
-                        {{form.submit(id="generate-btn", class="btn btn-primary form-control form-control-lg m-2", style
+                        {{form.submit(id="generate-btn", class=" btn-outline-secondary form-control form-control-lg m-2", style
                         = "max-width: 200px", disabled="disabled")}}
                     </div>
                 </div>
@@ -383,10 +383,14 @@
         ((deckExisting && deckExisting.value !== '' && deckExisting.value !== '__None') || (deckNew && deckNew.value.trim() !== ''))) {
             generateBtn.disabled = false;
             generateBtn.removeAttribute('disabled');
+            generateBtn.removeClass('btn-outline-secondary');
+            generateBtn.addClass('btn-primary');
 
         } else {
             generateBtn.disabled = true;
             generateBtn.setAttribute('disabled', 'disabled');
+            generateBtn.removeClass('btn-primary');
+            generateBtn.addClass('btn-outline-secondary');
         }
     }
 </script>

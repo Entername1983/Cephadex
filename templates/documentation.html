@@ -1,0 +1,100 @@
+{% extends "layout.html" %} {% block title %} Documentation {% endblock %}
+{% block head %}
+
+{% endblock %}
+
+
+{% block main_0 %}
+
+<div class = "container">
+
+
+<h2>Cephadex user guide:</h2>
+
+<br>
+<br>
+
+<h4>Create:</h4>
+<p>Use this feature to:</p>
+<ul>
+    <li>Create decks of flashcards</li>
+    <li>Create tests</li>
+    <li>Create transcriptions</li>
+    <li>Translate documents</li>
+    <li>Summarize documents (coming soon)</li>
+</ul>
+<p><strong>How it works?</strong></p>
+<p>The creation process is divided into 3 parts.</p>
+<p><strong>Choose content to process (What goes in?).</strong> 3 choices:</p>
+<ul>
+    <li>An existing document (pdf, doc, ppt, .txt, mp3, wav)</li>
+    <li>Copy/paste some text</li>
+    <li>Insert a youtube or wikipedia link (or a series of links separated by a comma, note that if the content is too large this may cause problems at this time)</li>
+</ul>
+<p><strong>Choose what you want returned (What comes out?).</strong></p>
+<p>Here you have several options, most of them should be self explanatory. You do not have to use the advanced options but can do so if you want to try and refine your results.</p>
+<p>Note that the creation process for flashcards, tests, transcriptions… is the same. For tests, once the deck is created you will be able to select questions from the deck and create/assign the test. For transcription the results will be found in the source documents link for said deck.</p>
+<p><strong>Choose how you want to save the content (What’s it called?)</strong>:</p>
+<p>Pretty straightforward, you can either choose to create a new deck or add it to an existing deck.</p>
+<p><strong>Notes:</strong></p>
+<ul>
+    <li>You must select at least some content and either a name for a new deck or an existing deck for the “generate” button to be active (we are currently experiencing a few issues with it so you if it doesn’t work please try refreshing the page)</li>
+    <li>Once the process is launched you don’t have to remain on the page. A pop up will appear notifying you when your deck is ready, if you go to the decks page (or refresh the decks page) you'll see your deck with the cards inside.</li>
+    <li>Depending on the size of the content and how busy our servers are this process can take a while. While testing, pdfs of 80 pages could take up to 10 minutes. So please be patient. If you don’t see anything after 10 minutes please let me know. I will be accelerating this process in the next couple weeks.</li>
+    <li>I really appreciate any feedback on this creation process as it is essential that we get this right. Is there something you would like to see that is not currently there? Let me know and if I can I will implement it.</li>
+</ul>
+<h4>Decks:</h4>
+<p>Use this feature to:</p>
+<ul>
+    <li>Manage and edit your decks.</li>
+    <li>Export them them as a .csv file or directly to Anki (requires anki connect add on and anki desktop open)</li>
+    <li>See source files used to create the deck</li>
+    <li>Turn the decks into tests</li>
+    <li>Share decks with other users</li>
+    <li>Access individual decks to study</li>
+    <li>Delete decks</li>
+    <li>Edit decks name</li>
+</ul>
+
+<h4>Study:</h4>
+<p>Use this feature to:</p>
+<ul>
+  <li>Study individual decks (if selecting the deck in decks) or all decks, if going straight to study from the nav bar.</li>
+</ul>
+<p><strong>How it works:</strong></p>
+<p>The study feature is a spaced repetition system. The cards listed as due are unique cards, so the actual amount of reviews you will do will be higher than that. Right now the cards are queued, and when reaching the end of the queue the queue is refreshed depending on whether you answered cards correctly or not. At most 20 new cards loaded so as not to overwhelm the user. Currently there is no customization possible but I hope to implement some in April. Feedback on this is greatly appreciated.</p>
+<p><strong>On Mobile:</strong></p>
+<ul>
+  <li><strong>Regular cards:</strong> For most cards on mobile you can swipe left if you don’t know the card, and right if you do. At that point it will display the content. At that point you can just swipe again in any direction and it will move on to the next card. You can also double tap.</li>
+  <li><strong>MCQ:</strong> Since there are 4 options presented, swiping left or right doesn’t work for MCQ questions. Instead you have to select the response and then double tap to go to the next card.</li>
+</ul>
+<p><strong>On desktop:</strong></p>
+<p>The process is similar except that you can’t swipe. Instead you can select the appropriate option and either double click (for MCQ) or you can also just click next (for regular cards).</p>
+<p><strong>No more cards to study:</strong></p>
+<p>If you reach the end of your deck you will be informed that you have no cards left to study and asked if you want to study anyway. If so you will enter a different mode (with a very very ugly layout for now! It’s on my to do list!). This will allow you to cycle through the cards but none of the data will be retained or affect the spaced repetition system.</p>
+
+
+<h4>Tests:</h4>
+
+<p>Use this feature to:</p>
+<ul>
+  <li>Create tests to print out</li>
+  <li>Create tests to assign through the platform</li>
+  <li>Assign tests</li>
+  <li>Access created tests</li>
+  <li>Take assigned tests</li>
+  <li>View results</li>
+</ul>
+<p><strong>How it works:</strong></p>
+<p>If you go to your decks page you will find an option to create a test. If you click on that it will allow you to go through the test creation process. Select the questions you want to put on the test (you can also edit them in the first screen). Then in the next page, you can decide on the marks per question, test name, set a time limit… (not all options are fully implemented). Finally, you can assign the tests.</p>
+<p>If you go to account → tests you will be able to see the tests you have created/assigned/taken.</p>
+<p>The tests are automatically graded, but this only works really well for MCQ questions and somewhat well for definitions. Still, for non MCQ tests, I recommend reviewing all the answers submitted and making sure the appropriate amount of marks have been assigned. You can do that in tests taken.</p>
+<p>I should note that tests are the newest and least developed feature at the moment. There is a lot more I’d like to do with this, so once again any feedback/suggestions/bug reports are greatly appreciated!</p>
+<p>That should cover most of it! If you have any questions, please don’t hesitate to contact me through kevin@cephadex.com or just send a message through the feedback form.</p>
+
+
+
+
+
+</div>
+{% endblock %}
