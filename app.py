@@ -1666,7 +1666,7 @@ def change_pass():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=DEBUG)
 else:
     # For Alembic
     from models import db
