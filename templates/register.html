@@ -26,7 +26,16 @@
                         
                         <input class="form-control" type="text" name="username" id="username" placeholder="EasyLearning2023"required >
                         <label for="name">Username:</label>
+                        <div style = "color:red"id="username-error"></div>
                     </div>
+                    <div class="form-floating mt-2">
+                        {{ form.timezone(class="form-select", id="timezone", required=True) }}
+      
+                     
+                     
+                      </div>
+
+
                     <div class="form-floating mt-1">
                         
                         <select class="form-select" name="role" id="role" placeholder = "Choose role" required>
@@ -73,7 +82,7 @@
                                 data-bs-target="#betaModal">beta agreement</a>?</label>
                     </div>
                     <div class="form-group mt-1">
-                    <input class="btn btn-primary" type="submit" value="Register">
+                    <input class="btn btn-primary" id = "register-btn" type="submit" value="Register">
                 </div>
             </form>
         </div>
@@ -231,6 +240,25 @@
 
 
 <script>
+    $(document).ready(function() {
+        $('#username').on('input', function() {
+            var username = $('#username').val();
+            var registerBtn = $('#register-btn');
+            console.log(username)
+            $.ajax({
+                url: '/check_username/' + username,
+                success: function(data) {
+                    if (data.username_taken) {
+                        $('#username-error').html('Username is already taken');
+                    } else {
+                        $('#username-error').html('');
+                    }
+                }
+            });
+        });
+    });
+
+
 const form = document.querySelector("form")
 
 

@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
 from flask_session import Session
 from tempfile import mkdtemp
-
+import pytz
+from pytz import common_timezones
 from sqlalchemy_utils import database_exists, create_database
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from wtforms import StringField, PasswordField, SubmitField, RadioField, SelectField, BooleanField, TextAreaField
@@ -25,6 +26,7 @@ import sys
 from sqlalchemy.sql import func
 import logging
 import logging.handlers
+from logging.handlers import RotatingFileHandler
 import json
 from datetime import datetime, timedelta
 import datetime as dt
@@ -42,9 +44,13 @@ from beta import BetaKeys
 from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
+import configparser
+import logging.config
+from events import event_tracker
 
+config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging_config.ini')
 
-
+logging.config.fileConfig(config_file_path)
 ##app = Celery('myapp', broker=BROKER)
 
 
@@ -63,10 +69,17 @@ app.config['SECRET_KEY'] = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(logging.INFO)
+werkzeug_logger.debug('debug message')
+werkzeug_logger.info('info message')
+werkzeug_logger.warning('warn message')  
+werkzeug_logger.error('error message')
+werkzeug_logger.critical('critical message')
 
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+app.logger.handlers[0].setFormatter(formatter)  # set formatter for the first handler
+
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
 
@@ -88,10 +101,6 @@ app.config["SESSION_TYPE"] = "filesystem"
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Create database
-
-
-print("IS THIS SOWWWRKING?")
 
 
 ######################## WTFORMS ###########################################          
@@ -111,8 +120,12 @@ class RegisterForm(FlaskForm):
     conf_email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Confirm Email"})
     first_name = StringField(validators=[InputRequired(), Length(min=4, max=50)], render_kw={"placeholder": "First Name"})
     last_name = StringField(validators=[InputRequired(), Length(min=4, max=50)], render_kw={"placeholder": "Last Name"})
+    timezone = SelectField('Timezone',
+                           choices=[('', 'Choose a time zone')] + [(tz, tz) for tz in common_timezones],
+                           default=None,
+                           render_kw={'class': 'form-select', 'id': 'timezone', 'placeholder': 'Choose timezone'})
     submit = SubmitField('Register')
-    
+
     def validate_username(self, username):
         existing_user_username = User.query.filter_by(username=username.data).first()
         if existing_user_username:
@@ -313,10 +326,13 @@ def index():
             'custom_term':  form.custom_term.data or None,
             'custom_content': form.custom_content.data or None,
         }
-        terms = creator(text, prompt_options)[0]
+        response = creator(text, prompt_options)
+        terms = response[0]
         for item in terms:
             print(item['A'])
             print(item['B'])
+        
+        event_tracker(None, "tryout", json.dumps(prompt_options), json.dumps(terms))
         return render_template('index.html', form = form, terms = terms, option = prompt_options['main_opt'])
             
     return render_template('index.html', form = form)
@@ -386,10 +402,11 @@ def googleSignIn():
         if (user):
             login_user(user)
             flash('You have been logged in!', 'success')
+            event_tracker(user.id, "login", "google")
             return redirect(url_for('index'))
         
         else:
-
+            form = RegisterForm()
             session['google_id_token'] = idinfo['sub']
             session['google_email'] = idinfo['email']
             if idinfo['given_name']:
@@ -407,9 +424,25 @@ def googleSignIn():
         pass
     return render_template('index.html', title='Index')
 
+@app.route('/check_username/<username>', methods=["GET", "POST"])
+def check_username(username):
+    user = User.query.filter_by(username=username).first()
+
+    # Check if username already exists
+    user = User.query.filter_by(username=username).first()
+    if user is not None:
+        response = jsonify({'username_taken': True})
+        response.status_code = 200
+        return response
+    else:
+        response = jsonify({'username_taken': False})
+        response.status_code = 200
+        return response
+    
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    form = RegisterForm()
     if request.method == 'POST':
         print("entered register post request")
         # Get the user's name and password from the form data
@@ -419,6 +452,9 @@ def register():
         contacted = request.form.get('contacted')
         subscribe = request.form.get('subscribe')
         betakey = request.form.get('betakey')
+        timezone = form.timezone.data
+        if timezone == None:
+            timezone = "Europe/Dublin"
         print(contacted)
         print(subscribe)
         if contacted == 'contacted':
@@ -438,20 +474,22 @@ def register():
                 account_type = betakey
             else:
                 return apology("Invalid Beta Key", 403)
-        user = User(email=email, first_name=given_name, account_type = account_type, last_name=family_name,external_id=userid, external_type='google', subscription_plan = subscription_plan, contacted_email=contacted, username=username)
+        user = User(email=email, first_name=given_name, account_type = account_type, last_name=family_name,external_id=userid,
+                    external_type='google', subscription_plan = subscription_plan, contacted_email=contacted, username=username,
+                    timezone = timezone, subscription_start_date = datetime.utcnow())
         if subscribe == "subscribe":
             sub_exists = Subscriber.query.filter_by(email=email).first()
             if not sub_exists:
                 timestamp = datetime.utcnow()
                 subscriber = Subscriber(email=email, first_name=given_name, last_name=family_name, timestamp = timestamp)
                 db.session.add(subscriber)
-
+        event_tracker(user.id, "register", "google")
         db.session.add(user)
         db.session.commit()
         login_user(user)
         flash("You have been registered and logged in!", "success")
         return redirect(url_for('index'))
-    return render_template('register.html', title='Register')
+    return render_template('register.html', title='Register', form = form)
     
     ##register_form = RegisterForm()
     ## if register_form.validate_on_submit():
@@ -623,6 +661,7 @@ def rename_deck(id, new_name):
 @app.route("/account", methods = ["POST", "GET"])
 @login_required
 def account():
+    form = RegisterForm()
     user = User.query.filter_by(id=current_user.id).first()
     subscriber = Subscriber.query.filter_by(email=user.email).first()
     if request.method == 'POST':
@@ -632,6 +671,7 @@ def account():
         gender = request.form.get('gender')
         email_checkbox = request.form.get('email-checkbox')
         role = request.form.get('role')
+        timezone = form.timezone.data
         if email_checkbox == "contacted":
             user.contacted_email = True
 
@@ -641,6 +681,8 @@ def account():
             user.first_name = first_name
         if last_name != "":
             user.last_name = last_name
+        if timezone != "":
+            user.timezone = timezone
         if username != "":
             if User.query.filter_by(username=username).first() is not None and username != user.username:
                 flash("Username already taken")
@@ -665,7 +707,7 @@ def account():
                 flash("You have been unsubscribed from our mailing list")
         db.session.commit()
         flash("Your account has been updated")
-    return render_template("account.html", title="Account", user = user, subscriber = subscriber)
+    return render_template("account.html", title="Account", form = form, user = user, subscriber = subscriber)
 
 @app.route('/update_profile_pic', methods=['POST'])
 def update_profile_pic():
@@ -729,6 +771,7 @@ def addterms(deck_id):
 @app.route("/downloadascsv/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
 def downloadascsv(deck_id):
+    event_tracker(current_user.id, "downloadascsv")
     print("entered download as csv")
     deck = Deck.query.filter_by(id=deck_id).first()
     if(current_user.id != deck.user_id):
@@ -752,6 +795,7 @@ def downloadascsv(deck_id):
 @app.route("/regenerate_def", methods = ["POST", "GET"])
 @login_required
 def regenerate_def():
+    event_tracker(current_user.id, "regenerate_def")
     print("entered regen")
     card_id = request.form["id"]
     print(card_id)
@@ -798,6 +842,7 @@ def get_due_cards(deck_id):
 
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 def study_deck(deck_id):
+    event_tracker(current_user.id, "study_deck", deck_id)
     deck = Deck.query.get(deck_id)
     if(current_user.id != deck.user_id):
         return apology('Deck not assigned to user', 403)
@@ -806,6 +851,7 @@ def study_deck(deck_id):
 @app.route("/study_deck_all", methods = ["POST", "GET"])   
 @login_required   
 def study_deck_all():
+    event_tracker(current_user.id, "study_deck_all")
     ## loads all decks for a user
     ## get list of decks for user with id user id
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
@@ -842,6 +888,7 @@ def decrement(card_id):
 
 @app.route("/forcestudy/<deck_id>")
 def force_study(deck_id):
+    event_tracker(current_user.id, "force_study", deck_id)
     deck = Deck.query.get(deck_id)
     if(current_user.id != deck.user_id):
          return apology('Deck not assigned to user', 403)
@@ -855,6 +902,7 @@ def casual_mode(deck_id):
 
 @app.route('/generate_img/<int:deck_id>', methods=['GET', 'POST'])
 def generate_img(deck_id):
+    event_tracker(current_user.id, "generate_img", deck_id)
     deck = Deck.query.get(deck_id)
     if(current_user.id != deck.user_id):
          return apology('Deck not assigned to user', 403)
@@ -960,6 +1008,7 @@ def extract():
         tokens = count_tokens(text)      
         if perform_operation(current_user, prompt_options['main_opt'], tokens) == False:
             flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
+            event_tracker(current_user, 'extract_start', 'fail', "limit_reached")
             return redirect(url_for('viewdecks'))
         else:
             payload_dict = {'deck': deck.id, 'text': text, 'prompt_options': prompt_options}
@@ -970,6 +1019,7 @@ def extract():
             session['slug'] = slug
             task_type = prompt_options['main_opt']
             data = Job(slug=slug, user = current_user_id, task_type=task_type, payload=payload)
+            event_tracker(current_user, 'extract_start', 'success', payload)
             db.session.add(data)
             db.session.commit()
             flash('Yor cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
@@ -1075,8 +1125,6 @@ def get_text_from_link(link_input):
 
 
 
-    
-
 @app.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
 def sea_dox(deck_id):
     ## GET DECK
@@ -1120,6 +1168,7 @@ def source_file(file_id):
 @app.route("/download_source/<int:file_id>", methods=["GET", "POST"])
 def download_source(file_id):
     ## GET FILE
+    event_tracker(current_user.id, "download_source", file_id)
     file = DeckFiles.query.get_or_404(file_id)
     name = file.file_name +".pdf"
     text = file.text_string
@@ -1130,6 +1179,7 @@ def download_source(file_id):
 @app.route("/delete_file/<int:deck_id>/<int:file_id>/", methods=["GET", "POST"])
 def delete_file(deck_id, file_id):
     print("entered delete file")
+    event_tracker(current_user.id, "delete_file", file_id)
     file = DeckFiles.query.get_or_404(file_id)
     deck = Deck.query.get_or_404(deck_id)
     db.session.delete(file)
@@ -1140,6 +1190,7 @@ def delete_file(deck_id, file_id):
 def share_deck(deck_id, user_email):
     sender_id = current_user.email
     deck_to_copy = Deck.query.get_or_404(deck_id)
+    event_tracker(current_user.id, "share_deck", deck_id)
     if check_comma_list(user_email):
         users_emails = user_email.split(",")
         for email in users_emails:
@@ -1163,6 +1214,7 @@ def share_deck(deck_id, user_email):
 
 @app.route("/approve_shared/<int:deck_id>/", methods=["GET", "POST"])
 def approve_shared(deck_id):
+    event_tracker(current_user.id, "approve_shared", deck_id)
     shared_deck = SharedDecks.query.get_or_404(deck_id)
     new_deck = Deck(user_id = current_user.id, name=shared_deck.name, description=shared_deck.description, shared=True, sharer=shared_deck.sender, time_created=datetime.utcnow())
     db.session.add(new_deck)
@@ -1178,6 +1230,7 @@ def approve_shared(deck_id):
 
 @app.route("/reject_shared/<int:deck_id>/", methods=["GET", "POST"])
 def reject_shared(deck_id):
+    event_tracker(current_user.id, "reject_shared", deck_id)
     print("entered reject shared")
     shared_deck = SharedDecks.query.get_or_404(deck_id)
     shared_deck.delete()
@@ -1196,6 +1249,7 @@ def feedback():
 
 @app.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
 def build_test(deck_id):
+    event_tracker(current_user.id, "build_test", deck_id)
     deck = Deck.query.get_or_404(deck_id)
     creator = current_user
     if request.method == "POST":
@@ -1233,6 +1287,7 @@ def build_test(deck_id):
 
 @app.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
 def assign_test(test_id):
+        event_tracker(current_user.id, "assign_test", test_id)
         test = Test.query.get_or_404(test_id)
         print(request.form)
         if request.method == 'POST' and 'test-name' in request.form:
@@ -1320,6 +1375,7 @@ def assign(test_id, user_email):
 
 @app.route("/take_test/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 def take_test(test_id, user_id):
+    event_tracker(current_user.id, "take_test", test_id)
     test_result = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
     test = Test.query.get_or_404(test_id)
     if test_result is None:
@@ -1510,6 +1566,8 @@ def import_deck():
                                 db.session.add(entry)
                                 deck.cards.append(entry)
                         db.session.commit()
+            event_tracker(current_user.id, "import-anki", "success")
+
             flash("Decks imported", "success")
             return redirect(url_for('viewdecks'))
         if request.method == "POST" and "import-by-name" in request.form:
@@ -1536,9 +1594,12 @@ def import_deck():
                     db.session.add(entry)
                     deck.cards.append(entry)
                 db.session.commit()
+            event_tracker(current_user.id, "import-anki", "success")
             flash("Decks imported", "success")
             return redirect(url_for('viewdecks'))
     else:
+        event_tracker(current_user.id, "import-anki", "fail")
+
         return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)     
     return render_template('import_deck.html')
 
@@ -1559,9 +1620,12 @@ def export_deck(deck_id):
             if notes == False:
                 srs_interval = str(int(card.srs_interval/1440))
                 anki_create_card(deck.name, card.term, card.content)
+        event_tracker(current_user.id, "export-anki", "success")
         flash("Deck exported", "success")
         return redirect(url_for('viewdecks'))
     else:
+        event_tracker(current_user.id, "export-anki", "fail")
+
         return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)
 
 @app.route("/about/", methods=['GET', 'POST'])
@@ -1579,6 +1643,8 @@ def query():
     data = Job.query.filter_by(slug=job_id).first()
     # And return a response containing the state and the result
     print(data)
+    if data is None:
+        return jsonify({"state": None, "result": None})
     return jsonify(
         {
             "state": data.state,
@@ -1602,6 +1668,7 @@ def notification_complete():
  
 @app.route("/documentation/", methods=['GET', 'POST'])
 def documentation():
+    event_tracker(current_user.id, "documentation", "success")
     return render_template('documentation.html')
 #################  USAGE CHECKS  ###############################################################################################
 

@@ -7,7 +7,7 @@ from app import app
 from flask import current_app
 from sqlalchemy.orm import scoped_session, sessionmaker
 from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
-
+from events import event_tracker
 engine = create_engine(
     SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS
 )
@@ -52,8 +52,20 @@ def roll_over():
         return "Usage limits have been reset successfully."
 
 
+def delete_accounts():
+    accounts_to_delete = User.query.filter_by(account_expiration_reason='deleted').all()
+    for account in accounts_to_delete:
+        print(account.id)
+        event_tracker(account.id, "delete_account", "account deleted", account.email)
+        print("Deleted account: " + account.username)
+        db.session.delete(account)
+        db.session.commit()
+        
+
+
 if __name__ == "__main__":
     # Set up SQLAlchemy session and run roll over function
     with app.app_context():
         Session = scoped_session(sessionmaker(bind=engine))
         roll_over()
+        delete_accounts()

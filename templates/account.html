@@ -47,28 +47,38 @@ main_0 %}
 
                 </div>
                 <div class="form-floating mt-1">
-                  <select id="gender" name="gender" class="form-select" placeholder="">
-                    <option value="default">{{user.gender}}</option>
+                  <select id="gender" name="gender" class="form-select" placeholder="{{user.gender}}">
+                    <option value="{{user.gender}}" >Select your gender</option>
                     <option value="Female">Female</option>
                     <option value="Male">Male</option>
                     <option value="Other">Other</option>
                     <option value="Prefer not to say">Prefer not to say</option>
 
                   </select>
-                  <label for="gender">Gender:</label>
+                  <label for="gender">Gender: {{user.gender}}</label>
                 </div>
                 <div class="form-floating mt-2">
 
-                  <select class="form-select" name="role" id="role" placeholder="Choose role">
-                    <option value="" disabled selected>Choose role</option>"
+                  <select class="form-select" name="role" id="role" placeholder="Choose role", value = {{user.role}}>
+                    <option value="{{user.role}}"> Select your role</option>"
                     <option value="teacher">Teacher</option>
+                    <option value="teacher">School administrator</option>
                     <option value="student">Full time student</option>
                     <option value="student">Part time student</option>
                     <option value="language">Language learner</option>
+                    <option value="language">Lifelong learner</option>
                     <option value="other">Other</option>
                   </select>
-                  <label for="role">Role:</label>
+                  <label for="role">Role: {{user.role}}</label>
                 </div>
+
+                <div class="form-floating mt-2">
+                  {{ form.timezone (class="form-select", id="timezone", placeholder="user.timezone", value="user.timezone")}}
+                  <label for="timezone">Timezone: {{user.timezone}}</label>
+               
+               
+                </div>
+
               </div>
 
               <br>
@@ -252,8 +262,8 @@ main_0 %}
       </div>
       <div class="modal-body">
         <form action="{{ url_for('update_profile_pic') }}" method="POST" enctype="multipart/form-data">
-          <input type="file" name="profile-pic">
-          <button type="submit">Update Profile Picture</button>
+          <input type="file" class = "form-control m-2" name="profile-pic">
+          <button class = "btn btn-primary" type="submit">Update Profile Picture</button>
         </form>
       </div>
       <div class="modal-footer">
