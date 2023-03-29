@@ -438,8 +438,7 @@ checkbox.addEventListener( 'change', function() {
         const generateBtn = document.getElementById('generate-btn');
         console.log(fileInput, textInput, linkInput, deckNew, deckExisting, generateBtn)
         // Enable generate button if file, text or link input is provided AND deck input is selected
-        if (((fileInput && fileInput.value !== '') || (textInput && textInput.value !== '') || (linkInput && linkInput.value !== '')) && 
-        ((deckExisting && deckExisting.value !== '' && deckExisting.value !== '__None') || (deckNew && deckNew.value.trim() !== ''))) {
+        if (((fileInput && fileInput.value !== '') || (textInput && textInput.value !== '') || (linkInput && linkInput.value !== ''))) {
             generateBtn.disabled = false;
             generateBtn.removeAttribute('disabled');
             generateBtn.removeClass('btn-outline-secondary');

@@ -1066,7 +1066,7 @@ def extract():
             session['slug'] = slug
             task_type = prompt_options['main_opt']
             data = Job(slug=slug, user = current_user_id, task_type=task_type, payload=payload)
-            event_tracker(current_user, 'extract_start', 'success', payload)
+            event_tracker(current_user.id, 'extract_start', 'success', payload)
             db.session.add(data)
             db.session.commit()
             flash('Yor cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
@@ -1102,7 +1102,8 @@ def get_or_create_deck(form, prompt_options):
     if form.deck_list.data:
         deck = form.deck_list.data
     else:
-        deck_name = form.name.data
+        time = datetime.utcnow().isoformat()
+        deck_name = form.name.data or "".join(main_opt + "deck" + time)
         deck_description = form.description.data or "".join(main_opt + "deck")
         deck = Deck(name=deck_name, description=deck_description)
         db.session.add(deck)
