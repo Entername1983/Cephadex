@@ -112,7 +112,7 @@ class SubscriptionPlan(db.Model):
 class UsageRecord(db.Model):
     __tablename__ = 'usage_records'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     operation_type = db.Column(db.String(50), nullable=False)
     operation_details = db.Column(db.String(1000))
     operation_count = db.Column(db.Integer, nullable=False)
@@ -257,8 +257,8 @@ class SharedDecks(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(255), nullable=False) 
-    sender = db.Column(db.Integer, db.ForeignKey('user.id'))
-    receiver = db.Column(db.Integer, db.ForeignKey('user.id'))
+    sender = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    receiver = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     creator = db.Column(db.Integer) 
     public = db.Column(db.Integer, default=0) 
@@ -274,7 +274,7 @@ class Deck(db.Model):
     name = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(255), nullable=False) 
     ## make relational table instead of using user_id?
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True) 
     cards = db.relationship('Card', secondary=cards, backref="decks_backref", lazy="select")
     deck_files = db.relationship('DeckFiles', secondary=source_files, backref="decks", lazy="select")
     time_created = db.Column(db.DateTime, default=datetime.utcnow)   
@@ -542,7 +542,7 @@ class Test(db.Model):
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime, default=datetime.utcnow)
     questions = db.relationship('Question', secondary=questions)
-    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
+    creator = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     result_reveal = db.Column(db.Boolean)
     answer_reveal = db.Column(db.Boolean)
     time_limit = db.Column(db.Integer)
@@ -579,7 +579,7 @@ class Question(db.Model):
 class QuestionResult(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     test_id = db.Column(db.Integer, db.ForeignKey('test.id'))
-    taker = db.Column(db.Integer, db.ForeignKey('user.id'))
+    taker = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
     answer = db.Column(db.String(50))
     points = db.Column(db.Integer)
@@ -590,8 +590,8 @@ class QuestionResult(db.Model):
 class TestResult(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     test_id = db.Column(db.Integer, db.ForeignKey('test.id'))
-    taker = db.Column(db.Integer, db.ForeignKey('user.id'))
-    creator = db.Column(db.Integer, db.ForeignKey('user.id'))
+    taker = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    creator = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     due_date = db.Column(db.DateTime)
     start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
@@ -610,10 +610,14 @@ class TestResult(db.Model):
 ##################### SETTINGS TABLES #####################
 class UserSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     language = db.Column(db.String(50))
     theme = db.Column(db.String(50))
-    new_user = db.Column(db.Boolean)
+    new_user = db.Column(db.Boolean, default = True)
+    new_user_study = db.Column(db.Boolean, default = True)
+    new_user_decks = db.Column(db.Boolean, default = True)
+    new_user_tests = db.Column(db.Boolean, default = True)
+    new_user_cards = db.Column(db.Boolean, default = True)
     srs_setting_1 = db.Column(db.Integer)
     srs_setting_2 = db.Column(db.Integer)
     srs_setting_3 = db.Column(db.Integer)
@@ -622,7 +626,7 @@ class UserSettings(db.Model):
 ###################### JOB QUEUE TABLE ####################################
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     slug = db.Column(db.String(64), nullable=False)
     task_type = db.Column(db.String(64), nullable=True)
     state = db.Column(db.String(10), nullable=False, default="queued")

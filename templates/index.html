@@ -43,13 +43,23 @@
                     <div class="device-wrapper">
                         <div class="device" data-device="iPhoneX" data-orientation="portrait" data-color="black">
                             <div class="">
- <h4>Updates</h4>
+ <h4>Updates:</h4>
+ <br>
+ <h5>29/03/2023</h5>
+ <ul>
+<li> There have been a few issues over the last few days that may have led to some downtime.  They should all be resolved.</li>
+<li> I have added in some information for new users as I have had feedback that not everything was clear/easy to use.  This type of feedback is invaluable so keep it coming!  </li>
+<li> I will try and have regular scheduled downtime between 2 and 4pm GMT every day in order to guarantee that the app remains up outside of those ours.</li>
+<li> And finally another big thanks to all the people taking time out of their day to help me test this! </li>
+
+ </ul>
+ <br>
+ <h5>25/03/2023</h5>
  <ul>
     <li>Thanks to you more and more bugs are uncovered every day!  Particular thanks to Michael, Gracie, and Drew who have notified me of several over the last few days.</li>
     <li>I have made some big system updates related to how the server processes the request and how data is stored, you may encounter some new issues.</li>
     <li>When creating decks your request will now be queued, once it is ready you will get a pop up on your screen letting you know.</li>
     <li>Thank you again for your participation!  I know it can be frustrating trying out a product that doesn't always work.  Know that all the bug reports and feedback is extremely meaningful!</li>
-
 </ul>
                             </div>
                         </div>
@@ -283,7 +293,7 @@
                                 style="height:100%; width:100%; font-size:20px", minlength=80 )}}
                                 <label for = "text-input">Enter your text here</label>
                                 <div id="textinputhelp" class="form-text">Enter between 80 and 250 characters.</div>
-                    </div>
+                            </div>
                             </div>
                         </div>
 
@@ -314,12 +324,12 @@
 
                                 <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
                                 </div>
-                                {{form.submit(class="form-control form-control-lg m-2 btn btn-primary", style = "max-width:
-                                200px", disabled="disabled")}}
+                                {{form.submit(id="generate-btn", class=" btn-primary form-control form-control-lg m-2", style
+                                = "max-width: 200px", disabled="disabled")}}
+                            </div>
                             </div>
                         </div>
                     </form>
-
 
 
                 </div>
@@ -330,7 +340,9 @@
     <script>
         function checkTextLength() {
             var textInput = document.getElementById("text-input");
-            var submitButton = document.getElementById("extract-submit");
+            var submitButton = document.getElementById("generate-btn");
+            console.log(textInput.value.length)
+
         
             if (textInput.value.length >= 80 && textInput.value.length <= 250) {
                 submitButton.disabled = false;

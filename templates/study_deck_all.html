@@ -535,7 +535,61 @@
     </script>
     
     {% endblock %} {% block main_0 %}
-    
+    {% if settings.new_user_study == True %}
+
+
+<div class = "container box_study" id = "new-user-study-info">
+<h5> Welcome to our study functionality</h5>
+<p> You can use this functionality to either study a single deck, in which case you should select that deck in "Decks" and then click on the study icon, or to study all your decks, in which case you can access it directly by clicking on "Study".</p>
+<p> We use a spaced repetition system so not all cards will be shown to you at once, and the more you remember a card, the less often it will be displayed.</p>
+<p> Depending on the type of card and whether you are on mobile or desktop the functionality will change a bit</p>
+<ul>
+<li> On desktop for cards other than multiple choice cards, simply select whether you forgot the card or remembered.  At that point the content will be displayed and you can click next to go to the next card.</li>
+<li> On mobile you can swipe left or right, left for "forgot", right for "remembered".  And then you can swipe again in either direction to move to the next card.</li>
+<li> For multiple choice questions it is not possible to swipe.  You have to select on of the 4 choices available and then either double tap the screen if you are on mobile, or double click if you are on a desktop (or laptop), to go to the next screen.</li>
+<li> Once you finish studying all the cards in your list our software will re-calculate which cards are due.  If there are none left you are done!  If you would like to continue studying you may do so but we will not keep track of this in our spaced repetition system.</li>
+</ul>
+<form id = "new-user-study">
+  <input type = "checkbox" class = "" id = "new-user-study-checkbox" value = "checked">
+  <label class = "form-check-label" for = "new-user-study-checkbox">Do not show this message again</label>
+</form>
+
+</div>
+
+
+<script>
+const checkbox = document.getElementById('new-user-study-checkbox');
+const newuserdiv = document.getElementById('new-user-study-info');
+checkbox.addEventListener( 'change', function() {
+  console.log(checkbox.checked)
+  if(this.checked) {
+    newuserdiv.style.display = "none";
+    fetch('/new_user_settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ checked: true })
+    })
+
+  } else {
+    fetch('/new_user_settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ checked: false })
+    });
+  }
+});
+
+
+</script>
+
+
+
+{% endif %}
+
     
     {% if decks != [] %}
     <div class="d-flex align-items-center justify-content-center">

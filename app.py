@@ -43,7 +43,7 @@ import schedule
 from beta import BetaKeys
 from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
-from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
+from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings
 import configparser
 import logging.config
 from events import event_tracker
@@ -51,11 +51,10 @@ from events import event_tracker
 config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging_config.ini')
 
 logging.config.fileConfig(config_file_path)
-##app = Celery('myapp', broker=BROKER)
 
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
-
+os.environ["FLASK_DEBUG"] = "1"
 # Configure application
 app = Flask(__name__)
 app.config.from_object('config')
@@ -79,7 +78,7 @@ app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 app.logger.handlers[0].setFormatter(formatter)  # set formatter for the first handler
-
+app.logger.disabled = True
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
 
@@ -102,7 +101,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-
+print("APP STARTING")
 ######################## WTFORMS ###########################################          
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
@@ -156,7 +155,7 @@ class ChangePassForm(FlaskForm):
 class TryOut(FlaskForm):
     text_input = StringField('Text Input', validators=[Length(max=250)], render_kw={"placeholder": "Paste your text here (max 250 characters)"})
 
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice questions'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
                                            ('Comprehension', 'Comprehension'), ('Custom', 'Custom')], default='Definitions')
     languages = SelectField('Languages', choices=[("",  "Choose a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
@@ -273,41 +272,13 @@ def after_request(response):
     response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
     return response    
 
-def run_task():
-    app.send_task('my_task')
 
-# Schedule the task to run once a day at a specific time
-    schedule.every().day.at('10:30').do(run_task)
-
-# Run the scheduled tasks
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
-
-
-        subscriptions = User.query.filter_by(account_status = 'active').all()
-
-    # Loop through each subscription and check if 30 days have passed
-        for subscription in subscriptions:
-            if subscription.latest_roll_over == None:
-                subscription.latest_roll_over == subscription.subscription_start_date 
-            else:
-                if subscription.latest_roll_over + timedelta(days=30) >= datetime.utcnow():
-                    subscription.latest_roll_over = datetime.utcnow()
-                    # Reset the usage limit for this subscription type
-                    user = User.query.filter_by(id=subscription.id).first()
-                    subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()
-                    usage_limit = subscription_plan.usage_limit
-                    new_record = UsageRecord(user_id = subscription.id, operation_type ="reset", limit_count=usage_limit, operation_count = 0, remaining_count = usage_limit, date = datetime.utcnow())
-                    db.session.add(new_record)
-
-        # Save changes to the database
-        db.session.commit()
-        return "Usage limits have been reset successfully."
+print("APP STARTING2")
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-
+    print("entered index")
+    logging.info("entered index logging")
     form = TryOut()
     terms = []
     if form.validate_on_submit():
@@ -326,6 +297,9 @@ def index():
             'custom_term':  form.custom_term.data or None,
             'custom_content': form.custom_content.data or None,
         }
+        print(text)
+        print(prompt_options)
+        
         response = creator(text, prompt_options)
         terms = response[0]
         for item in terms:
@@ -477,6 +451,7 @@ def register():
         user = User(email=email, first_name=given_name, account_type = account_type, last_name=family_name,external_id=userid,
                     external_type='google', subscription_plan = subscription_plan, contacted_email=contacted, username=username,
                     timezone = timezone, subscription_start_date = datetime.utcnow())
+        user_settings = UserSettings(user=user.id)
         if subscribe == "subscribe":
             sub_exists = Subscriber.query.filter_by(email=email).first()
             if not sub_exists:
@@ -484,6 +459,7 @@ def register():
                 subscriber = Subscriber(email=email, first_name=given_name, last_name=family_name, timestamp = timestamp)
                 db.session.add(subscriber)
         event_tracker(user.id, "register", "google")
+        db.session.add(user_settings)
         db.session.add(user)
         db.session.commit()
         login_user(user)
@@ -548,6 +524,14 @@ def logout():
 @app.route("/viewdecks", methods = ["GET", "POST"])
 @login_required
 def viewdecks():
+    user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+    if user_settings == None:
+        print("user settings not found")
+        user_settings = UserSettings(user=current_user.id)
+        db.session.add(user_settings)
+        db.session.commit()
+    
+    
     shared_decks = SharedDecks.query.all()
    ## check if user has any pending tests
     tests = Test.query.filter(Test.taker.contains(current_user)).all()
@@ -577,7 +561,7 @@ def viewdecks():
         elif search_query:
             print("entered search_query")
             decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()   
-        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
+        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user, settings = user_settings)
     if request.method == 'POST':
         deck_id = request.form['deck_id']
         deck = Deck.query.filter(Deck.id == deck_id).first()
@@ -585,8 +569,9 @@ def viewdecks():
         if new_name != '':
             deck.name = new_name
             db.session.commit()
-        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
-    return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user)
+        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user, settings = user_settings
+        )
+    return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user, settings = user_settings)
 
 
 @app.route("/createdeck", methods = ["GET", "POST"])
@@ -840,24 +825,79 @@ def get_due_cards(deck_id):
     return deck.get_due_cards(n)
 
 
+@app.route("/new_user_settings", methods = ["POST", "GET"])
+@login_required
+def new_user_settings():
+    print("entered new user settings")
+    data = request.get_json()
+    checked = data.get('checked')
+    if checked:
+        print("option is checked")
+        user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+        user_settings.new_user_study = False
+        print(user_settings.new_user_study)
+        db.session.add(user_settings)
+        db.session.commit()
+    return jsonify({'success': True})
+
+@app.route("/new_user_settings_create", methods = ["POST", "GET"])
+@login_required
+def new_user_settings_create():
+    print("entered new user settings")
+    data = request.get_json()
+    checked = data.get('checked')
+    if checked:
+        print("option is checked")
+        user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+        user_settings.new_user = False
+        db.session.add(user_settings)
+        db.session.commit()
+    return jsonify({'success': True})
+
+@app.route("/new_user_settings_viewdecks", methods = ["POST", "GET"])
+@login_required
+def new_user_settings_viewdecks():
+    print("entered new user settings")
+    data = request.get_json()
+    checked = data.get('checked')
+    if checked:
+        print("option is checked")
+        user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+        user_settings.new_user_decks = False
+        db.session.add(user_settings)
+        db.session.commit()
+    return jsonify({'success': True})
+
+
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 def study_deck(deck_id):
+    user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+    if user_settings == None:
+        print("user settings not found")
+        user_settings = UserSettings(user=current_user.id)
+        db.session.add(user_settings)
+        db.session.commit()
     event_tracker(current_user.id, "study_deck", deck_id)
     deck = Deck.query.get(deck_id)
     if(current_user.id != deck.user_id):
         return apology('Deck not assigned to user', 403)
-    return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck) 
+    return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck,  settings = user_settings) 
 
 @app.route("/study_deck_all", methods = ["POST", "GET"])   
 @login_required   
 def study_deck_all():
     event_tracker(current_user.id, "study_deck_all")
+    user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+    if user_settings == None:
+        user_settings = UserSettings(user=current_user.id)
+        db.session.add(user_settings)
+        db.session.commit()
     ## loads all decks for a user
     ## get list of decks for user with id user id
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
     decks_data = [{'id': deck.id} for deck in decks]
     decks_json = json.dumps(decks_data)
-    return render_template('study_deck_all.html', title='Study all decks', decks_json=decks_json, decks=decks)
+    return render_template('study_deck_all.html', title='Study all decks', decks_json=decks_json, decks=decks, settings = user_settings)
 
 @app.route("/increment/<card_id>", methods = ["POST", "GET"])
 def increment(card_id):
@@ -1001,6 +1041,13 @@ def delete_account():
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract():
+    user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+    if user_settings == None:
+        print("user settings not found")
+        user_settings = UserSettings(user=current_user.id)
+        db.session.add(user_settings)
+        db.session.commit()
+        
     ## plan level requried for genereting images
     form = UploadFileForm()
     if form.validate_on_submit():
@@ -1024,7 +1071,7 @@ def extract():
             db.session.commit()
             flash('Yor cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
         return redirect('/viewdecks')
-    return render_template("extract.html", title="Extract", form=form)
+    return render_template("extract.html", title="Extract", form=form, settings = user_settings)
 
 ## Functions for extract:
 def handle_form_submission(form):
@@ -1668,7 +1715,6 @@ def notification_complete():
  
 @app.route("/documentation/", methods=['GET', 'POST'])
 def documentation():
-    event_tracker(current_user.id, "documentation", "success")
     return render_template('documentation.html')
 #################  USAGE CHECKS  ###############################################################################################
 
@@ -1733,7 +1779,7 @@ def change_pass():
 
 
 if __name__ == "__main__":
-    app.run(debug=DEBUG)
+    app.run(debug=False)
 else:
     # For Alembic
     from models import db

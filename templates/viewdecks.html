@@ -6,6 +6,79 @@
 
 
 {% block main_0 %}
+{% if settings.new_user_decks == True %}
+
+
+<div class = "container box_study" id = "new-user-decks-info">
+<h5> Welcome to our decks page</h5>
+<p> This is where you will find a list of all the decks and other content you have created (except for tests which can be found under account > tests).</p>
+<p> You can do a lot of different things with these decks, here is the functionality so far:</p>
+<ul>
+    <li> <img src="\static\graduation-cap-icon.png" style="max-width:30px;max-height:30px; text-decoration: none;">
+    Study deck: if you want to study an individual deck. </li>
+    <br>
+    <li><img src="\static\edit-box-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">
+    Edit deck: if you want to edit the existing cards, add new cards, edit the deck properties...</li>
+    <br>
+    <li><img src="\static\instagram-share-icon.png" style="max-width:30px;max-height:30px; text-decoration: none;">
+    Share deck: Use this if you want to share this with your fellow users. Just enter their email address. (or a comma separated list of email addresses)</li>
+    <br>
+    <li> <img src="\static\download-csv-icon.png" style="max-width:30px;max-height:30px; text-decoration: none;">
+    Download as CSV: If you want to download the deck as a comma seperated list (useful to read in excel for example).</li>
+    <br>
+    <li><img src="\static\anki-icon.png" style="max-width:30px;max-height:30px; text-decoration: none;">
+    Export to Anki:  If you are a die hard Anki fan you can export your decks to their platform.</li>
+    <br>
+    <li>  <img src="\static\exam-test-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">
+    Create test: Use this to build a test based on your deck.  Simply follow the instructions on each page.</li>
+    <br>
+    <li><img src="\static\data-sources-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">
+    See source files: If you have chosen to save the content that you uploaded, or if you have used the transcription function you will be able to find that data here.</li>
+    <br>
+    <li> <img src="\static\information-mark-circle-outline-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">Info: Here you will find information about your deck.</li>
+    <br>
+    <li>   <img src="\static\delete-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">Delete: If you want to delete the deck.  Be careful this is irreversible.</li>
+</ul>
+
+
+<form id = "new-user-study">
+  <input type = "checkbox" class = "" id = "new-user-decks-checkbox" value = "checked">
+  <label class = "form-check-label" for = "new-user-decks-checkbox">Do not show this message again</label>
+</form>
+
+</div>
+
+
+<script>
+const checkbox = document.getElementById('new-user-decks-checkbox');
+const newuserdiv = document.getElementById('new-user-decks-info');
+checkbox.addEventListener( 'change', function() {
+  console.log(checkbox.checked)
+  if(this.checked) {
+    newuserdiv.style.display = "none";
+    fetch('/new_user_settings_viewdecks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ checked: true })
+    })
+
+  } else {
+    fetch('/new_user_settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ checked: false })
+    });
+  }
+});
+
+
+</script>
+
+{% endif %}
 
 
   <!----<div class="row m-2" style="text-align: end">
