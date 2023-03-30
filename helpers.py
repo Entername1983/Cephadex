@@ -20,10 +20,10 @@ def remove_punctuation(words):
     return s_clean
 
 
-def split_text(text, n = 2000):
+def split_text(text, n = 3000):
     print("entered split text")
     tokens = count_tokens(text)
-    if tokens > 2000:
+    if tokens > n:
         print(tokens)
         n_chunks = tokens//n
         print(n_chunks)

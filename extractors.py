@@ -25,11 +25,48 @@ import re
 from helpers import split_text
 
 encoding = tiktoken.get_encoding('gpt2')
+## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
+def large_extract_terms(items, prompt_options):
+    print("entered large extract term function")
+    api_counter = 0
+    ls_terms = []
+    if isinstance(items, str):
+        response = extract_terms(items, prompt_options)
+        print(prompt_options, items, response)
+        return response[0], response[1], response[2], response[3]
+            
+    else:
+        prompt = []
+        response_ =[]
+        content = []
+        for item in items:
+            api_counter = api_counter + 1
+            print("api call number: " + str(api_counter))
+            response = extract_terms(item, prompt_options)
+            print(prompt_options, item, response)
+
+            if response[0] != None:
+                for dict in response[0]:
+                    ls_terms.append(dict)
+                prompt.append(response[1])
+                response_.append(response[2]) 
+                content.append(response[3])
+            print(prompt, response_, content)
+            print("finished large extract term function")
+            print("API calls: " + str(api_counter))
+        print(ls_terms)
+        return ls_terms, prompt, response_, content
+
+
+
+
 
 ## CALLS TO OPEN AI API
 def extract_terms(text: str, prompt_options: dict):
     print("entered extract term function")
     print(prompt_options)
+    print("text TYPE")
+    print(type(text))
     main_opt = prompt_options['main_opt']
     retries = 0
     prompt = build_prompt(prompt_options)
@@ -53,7 +90,7 @@ def extract_terms(text: str, prompt_options: dict):
         except Exception as e:
             retries += 1
             print(f"Error: {e}. Retrying ({retries}/3)")
-   
+
 def build_prompt(prompt_options: dict):
     if prompt_options['main_opt'] not in prompt_choices:
         print("Invalid prompt option")
@@ -163,54 +200,87 @@ def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, la
         ls_terms.append(dict)
     return ls_terms
 
-## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
-def large_extract_terms(items, prompt_options):
-    print("entered large extract term function")
-    api_counter = 0
-    ls_terms = []
-    print("________________________ITEMS TYPE________________________________")
-    print(type(items))
-    if isinstance(items, str):
-        response = extract_terms(items, prompt_options)
-        return response[0], response[1], response[2], response[3]
-            
-    else:
-        print("recognized items as list")
-        print(len(items))
-        prompt = []
-        response_ =[]
-        content = []
+
+def summarize(items, prompt_options):
+    print("entered summarize function")
+    print(items, prompt_options)
+    option_1 = "You are an expert and summarizing key points in a passage" 
+
+    if items is list:
         for item in items:
-            api_counter = api_counter + 1
-            print("api call number: " + str(api_counter))
-            response = extract_terms(item, prompt_options)
-            if response[0] != None:
-                for dict in response[0]:
-                    ls_terms.append(dict)
-                prompt.append(response[1])
-                response_.append(response[2]) 
-                content.append(response[3])
-            print(prompt, response_, content)
-            print("finished large extract term function")
-            print("API calls: " + str(api_counter))
-        print(ls_terms)
-        return ls_terms, prompt, response_, content
+            option_2 = f"Summarize the following passage and return it with HTML formatting, using header tags, paragraph tags and list tags where appropriate {item}"
+            response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": option_1},
+                    {"role": "user", "content": option_2},
+                ]
+            )
+            response = response['choices'][0]['message']['content']
+            byte_string = response.encode('utf-8')
+            response = byte_string.decode('utf-8')
+            long_response = long_response + response
+        response = long_response         
+    else:
+        option_2 = f"Summarize the following passage and return it with HTML formatting, using header tags, paragraph tags and list tags where appropriate {items}"
+        response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": option_1},
+                {"role": "user", "content": option_2},
+            ]
+        )
+        response = response['choices'][0]['message']['content']
+        byte_string = response.encode('utf-8')
+        response = byte_string.decode('utf-8') 
+    print(response)  
+    return response
+    
 
+def turn_to_notes(items, prompt_options):
+    print("entered text_to_notes function")
+    option_1 = "You are an expert at turning text into study notes" 
 
-
-
-
+    if items is list:
+        for item in items:
+            option_2 = f"Turn the following passage into study notes and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate {item}"
+            response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": option_1},
+                    {"role": "user", "content": option_2},
+                ]
+            )
+            response = response['choices'][0]['message']['content']
+            byte_string = response.encode('utf-8')
+            response = byte_string.decode('utf-8')
+            long_response = long_response + response
+        response = long_response         
+    else:
+        option_2 = f"Turn the following passage into study notes and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate {items}"
+        response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": option_1},
+                {"role": "user", "content": option_2},
+            ]
+        )
+        response = response['choices'][0]['message']['content']
+        byte_string = response.encode('utf-8')
+        response = byte_string.decode('utf-8')   
+    print(response)
+    return response
 
 
 ## TAKES TEXT OR LIST OF TEXT AND TRANSLATES IT TO THE LANGUAGE CHOSEN
 ## ISSUE IS HOW TO HAVE PARAGRAPH BREAKS
-def transcribe_and_translate(items, prompt_option, trans_option):
-    language = trans_option
+def transcribe_and_translate(items, prompt_options):
+    language = prompt_options['trans_opt']
     print(language)
     option_1 = f"You are a helpful {language} translator"
     if items is list:
         for item in items:
-            option_2 = f"translate the following passage to {language}: {item}"
+            option_2 = f"translate the following passage to {language} return it with html formatting, use paragraph and header tags as appropriate: {item}"
             response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -225,7 +295,7 @@ def transcribe_and_translate(items, prompt_option, trans_option):
         response = long_response
             
     else:
-        option_2 = f"translate the following passage to {language}: {items}"
+        option_2 = f"translate the following passage to {language}  return it with html formatting, use paragraph and header tags as appropriate: {items}"
         response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -244,17 +314,18 @@ def transcribe_whisper(audio_file):
     audio_file= open(audio_file, "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
     transcript = transcript["text"]
+    print(transcript)
     
     ## split text up into element of at most 3000 tokens
-    split_transcript = split_text(transcript, 3000)
+    ##split_transcript = split_text(transcript, 3000)
     ## insert paragraphs
-    formatted_transcript = ""
-    for item in split_transcript:
-        x = insert_paragraph(item)
-        formatted_transcript = formatted_transcript + x
-    print("----------------------FORMATTED TRANSCRIPT------------------------")
-    print(formatted_transcript)
-    return formatted_transcript
+    ##formatted_transcript = ""
+    ##for item in split_transcript:
+      ###  x = insert_paragraph(item)
+       ## formatted_transcript = formatted_transcript + x
+    ##print("----------------------FORMATTED TRANSCRIPT------------------------")
+    ##print(formatted_transcript)
+    return transcript
 
 ## REGENERATE A DEFINITION
 def regenerate_definition(term, prompt_options):

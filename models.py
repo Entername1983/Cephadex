@@ -640,6 +640,8 @@ class Job(db.Model):
     error_message = db.Column(db.Text, nullable=True)
     error_traceback = db.Column(db.Text, nullable=True)
     error_type = db.Column(db.String(64), nullable=True)
+    item_number = db.Column(db.Integer, nullable=True)
+    item_quantity = db.Column(db.Integer, nullable=True)
 
 
 class EventTracking(db.Model):

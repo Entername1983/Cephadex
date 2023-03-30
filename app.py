@@ -19,7 +19,7 @@ from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from cardcreator import create_image, creator
-from extractors import regenerate_definition, count_tokens, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
+from extractors import split_text, regenerate_definition, count_tokens, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import sys
@@ -186,7 +186,7 @@ class UploadFileForm(FlaskForm):
                                            ('Turn2notes', 'Turn to notes (coming soon)'), ('Custom', 'Custom')], default='Definitions')
     generate_images = BooleanField('Generate_images')
     save_text = BooleanField('Save_text')
-    languages = SelectField('Languages', choices=[("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
+    languages = SelectField('Languages', choices=[("", "If you want your transcription translated selected a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
                                                   ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
                                                   ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
@@ -380,17 +380,22 @@ def googleSignIn():
             return redirect(url_for('index'))
         
         else:
-            form = RegisterForm()
+            print("entered not user, preparing to register")
             session['google_id_token'] = idinfo['sub']
-            session['google_email'] = idinfo['email']
-            if idinfo['given_name']:
+            if idinfo.get('email'):
+                session['google_email'] = idinfo['email']
+            else: 
+                session['google_email'] = "n/a"
+            if idinfo.get('given_name'):
                 session['given_name'] = idinfo['given_name']
             else: 
-                session['given_name'] = ""
-            if idinfo['family_name']:
+                session['given_name'] = "Anonymous"
+            print(session['given_name'])
+            if idinfo.get('family_name'):
                 session['family_name'] = idinfo['family_name']
             else: 
-                session['family_name'] = ""
+                session['family_name'] = "Anonymous"
+            print(session['family_name'])
             return redirect(url_for('register'))
     
     except ValueError:
@@ -1050,26 +1055,47 @@ def extract():
         
     ## plan level requried for genereting images
     form = UploadFileForm()
+
     if form.validate_on_submit():
+        now = datetime.utcnow().isoformat()
         deck, text, prompt_options = handle_form_submission(form)
-        tokens = count_tokens(text)      
-        if perform_operation(current_user, prompt_options['main_opt'], tokens) == False:
-            flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
-            event_tracker(current_user, 'extract_start', 'fail', "limit_reached")
-            return redirect(url_for('viewdecks'))
-        else:
-            payload_dict = {'deck': deck.id, 'text': text, 'prompt_options': prompt_options}
-            payload = json.dumps(payload_dict)
-            now = datetime.utcnow().isoformat()
-            current_user_id = current_user.id
-            slug = str(current_user_id) + now
-            session['slug'] = slug
-            task_type = prompt_options['main_opt']
-            data = Job(slug=slug, user = current_user_id, task_type=task_type, payload=payload)
-            event_tracker(current_user.id, 'extract_start', 'success', payload)
-            db.session.add(data)
-            db.session.commit()
-            flash('Yor cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
+        tokens = count_tokens(text)
+        texts = None
+        print(type(text))
+        if text != None and len(text) > 0:      
+            if perform_operation(current_user, prompt_options['main_opt'], tokens) == False:
+                flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
+                event_tracker(current_user, 'extract_start', 'fail', "limit_reached")
+                return redirect(url_for('viewdecks'))
+            else:
+                if prompt_options['main_opt'] != 'Transcribe':
+                    print("splitting text")
+                    texts= split_text(text)
+                if texts == None:
+                    texts = text
+                if not isinstance(texts, list):
+                    texts = [texts]
+                counter = 0
+                for text in texts:
+                    print(type(text))
+                    print(text)
+                    total_len = len(texts)
+                    counter = counter + 1
+                    payload_dict = {'deck': deck.id, 'text': text, 'prompt_options': prompt_options}
+                    payload = json.dumps(payload_dict)
+                    current_user_id = current_user.id
+                    slug = str(current_user_id) + now
+                    print("counter")
+                    print(counter)
+                    print(total_len)
+                    task_type = prompt_options['main_opt']
+                    data = Job(slug=slug, user = current_user_id, task_type=task_type, payload=payload, item_number = counter, item_quantity = total_len)
+                    event_tracker(current_user.id, 'extract_start', 'success', payload)
+                    if counter == total_len:
+                        session['slug'] = slug
+                    db.session.add(data)
+                    db.session.commit()
+                flash('Yor cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
         return redirect('/viewdecks')
     return render_template("extract.html", title="Extract", form=form, settings = user_settings)
 
@@ -1586,7 +1612,7 @@ def test_print(test_id):
 @app.route("/sea_source/<int:file_id>/", methods=["GET", "POST"])
 def sea_source(file_id):
     source = DeckFiles.query.filter_by(id = file_id).first()
-    source1 = split_string(source.text_string)
+    source1 = source.text_string
     return render_template('sea_source.html', source=source1, file=source)
 
 @app.route("/import_deck/", methods=["GET", "POST"])
@@ -1704,14 +1730,18 @@ def query():
 def notification_complete():
     print("entered notification")
     slug_id= request.form["id"]
-    job = Job.query.filter_by(slug=slug_id).first()
-    print(job)
-    print(job.result)
-    job.result = 2
-    print(job.result)
+    slug = Job.query.filter_by(slug=slug_id).first()
+    print("WWWWWWHHHHA")
+    print("Slug", slug)
+    jobs = Job.query.filter_by(slug=slug.slug).all()
+    print(jobs)
+    for job in jobs:
+        print(job)
+        print(job.result)
+        job.result = 2
+        print(job.result)
     db.session.commit()
     return jsonify("success")
-    
  
  
 @app.route("/documentation/", methods=['GET', 'POST'])

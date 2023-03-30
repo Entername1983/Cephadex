@@ -4,80 +4,117 @@ from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS, CONST_PLA
 from datetime import datetime, timedelta
 import json
 from flask import current_app
-
 from random import randrange
 from time import sleep
-
-from cardcreator import creator, create_image
-
-from extractors import add_period
+from cardcreator import creator, create_image, split_text
+from extractors import summarize, turn_to_notes, add_period, extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx, extract_audio, transcribe_and_translate
 from app import app
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS
-)
-print(engine)
-
 
 def find_pending_job():
     with current_app.app_context():
-        queue = Session.query(Job).filter_by(state="queued")
+        queue = db.session.query(Job).filter_by(state="queued")
         if job := queue.first():
             job.state = "processing"
             return job
 
-
-
-
 def process_job(slug):
+
     print(f"Processing job: {slug}...", end=" ", flush=True)
-    print(slug)
-    payload = json.loads(slug.payload)
-    
+    payload = json.loads(slug.payload)    
     deck_id = payload["deck"]
     deck = Deck.query.filter_by(id=deck_id).first()
     text = payload["text"]
     prompt_options = payload["prompt_options"]
+    main_opt = prompt_options['main_opt'] 
+    print(main_opt)
+    trans_opt = prompt_options['trans_opt']
+    long_form = ["Transcribe", "Turn2notes", "Summarize"]
+    if main_opt not in long_form:
+        print("not in long form")
+        try:
+            response = extract_terms(text, prompt_options)
+            save_terms_to_deck(deck, response[0], prompt_options)
+            print(response[2])
+        except:
+            app.logger.info = "unable to save terms to deck"
+        try:
+            log_response_data(response[1], response[2], response[3], True)
+        except:
+            app.logger.info = "No response data to log"          
+        print("NOT TRANSCRIBE DONE")
+    elif main_opt  == "Transcribe":
+        method = "Transcription"
+        print("main option is transcribe")
+        if trans_opt != None:
+            if trans_opt != "":
+                processed_text = transcribe_and_translate(text, prompt_options)        
     
-    response = creator(text, prompt_options)
-    terms = response[0]
-    print("RESPONSE")
-    print(response[0])
-    print(response[1])
-    print(response[2])
-    print(response[3])
-    try:
-        save_terms_to_deck(deck, terms, prompt_options)
-    except:
-        app.logger.info = "unable to save terms to deck"
+
+    elif main_opt == "Turn2notes":
+        method = "Notes"
+        print(text, prompt_options)
+        processed_text = turn_to_notes(text, prompt_options)
+    elif main_opt == "Summarize":
+        method = "Summary"
+        print(text, prompt_options)
+        processed_text = summarize(text, prompt_options)
         
-    if prompt_options['main_opt'] == "Transcribe" or prompt_options['save_text_opt'] == True:
-        save_source_text_to_deck(deck, text, prompt_options)
+    if main_opt in long_form:
+        print("about to save source text")
+        save_source_text_to_deck(slug.slug, deck, processed_text, prompt_options, method) 
+    if slug.item_number == slug.item_quantity:
+        files = DeckFiles.query.filter_by(file_name=slug.slug).all()
+        now = datetime.utcnow().isoformat()
+        name = str(deck_id) + now
+        final_string = ""
+        for file in files:
+                final_string = final_string + file.text_string
+        file_storage = DeckFiles(file_name=name, text_string=final_string, create_type = method, time_created = datetime.utcnow())
+        db.session.add(file_storage) 
+        deck.deck_files.append(file_storage)
+        for file in files:
+            db.session.delete(file)
+        db.session.commit() 
+        
+        
+    if prompt_options['save_text_opt'] == True:
+        method = "Source"
+        save_source_text_to_deck(slug.slug, deck, text, prompt_options, method) 
+
     if check_subscription_plan(slug.user) == CONST_PLAN:
         if prompt_options['images_opt'] == True:
             generate_images(deck)
-    try:
-        log_response_data(response[1], response[2], response[3], True)
-    except:
-        app.logger.info = "No response data to log"
-
+    
     # The heavy processing happens here:
     # I use a short wait time here to ease development,
     # but you can experiment with time > 5 min
     # and see if the web app will manage it!
-    
+    print(" JUST BEFORE CHANGE OF STATE ")
     with current_app.app_context():
-        job = Job.query.filter_by(slug=slug.slug).first()
-        job.state = "completed"
-        job.result = 1
-        print(slug.state)
-        print(db.session.dirty)
-        db.session.commit()
-        
+        merged_slug = db.session.merge(slug)
 
+        merged_slug.state = "completed"
+        db.session.add(merged_slug)
+        db.session.commit()
+
+        print(slug.state)
+        jobs = Job.query.filter_by(slug=slug.slug).all()
+        counter = 0
+        for job in jobs:
+            if job.state == "completed":
+                counter = counter + 1
+                if counter == len(jobs):
+                    for job in jobs:
+                        job.result = 1
+                    print("all jobs completed")
+        db.session.commit()
     print(f"{slug.slug} finished processing!")
+
+
+
 
 
 def log_response_data(prompt, response, content, success):
@@ -157,9 +194,10 @@ def generate_images(deck):
     return True
 
 
-def save_source_text_to_deck(deck, text, prompt_options, method="extract"):
+def save_source_text_to_deck(name, deck, text, prompt_options, method="extract"):
+    print("entered save_source_text_to_deck", deck, text, prompt_options, method)
     main_opt = prompt_options['main_opt']
-    f_name = deck.name + "_" + method + "_" + main_opt + "_" + str(datetime.utcnow())
+    f_name = name
     file_storage = DeckFiles(file_name=f_name, text_string=text, create_type = "source", time_created = datetime.utcnow())
     db.session.add(file_storage) 
     deck.deck_files.append(file_storage)
@@ -188,16 +226,25 @@ def check_subscription_plan(user_id):
 if __name__ == "__main__":
     with app.app_context():
         while True:
-            Session = scoped_session(sessionmaker(bind=engine))
-
             print("Checking for jobs...")
             slug = find_pending_job()
             if slug:
-                print("processing", slug)
-                process_job(slug)
+                retries = 0
+                while retries < 3:
+                    try:
+                        process_job(slug)
+                        break
+                    except Exception as e:
+                        retries += 1
+                        print(f"Error: {e}. Retrying ({retries}/3)")
+                    if retries == 3:
+                        print("Job failed, moving on.")
+                        slug.state = "completed"
+                        slug.error_type = "error"
+                        break
+                        
+
             else:
-                Session.commit()
-                Session.remove() 
                 # We don't need to continuously hammer the database
                 # if there are no requests coming in, so let's
                 # give it a break!

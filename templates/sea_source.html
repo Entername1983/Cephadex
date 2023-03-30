@@ -40,7 +40,6 @@
 
 <div>
     <h5>{{file.file_name}}</h5>
-    {% for paragraph in source %}
-    <p>{{paragraph}}</p>
-    {% endfor %}
+    <div>
+        {{ file.text_string | safe }}</div>
 </div>
