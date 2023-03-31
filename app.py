@@ -75,7 +75,7 @@ werkzeug_logger.error('error message')
 werkzeug_logger.critical('critical message')
 
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
-app.logger.setLevel(logging.INFO)
+app.logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 app.logger.handlers[0].setFormatter(formatter)  # set formatter for the first handler
 app.logger.disabled = True
@@ -521,7 +521,7 @@ def subscribe():
 def logout():
     logout_user()
     flash('You have been logged out!')
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 
 
@@ -1063,10 +1063,10 @@ def extract():
         texts = None
         print(type(text))
         if text != None and len(text) > 0:      
-            if perform_operation(current_user, prompt_options['main_opt'], tokens) == False:
+            if perform_operation(current_user.id, prompt_options['main_opt'], tokens) == False:
                 flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
-                event_tracker(current_user, 'extract_start', 'fail', "limit_reached")
-                return redirect(url_for('viewdecks'))
+                event_tracker(current_user.id, 'extract_start', 'fail', "limit_reached")
+                return redirect(url_for('account'))
             else:
                 if prompt_options['main_opt'] != 'Transcribe':
                     print("splitting text")
@@ -1612,8 +1612,8 @@ def test_print(test_id):
 @app.route("/sea_source/<int:file_id>/", methods=["GET", "POST"])
 def sea_source(file_id):
     source = DeckFiles.query.filter_by(id = file_id).first()
-    source1 = source.text_string
-    return render_template('sea_source.html', source=source1, file=source)
+
+    return render_template('sea_source.html',file=source)
 
 @app.route("/import_deck/", methods=["GET", "POST"])
 def import_deck():
@@ -1749,8 +1749,9 @@ def documentation():
     return render_template('documentation.html')
 #################  USAGE CHECKS  ###############################################################################################
 
-def perform_operation(user, operation_type, n):
+def perform_operation(user_id, operation_type, n):
     # Check the user's remaining count for this time period
+    user = User.query.filter_by(id=user_id).first()
     print("checking operation", operation_type, n)
     sub_start_date = current_user.subscription_start_date
     usage_record = UsageRecord.query.filter_by(user_id=user.id).order_by(UsageRecord.date.desc()).first()
@@ -1759,7 +1760,7 @@ def perform_operation(user, operation_type, n):
         remaining_count = subscription_plan.limit_count
     else:
         remaining_count = usage_record.remaining_count
-    if remaining_count <= 0:
+    if remaining_count - n <= 0:
         return False
     # Perform the operation and update the usage record
     # Update the usage record

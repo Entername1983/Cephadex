@@ -358,6 +358,12 @@
         // Call the function whenever the text input field is changed
         var textInput = document.getElementById("text-input");
         textInput.addEventListener("input", checkTextLength);
+    
+        function clearForm() {
+            var textInput = document.getElementById("text-input");
+            textInput.value = "";
+
+        }
     </script>
 
    </section>    
