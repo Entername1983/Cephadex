@@ -61,12 +61,26 @@ main_0 %}
 
                   <select class="form-select" name="role" id="role" placeholder="Choose role", value = {{user.role}}>
                     <option value="{{user.role}}"> Select your role</option>"
+                    <option value="school-administrator">School Administrator</option>
                     <option value="teacher">Teacher</option>
-                    <option value="teacher">School administrator</option>
-                    <option value="student">Full time student</option>
-                    <option value="student">Part time student</option>
-                    <option value="language">Language learner</option>
-                    <option value="language">Lifelong learner</option>
+                    <option value="student">Student</option>
+                    <option value="part-time-student">Part-Time Student</option>
+                    <option value="lifelong-learner">Lifelong Learner</option>
+                    <option value="parent-guardian">Parent/Guardian</option>
+                    <option value="homeschooling-parent">Homeschooling Parent</option>
+                    <option value="tutor">Tutor</option>
+                    <option value="curriculum-developer">Curriculum Developer</option>
+                    <option value="educational-researcher">Educational Researcher</option>
+                    <option value="educational-consultant">Educational Consultant</option>
+                    <option value="instructional-designer">Instructional Designer</option>
+                    <option value="academic-advisor">Academic Advisor</option>
+                    <option value="admissions-counselor">Admissions Counselor</option>
+                    <option value="school-counselor">School Counselor</option>
+                    <option value="librarian">Librarian</option>
+                    <option value="it-administrator">IT Administrator</option>
+                    <option value="education-technology-specialist">Education Technology Specialist</option>
+                    <option value="education-policy-maker">Education Policy Maker</option>
+                    <option value="education-advocate-activist">Education Advocate/Activist</option>
                     <option value="other">Other</option>
                   </select>
                   <label for="role">Role: {{user.role}}</label>
@@ -86,9 +100,9 @@ main_0 %}
               <div class="col-6">
                 <div class="row justify-content-center" style="text-align:center">
                   {% if user.pic == None %}
-                  <img src="static/logo1.png" style="max-height:fit-content; max-width:fit-content;" alt="logo">
+                  <img src="static/cephadex-std-profile.png" style="max-height:fit-content; max-width:fit-content;" alt="logo">
                   {% else %}
-                  <img src="\{{user.pic}}" style="max-height:400px; max-width:400px;" alt="profile pic">
+                  <img class = "circle-img" src="\{{user.pic}}" style="max-height:400px; max-width:400px;" alt="profile pic">
                   {% endif %}
                 </div>
                 <div class="row justify-content-center mt-2">
@@ -265,10 +279,6 @@ main_0 %}
           <input type="file" class = "form-control m-2" name="profile-pic">
           <button class = "btn btn-primary" type="submit">Update Profile Picture</button>
         </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>

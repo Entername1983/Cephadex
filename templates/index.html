@@ -29,7 +29,10 @@
             <div class="col-lg-6">
                 <!-- Mashead text and app badges-->
                 <div class="mb-5 mb-lg-0 text-center text-lg-start">
-                    <h1 class="display-1 lh-1 mb-3">Welcome to the Cephadex BETA</h1>
+                    <h4> Welcome back {{current_user.first_name}}. </h4>
+                    <br>
+                    <h1 class="display-1 lh-1 mb-3">Cephadex - <small>BETA</small></h1>
+
                     <p class="lead fw-normal text-muted mb-5">Thank you for your participation!</p>
                     <div class="d-flex flex-column flex-lg-row align-items-center">
                         <!--- removed app store ... links, consider putting something else here-->
@@ -41,31 +44,12 @@
                 <div class="masthead-device-mockup">
 
                     <div class="device-wrapper">
-                        <div class="device" data-device="iPhoneX" data-orientation="portrait" data-color="black">
-                            <div class="">
- <h4>Updates:</h4>
- <br>
-<h5>30/03/2023</h5>
-<li> Another day another issue!  I was forced to make some big back end changes in order for users to be able to handle large files.  Things should work (emphasis on should) now.</li>
-<li> If creating cards from audio files, or simply transcribing them, the page will stay on the create page.  It might take some time but as long as you see the message that your deck is being generated it should be working.  You don't need to remain on that page.</li>
+                        <div class="device d-flex justify-content-center" >
 
- <h5>29/03/2023</h5>
- <ul>
-<li> There have been a few issues over the last few days that may have led to some downtime.  They should all be resolved.</li>
-<li> I have added in some information for new users as I have had feedback that not everything was clear/easy to use.  This type of feedback is invaluable so keep it coming!  </li>
-<li> I will try and have regular scheduled downtime between 2 and 4pm GMT every day in order to guarantee that the app remains up outside of those ours.</li>
-<li> And finally another big thanks to all the people taking time out of their day to help me test this! </li>
+                                <img class="circle-img" src="/static/cephadex-easter.png" alt="Your Image Description">
 
- </ul>
- <br>
- <h5>25/03/2023</h5>
- <ul>
-    <li>Thanks to you more and more bugs are uncovered every day!  Particular thanks to Michael, Gracie, and Drew who have notified me of several over the last few days.</li>
-    <li>I have made some big system updates related to how the server processes the request and how data is stored, you may encounter some new issues.</li>
-    <li>When creating decks your request will now be queued, once it is ready you will get a pop up on your screen letting you know.</li>
-    <li>Thank you again for your participation!  I know it can be frustrating trying out a product that doesn't always work.  Know that all the bug reports and feedback is extremely meaningful!</li>
-</ul>
-                            </div>
+
+
                         </div>
                     </div>
                 </div>
@@ -100,22 +84,26 @@
                 <div class="masthead-device-mockup">
 
                     <div class="device-wrapper">
-                        <div class="device" data-device="iPhoneX" data-orientation="portrait" data-color="black">
-                            <div class="screen bg-black">
+                        <div class="">
+                            <div class="">
                                 <!-- PUT CONTENTS HERE:-->
-                                <!-- * * This can be a video, image, or just about anything else.-->
-                                <!-- * * Set the max width of your media to 100% and the height to-->
-                                <!-- * * 100% like the demo example below.-->
-                                <video muted="muted" autoplay="" loop="" style="max-width: 100%; height: 100%">
-                                    <source src="static/octoply-demo.mp4" type="video/mp4" />
-                                </video>
+
+                                <div class="d-flex justify-content-center">
+
+
+                                    <iframe style=""
+                                        src="https://www.youtube.com/embed/E88BywtHkLg" title="YouTube video player"
+                                        frameborder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        allowfullscreen></iframe>
+
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
 </header>
 <br>
@@ -233,29 +221,30 @@
 <div class="container">
     {% if terms %}
     <section class="m-4" style="background-color: rgba(29, 113, 186, 0.1);">
-     <h5 class = "m-3 p-3"> Here is a sample of the type of cards you can generate, if you want to try out more options <a class="" data-bs-toggle="modal" data-bs-target="#registerModal" style="cursor:default"> sign up here</a>.  Its free!</h5>
+        <h5 class="m-3 p-3"> Here is a sample of the type of cards you can generate, if you want to try out more options
+            <a class="" data-bs-toggle="modal" data-bs-target="#registerModal" style="cursor:default"> sign up here</a>.
+            Its free!</h5>
 
         <div class="container px-5">
             <div class="row gx-5 align-items-center justify-content-center justify-content-lg-between">
                 {% for term in terms %}
-                {% if loop.index < 9 %} 
-                <div class="card m-2" >
+                {% if loop.index < 9 %} <div class="card m-2">
                     <div class="card-body my-1">
                         <h5 class="card-title">{{term['A']}}</h5>
                         {% if option=='Mcq' %}
                         <div class=" d-flex align-items-center justify-content-center">
                             <p class="box_study p-1 " style="width: 100%" id="A-btn">{{term['B']}}</p>
-                          </div>                        
-                          <div class=" d-flex align-items-center justify-content-center">
+                        </div>
+                        <div class=" d-flex align-items-center justify-content-center">
                             <p class="box_study p-1" style="width: 100%" id="A-btn">{{term['C']}}</p>
-                          </div>                       
-                           <div class=" d-flex align-items-center justify-content-center">
+                        </div>
+                        <div class=" d-flex align-items-center justify-content-center">
                             <p class="box_study p-1" style="width: 100%" id="A-btn">{{term['D']}}</p>
-                          </div>                       
-                           <div class=" d-flex align-items-center justify-content-center">
+                        </div>
+                        <div class=" d-flex align-items-center justify-content-center">
                             <p class="box_study p-1" style="width: 100%" id="A-btn">{{term['E']}}</p>
-                          </div>
-                     
+                        </div>
+
                         {% endif %}
                         {% if option =='Formulas' %}
                         <div>
@@ -268,78 +257,80 @@
                         <p class="card-text">{{term['B']}}</p>
                         {% endif %}
                     </div>
-    
-                </div>
-            
 
-            
+            </div>
+
+
+
             {% endif %}
             {% endfor %}
-            </div>
+        </div>
 </div>
-    </section>
+</section>
 
 
-    {% else %}
-    <section class="p-4" style="background-color: rgba(29, 113, 186, 0.1);">
+{% else %}
+<section class="p-4" style="background-color: rgba(29, 113, 186, 0.1);">
 
-        <div class="container px-2">
-            <div class="row gx-5 align-items-center justify-content-center justify-content-lg-between">
-                <h5> Try it out! </h5>
-                <div class="col-12 col-lg-12">
-                    <form method="POST"  action="" enctype="multipart/form-data" onsubmit="showSpinner(); clearform()">
-                        {{form.hidden_tag()}}
-                        {{ form.csrf_token }}
-                        <div class="row">
-                            <div class="extract-boxes1">
-                                <div class = "form-floating my-1">
-                                {{form.text_input(id="text-input", class="form-control form-control-lg box_study full-w",
+    <div class="container px-2">
+        <div class="row gx-5 align-items-center justify-content-center justify-content-lg-between">
+            <h5> Try it out! </h5>
+            <div class="col-12 col-lg-12">
+                <form method="POST" action="" enctype="multipart/form-data" onsubmit="showSpinner(); clearform()">
+                    {{form.hidden_tag()}}
+                    {{ form.csrf_token }}
+                    <div class="row">
+                        <div class="extract-boxes1">
+                            <div class="form-floating my-1">
+                                {{form.text_input(id="text-input", class="form-control form-control-lg box_study
+                                full-w",
                                 style="height:100%; width:100%; font-size:20px", minlength=80 )}}
-                                <label for = "text-input">Enter your text here</label>
+                                <label for="text-input">Enter your text here</label>
                                 <div id="textinputhelp" class="form-text">Enter between 80 and 250 characters.</div>
                             </div>
-                            </div>
                         </div>
+                    </div>
 
+                    <div class="row">
+                        {% for subfield in form.prompt %}
+                        <div class="col-md-3 col-sm-6"> {{ subfield }} {{ subfield.label }} </div>
+
+                        {% endfor %}
+                    </div>
+                    <div class="extract-boxes" id="language-select" style="display: none;">
+
+                        {{form.languages (class="border-0 form-control-lg")}}
+                    </div>
+                    <div class="extract-boxes" id="custom-select" style="display: none;">
                         <div class="row">
-                            {% for subfield in form.prompt %}
-                            <div class="col-md-3 col-sm-6"> {{ subfield }} {{ subfield.label }} </div>
-
-                            {% endfor %}
+                            {{form.custom_term (class="box_study form-control-lg")}}
                         </div>
-                        <div class="extract-boxes" id="language-select" style="display: none;">
-
-                            {{form.languages (class="border-0 form-control-lg")}}
+                        <div class="row">
+                            {{form.custom_content (class=" box_study form-control-lg my-1")}}
                         </div>
-                        <div class="extract-boxes" id="custom-select" style="display: none;">
-                            <div class="row">
-                                {{form.custom_term (class="box_study form-control-lg")}}
-                            </div>
-                            <div class="row">
-                                {{form.custom_content (class=" box_study form-control-lg my-1")}}
+                    </div>
+                    <div class="row justify-content-end">
+                        <div class="col d-flex align-items-center justify-content-end">
+                            <div id="extract-message" style="display:none"><i>Your cards are being generated! </i>
                             </div>
                         </div>
-                        <div class="row justify-content-end">
-                            <div class="col d-flex align-items-center justify-content-end">
-                                <div id="extract-message" style="display:none"><i>Your cards are being generated! </i>
-                                </div>
-                            </div>
-                            <div class="col d-flex justify-content-end">
+                        <div class="col d-flex justify-content-end">
 
-                                <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
-                                </div>
-                                {{form.submit(id="generate-btn", class=" btn-primary form-control form-control-lg m-2", style
-                                = "max-width: 200px", disabled="disabled")}}
+                            <div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none">
                             </div>
-                            </div>
+                            {{form.submit(id="generate-btn", class=" btn-primary form-control form-control-lg m-2",
+                            style
+                            = "max-width: 200px", disabled="disabled")}}
                         </div>
-                    </form>
-
-
-                </div>
+                    </div>
             </div>
+            </form>
+
+
         </div>
- 
+    </div>
+    </div>
+
 
     <script>
         function checkTextLength() {
@@ -347,18 +338,18 @@
             var submitButton = document.getElementById("generate-btn");
             console.log(textInput.value.length)
 
-        
+
             if (textInput.value.length >= 80 && textInput.value.length <= 250) {
                 submitButton.disabled = false;
             } else {
                 submitButton.disabled = true;
             }
         }
-        
+
         // Call the function whenever the text input field is changed
         var textInput = document.getElementById("text-input");
         textInput.addEventListener("input", checkTextLength);
-    
+
         function clearForm() {
             var textInput = document.getElementById("text-input");
             textInput.value = "";
@@ -366,9 +357,9 @@
         }
     </script>
 
-   </section>    
-    {% endif %}
-    {% endif %}
+</section>
+{% endif %}
+{% endif %}
 
 </div>
 

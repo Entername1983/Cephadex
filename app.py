@@ -19,7 +19,7 @@ from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from cardcreator import create_image, creator
-from extractors import split_text, regenerate_definition, count_tokens, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
+from extractors import send_question_generator, why_wrong_generator, explain_more, split_text, regenerate_definition, count_tokens, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import sys
@@ -134,6 +134,8 @@ class RegisterForm(FlaskForm):
         existing_user_email = User.query.filter_by(email=email.data).first()
         if existing_user_email:
             raise ValidationError("Email is already taken")
+        
+
         
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
@@ -311,41 +313,6 @@ def index():
             
     return render_template('index.html', form = form)
 
-""""
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    
-    username = request.form.get('username')
-    email = request.form.get('email')
-    email_conf = request.form.get('email_conf')
-    password = request.form.get('password')
-    confirm_password = request.form.get('confirm_password')
-    agree_terms = request.form.get('terms-cond')
-    agree_contact = request.form.get('contacted')
-    if agree_terms == "agree-terms":
-        if agree_contact == "agree-contacted":
-            subscriber = Subscriber(email=email)
-            db.session.add(subscriber)
-            db.session.commit()
-        if password != confirm_password:
-            return 'Passwords do not match'
-        elif email != email_conf:
-            return 'Emails do not match'
-        elif User.query.filter_by(username=username).first():
-            return 'Username already exists'
-        elif User.query.filter_by(email=email).first():
-            return 'Email already exists'
-        elif User.query.filter_by(email=email_conf).first():
-            return 'Email already exists'
-        else:
-            password = bcrypt.generate_password_hash(request.form.get('password'))
-            user = User(username=username, email=email, password=password)
-            db.session.add(user)
-            db.session.commit()
-            flash('You have been registered succesfully!', 'success')
-
-    return render_template('index.html', title='Index')
-"""
     
     
 @app.route("/googleSignIn", methods=["POST"])
@@ -662,9 +629,12 @@ def account():
         email_checkbox = request.form.get('email-checkbox')
         role = request.form.get('role')
         timezone = form.timezone.data
+        print("email checkbox")
+        print(email_checkbox)
         if email_checkbox == "contacted":
             user.contacted_email = True
-
+        elif email_checkbox == None:
+            user.contacted_email = False
         subscribe_checkbox = request.form.get('subscriber-checkbox')
         print(subscribe_checkbox)
         if first_name != "":
@@ -689,6 +659,11 @@ def account():
                 db.session.commit()
                 print("subscribe")
                 flash("You have been subscribed to our mailing list")
+        elif subscribe_checkbox == "":
+            subscriber = Subscriber.query.filter_by(email=user.email).first()
+            db.session.delete(subscriber)
+            db.session.commit()
+            flash("You have been unsubscribed from our mailing list")
         else:
             if Subscriber.query.filter_by(email=user.email).first():
                 subscriber = Subscriber.query.filter_by(email=user.email).first()
@@ -1370,13 +1345,16 @@ def assign_test(test_id):
             test.creator = current_user.id
             due_date = request.form.get('due-date')
             if due_date:
-                due_date = dt.datetime.strptime(due_date,'%Y-%m-%dT%H:%M')
+                due_date = dt.datetime.strptime(due_date[:16],'%Y-%m-%dT%H:%M')
                 test.due_date = due_date
             test.subject = request.form['subject']
             test.topic = request.form['topic']
             test.instructions = request.form['instructions']
             test.description = request.form['description']
-            test.time_limit = request.form['time-limit']
+            time_limit = int(request.form.get('time-limit'))
+            print(time_limit)
+            test.time_limit = time_limit
+            print
             answer_reveal = request.form.get('answer-reveal', False)
             result_reveal = request.form.get('result-reveal', False)
             shuffle = request.form.get('shuffle', False)
@@ -1431,19 +1409,30 @@ def assign(test_id, user_email):
     test = Test.query.filter_by(id=test_id).first()
     test.count_questions()
     test.sum_points()
+    not_users = []
     if check_comma_list(user_email):
         print(user_email)
         users_emails = user_email.split(",")
         for email in users_emails:
             email = unquote(email).strip()
             taker = User.query.filter_by(email=email).first()
-            test.taker.append(taker)
+            if taker == None:
+                not_users.append(email)
+            else:
+                test.taker.append(taker)
     else:
         email = unquote(user_email)
         taker = User.query.filter_by(email=email).first()
-        test.taker.append(taker)
+        if taker == None:
+            not_users.append(email)
+
+        else:
+            test.taker.append(taker)
     db.session.commit()
-    flash('Test assigned!', 'success')
+    if not_users == []:
+        flash('Test assigned!', 'success')
+    else:
+        flash(f"Could not locate the following users: {not_users}", "danger")
     return redirect('/assign_test/{test_id}'.format(test_id = test_id))
 
 
@@ -1778,6 +1767,63 @@ def check_subscription_plan(user):
     return subscription_plan
 
 
+####################  MORE INFO ABOUT CARDS ################################################
+
+@app.route("/explain_further/<int:card_id>/", methods=['GET', 'POST'])
+def explain_further(card_id):
+    card = Card.query.filter_by(id=card_id).first()
+    if card is None:
+        return render_template('404.html')
+    term = card.term
+    subject = card.subject
+    content = card.content
+    response = explain_more(term, subject, content)
+    
+    json_response = {"response": response}
+    return json_response
+
+@app.route("/why_wrong/<int:card_id>/", methods=['GET', 'POST'])
+def why_wrong(card_id):
+    print("why wrong")
+    card = Card.query.filter_by(id=card_id).first()
+    if card is None:
+        return render_template('404.html')
+    ww_prompt = why_wrong_builder(card_id)
+    response = why_wrong_generator(ww_prompt)
+    json_response = {"response": response}
+    return json_response    
+    
+def why_wrong_builder(card_id):
+    card = Card.query.filter_by(id=card_id).first()
+    ww_prompt = {
+        "term": card.term,
+        "subject": card.subject,
+        "content": card.content,
+        "boc_2": card.boc_2,
+        "boc_3": card.boc_3,
+        "boc_4": card.boc_4,
+        "category": card.category,
+        "card_id": card.id
+    }
+    return ww_prompt
+
+
+@app.route("/send_question/<int:card_id>/", methods=['GET', 'POST'])
+def send_question(card_id):
+    print("send question")
+    card = Card.query.filter_by(id=card_id).first()
+    latest_paragraph = request.form.get('latest_paragraph')
+    question = request.form.get('question')
+    term = card.term
+    content = card.content
+    response = send_question_generator(term, content, latest_paragraph, question)
+    json_response = {"response": response}
+    return json_response   
+
+@app.route("/news/", methods=['GET', 'POST'])
+def news():
+    return render_template('news.html')
+       
 
 ###################### TO BE REORGANIZED ###############################################################################################
 

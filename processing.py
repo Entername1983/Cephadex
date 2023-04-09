@@ -21,7 +21,7 @@ def find_pending_job():
             return job
 
 def process_job(slug):
-
+    method = None
     print(f"Processing job: {slug}...", end=" ", flush=True)
     payload = json.loads(slug.payload)    
     deck_id = payload["deck"]
@@ -51,8 +51,6 @@ def process_job(slug):
         if trans_opt != None:
             if trans_opt != "":
                 processed_text = transcribe_and_translate(text, prompt_options)        
-    
-
     elif main_opt == "Turn2notes":
         method = "Notes"
         print(text, prompt_options)
@@ -65,19 +63,20 @@ def process_job(slug):
     if main_opt in long_form:
         print("about to save source text")
         save_source_text_to_deck(slug.slug, deck, processed_text, prompt_options, method) 
-    if slug.item_number == slug.item_quantity:
-        files = DeckFiles.query.filter_by(file_name=slug.slug).all()
-        now = datetime.utcnow().isoformat()
-        name = str(deck_id) + now
-        final_string = ""
-        for file in files:
-                final_string = final_string + file.text_string
-        file_storage = DeckFiles(file_name=name, text_string=final_string, create_type = method, time_created = datetime.utcnow())
-        db.session.add(file_storage) 
-        deck.deck_files.append(file_storage)
-        for file in files:
-            db.session.delete(file)
-        db.session.commit() 
+    
+        if slug.item_number == slug.item_quantity:
+            files = DeckFiles.query.filter_by(file_name=slug.slug).all()
+            now = datetime.utcnow().isoformat()
+            name = str(deck_id) + now
+            final_string = ""
+            for file in files:
+                    final_string = final_string + file.text_string
+            file_storage = DeckFiles(file_name=name, text_string=final_string, create_type = method, time_created = datetime.utcnow())
+            db.session.add(file_storage) 
+            deck.deck_files.append(file_storage)
+            for file in files:
+                db.session.delete(file)
+            db.session.commit() 
         
         
     if prompt_options['save_text_opt'] == True:

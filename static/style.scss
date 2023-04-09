@@ -54,14 +54,17 @@ $yellow: #FFFD98;
 $btn-white-space: nowrap;
 
  
-  @media print {
+@media print {
+  /* Apply styles for printing */
+  .no-page-break-inside {
     page-break-inside: avoid;
   }
+
   
   .no-page-break {
     page-break-inside: avoid;
   }
-
+}
 
 .responsive {
     max-width: 100%;
@@ -84,8 +87,9 @@ footer{
 }
 
 body {
-    background-color: $backgroundC !important;
-    //background-image: url("background_4.png") !important;
+
+    background-image: url("/static/backg-1.jpeg") !important;
+    
     background-size: cover;
   }
 
@@ -277,11 +281,19 @@ footer {
     background-color: $backgroundC;
 }
 
-
-.mw1 {
-    max-width: 400px;
+.video-large {
+  width: 150%;
+  height: 150%;
 }
 
+
+.mw1 {
+    max-width: 500px;
+}
+
+.minh1 {
+    min-height:70vh;
+}
 
 .tooltip {
     position: relative;
@@ -493,3 +505,29 @@ button:disabled {
 .bg-gradient-primary-to-secondary {
     background: linear-gradient(45deg, $std_col_1, $std_col_3) !important;
   }
+
+
+.circle-img {
+    border-radius: 50%;
+    object-fit: cover;
+    width: 300px; /* replace with your desired width */
+    height: 300px; /* replace with your desired height */
+  }
+
+.flash-message {
+    background-color: #f4d474;
+    color: #f67373;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.ai-reply {
+    background-color: $lpink;
+    padding: 1px;
+    text-align: center;
+    margin-top: 2px;
+    margin-bottom: 1px;
+    border-radius: 2px;
+}

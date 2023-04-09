@@ -98,7 +98,7 @@
 
 <div id="carouselExampleDark" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="false">
 
-
+<!--- indicators removed for now
 
     <div class="carousel-indicators">
         {% for card in cards %}
@@ -111,7 +111,7 @@
         {% endif %}
         {% endfor %}
     </div>
-
+--->
     <div class="col-1">
         <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
             <img src = "/static/caret-left-outline-icon.png" style="max-width:30px;max-height:30px;">
@@ -246,13 +246,17 @@
                             </div>
                             
                             {% endif %}
- 
-                            <div class="row mt-1">
-                                <textarea name="content"
-                                    class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
-                                    type="text" id="card.id" rows="3"
-                                    placeholder="{{ card.content }}"> {{ card.content }}</textarea>
-                            </div>
+                            {% if card.category == 'Mcq' %}
+                            <textarea style = "" name="content"
+                                class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
+                                type="text" id="card.id" rows="3"
+                                placeholder="{{ card.content }}"> {{ card.content }}</textarea>
+                        {% else %}
+                            <textarea name="content"
+                                class="form-control card-text box_study input_0 form-control form-control-lg  flex-grow-1"
+                                type="text" id="card.id" rows="3"
+                                placeholder="{{ card.content }}"> {{ card.content }}</textarea>
+                        {% endif %}
          
                             {% if card.boc_2 is not none %}
                             <div class="row mt-1">

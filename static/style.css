@@ -1,11 +1,12 @@
 @media print {
-  page-break-inside: avoid;
+  /* Apply styles for printing */
+  .no-page-break-inside {
+    page-break-inside: avoid;
+  }
+  .no-page-break {
+    page-break-inside: avoid;
+  }
 }
-
-.no-page-break {
-  page-break-inside: avoid;
-}
-
 .responsive {
   max-width: 100%;
   height: auto;
@@ -26,7 +27,7 @@ footer {
 }
 
 body {
-  background-color: white !important;
+  background-image: url("/static/backg-1.jpeg") !important;
   background-size: cover;
 }
 
@@ -189,8 +190,7 @@ footer {
 
 .eq_buttons {
   width: 100%;
-  margin: 3px;
-  /* or whatever */
+  margin: 3px; /* or whatever */
 }
 
 /* CSS to style the card container */
@@ -211,8 +211,17 @@ footer {
   background-color: white;
 }
 
+.video-large {
+  width: 150%;
+  height: 150%;
+}
+
 .mw1 {
-  max-width: 400px;
+  max-width: 500px;
+}
+
+.minh1 {
+  min-height: 70vh;
 }
 
 .tooltip {
@@ -307,8 +316,7 @@ footer {
   }
   table.mobile-optimised td {
     display: block;
-    float: left;
-    /* ie9 and under hack */
+    float: left; /* ie9 and under hack */
     width: 100%;
     clear: both;
     padding: 10px 5px;
@@ -342,12 +350,10 @@ footer {
     background: #ccc;
   }
 }
-
 .carousel-indicators {
   position: fixed !important;
   bottom: 100px !important;
-  z-index: 1030 !important;
-  /* Adjust z-index if needed to ensure the indicators appear above other elements */
+  z-index: 1030 !important; /* Adjust z-index if needed to ensure the indicators appear above other elements */
 }
 
 @media screen and (max-width: 540px) {
@@ -361,8 +367,7 @@ footer {
   }
   table.mobile-optimised2 td {
     display: block;
-    float: left;
-    /* ie9 and under hack */
+    float: left; /* ie9 and under hack */
     width: 100%;
     clear: both;
     padding: 10px 5px;
@@ -396,7 +401,37 @@ footer {
     background: #ccc;
   }
 }
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .bg-gradient-primary-to-secondary {
   background: linear-gradient(45deg, #1D71BA, #B25690) !important;
 }
+
+.circle-img {
+  border-radius: 50%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  width: 300px; /* replace with your desired width */
+  height: 300px; /* replace with your desired height */
+}
+
+.flash-message {
+  background-color: #f4d474;
+  color: #f67373;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.ai-reply {
+  background-color: #EAE8FF;
+  padding: 1px;
+  text-align: center;
+  margin-top: 2px;
+  margin-bottom: 1px;
+  border-radius: 2px;
+}/*# sourceMappingURL=style.css.map */

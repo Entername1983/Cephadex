@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+
+<link rel="icon" href="/static/logo1_small.png">
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<link href="\static\style.css" rel="stylesheet" />
+<style type="text/css" media="print">
+    @page 
+    {
+        size:  auto;   /* auto is the initial value */
+        margin: 0mm;  /* this affects the margin in the printer settings */
+    }
+
+    html
+    {
+        background-color: #FFFFFF; 
+        margin: 10px;  /* this affects the margin on the html before sending to printer */
+    }
+
+    body
+    {
+        margin: 10mm 15mm 10mm 15mm; /* margin you want for the content */
+    }
+    </style>
+</head>
+<div class="row">
+    <div class="col-1">
+    <img src="/static/logo1_small.png" style="max-width: 70px; max-height:70px">
+</div>
+</div>
+
+<div>
+    <h5>{{file.file_name}}</h5>
+    {% for paragraph in source %}
+    <p>{{paragraph}}</p>
+    {% endfor %}
+</div>

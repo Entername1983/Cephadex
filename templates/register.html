@@ -4,89 +4,103 @@
 {% endblock %} {% block main_0 %}
 
 <div class="container">
-    <div class="row">
-        <div class="col-lg-4 d-none d-lg-block">
-            <img src="/static/logo1.png" alt="logo" width="100%" height="100%">
+    <div class="row d-flex align-items-center">
+        <div class="col-md-6 d-flex justify-content-center ">
 
-
-        </div>
-        <div class="col-md-2 d-none d-md-block">
-
+            <img class="circle-img" src="/static/ceph-register.png" alt="Your Image Description">
 
         </div>
-        <div class="col-md-6 order-md-1">
-            <form novalidate method="post" action="{{ url_for('register') }}">
-
-                <div class="form-group mt-1">
-                    <div class="row">
-                        <h1>Almost there!</h1>
-                    </div>
-                    <div class="form-floating mt-1">
-
-                        
-                        <input class="form-control" type="text" name="username" id="username" placeholder="EasyLearning2023"required >
-                        <label for="name">Username:</label>
-                        <div style = "color:red"id="username-error"></div>
-                    </div>
-                    <div class="form-floating mt-2">
-                        {{ form.timezone(class="form-select", id="timezone", required=True) }}
-      
-                     
-                     
-                      </div>
 
 
-                    <div class="form-floating mt-1">
-                        
-                        <select class="form-select" name="role" id="role" placeholder = "Choose role" required>
-                            <option value="" disabled selected>Choose role</option>"
-                            <option value="teacher">Teacher</option>
-                            <option value="student">Full time student</option>
-                            <option value="student">Part time student</option>
-                            <option value="language">Language learner</option>
-                            <option value="other">Other</option>
-                        </select>
-                        <label for="role">Role:</label>
-                    </div>
-                    <div class="form-floating mt-1">
 
-                        
-                        <input class="form-control" type="text" name="betakey" id="betakey" placeholder=""  oninput="showBetaAgreement()">
-                        <label for="name">Beta Key:</label>
-                    </div>
-                    <div class="form-group mt-1">
-                        <input class="form-check-input" type="checkbox" value="contacted" name="contacted"
-                            id="contacted">
 
-                        <label class="form-check-label" for="contacted">I agree to be contacted</label>
-                    </div>
-                    <div class="form-group mt-1">
-                        <input class="form-check-input" type="checkbox" value="subscribe" name="subscribe"
-                            id="subscribe">
+    <div class="col-md-6 order-md-1">
+        <form novalidate method="post" action="{{ url_for('register') }}">
 
-                        <label class="form-check-label" for="subscribe">Join our mailing list</label>
-                    </div>
-                    <div class="form-group mt-1">
-                        <input class="form-check-input" type="checkbox" value="tos" name="tos" id="tos" required>
-
-                        <label class="form-check-label" for="tos">I agree to the <a
-                                style="text-decoration: underline" data-bs-toggle="modal"
-                                data-bs-target="#tcModal">terms
-                                and conditions</a>?</label>
-                    </div>
-                    <div class="form-group mt-1" id="beta-group"style="display:none">
-                        <input class="form-check-input" type="checkbox" value="beta-agree" name="beta-agree" id="beta-agree" ">
-
-                        <label class="form-check-label" for="tos">I agree to the <a
-                                style="text-decoration: underline" data-bs-toggle="modal"
-                                data-bs-target="#betaModal">beta agreement</a>?</label>
-                    </div>
-                    <div class="form-group mt-1">
-                    <input class="btn btn-primary" id = "register-btn" type="submit" value="Register">
+            <div class="form-group mt-1">
+                <div class="row">
+                    <h1>Almost there!</h1>
                 </div>
-            </form>
-        </div>
+                <div class="form-floating mt-1">
+
+
+                    <input class="form-control" type="text" name="username" id="username" placeholder="EasyLearning2023"
+                        required>
+                    <label for="name">Username:</label>
+                    <div style="color:red" id="username-error"></div>
+                </div>
+                <div class="form-floating mt-2">
+                    {{ form.timezone(class="form-select", id="timezone", required=True) }}
+
+
+
+                </div>
+
+
+                <div class="form-floating mt-1">
+
+                    <select class="form-select" name="role" id="role" placeholder="Choose role" required>
+                        <option value="" disabled selected>Choose role</option>"
+                        <option value="school-administrator">School Administrator</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="student">Student</option>
+                        <option value="part-time-student">Part-Time Student</option>
+                        <option value="lifelong-learner">Lifelong Learner</option>
+                        <option value="parent-guardian">Parent/Guardian</option>
+                        <option value="homeschooling-parent">Homeschooling Parent</option>
+                        <option value="tutor">Tutor</option>
+                        <option value="curriculum-developer">Curriculum Developer</option>
+                        <option value="educational-researcher">Educational Researcher</option>
+                        <option value="educational-consultant">Educational Consultant</option>
+                        <option value="instructional-designer">Instructional Designer</option>
+                        <option value="academic-advisor">Academic Advisor</option>
+                        <option value="admissions-counselor">Admissions Counselor</option>
+                        <option value="school-counselor">School Counselor</option>
+                        <option value="librarian">Librarian</option>
+                        <option value="it-administrator">IT Administrator</option>
+                        <option value="education-technology-specialist">Education Technology Specialist</option>
+                        <option value="education-policy-maker">Education Policy Maker</option>
+                        <option value="education-advocate-activist">Education Advocate/Activist</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <label for="role">Role:</label>
+                </div>
+                <div class="form-floating mt-1">
+
+
+                    <input class="form-control" type="text" name="betakey" id="betakey" placeholder=""
+                        oninput="showBetaAgreement()">
+                    <label for="name">Beta Key:</label>
+                </div>
+                <div class="form-group mt-1">
+                    <input class="" type="checkbox" value="contacted" name="contacted" id="contacted">
+
+                    <label class="form-check-label" for="contacted">I agree to be contacted</label>
+                </div>
+                <div class="form-group mt-1">
+                    <input class="" type="checkbox" value="subscribe" name="subscribe" id="subscribe">
+
+                    <label class="form-check-label" for="subscribe">Join our mailing list</label>
+                </div>
+                <div class="form-group mt-1">
+                    <input class="" type="checkbox" value="tos" name="tos" id="tos" required>
+
+                    <label class="form-check-label" for="tos">I agree to the <a style="text-decoration: underline"
+                            data-bs-toggle="modal" data-bs-target="#tcModal">terms
+                            and conditions</a>?</label>
+                </div>
+                <div class="form-group mt-1" id="beta-group" style="display:none">
+                    <input class="form-check-input" type="checkbox" value="beta-agree" name="beta-agree" id="beta-agree" ">
+
+                        <label class=" form-check-label" for="tos">I agree to the <a style="text-decoration: underline"
+                        data-bs-toggle="modal" data-bs-target="#betaModal">beta agreement</a>?</label>
+                </div>
+                <div class="form-group mt-1">
+                    <input class="btn btn-primary" id="register-btn" type="submit" value="Register">
+                </div>
+        </form>
     </div>
+</div>
 
 
 
@@ -100,16 +114,16 @@
         var betaKey = document.getElementById("betakey").value;
         var betaCheckbox = document.getElementById("beta-agree");
         var betaGroup = document.getElementById("beta-group");
-      
+
         if (betaKey.length > 0) {
-          betaGroup.style.display = "block";
-          betaCheckbox.required = true;
+            betaGroup.style.display = "block";
+            betaCheckbox.required = true;
         } else {
-          betaGroup.style.display = "none";
-          betaCheckbox.required = false;
+            betaGroup.style.display = "none";
+            betaCheckbox.required = false;
         }
     }
-    </script>
+</script>
 <!---- BETA AGREEMENT MODAL ---->
 <div class="modal fade" id="betaModal" tabindex="-1" aria-labelledby="betaModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -121,49 +135,57 @@
             <div class="modal-body">
 
 
-    <h1>Beta Tester Agreement</h1>
+                <h1>Beta Tester Agreement</h1>
 
-    <p>Welcome to the Cephadex Beta Testing program!</p>
+                <p>Welcome to the Cephadex Beta Testing program!</p>
 
-    <h2>Purpose and Goals</h2>
+                <h2>Purpose and Goals</h2>
 
-    <p>The purpose of this Beta Testing program is to improve the quality and usability of Cephadex's products and
-        services. By participating in this program, you agree to help us achieve this goal by providing feedback and
-        reporting any issues or bugs you may encounter.</p>
+                <p>The purpose of this Beta Testing program is to improve the quality and usability of Cephadex's
+                    products and
+                    services. By participating in this program, you agree to help us achieve this goal by providing
+                    feedback and
+                    reporting any issues or bugs you may encounter.</p>
 
-    <h2>Termination</h2>
+                <h2>Termination</h2>
 
-    <p>You may revoke your participation and delete your account at any time. We reserve the right to terminate your
-        participation in the Beta Testing program at any time, for any reason, without notice.</p>
+                <p>You may revoke your participation and delete your account at any time. We reserve the right to
+                    terminate your
+                    participation in the Beta Testing program at any time, for any reason, without notice.</p>
 
-    <h2>Data Collection and Privacy</h2>
+                <h2>Data Collection and Privacy</h2>
 
-    <p>We will collect and track your usage activity on our website for the purposes of improving our product. Your
-        personal information will be kept confidential in accordance with our privacy policy.</p>
+                <p>We will collect and track your usage activity on our website for the purposes of improving our
+                    product. Your
+                    personal information will be kept confidential in accordance with our privacy policy.</p>
 
-    <h2>Bugs and Feature Requests</h2>
+                <h2>Bugs and Feature Requests</h2>
 
-    <p>We encourage you to report any bugs or issues you encounter during the Beta Testing program, as well as any
-        feature requests or suggestions you may have. Your feedback is valuable to us and will help shape the future of
-        our product.</p>
+                <p>We encourage you to report any bugs or issues you encounter during the Beta Testing program, as well
+                    as any
+                    feature requests or suggestions you may have. Your feedback is valuable to us and will help shape
+                    the future of
+                    our product.</p>
 
-    <h2>AI Responses</h2>
+                <h2>AI Responses</h2>
 
-    <p>Please understand that AI can give back unpredictable responses and Cephadex will not be held responsible for any
-        content created using our product or service.</p>
+                <p>Please understand that AI can give back unpredictable responses and Cephadex will not be held
+                    responsible for any
+                    content created using our product or service.</p>
 
-    <h2>Special Rate</h2>
+                <h2>Special Rate</h2>
 
-    <p>As a participant in our beta test we promise to reward you by offering our lowest possible rate (at cost) for life. </p>
+                <p>As a participant in our beta test we promise to reward you by offering our lowest possible rate (at
+                    cost) for life. </p>
 
-    <p>Thank you for joining us on this journey! We're excited to have you on board.</p>
+                <p>Thank you for joining us on this journey! We're excited to have you on board.</p>
 
-</div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-</div>
-</div>
-</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -218,7 +240,8 @@
                     terms and conditions, or your violation of any rights of another.</p>
 
                 <h5>5-Termination</h5>
-                <p>Cephadex may terminate your access to the Services at any time, with or without cause, without notice,
+                <p>Cephadex may terminate your access to the Services at any time, with or without cause, without
+                    notice,
                     and without liability to you.</p>
 
                 <h5>6-Modifications</h5>
@@ -240,14 +263,14 @@
 
 
 <script>
-    $(document).ready(function() {
-        $('#username').on('input', function() {
+    $(document).ready(function () {
+        $('#username').on('input', function () {
             var username = $('#username').val();
             var registerBtn = $('#register-btn');
             console.log(username)
             $.ajax({
                 url: '/check_username/' + username,
-                success: function(data) {
+                success: function (data) {
                     if (data.username_taken) {
                         $('#username-error').html('Username is already taken');
                     } else {
@@ -259,16 +282,21 @@
     });
 
 
-const form = document.querySelector("form")
+    const form = document.querySelector("form")
 
 
-form.addEventListener('submit', e => {
-    if (!form.checkValidity()) {
-        e.preventDefault()
-    }
-    form.classList.add('was-validated')
-})
+    form.addEventListener('submit', e => {
+        if (!form.checkValidity()) {
+            e.preventDefault()
+        }
+        form.classList.add('was-validated')
+    })
 
 
 </script>
+
+
+
+
+
 {% endblock %}

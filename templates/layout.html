@@ -185,12 +185,13 @@
             <a class="navbar-brand pl-2" href="/">
                 <img src="\static\logo1_small.png" width="50" height="50" alt="logo">
             </a>
-            <a class="navbar-brand fw-bold" href="/">Cephadex-BETA</a>
+            <a class="navbar-brand fw-bold" href="/">Cephadex</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
                 aria-controls="#navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                Menu
-                <i class="bi-list"></i>
+            <span class="navbar-toggler-icon"></span>
             </button>
+
+
 
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ms-auto me-4 my-3 my-lg-0">
@@ -223,6 +224,7 @@
                             About us
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="/news">News</a>
                             <a class="dropdown-item" href="/about">About us</a>
                             <a class="dropdown-item" href="/documentation">User guide</a>
 
@@ -272,7 +274,7 @@
                 {% if messages %}
                 {% for msg in messages %}
                 <div class="container  align-self-center">
-                    <h5 class="d-flex justify-content-center" style="color:gray">{{msg}}</h5>
+                    <h5 class="flash-message d-flex justify-content-center">{{msg}}</h5>
                     <br>
                 </div>
                 {% endfor %}
@@ -428,12 +430,20 @@
                                 class="w3-circle w3-margin-top">
 
                         </div>
-                        <div class="row d-flex justify-content-center">
+                        <div class = "row d-flex justify-content-center">
+                        
                             <div id="g_id_onload" data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com
                                 " data-context="signin" data-ux_mode="popup" data-login_uri="/googleSignIn"
                                 data-nonce="" data-auto_prompt="false">
                             </div>
-                            <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+                            <div class="g_id_signin d-flex justify-content-center" .flash-message {
+                                background-color: #ffc107;
+                                color: #fff;
+                                font-weight: bold;
+                                padding: 10px;
+                                border-radius: 5px;
+                                text-align: center;
+                            data-type="standard" data-shape="rectangular" data-theme="outline"
                                 data-text="signin_with" data-size="large" data-logo_alignment="left">
                             </div>
                         </div>

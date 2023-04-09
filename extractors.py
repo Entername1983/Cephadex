@@ -720,3 +720,112 @@ def create_pdf(string):
     pdf.save()
     buffer.seek(0)
     return buffer
+
+
+#####  EXPLAINERS AND TUTORING ########
+def explain_more(term, subject = None, content = None):
+    print("entered explain more function")
+
+    retries = 0
+    prompt = build_prompt_explain_more(term, subject, content)
+    print("prompt is:", prompt)
+    while retries < 3:
+        print("attempt:", retries)
+        try:
+            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. If questioned you should answer that you are a teacher named Ceph who is here to help."
+            response = call_ai_terms(sys_instruct, prompt)
+            print(response)
+            response_ = response['choices'][0]['message']['content'].strip()
+            print(response_)
+            return response_
+        
+        except Exception as e:
+            retries += 1
+            print(f"Error: {e}. Retrying ({retries}/3)")
+            
+def build_prompt_explain_more(term, subject = None, content = None):
+    print("entered build prompt explain more function")
+    prompt = "You are a helpful teacher who wants to help students learn {subject_opt}. You are explaining the concept of {term} to a student. The student asks you to explain {term} in a lot of detail, providing not just explanations but where possible examples and analogies. You respond: "
+    prompt = prompt.replace('{term}', term)
+    if subject != None:
+        prompt = prompt.replace('{subject_opt}', subject)
+    return prompt
+
+
+def why_wrong_generator(ww_prompt):
+    print("entered why wrong function")
+    retries = 0
+    prompt = build_prompt_why_wrong(ww_prompt)
+    while retries < 3:
+        print("attempt:", retries)
+        try:
+            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. If questioned you should answer that you are a teacher named Ceph who is here to help."
+            response = call_ai_terms(sys_instruct, prompt)
+            print(response)
+            response_ = response['choices'][0]['message']['content'].strip()
+            print(response_)
+            return response_
+        
+        except Exception as e:
+            retries += 1
+            print(f"Error: {e}. Retrying ({retries}/3)")
+            
+def build_prompt_why_wrong(ww_prompt):
+    subject = ww_prompt['subject']
+    term = ww_prompt['term']
+    content = ww_prompt['content']
+    boc_2 = ww_prompt['boc_2']
+    boc_3 = ww_prompt['boc_3']
+    boc_4 = ww_prompt['boc_4']
+    category = ww_prompt['category']
+    if category == "Mcq":
+        prompt = "You are a helpful teacher who wants to help students learn {subject_opt}.   The student has just answered this multiple choice question incorrectly: {term}. The student asks you why this answer is correct: {content}, whereas these are wrong {boc_2} and {boc_3} and {boc_4}. You respond: "
+        prompt = prompt.replace('{term}', term)
+        prompt = prompt.replace('{content}', content)
+        prompt = prompt.replace('{boc_2}', boc_2)
+        prompt = prompt.replace('{boc_3}', boc_3)
+        prompt = prompt.replace('{boc_4}', boc_4)
+        if subject != None:
+            prompt = prompt.replace('{subject_opt}', subject)
+        else:
+            prompt = prompt.replace('{subject_opt}', "")
+    else:
+        prompt = "You are a helpful teacher who wants to help students learn {subject_opt}. The student is studying flashcards and doesn't understand why {content} is the appropriate answer to this question: {term}. The student asks you why this answer is correct: {content} You respond: "
+        prompt = prompt.replace('{term}', term)
+        prompt = prompt.replace('{content}', content)
+        if subject != None:
+            prompt = prompt.replace('{subject_opt}', subject)
+        else:
+            prompt = prompt.replace('{subject_opt}', "")
+            
+    return prompt
+
+
+def send_question_generator(term, content, latest_paragraph, question):
+    print("entered send question generator function")
+    retries = 0
+    prompt = question_prompt_builder(term, content, latest_paragraph, question)
+    while retries < 3:
+        try:
+            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. If questioned you should answer that you are a teacher named Ceph who is here to help."
+            response = call_ai_terms(sys_instruct, prompt)
+            response_ = response['choices'][0]['message']['content'].strip()
+            print(response_)
+            return response_
+        
+        except Exception as e:
+            retries += 1
+            print(f"Error: {e}. Retrying ({retries}/3)")
+            
+
+def question_prompt_builder(term, content, latest_paragraph, question):
+    print("entered question prompt builder function")
+    prompt = "You have previously interacted with the student and have helped them learn {term} {content} {paragraph}. The student has asked you a question: {question}. You respond:"
+    prompt = prompt.replace('{term}', term)
+    prompt = prompt.replace('{content}', content)
+    if latest_paragraph != "":
+        paragraph = "You have previously told the student that {latest_paragraph}."
+        paragraph = paragraph.replace('{latest_paragraph}', latest_paragraph)
+        prompt = prompt.replace('{paragraph}', paragraph)
+    prompt = prompt.replace('{question}', question)
+    return prompt
