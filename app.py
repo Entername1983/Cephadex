@@ -1351,10 +1351,11 @@ def assign_test(test_id):
             test.topic = request.form['topic']
             test.instructions = request.form['instructions']
             test.description = request.form['description']
-            time_limit = int(request.form.get('time-limit'))
-            print(time_limit)
-            test.time_limit = time_limit
-            print
+            time_limit = request.form.get('time-limit')
+            if time_limit != '':
+                time_limit = int(time_limit)
+                test.time_limit = time_limit
+            
             answer_reveal = request.form.get('answer-reveal', False)
             result_reveal = request.form.get('result-reveal', False)
             shuffle = request.form.get('shuffle', False)
