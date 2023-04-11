@@ -573,4 +573,8 @@ button:disabled {
   background-color: #2087f6;
   border-color: #2087f6;
   transform: translateY(-2px);
+}
+
+.try-out-card-back {
+  background-color: aliceblue;
 }/*# sourceMappingURL=style.css.map */

@@ -691,69 +691,10 @@ button:disabled {
 }
 
 
-
-
-
-
-
-.process-section {
-  background-color: #f6f6f6;
+.try-out-card-back {
+  background-color: aliceblue;
 }
 
-.process-step {
-  padding: 40px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  transition: all 0.3s ease-in-out;
-}
 
-.process-step:hover {
-  box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.1);
-  transform: translateY(-5px);
-}
 
-.process-step i {
-  color: #0275d8;
-}
 
-.process-step h4 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-top: 20px;
-  margin-bottom: 10px;
-}
-
-.process-step p {
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-.process-step:not(:last-child) {
-  margin-right: 60px;
-}
-
-.process-step:not(:last-child)::after {
-  content: "";
-  display: block;
-  position: absolute;
-  height: 40px;
-  width: 40px;
-  border-radius: 50%;
-  background-color: white;
-  border: 1px solid #ddd;
-  z-index: 1;
-  top: 50%;
-  right: -20px;
-  transform: translateY(-50%);
-}
-
-.process-step:not(:last-child)::before {
-  content: "";
-  display: block;
-  position: absolute;
-  height: 0;
-  width: 0;
-  border-top: 20px solid transparent;
-  border-bottom: 20px solid transparent;
-  border-right: 

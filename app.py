@@ -156,8 +156,12 @@ class ChangePassForm(FlaskForm):
         
 class TryOut(FlaskForm):
     text_input = StringField('Text Input', validators=[Length(max=250)], render_kw={"placeholder": "Paste your text here (max 250 characters)"})
-
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice questions'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+    select_text = SelectField('Select Text', choices=[('', 'Select a passage on one of the following topics'), ('A cephalopod  is any member of the molluscan class Cephalopoda  (Greek plural "head-feet") such as a squid, octopus, cuttlefish, or nautilus. These exclusively marine animals are characterized by bilateral body symmetry, a prominent head, and a set of arms or tentacles (muscular hydrostats) modified from the primitive molluscan foot. Fishers sometimes call cephalopods "inkfish", referring to their common ability to squirt ink. The study of cephalopods is a branch of malacology known as teuthology.', 'Cephalopods'),
+                                                      ('A deck is a permanent covering over a compartment or a hull of a ship. On a boat or ship, the primary or upper deck is the horizontal structure that forms the "roof" of the hull, strengthening it and serving as the primary working surface. Vessels often have more than one level both within the hull and in the superstructure above the primary deck, similar to the floors of a multi-storey building, that are also referred to as decks, as are certain compartments and decks built over specific areas of the superstructure. Decks for some purposes have specific names.', 'Ship decks'), 
+                                                      ('The Great Library of Alexandria in Alexandria, Egypt, was one of the largest and most significant libraries of the ancient world. The Library was part of a larger research institution called the Mouseion, which was dedicated to the Muses, the nine goddesses of the arts. The idea of a universal library in Alexandria may have been proposed by Demetrius of Phalerum, an exiled Athenian statesman living in Alexandria, to Ptolemy I Soter, who may have established plans for the Library, but the Library itself was probably not built until the reign of his son Ptolemy II Philadelphus. The Library quickly acquired many papyrus scrolls, owing largely to the Ptolemaic kings aggressive and well-funded policies for procuring texts. It is unknown precisely how many such scrolls were housed at any given time, but estimates range from 40,000 to 400,000 at its height.', 'The Great Library of Alexandria'), 
+                                                      ('Spaced repetition is an evidence-based learning technique that is usually performed with flashcards. Newly introduced and more difficult flashcards are shown more frequently, while older and less difficult flashcards are shown less frequently in order to exploit the psychological spacing effect. The use of spaced repetition has been proven to increase the rate of learning. Although the principle is useful in many contexts, spaced repetition is commonly applied in contexts in which a learner must acquire many items and retain them indefinitely in memory. It is, therefore, well suited for the problem of vocabulary acquisition in the course of second-language learning. A number of spaced repetition software programs have been developed to aid the learning process. It is also possible to perform spaced repetition with physical flashcards using the Leitner system.', 'Spaced Repetition and Flashcards'), 
+                                                      ], default='Choose a text')
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
                                            ('Comprehension', 'Comprehension'), ('Custom', 'Custom')], default='Definitions')
     languages = SelectField('Languages', choices=[("",  "Choose a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
@@ -285,7 +289,8 @@ def index():
     terms = []
     if form.validate_on_submit():
         print("form validated")
-        text = form.text_input.data
+        text = form.select_text.data
+        print(text)
         prompt_options = {
             'main_opt': form.prompt.data or None,
             'trans_opt': form.languages.data or None,
@@ -313,11 +318,62 @@ def index():
             
     return render_template('index.html', form = form)
 
-    
+
+
+
+@app.route("/tryout", methods=["GET", "POST"])
+def tryout():
+    form = TryOut()
+
+    terms = []
+    if form.validate_on_submit():
+        print("form validated")
+        text = form.select_text.data
+        print(text)
+        prompt_options = {
+            'main_opt': form.prompt.data or None,
+            'trans_opt': form.languages.data or None,
+            'lang_opt': None,
+            'detail_lvl_opt': "long",
+            'min_opt':  None,
+            'max_opt':  None,
+            'images_opt':  None,
+            'save_text_opt':  None,
+            'subject_opt':  None,
+            'custom_term':  form.custom_term.data or None,
+            'custom_content': form.custom_content.data or None,
+        }
+        print(text)
+        print(prompt_options)
+        
+        response = creator(text, prompt_options)
+        terms = response[0]
+        print(terms)
+        json_terms = []
+        count = 0
+        for item in terms:
+            print(item)
+        if prompt_options['main_opt'] == 'Mcq':
+            for item in terms:
+                if count >= 8:
+                    break
+                json_terms.append({'A': item['A'], 'B': item['B'], 'C': item['C'], 'D': item['D'], 'E': item['E']})
+                count += 1
+        else:
+            for item in terms:
+                if count >= 8:
+                    break
+                json_terms.append({'A': item['A'], 'B': item['B']})
+                count += 1
+        print(json_terms)
+        
+        event_tracker(None, "tryout", json.dumps(prompt_options), json.dumps(terms))
+        return jsonify({'terms': json_terms, 'option': prompt_options['main_opt'], 'text': text})
     
 @app.route("/googleSignIn", methods=["POST"])
 def googleSignIn():
     #Security validation
+    form = TryOut()
     print("entered google sign in")
     csrf_token_cookie = request.cookies.get('g_csrf_token')
     if not csrf_token_cookie:
@@ -368,7 +424,7 @@ def googleSignIn():
     except ValueError:
         # Invalid token
         pass
-    return render_template('index.html', title='Index')
+    return render_template('index.html', title='Index', form = form)
 
 @app.route('/check_username/<username>', methods=["GET", "POST"])
 def check_username(username):
