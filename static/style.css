@@ -27,8 +27,12 @@ footer {
 }
 
 body {
-  background-image: url("/static/backg-1.jpeg") !important;
+  background-image: url("/static/back-2.jpeg") !important;
   background-size: cover;
+}
+
+.main-class {
+  margin-top: 100px;
 }
 
 .row {
@@ -434,4 +438,139 @@ button:disabled {
   margin-top: 2px;
   margin-bottom: 1px;
   border-radius: 2px;
+}
+
+.hero {
+  min-height: calc(100vh - 100px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-video {
+  width: 35vw;
+  height: 30vh;
+  border-radius: 10px;
+  border: #7A9CC6 solid 2px;
+}
+
+@media only screen and (max-width: 767px) {
+  .hero-video {
+    width: 90vw;
+  }
+}
+.try-out {
+  border-radius: 5px;
+  border: #7A9CC6 solid 2px;
+}
+
+.conversion-button {
+  display: inline-block;
+  padding: 12px 24px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #fff;
+  background-color: #6aaff9;
+  border-radius: 50px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.conversion-button:hover {
+  background-color: #2087f6;
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.scroll-down-icon {
+  position: relative;
+  transform: translateX(-50%);
+  z-index: 1;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.scroll-down-icon a {
+  display: block;
+  color: #fff;
+  background-color: #007bff;
+  border-radius: 50%;
+}
+
+.scroll-down-icon i {
+  font-size: 24px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.hero-text {
+  font-size: 36px;
+  font-weight: bold;
+  text-align: center;
+  color: #005b8e;
+  text-shadow: 1px 1px #fff;
+  margin-bottom: 20px;
+}
+
+@media only screen and (max-width: 767px) {
+  .hero-text {
+    font-size: 24px;
+  }
+}
+.newsletter-section {
+  background-color: #26475e;
+  border-radius: 10px;
+}
+
+.newsletter-section h2 {
+  color: #eaabab;
+}
+
+.newsletter-section p {
+  color: #8c8c8c;
+}
+
+.newsletter-section form {
+  margin-top: 30px;
+}
+
+.newsletter-section label {
+  color: #333;
+  font-weight: bold;
+}
+
+.newsletter-section .form-floating input,
+.newsletter-section .form-floating textarea {
+  border-radius: 10px;
+  border-color: #ccc;
+  color: #666;
+}
+
+.newsletter-section .form-floating label {
+  color: #333;
+}
+
+.newsletter-section button[type=submit] {
+  background-color: #6aaff9;
+  border-color: #6aaff9;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.newsletter-section button[type=submit]:hover {
+  background-color: #2087f6;
+  border-color: #2087f6;
+  transform: translateY(-2px);
 }/*# sourceMappingURL=style.css.map */

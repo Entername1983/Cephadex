@@ -482,6 +482,28 @@ def subscribe():
     return render_template('subscribe.html', title='Subscribe', form=subscribe_form)
 
 
+@app.route('/subscribe2', methods=['GET', 'POST'])
+def subscribe2():
+    data = request.json
+    first_name = data['first-name']
+    last_name = data['last-name']
+    email = data['email']
+    print(last_name)
+    existing_subscriber = Subscriber.query.filter_by(email=email).first()
+    print(existing_subscriber)
+    if existing_subscriber and existing_subscriber != None:
+        print("already subscribed")
+        flash("You are already subscribed!")
+        return jsonify({'status': 'failure', 'message': 'You are already subscribed!'})
+    else:
+        print(email)
+        print("not subscribed, subscribing")
+        subscriber = Subscriber(email=email, first_name=first_name, last_name=last_name, timestamp = datetime.utcnow())
+        db.session.add(subscriber)
+        db.session.commit()
+        flash("Thanks for subscribing!")
+        return jsonify({'status': 'success', 'message': 'Subscription successful!'})
+
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
