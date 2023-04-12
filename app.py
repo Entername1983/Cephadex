@@ -1703,7 +1703,7 @@ def import_deck():
                                 cardId = card['cardId']
                                 content = card['fields']['Back']['value']
                                 term = card['fields']['Front']['value']
-                                srs_interval = card['srs_interval']*1440
+                                srs_interval = card['interval']*1440
                                 entry = Card(term = term, content = content, srs_interval = srs_interval, category = "anki")
                                 db.session.add(entry)
                                 deck.cards.append(entry)
@@ -1716,11 +1716,14 @@ def import_deck():
             deck_names = request.form['deck-name']
             if not check_comma_list(deck_names):
                 deck_names = [deck_names]
-            deck_names = deck_names.split(",")
+            else:
+                deck_names = deck_names.split(",")
             for name in deck_names:
                 deck = anki_import_deck(name)
                 deck = json.loads(deck)
+                print(deck)
                 cards = deck[0][name]
+                print(cards)
                 description = "anki import"
                 deck = Deck(name = name, description = description, user_id = current_user.id)
                 db.session.add(deck)
@@ -1731,7 +1734,7 @@ def import_deck():
                     cardId = card['cardId']
                     content = card['fields']['Back']['value']
                     term = card['fields']['Front']['value']
-                    srs_interval = card['srs_interval']*1440
+                    srs_interval = card['interval']*1440
                     entry = Card(term = term, content = content, srs_interval = srs_interval)
                     db.session.add(entry)
                     deck.cards.append(entry)
@@ -1744,6 +1747,16 @@ def import_deck():
 
         return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)     
     return render_template('import_deck.html')
+
+def quote_deck_name_if_needed(deck_name):
+    if ' ' in deck_name:
+        return '"{}"'.format(deck_name)
+    else:
+        return deck_name
+
+
+
+
 
 @app.route("/export_deck/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
