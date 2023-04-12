@@ -1691,7 +1691,8 @@ def sea_source(file_id):
 def import_deck():
     ## IMPORT ALL DECKS FROM ANKI
     try:
-        request_anki_permission()
+        if request_anki_permission() == False:
+            return apology("anki permission returned false")
     except:
         print("anki permission NOT GRANTED")
         return apology("anki permission NOT GRANTED")
