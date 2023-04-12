@@ -1694,6 +1694,7 @@ def import_deck():
         request_anki_permission()
     except:
         print("anki permission NOT GRANTED")
+        return apology("anki permission NOT GRANTED")
     if check_anki_connect() == True:
         if request.method == "POST" and "import-all" in request.form:
             decks = anki_import_all()
@@ -1792,6 +1793,7 @@ def export_deck(deck_id):
         request_anki_permission()
     except:
         print("anki permission NOT GRANTED")
+        return apology("Anki did not grant permission")
     if check_anki_connect() == True:
         deck = Deck.query.get_or_404(deck_id)
         if deck.user != current_user:
