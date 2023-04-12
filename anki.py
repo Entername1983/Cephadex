@@ -220,3 +220,18 @@ def request_anki(payload):
         return None
 
 
+def request_anki_permission():
+    print("entered request anki permission")
+    payload = {
+    "action": "requestPermission",
+    "version": 6
+}
+    payload = json.dumps(payload).encode('utf-8')
+    response = request_anki(payload)
+    print(response)
+    if response['result']['permission'] != 'granted':
+        print("permission not granted")
+        return False
+    else :
+        print("permission granted")
+    return True

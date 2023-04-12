@@ -35,7 +35,7 @@ import urllib.parse
 from urllib.parse import unquote
 from helpers import remove_punctuation, apology
 import difflib
-from anki import anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes, check_anki_connect
+from anki import request_anki_permission, anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes, check_anki_connect
 from flask import abort
 from celery import Celery
 import time
@@ -1683,9 +1683,17 @@ def sea_source(file_id):
 
     return render_template('sea_source.html',file=source)
 
+
+
+
+
 @app.route("/import_deck/", methods=["GET", "POST"])
 def import_deck():
     ## IMPORT ALL DECKS FROM ANKI
+    try:
+        request_anki_permission()
+    except:
+        print("anki permission NOT GRANTED")
     if check_anki_connect() == True:
         if request.method == "POST" and "import-all" in request.form:
             decks = anki_import_all()
@@ -1700,13 +1708,28 @@ def import_deck():
                         for i in range(len(value)):
                             for j in range(len(value[i])):
                                 card = value[i][j]
+                                print(card)
+                                print("CHECK CHECK CHECK")
                                 cardId = card['cardId']
-                                content = card['fields']['Back']['value']
-                                term = card['fields']['Front']['value']
-                                srs_interval = card['interval']*1440
-                                entry = Card(term = term, content = content, srs_interval = srs_interval, category = "anki")
-                                db.session.add(entry)
-                                deck.cards.append(entry)
+                                try:
+                                    back = card['fields']['Back']['value']
+                                    if back:
+                                        content = back
+                                
+                                    print("no back")
+                    
+                                    front = card['fields']['Front']['value']
+                                    if front:
+                                        term = front
+
+        
+                                    srs_interval = card['interval']*1440
+                                    entry = Card(term = term, content = content, srs_interval = srs_interval, category = "anki")
+                                    db.session.add(entry)
+                                    deck.cards.append(entry)
+                                except:
+                                    print("no back, no front, whaaaa")
+                                    pass
                         db.session.commit()
             event_tracker(current_user.id, "import-anki", "success")
 
@@ -1732,8 +1755,12 @@ def import_deck():
                     card = cards[i][0]
                     print(card)
                     cardId = card['cardId']
-                    content = card['fields']['Back']['value']
-                    term = card['fields']['Front']['value']
+                    back = card['fields']['Back']['value']
+                    if back:
+                        content = back
+                    front = card['fields']['Front']['value']
+                    if front:
+                        term = front
                     srs_interval = card['interval']*1440
                     entry = Card(term = term, content = content, srs_interval = srs_interval)
                     db.session.add(entry)
@@ -1761,6 +1788,10 @@ def quote_deck_name_if_needed(deck_name):
 @app.route("/export_deck/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
 def export_deck(deck_id):
+    try:
+        request_anki_permission()
+    except:
+        print("anki permission NOT GRANTED")
     if check_anki_connect() == True:
         deck = Deck.query.get_or_404(deck_id)
         if deck.user != current_user:
@@ -1782,6 +1813,33 @@ def export_deck(deck_id):
         event_tracker(current_user.id, "export-anki", "fail")
 
         return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)
+
+
+#### JAVASCRIPT ANKI CONNECT
+@app.route('/get_deck_data/<int:deck_id>', methods=['GET'])
+def get_deck_data(deck_id):
+    print("entered get_deck_data")
+    deck_name = Deck.query.get_or_404(deck_id).name
+    cards = Deck.query.get_or_404(deck_id).cards
+    print(deck_name, cards)
+    card_list = []
+    for card in cards:
+        card_list.append({
+            'id': card.id,
+            'front': card.term,
+            'back': card.content,
+            'interval': card.srs_interval
+        })
+    response = jsonify({
+        'name': deck_name,
+        'cards': card_list
+    })
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5000')
+    response.headers.add('Access-Control-Allow-Headers', '*')
+    response.headers.add('Access-Control-Allow-Private-Network', 'true')
+
+    return response
+
 
 @app.route("/about/", methods=['GET', 'POST'])
 def about():
