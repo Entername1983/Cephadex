@@ -6,6 +6,8 @@ $std_col_4: #71B379;
 $xtr_col_1: #37D6A4;
 $xtr_col_2: #F1466B;
 
+
+$serious_blue: #26475e;
 // Navbar color #609BCF
 
 $dark: #2D3142;
@@ -198,7 +200,7 @@ body {
     background-color: $backgroundC !important;
     border-width:1px !important;
     border-radius: 5px !important;
-    border-color: $borderC !important;
+    border-color: $serious_blue !important;
     align-self: center !important;
     color: $textC !important;
 }
@@ -509,7 +511,7 @@ button:disabled {
   }
 // LANDING PAGE
 .bg-gradient-primary-to-secondary {
-    background: linear-gradient(45deg, $std_col_1, $std_col_3) !important;
+    background: linear-gradient(45deg, $serious_blue, rgb(33, 113, 179)) !important;
   }
 
 
@@ -698,3 +700,16 @@ button:disabled {
 
 
 
+.btn-test-1 {
+  border-radius: 10px;
+  color: aliceblue;
+  background: linear-gradient(to bottom, #26475e, #090d16);
+  padding: 10px 20px;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-test-1:hover {
+  transform: scale(1.1);
+  background: linear-gradient(to bottom, #29475c, #1e2b48);
+  cursor: pointer;
+}

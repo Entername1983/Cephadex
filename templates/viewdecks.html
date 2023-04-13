@@ -209,7 +209,7 @@ checkbox.addEventListener( 'change', function() {
               <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="Download as CSV">
             </a>
-            <a href="export_deck/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
+            <a onclick="exportDeckToAnki('{{deck.id}}');" style="cursor: pointer; text-decoration: none;">
               <img src="\static\anki-icon.png" alt="Export to Anki" style="max-width:30px;max-height:30px; text-decoration: none;"
                 class="px-1" title="Export to Anki">
             </a>
@@ -269,7 +269,7 @@ checkbox.addEventListener( 'change', function() {
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="ModalLabel{{deck.id}}">Share deck</h5>
+        <h5 class="modal-title" id="ModalLabel{{deck.id}}" style = "color:  #eaabab">Share deck</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -300,7 +300,7 @@ checkbox.addEventListener( 'change', function() {
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}">Deck details:</h5>
+        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}" style = "color:  #eaabab">Deck details:</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -359,7 +359,7 @@ checkbox.addEventListener( 'change', function() {
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="SharedDecksModalLabel">Shared Decks</h5>
+        <h5 class="modal-title" id="SharedDecksModalLabel" style = "color:  #eaabab">Shared Decks</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -457,7 +457,7 @@ checkbox.addEventListener( 'change', function() {
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="testModalLabel">Tests</h5>
+        <h5 class="modal-title" id="testModalLabel" style = "color:  #eaabab">Tests</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -497,7 +497,108 @@ checkbox.addEventListener( 'change', function() {
 </div>
 
 
+<script>
+  function exportDeckToAnki(deckId) {
+    requestAnkiConnectPermission();
+    exportDeckToAnki(deckId);
+    
+  
+  }  
+  async function requestAnkiConnectPermission() {
+    const url = 'http://127.0.0.1:8765/';
+    const request = {
+      action: 'requestPermission',
+      version: 6,
+    };
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+    const data = await response.json();
+    console.log(data.permission);
+    return data;
+  }
 
+  
+    async function ankiConnectInvoke(action, version, params) {
+      const url = 'http://127.0.0.1:8765/';
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action, version, params })
+      });
+      return await response.json();
+    }
+
+    async function exportDeckToAnki(deckId) {
+      // Replace this with the actual URL that returns the deck name and cards from your backend
+      const backendUrl = `/get_deck_data/` + deckId;
+      console.log(backendUrl)
+  
+      try {
+        const response = await fetch(backendUrl);
+        if (response.ok) {
+          const deckData = await response.json();
+          const deckName = deckData.name;
+          const cards = deckData.cards;
+  
+          // Call the exportToAnki function with the fetched deck name and cards
+          await exportToAnki(deckName, cards);
+        } else {
+          alert("Error fetching deck data1: " + response.statusText);
+        }
+      } catch (error) {
+        alert("Error fetching deck data: " + error);
+      }
+    }
+
+    async function exportToAnki(deckName, cards) {
+      const ankiConnectUrl = "http://127.0.0.1:8765";
+      console.log("entered export to anki")
+      console.log(deckName, cards)
+      // Create or update the deck
+      await fetch(ankiConnectUrl, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "createDeck",
+          version: 6,
+          params: {
+            deck: deckName,
+          },
+        }),
+      });
+  
+      // Add cards to the deck
+      for (const card of cards) {
+        console.log("individual card")
+        console.log(card.front)
+        await fetch(ankiConnectUrl, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "addNote",
+            version: 6,
+            params: {
+              note: {
+                deckName: deckName,
+                modelName: "Basic",
+                fields: {
+                  Front: card.front,
+                  Back: card.back,
+                },
+                options: {
+                  allowDuplicate: false,
+                },
+                tags: card.tags || [],
+              },
+            },
+          }),
+        });
+      }
+      alert("Deck exported to Anki succesfully!");
+    }
+</script>
 
 
 

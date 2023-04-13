@@ -11,7 +11,7 @@
     <div class = "container box_study p-2 ">
 <br>
         <h5 class ="d-flex justify-content-center"> Import all decks: </h5>
-<form class ="d-flex justify-content-center" method = "POST">
+<form id="import-all-form" class ="d-flex justify-content-center" method = "POST">
 <input class ="d-flex justify-content-center box_study" type ="submit" value="Import all decks" id = "import-all" name="import-all" >
 </form>
 <br>
@@ -19,7 +19,7 @@
 <br>
 <h5 class ="d-flex justify-content-center"> Import individual decks: </h5>
 
-<form  class ="d-flex justify-content-center"method = "POST">
+<form  id="import-by-name-form" class ="d-flex justify-content-center"method = "POST">
     <label class ="d-flex justify-content-center" for = "deck-name">Deck name(s):  </label>
     <input type="text" name="deck-name" id="deck-name" placeholder="MyAnkiDeck1, MyAnkiDeck2,..." class =" box_study" style="width: 300px">
         <input type ="submit" value="Import" id = "import-by-name" name="import-by-name"class =" box_study ">
@@ -32,6 +32,138 @@
 </div>
 
 
+<script>
+    document.getElementById('import-all-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        importDecks();
+    });
+    
+    document.getElementById('import-by-name-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const deckNames = document.getElementById('deck-name').value.split(',').map(name => name.trim());
+        importDecks(deckNames);
+    });
+    
+    async function importDecks(deckNames = []) {
+        await requestAnkiConnectPermission();
+        const decks = await getDecks(deckNames);
+        const cardsByDeck = await getCardsByDeck(decks);
+        const data = formatDataForBackend(cardsByDeck);
+        sendDataToBackend(data);
+        // Send the data to the backend here
+      }
+      
+      async function getCardsByDeck(decks) {
+        const cardsByDeck = {};
+        for (const deck of decks) {
+          const cardIds = await invoke('findCards', 6, {query: `deck:"${deck}"`});
+          const cards = await invoke('cardsInfo', 6, { cards: cardIds });
+          cardsByDeck[deck] = cards.map(card => {
+            return {
+              id: card.noteId,
+              front: card.fields.Front,
+              back: card.fields.Back,
+              interval: card.interval
+            };
+          });
+        }
+        return cardsByDeck;
+      }
+      
+      function formatDataForBackend(cardsByDeck) {
+        const data = [];
+        for (const deckName of Object.keys(cardsByDeck)) {
+          const deckCards = cardsByDeck[deckName];
+          for (const card of deckCards) {
+            data.push({
+              deckName: deckName,
+              modelName: "Basic",
+              fields: {
+                Front: card.front,
+                Back: card.back
+              },
+              options: {
+                allowDuplicate: false
+              },
+              tags: [],
+              id: card.id,
+              interval: card.interval
+            });
+          }
+        }
+        return data;
+      }
+    async function getDecks(deckNames) {
+        const url = 'http://127.0.0.1:8765/';
+        const request = await invoke('deckNames', 6);  
+        // If no deckNames are provided, return all decks
+        if (!deckNames || !deckNames.length) {
+            return request;
+        }
+        const decks = request.filter(deckName => deckNames.includes(deckName));
+        return decks;
+    }
 
+    async function sendDataToBackend(data) {
+        console.log("entered send data to backend")
+        const url = '/import_anki';
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        const responseData = await response.json();
+        if (response.ok && responseData.success) {
+          alert("Deck(s) imported successfully");
+      } else {
+        alert("There was an issue importing your deck(s).  Please try again later.");
+      }
+      }
+
+      function invoke(action, version, params={}) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.addEventListener('error', () => reject('failed to issue request'));
+            xhr.addEventListener('load', () => {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (Object.getOwnPropertyNames(response).length != 2) {
+                        throw 'response has an unexpected number of fields';
+                    }
+                    if (!response.hasOwnProperty('error')) {
+                        throw 'response is missing required error field';
+                    }
+                    if (!response.hasOwnProperty('result')) {
+                        throw 'response is missing required result field';
+                    }
+                    if (response.error) {
+                        throw response.error;
+                    }
+                    resolve(response.result);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+    
+            xhr.open('POST', 'http://127.0.0.1:8765');
+            xhr.send(JSON.stringify({action, version, params}));
+        });
+    }
+    async function requestAnkiConnectPermission() {
+        const url = 'http://127.0.0.1:8765/';
+        const request = {
+          action: 'requestPermission',
+          version: 6,
+        };
+        const response = await fetch(url, {
+          method: 'POST',
+          body: JSON.stringify(request),
+        });
+        const data = await response.json();
+        return data;
+      }
+</script>
 
 {% endblock %}

@@ -131,7 +131,7 @@ body {
   background-color: white !important;
   border-width: 1px !important;
   border-radius: 5px !important;
-  border-color: #1D71BA !important;
+  border-color: #26475e !important;
   align-self: center !important;
   color: #2D3142 !important;
 }
@@ -411,7 +411,7 @@ button:disabled {
 }
 
 .bg-gradient-primary-to-secondary {
-  background: linear-gradient(45deg, #1D71BA, #B25690) !important;
+  background: linear-gradient(45deg, #26475e, rgb(33, 113, 179)) !important;
 }
 
 .circle-img {
@@ -577,4 +577,18 @@ button:disabled {
 
 .try-out-card-back {
   background-color: aliceblue;
+}
+
+.btn-test-1 {
+  border-radius: 10px;
+  color: aliceblue;
+  background: linear-gradient(to bottom, #26475e, #090d16);
+  padding: 10px 20px;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-test-1:hover {
+  transform: scale(1.1);
+  background: linear-gradient(to bottom, #29475c, #1e2b48);
+  cursor: pointer;
 }/*# sourceMappingURL=style.css.map */

@@ -1,9 +1,9 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
     main_0 %}
-    <div class = "container">
+    <div class="container" style="border: 3px solid #26475e; border-radius: 5px;">
     
     
-        <div class="row fixed-top" style="background-color: rgba(29, 113, 186); margin-top: 75px;">
+        <div class="row " style="background-color: #26475e; color:aliceblue">
             <form action="" method="POST" class="">
         
         
@@ -34,7 +34,7 @@
             </div>
         </div>
         <div class="col-9 d-flex justify-content-end p-4">
-            <input class="btn-primary box_study" type="submit" value="Done selecting question" onclick="return validateForm()">
+            <input class=" p-2  btn-test-1" type="submit" value="Done selecting questions" onclick="return validateForm()" style="border-radius: 10px; color:aliceblue; background: linear-gradient(to bottom, #26475e, rgb(78, 127, 212));">
         </div>
         </div>
     </div>
@@ -43,7 +43,7 @@
     {% for card in deck.cards %}
     {% if card.category in ["Mcq", "Cloze"] %}
     
-    <div class="card m-1" style="">
+    <div class="card mt=1" style="">
         <div class="card-body box_study w-100">
             <div class="row">
                 <div class="col-1 ">
@@ -85,7 +85,7 @@
     
     
     {% elif card.category == "Formulas" %}
-    <div class="card m-1" style="">
+    <div class="card mt-1" style="">
         <div class="card-body box_study w-100">
             <div class="row">
                 <div class="col-1 ">
@@ -123,8 +123,8 @@
     
     {% else %}
     
-    <div class="card m-1" style="">
-        <div class="card-body box_study w-100">
+    <div class="card mt-1" style="">
+        <div class="card-body box_study w-100"  style = "margin:0px !important;">
             <div class="row">
                 <div class="col-1 ">
     

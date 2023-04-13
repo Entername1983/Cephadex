@@ -65,9 +65,13 @@ checkbox.addEventListener( 'change', function() {
         document.getElementById("extract-message").style.display = "inline-block";
     }
 </script>
-<div class="container" style="text-align:center">
-    <h3 class="p-3 d-none d-md-block"> Generate cards in 3 easy steps!</h3>
-    <h6 class="p-3 d-none d-sm-block"> Looking to import decks from Anki? Click <a href="/import_deck/">here!</a></h6>
+<div class="container" style="">
+    <div class="mb-5 mb-lg-0 text-center text-lg-start">
+    <h4 class="d-none d-md-block"> Create customized study material in 3 easy steps</h4>
+   
+    <p  class="text-muted d-none d-sm-block"> Looking to import decks from Anki? Click <a href="/import_deck/">here!</a></p>
+    </div>
+    </div>
 </div>
 
 <div class="col-11 mx-auto box_0 my-3 p-2" style="border-radius: 5px;">
@@ -296,11 +300,11 @@ checkbox.addEventListener( 'change', function() {
 
                                     <div class="form-group mt-2">
 
-                                        {{ form.generate_images (id = "gen-images", class="form-check-input")}}
-                                        <label for="gen-images">Generate images</label>
+                                        {{ form.generate_images(id="gen-images", class="", disabled = "disabled") }}
+                                        <label for="gen-images">Generate images <small class="text-muted">(available for premium members)</small></label>
 
 
-                                        {{ form.save_text (id = "save-text", class="form-check-input")}}
+                                        {{ form.save_text (id = "save-text", class="")}}
                                         <label for="save-text">Save text</label>
                                     </div>
 
@@ -458,7 +462,7 @@ checkbox.addEventListener( 'change', function() {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary p-4">
-                <h5 class="modal-title" id="promptInfoModalLabel">Main options explained:</h5>
+                <h5 class="modal-title" id="promptInfoModalLabel" style = "color:  #eaabab">Main options explained:</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -512,7 +516,7 @@ checkbox.addEventListener( 'change', function() {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-gradient-primary-to-secondary p-4">
-                <h5 class="modal-title" id="promptInfoAdvancedModalLabel">Advanced options explained:</h5>
+                <h5 class="modal-title" id="promptInfoAdvancedModalLabel" style = "color:  #eaabab">Advanced options explained:</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

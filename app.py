@@ -1119,7 +1119,7 @@ def extract():
             if perform_operation(current_user.id, prompt_options['main_opt'], tokens) == False:
                 flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
                 event_tracker(current_user.id, 'extract_start', 'fail', "limit_reached")
-                return redirect(url_for('account'))
+                return redirect(url_for('upgrade'))
             else:
                 if prompt_options['main_opt'] != 'Transcribe':
                     print("splitting text")
@@ -1689,93 +1689,36 @@ def sea_source(file_id):
 
 @app.route("/import_deck/", methods=["GET", "POST"])
 def import_deck():
-    ## IMPORT ALL DECKS FROM ANKI
-    try:
-        if request_anki_permission() == False:
-            return apology("anki permission returned false")
-    except:
-        print("anki permission NOT GRANTED")
-        return apology("anki permission NOT GRANTED")
-    if check_anki_connect() == True:
-        if request.method == "POST" and "import-all" in request.form:
-            decks = anki_import_all()
-            decks = json.loads(decks)
-            for deck in decks:
-                for key, value in deck.items():
-                    if value != []:
-                        description = "anki import"
-                        deck = Deck(name = key, description = description, user_id = current_user.id)
-                        db.session.add(deck)
-                        db.session.commit()
-                        for i in range(len(value)):
-                            for j in range(len(value[i])):
-                                card = value[i][j]
-                                print(card)
-                                print("CHECK CHECK CHECK")
-                                cardId = card['cardId']
-                                try:
-                                    back = card['fields']['Back']['value']
-                                    if back:
-                                        content = back
-                                
-                                    print("no back")
-                    
-                                    front = card['fields']['Front']['value']
-                                    if front:
-                                        term = front
-
-        
-                                    srs_interval = card['interval']*1440
-                                    entry = Card(term = term, content = content, srs_interval = srs_interval, category = "anki")
-                                    db.session.add(entry)
-                                    deck.cards.append(entry)
-                                except:
-                                    print("no back, no front, whaaaa")
-                                    pass
-                        db.session.commit()
-            event_tracker(current_user.id, "import-anki", "success")
-
-            flash("Decks imported", "success")
-            return redirect(url_for('viewdecks'))
-        if request.method == "POST" and "import-by-name" in request.form:
-            deck_names = request.form['deck-name']
-            if not check_comma_list(deck_names):
-                deck_names = [deck_names]
-            else:
-                deck_names = deck_names.split(",")
-            for name in deck_names:
-                deck = anki_import_deck(name)
-                deck = json.loads(deck)
-                print(deck)
-                cards = deck[0][name]
-                print(cards)
-                description = "anki import"
-                deck = Deck(name = name, description = description, user_id = current_user.id)
-                db.session.add(deck)
-                db.session.commit()
-                for i in range(len(cards)):
-                    card = cards[i][0]
-                    print(card)
-                    cardId = card['cardId']
-                    back = card['fields']['Back']['value']
-                    if back:
-                        content = back
-                    front = card['fields']['Front']['value']
-                    if front:
-                        term = front
-                    srs_interval = card['interval']*1440
-                    entry = Card(term = term, content = content, srs_interval = srs_interval)
-                    db.session.add(entry)
-                    deck.cards.append(entry)
-                db.session.commit()
-            event_tracker(current_user.id, "import-anki", "success")
-            flash("Decks imported", "success")
-            return redirect(url_for('viewdecks'))
-    else:
-        event_tracker(current_user.id, "import-anki", "fail")
-
-        return apology('Please make sure you are a) on a desktop b) have Anki installed and running c) have the AnkiConnect plugin installed and enabled.', 400)     
     return render_template('import_deck.html')
+
+
+@app.route('/import_anki', methods=['POST'])
+@login_required
+def import_anki():
+    print("entered import_anki")
+    data = request.json
+    for card in data:
+        deck_name = card['deckName']
+        print(deck_name)
+        card_front = card['fields']['Front']['value']
+        print(card_front)
+        card_back = card['fields']['Back']['value']
+        print(card_back)
+        deck = Deck.query.filter_by(name=deck_name, user_id=current_user.id).first()
+        if not deck:
+            deck = Deck(name=deck_name, description="anki", user_id=current_user.id)
+            db.session.add(deck)
+            db.session.commit()
+
+        print("creating new card")
+        card_O = Card(term=card_front, content=card_back, srs_interval=card['interval']*1440, category="anki")
+        db.session.add(card_O)
+        deck.cards.append(card_O)
+        db.session.commit()
+    flash('Anki deck imported', 'success')
+    return jsonify({"success": True})
+
+
 
 def quote_deck_name_if_needed(deck_name):
     if ' ' in deck_name:
@@ -1784,8 +1727,9 @@ def quote_deck_name_if_needed(deck_name):
         return deck_name
 
 
-
-
+@app.route('/upgrade', methods=['GET', 'POST'])
+def upgrade():
+    return render_template('upgrade.html')
 
 @app.route("/export_deck/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
@@ -1837,10 +1781,6 @@ def get_deck_data(deck_id):
         'name': deck_name,
         'cards': card_list
     })
-    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5000')
-    response.headers.add('Access-Control-Allow-Headers', '*')
-    response.headers.add('Access-Control-Allow-Private-Network', 'true')
-
     return response
 
 

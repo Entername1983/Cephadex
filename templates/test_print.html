@@ -34,16 +34,17 @@
 </head>
 
 <body>
+    <div class = "p-4">
 {% set q_counter = 0 %}
-
 <div class="row">
-        <div class="col-1">
-        <img src="/static/logo1_small.png" style="max-width: 70px; max-height:70px">
+            <h5 class=" fw-bold" href="/">www.Cephadex.com</h5>
     </div>
+<div class="row">
+        
     <div class="col-4 d-flex align-items-center">
         <h5>Name:____________________</h5>
     </div>
-    <div class="col-5 d-flex align-items-center">
+    <div class="col-6 d-flex align-items-center">
         <h4>Test: {{test.name}}</h4>
     </div>
     <div class="col-2 d-flex align-items-center">
@@ -64,7 +65,7 @@
                     {{q_counter}} - {{question.question}}
                 </div>
                 <div class=" col-2">
-                    Marks: {{question.points}}
+                   <small>Marks: </small> {{question.points}}
                 </div>
             </div>
         </div>
@@ -193,7 +194,7 @@ integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jI
 integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"></script>
 
 
-
+</div>
 
 </body>
 </html>
