@@ -1,4 +1,4 @@
-{% extends "layout.html" %} {% block title %} Accountflask  {% endblock %} {% block
+{% extends "layout.html" %} {% block title %} Account  {% endblock %} {% block
 main_0 %}
 
 
@@ -100,7 +100,7 @@ main_0 %}
               <div class="col-6">
                 <div class="row justify-content-center" style="text-align:center">
                   {% if user.pic == None %}
-                  <img src="static/cephadex-std-profile.png" style="max-height:fit-content; max-width:fit-content;" alt="logo">
+                  <img  class="circle-img" src="static/cephadex-std-profile.png" style="max-height:fit-content; max-width:fit-content;" alt="logo">
                   {% else %}
                   <img class = "circle-img" src="\{{user.pic}}" style="max-height:400px; max-width:400px;" alt="profile pic">
                   {% endif %}

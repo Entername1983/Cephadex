@@ -533,7 +533,9 @@ def divide_audio(input_file, segment_length=25):
 
 ## TOKEN HANDLERS
 def count_tokens(text):
-    encoding.encode(text)
+    print("token count:")
+    text = encoding.encode(text)
+    print("token count:", len(text))
     return len(text)
 
 def token_encoding(text):

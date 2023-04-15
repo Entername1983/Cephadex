@@ -326,6 +326,10 @@
             </button>
         </div>
     </div>
+
+
+
+</div>
     <!--- MODAL -->
     <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
         aria-hidden="true">
@@ -455,8 +459,19 @@
                                 placeholder="{{deck.topic}}" value=" {{deck.topic}}"/>
                             <label for="new_deck_subject">Topic</label>
 
-               
                         </div>
+                        <div class="form-floating my-2">
+
+                            {{form.deck_list (id="existing-input", class=" form-select full-w",
+                            placeholder="Select a deck")}}
+                            <label for="existing-input">Make child of:</label>
+                        </div>
+                        
+            <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" name="public-checkbox" id="public-checkbox" value="public" {% if deck.public %} checked {% endif %}>
+                <label class="form-check-label" for="public-checkbox" value="public">Make deck public?</label>
+              </div>
+
                         <div class="modal-footer">
                             <input type="image" id="saveButton" src="\static\save-outline-icon.png"
                                 style="max-width:30px;max-height:30px;" name="edit-deck" value="Save" />

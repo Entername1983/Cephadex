@@ -24,13 +24,30 @@ cards_shared = db.Table("cards_shared",
                  db.Column("shared_decks_id", db.Integer, db.ForeignKey("shared_decks.id")),
                  )                             
 questions = db.Table("questions",
-                     db.Column("test_id", db.Integer, db.ForeignKey("test.id")),
-                     db.Column("question_id", db.Integer, db.ForeignKey("question.id"))
+                        db.Column("test_id", db.Integer, db.ForeignKey("test.id")),
+                        db.Column("question_id", db.Integer, db.ForeignKey("question.id")),
+                        db.Column("position", db.Integer),
+                        db.Column("text", db.String(255)),
+                        db.Column("image", db.String(255))
                      )
 distribution = db.Table("distribution",
                         db.Column("test_id", db.Integer, db.ForeignKey("test.id")),	
                         db.Column("taker_id", db.Integer, db.ForeignKey("user.id"))	
                         )	
+
+deck_relationships = db.Table("deck_relationships", 
+                               db.Column("parent_deck", db.Integer, db.ForeignKey("deck.id")),
+                               db.Column("child_deck", db.Integer, db.ForeignKey("deck.id"))  # 
+                               )
+
+user_group_association = db.Table("user_group_association",
+                                  db.Column("user_id", db.Integer, db.ForeignKey("user.id")),
+                                  db.Column("group_id", db.Integer, db.ForeignKey("group.id")))
+
+
+
+
+
 ## external auth + external type + external
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -59,6 +76,7 @@ class User(db.Model, UserMixin):
     subscription_plan = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=False, default=1)
     subscription_start_date = db.Column(db.DateTime)
     latest_roll_over = db.Column(db.DateTime)
+    groups = db.relationship("Group", secondary=user_group_association, back_populates="users")
 
     def member_since(self):
         return self.time_created.strftime('%b %Y')
@@ -93,6 +111,25 @@ class User(db.Model, UserMixin):
                     counter += 1
         return counter
         
+
+class Group(db.Model):
+    __tablename__ = "group"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    description = db.Column(db.String(255))
+    group_type = db.Column(db.String(255))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    creator_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    creator = db.relationship("User", foreign_keys=[creator_id])
+
+    avatar = db.Column(db.String(255))
+    is_private = db.Column(db.Boolean, default=False)
+    users = db.relationship("User", secondary=user_group_association, back_populates="groups")
+    decks = db.relationship("Deck", back_populates="group")
+
 
 class SubscriptionPlan(db.Model):
     __tablename__ = 'subscription_plans'
@@ -292,6 +329,15 @@ class Deck(db.Model):
     accepted = db.Column(db.Boolean, default=False)
     sharer = db.Column(db.Integer) 
     share_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
+    group = db.relationship("Group", back_populates="decks")
+    children = db.relationship("Deck",
+                    secondary=deck_relationships,
+                    primaryjoin=(deck_relationships.c.parent_deck == id),
+                    secondaryjoin=(deck_relationships.c.child_deck == id),
+                    backref=db.backref("parents", lazy="dynamic"),
+                    lazy="dynamic")
     
     def force_study(self):
         due_cards = []
@@ -533,7 +579,7 @@ class Feedback(db.Model):
 
 class Test(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(50))
+    name = db.Column(db.String(200))
     points = db.Column(db.Integer)
     num_questions = db.Column(db.Integer)
     category = db.Column(db.String(50))
@@ -549,6 +595,8 @@ class Test(db.Model):
     instructions = db.Column(db.String(255))
     description = db.Column(db.String(255))
     shuffle = db.Column(db.Boolean)
+    image = db.Column(db.String(255))
+    text = db.Column(db.String(2550))
     
     def sum_points(self):
         sum = 0
@@ -653,3 +701,46 @@ class EventTracking(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=True)
     
+    
+######### GAMIFICATION
+
+
+
+skills_category_skill = db.Table('skills_category_skill',
+    db.Column('skill_id', db.Integer, db.ForeignKey('skill.id'), primary_key=True),
+    db.Column('category_id', db.Integer, db.ForeignKey('skills_category.id'), primary_key=True)
+)
+
+
+class Skills_Category(db.Model):
+    __tablename__ = 'skills_category'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
+class Skill(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    users = db.relationship('User_Skill', backref='skill')
+    categories = db.relationship('Skills_Category', secondary=skills_category_skill, backref='skills')
+class User_Skill(db.Model):
+    __tablename__ = 'user_skill'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id'), nullable=False)
+
+class Badge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    avatar = db.Column(db.String(100), nullable=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('skills_category.id'), nullable=True)
+
+class Goal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id'), nullable=False)
+    skill = db.relationship('Skill', backref='goals')
+    target_level = db.Column(db.Integer, nullable=False)
+    start_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    end_date = db.Column(db.DateTime)

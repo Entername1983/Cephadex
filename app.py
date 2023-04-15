@@ -2,6 +2,7 @@ import openai
 import os
 from bs4 import BeautifulSoup
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
@@ -43,7 +44,7 @@ import schedule
 from beta import BetaKeys
 from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
-from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings
+from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
 import configparser
 import logging.config
 from events import event_tracker
@@ -178,6 +179,8 @@ class TryOut(FlaskForm):
     submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
     
     
+class DeckOrg(FlaskForm):    
+    deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
 
         
 class UploadFileForm(FlaskForm):
@@ -582,12 +585,13 @@ def viewdecks():
         db.session.commit()
     
     
-    shared_decks = SharedDecks.query.all()
    ## check if user has any pending tests
     tests = Test.query.filter(Test.taker.contains(current_user)).all()
     user = current_user
     email = current_user.email
-    shared_decks = SharedDecks.query.filter(SharedDecks.receiver.ilike(f"%{email}%")).all()
+    shared_decks = SharedDecks.query.filter(SharedDecks.receiver == current_user.id).all()
+
+
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
     if request.method == 'GET':
         sort_method =request.args.get('sort')
@@ -1014,8 +1018,17 @@ def generate_img(deck_id):
             pass
     return redirect(("/currentdeck/{deck}").format(deck=deck_id))
     
+    
+def create_parent_child_relationship(parent_deck_id, child_deck_id):
+    new_relationship = insert(deck_relationships).values(parent_deck=parent_deck_id, child_deck=child_deck_id)
+    session.execute(new_relationship)
+    session.commit()
+
+
+
 @app.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
 def carousel(deck_id):
+    form = DeckOrg()
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
     cards = Card.query.filter(Card.decks_backref.any(id=deck_id)).order_by(Card.id.desc()).all()
     if(current_user.id != deck.user_id):
@@ -1059,8 +1072,21 @@ def carousel(deck_id):
         deck.description = request.form['new_deck_description']
         deck.subject = request.form['new_deck_subject']
         deck.topic = request.form['new_deck_topic']
+        
+        
+        parent = form.deck_list.data
+        public = request.form.get('public-checkbox')
+        if public == "public":
+            deck.public = True
+        else:
+            deck.public = False
+   
+        if parent:
+            db.session.execute(deck_relationships.insert().values(parent_deck=parent.id, child_deck=deck.id))
+
+# Execute the insert statement
         db.session.commit()   
-    return render_template("carousel.html", title="Carousel", deck=deck, cards=cards) 
+    return render_template("carousel.html", title="Carousel", deck=deck, cards=cards, form = form) 
 
 @app.route("/add_new_card/<int:deck_id>", methods = ["GET", "POST"])
 def add_new_card(deck_id):
@@ -1095,6 +1121,21 @@ def delete_account():
         db.session.commit()
         flash("We'are sorry to see you go. Your account is now inactive and will be permanently deleted within 48 hours.")
     return redirect(url_for('logout'))
+
+@app.route("/import_public_deck/<int:deck_id>", methods = ["GET", "POST"])
+def import_public_deck(deck_id):
+    deck = Deck.query.filter_by(id=deck_id, public=True).first()
+    if deck is None:
+        return apology("Deck not found", 404)
+    else:
+        shared_deck = SharedDecks(name="Copy of " + deck.name, description=deck.description, time_created=datetime.utcnow(), receiver=current_user.id)
+        db.session.add(shared_deck)
+        for card in deck.cards:
+            new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+            shared_deck.cards.append(new_card)
+        db.session.commit()
+        print(shared_deck)
+    return jsonify({"success": True})
 
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
@@ -1221,6 +1262,7 @@ def get_text_from_file(file_data):
     file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)),app.config['UPLOAD_FOLDER'],secure_filename(file.filename)))
     file.save(file_loc)
     text = text_extractor(file_loc)
+    os.remove(file_loc)
     return text
 
 def get_text_from_link(link_input):
@@ -1315,30 +1357,32 @@ def delete_file(deck_id, file_id):
 
 @app.route("/share_deck/<int:deck_id>/<string:user_email>/", methods=["GET", "POST"])
 def share_deck(deck_id, user_email):
-    sender_id = current_user.email
+    sender_id = current_user.id
     deck_to_copy = Deck.query.get_or_404(deck_id)
     event_tracker(current_user.id, "share_deck", deck_id)
     if check_comma_list(user_email):
         users_emails = user_email.split(",")
         for email in users_emails:
             email = unquote(email).strip()
-            shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=email)
+            user = User.query.filter_by(email=email).first()
+            shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=user.id)
             db.session.add(shared_deck)
             for card in deck_to_copy.cards:
                 new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
                 shared_deck.cards.append(new_card)
             db.session.commit()
-        return redirect(url_for('viewdecks'))
+        return jsonify('success', 'Deck shared successfully')
     else:
         email = unquote(user_email)
-        shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=email)
+        user = User.query.filter_by(email=email).first()
+
+        shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=user.id)
         db.session.add(shared_deck)
         for card in deck_to_copy.cards:
             new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
             shared_deck.cards.append(new_card)
         db.session.commit()
-        return redirect(url_for('viewdecks'))
-
+        return jsonify('success', 'Deck shared successfully')
 @app.route("/approve_shared/<int:deck_id>/", methods=["GET", "POST"])
 def approve_shared(deck_id):
     event_tracker(current_user.id, "approve_shared", deck_id)
@@ -1374,6 +1418,13 @@ def feedback():
         flash("Thank you for your feedback!", "success")
     return render_template('index.html', title='Index')
 
+
+@app.route("/legal", methods = ["GET", "POST"])
+def legal():
+    return render_template('legal.html', title='Legal')
+
+
+
 @app.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
 def build_test(deck_id):
     event_tracker(current_user.id, "build_test", deck_id)
@@ -1381,11 +1432,15 @@ def build_test(deck_id):
     creator = current_user
     if request.method == "POST":
         test_questions = request.form.getlist('selected_cards[]')
-        name = deck.name + " Test" + " " + str(datetime.now())
+        
+        name = deck.name + " Test" + " " + datetime.now().strftime("%Y-%m-%d %H:%M")
         new_test = Test(creator=current_user.id)
         db.session.add(new_test)
         new_test.name = name
+        print(new_test.name)
         for question in test_questions:
+            print("Entering question in test questions")
+            print(question)
             card = Card.query.get_or_404(question)
             question = Question()
             db.session.add(question)
@@ -1408,6 +1463,7 @@ def build_test(deck_id):
                 question.q_type = "jeopardy"
             db.session.add(question)
             new_test.questions.append(question)
+  
         db.session.commit()
         return redirect('/assign_test/{test.id}'.format(test=new_test))
     return render_template('build_test.html', title='Test Builder', deck=deck, creator=creator)
@@ -1917,6 +1973,43 @@ def send_question(card_id):
 def news():
     return render_template('news.html')
        
+@app.route("/public_decks", methods = ['GET', 'POST'])
+def public_decks():
+    decks = Deck.query.filter_by(public=True).all()
+    print("entered public decks")
+    if request.method == 'GET':
+        sort_method = request.args.get('sort')
+        search_query = request.args.get('search', '').strip()
+        
+        # Start building the query
+        query = Deck.query.filter(Deck.public == True)
+        
+        # Apply search filters if search_query is present
+        if search_query:
+            query = query.filter(
+                or_(
+                    Deck.name.ilike(f'%{search_query}%'),
+                    Deck.description.ilike(f'%{search_query}%'),
+                    Deck.category.ilike(f'%{search_query}%')
+                )
+            )
+
+        # Apply sorting if sort_method is not 'default'
+        if sort_method != 'default':
+            if sort_method == 'name_asc':
+                query = query.order_by(Deck.name.asc())
+            elif sort_method == 'name_desc':
+                query = query.order_by(Deck.name.desc())
+            elif sort_method == "category_asc":
+                query = query.order_by(Deck.category.asc())
+            elif sort_method == "category_desc":
+                query = query.order_by(Deck.category.desc())
+
+        # Execute the query and fetch all the decks
+        decks = query.all()
+
+
+    return render_template('public_decks.html', decks=decks)
 
 ###################### TO BE REORGANIZED ###############################################################################################
 
