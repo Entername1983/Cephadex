@@ -44,7 +44,7 @@ import schedule
 from beta import BetaKeys
 from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
-from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
+from models import GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
 import configparser
 import logging.config
 from events import event_tracker
@@ -1855,11 +1855,16 @@ def query():
     data = Job.query.filter_by(slug=job_id).first()
     # And return a response containing the state and the result
     print(data)
+    num_completed = Job.query.filter_by(slug=job_id, state="completed").count()
+    num_total = Job.query.filter_by(slug=job_id).count()
+    if num_total != 0:
+        progress = int(num_completed/num_total*100)
     if data is None:
-        return jsonify({"state": None, "result": None})
+        return jsonify({"state": None, "progress": None, "result": None})
     return jsonify(
         {
             "state": data.state,
+            "progress": progress,
             "result": data.result,
         }
     )
@@ -1879,8 +1884,15 @@ def notification_complete():
         job.result = 2
         print(job.result)
     db.session.commit()
+    session.pop('slug', None)
+
     return jsonify("success")
  
+@app.route("/latest_deck", methods=["POST", "GET"])
+def latest_deck():
+    deck = Deck.query.filter_by(user_id=current_user.id).order_by(Deck.id.desc()).first()
+    return redirect('/carousel/{deck_id}'.format(deck_id = deck.id))
+
  
 @app.route("/documentation/", methods=['GET', 'POST'])
 def documentation():
@@ -1972,7 +1984,16 @@ def send_question(card_id):
 @app.route("/news/", methods=['GET', 'POST'])
 def news():
     return render_template('news.html')
-       
+
+@app.route("/public_cards/<int:deck_id>/", methods=['GET', 'POST'])
+def public_cards(deck_id):
+    deck = Deck.query.filter_by(id=deck_id).first()
+    if deck.public == False:
+        return apology("Sorry, this deck is not public")
+    cards = Card.query.filter(Card.decks_backref.any(id=deck_id)).order_by(Card.term.desc()).all()
+    return render_template('public_cards.html', cards=cards, deck=deck)
+
+
 @app.route("/public_decks", methods = ['GET', 'POST'])
 def public_decks():
     decks = Deck.query.filter_by(public=True).all()
@@ -2010,6 +2031,219 @@ def public_decks():
 
 
     return render_template('public_decks.html', decks=decks)
+
+
+
+
+####################### GROUPS #####################################################
+
+
+@app.route('/my_groups')
+def my_groups():
+    user_id = current_user.id
+    created_groups = Group.query.filter_by(creator_id=user_id).all()
+    user_groups = current_user.groups
+    group_invites = get_invited_users_info(user_id)
+    all_groups_member_roles = get_all_groups_member_roles(user_id)
+    print(all_groups_member_roles)
+    return render_template('my_groups.html', groups=user_groups, created_groups = created_groups, group_invites = group_invites, user_roles = all_groups_member_roles)
+
+@app.route('/create_group', methods=['POST'])
+def create_group():
+    print("create group")
+    group_data = request.json
+    name = group_data['name']
+    description = group_data['description']
+    group_type = group_data['group_type']
+    private = (group_data['is_private'])
+    print("private: ", private)
+    user_id = current_user.id
+    new_group = Group(name=name, description=description, group_type=group_type, is_private = private, creator_id=user_id)
+    db.session.add(new_group)
+    db.session.commit()
+    return jsonify({'message': 'Group created successfully'}), 201
+
+@app.route("/invite_group/", methods=["GET", "POST"])
+def invite_group():
+    group_id = request.args.get('groupId', type=int)
+    user_email = request.args.get('email', type=str)
+    print("invite group")
+    print(user_email)
+    not_users = []
+    group = Group.query.filter_by(id=group_id).first()
+    if check_comma_list(user_email):
+        users_emails = user_email.split(",")
+        for email in users_emails:
+            email = unquote(email).strip()
+            user = User.query.filter_by(email=email).first()
+            if user is None:
+                not_users.append(email)
+            else:
+                new_invite = GroupInvite(name = group.name, invited_by_email=current_user.email, invited_by_id=current_user.id, user_id=user.id, group_id=group_id, created_at = datetime.utcnow())
+                db.session.add(new_invite)
+                db.session.commit()
+            if len(not_users) > 0:
+                flash('The following users are not registered: ' + str(not_users), 'warning')
+            return jsonify('success', 'User invited successfully')
+
+    else:
+        user = User.query.filter_by(email=user_email).first()
+        if user is None:
+            not_users.append(user_email)
+        else:
+            new_invite = GroupInvite(name = group.name, invited_by_email=current_user.email, invited_by_id=current_user.id, user_id=user.id, group_id=group_id, created_at = datetime.utcnow())
+            db.session.add(new_invite)
+            db.session.commit()
+        if len(not_users) > 0:
+            flash('The following users are not registered: ' + str(not_users), 'warning')
+        return jsonify('success', 'User invited successfully')
+
+
+@app.route("/approve_group/<int:group_id>/", methods=["GET", "POST"])
+def approve_group(group_id):
+    group_invite = GroupInvite.query.get_or_404(group_id)
+    if group_invite:
+        group = Group.query.get_or_404(group_invite.group_id)
+        group.users.append(current_user)
+        db.session.delete(group_invite)
+        db.session.commit()
+        return jsonify('success', 'User added to group successfully')
+    
+@app.route("/reject_group/<int:group_id>/", methods=["GET", "POST"])
+def reject_group(group_id):
+    group_invite = GroupInvite.query.get_or_404(group_id)
+    if group_invite:
+        db.session.delete(group_invite)
+        db.session.commit()
+        return jsonify('success', 'User rejected successfully')
+    
+
+
+def get_group_member_roles(group_id):
+    results = db.session.query(User.id, User.username, User.email, user_group_association.c.role).join(user_group_association).filter(
+        user_group_association.c.group_id == group_id
+    ).all()
+
+    group_member_roles = {}
+    for result in results:
+        username_or_email = result.username if result.username is not None else result.email
+        group_member_roles[result.id] = {
+            'username': username_or_email,
+            'role': result.role
+        }
+    return group_member_roles
+
+def get_all_groups_member_roles(user_id):
+    user_groups = db.session.query(Group).join(user_group_association).filter(
+        user_group_association.c.user_id == user_id
+    ).all()
+
+    all_groups_member_roles = {}
+    for group in user_groups:
+        group_member_roles = get_group_member_roles(group.id)
+        all_groups_member_roles[group.id] = group_member_roles
+
+    return all_groups_member_roles
+
+
+
+def get_group_member_permissions(group_id):
+    results = db.session.query(User.id, User.username, User.email, user_group_association.c.permissions).join(user_group_association).filter(
+        user_group_association.c.group_id == group_id
+    ).all()
+
+    group_member_permissions = {}
+    for result in results:
+        username_or_email = result.username if result.username is not None else result.email
+        group_member_permissions[result.id] = {
+            'username': username_or_email,
+            'permissions': result.permissions
+        }
+    return group_member_permissions
+
+def get_all_groups_member_permissions(user_id):
+    user_groups = db.session.query(Group).join(user_group_association).filter(
+        user_group_association.c.user_id == user_id
+    ).all()
+
+    all_groups_member_permissions = {}
+    for group in user_groups:
+        group_member_permissions = get_group_member_permissions(group.id)
+        all_groups_member_permissions[group.id] = group_member_permissions
+
+    return all_groups_member_permissions
+
+
+def get_invited_users_info(user_id):
+    # Get all the groups the user is a part of
+    user_groups_query = db.session.query(Group.id).join(user_group_association).filter(
+        user_group_association.c.user_id == user_id
+    ).all()
+
+    # Extract the group IDs from the Row objects
+    user_groups = [row[0] for row in user_groups_query]
+
+    # Get the user IDs from the invite_group table for those groups
+    invited_users = db.session.query(User.id, User.username, User.email).join(GroupInvite, GroupInvite.user_id == User.id).filter(
+        GroupInvite.group_id.in_(user_groups)
+    ).all()
+
+    return invited_users
+
+
+@app.route("/group/<int:group_id>/", methods=["GET", "POST"])
+def group(group_id):
+    mydecks = Deck.query.filter_by(user_id = current_user.id).all()
+    group = Group.query.get_or_404(group_id)
+    ## get group members and their roles
+    group_member_roles = get_group_member_roles(group_id)
+    ## get invited group members
+    invited_users = get_invited_users_info(current_user.id)
+    decks = Deck.query.filter_by(group_id=group_id).all()
+    print(invited_users)
+    print(group_member_roles)
+    permissions = get_group_member_permissions(group_id)
+    print(permissions)
+    return render_template('group.html', mydecks = mydecks, group=group, group_member_roles=group_member_roles, invited_users=invited_users, decks = decks, permissions = permissions)
+
+
+@app.route('/group/<int:group_id>/update_member_permissions', methods=['POST'])
+def update_member_permissions(group_id):
+    print(request.data)
+    user_id = current_user.id
+    data = request.json
+    
+    target_user_id = int(data['target_user_id'])
+    new_permissions = data['new_permissions']
+
+    # Check if the current user is the creator of the group
+    group = Group.query.get(group_id)
+    if group.creator_id == user_id:
+        # Update the target user's permissions
+        db.session.query(user_group_association).filter(
+            user_group_association.c.group_id == group_id,
+            user_group_association.c.user_id == target_user_id
+        ).update({user_group_association.c.permissions: new_permissions})
+        db.session.commit()
+
+        response = {
+            "status": "success",
+            "message": "Member permissions updated successfully"
+        }
+    else:
+        response = {
+            "status": "error",
+            "message": "You do not have permission to update member permissions"
+        }
+
+    return jsonify(response)
+
+@app.route('/search_public_decks', methods=['POST'])
+def search_public_decks():
+    data = request.json
+    search_term = data['search']
+    decks = Deck.query.filter(Deck.public == True, Deck.name.contains(search_term)).all()
+    return jsonify([deck.serialize() for deck in decks])
 
 ###################### TO BE REORGANIZED ###############################################################################################
 

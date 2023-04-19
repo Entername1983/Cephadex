@@ -1,0 +1,207 @@
+{% extends "layout.html" %}
+
+{% block title %} Group {{group.name }}{% endblock %}
+
+
+{% block main_0 %}
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#permissionsModal">
+    Edit permissions for {{group.name}} </button>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+        Import decks</button>
+
+
+
+<div class = "container">
+<h3> {{group.name}}</h3> 
+<div class = "row">
+<h3>Invited:</h3>
+{% for user in invited_users %}
+<li>Username:{{user[1]}} Email:{{user[2]}} </li>
+{% endfor %}
+</div>
+<h3>Members:</h3>
+{% for user_id, user_info in group_member_roles.items() %}
+<li>User ID: {{ user_id }}, Username: {{ user_info['username'] }}, Role: {{ user_info['role'] }}</li>
+
+{% endfor %}
+
+<h3>Decks:</h3>
+{% for deck in decks %}
+<li>{{deck.name}}</li>
+{% endfor %}
+
+
+</div>
+
+
+<!------- PERMISSIONS MODAL ------>
+<div class="modal fade" id="permissionsModal" tabindex="-1" role="dialog" aria-labelledby="permissionsModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="permissionsModalLabel">Edit permissions</h5>
+                <div id="successMessage" class="alert alert-success d-none" role="alert"></div>
+
+            </div>
+            <div class="modal-body">
+                <select id = "target-user-id">
+                    {% for user_id, user_info in group_member_roles.items() %}
+                <option value="{{user_id}}">{{ user_info['username'] }} Role: {{ user_info['role'] }}</option>
+                    {% endfor %}
+                </select>
+                <select id = "new-permissions">
+                    <option value="write">Owner</option>
+                    <option value="read">Viewer</option>
+                </select>
+
+
+            </div>
+            <div id = "admins">
+                <h4> Admins (write permission)</h4>
+                {% for user_id, user_info in permissions.items() %}
+                {% if user_info['permissions'] == 'write' %}
+                <li>Username:{{user_info['username']}}  </li>
+                {% endif %}
+                
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="permitSave">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----- IMPORT DECK MODAL ----->
+
+
+<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import decks</h5>
+                <div id="successMessage" class="alert alert-success d-none" role="alert"></div>
+
+            </div>
+            <div class="modal-body">
+                                    <h4> Import from my decks</h4>
+
+                <select id = "My decks">
+{% for deck in mydecks %}
+                <option value="{{deck.id}}">{{deck.name}}</option>
+                {% endfor %}
+
+                </select>
+<h4> Search public decks</h4>
+                <input type="text" id="search" name="search" placeholder="Search..">
+                <div id="searchResults">
+                </div>
+
+
+            </div>
+            <div id = "admins">
+         
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="permitSave">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script> 
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchButton = document.getElementById("search");
+        const searchResults = document.getElementById("searchResults");
+        searchButton.addEventListener("change", function() {
+            console.log("change detected")
+            const search = document.getElementById("search").value;
+            console.log(search)
+            const payload = {
+                    "search": search,
+                };
+    
+                fetch(`/search_public_decks`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(payload),
+                })
+                .then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error("Something went wrong");
+                    }
+                })
+                .then((data) => {
+                    console.log(data)
+                    searchResults.innerHTML = data;
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        });
+    });
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let group_id = "{{ group.id }}";
+        const permitSaveButton = document.getElementById("permitSave");
+        const successMessage = document.getElementById("successMessage");
+    
+        permitSaveButton.addEventListener("click", function() {
+            const targetUserId = document.getElementById("target-user-id").value;
+            console.log(targetUserId)
+            const newPermissions = document.getElementById("new-permissions").value;
+            console.log(newPermissions)
+    
+            const payload = {
+                    "target_user_id": targetUserId,
+                    "new_permissions": newPermissions
+                };
+    
+                fetch(`/group/${group_id}/update_member_permissions`, {
+    method: "POST",
+    headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(payload),
+})
+            .then((response) => {
+                if (response.ok) {
+                    successMessage.innerHTML = "Member permissions updated successfully";
+                    successMessage.classList.remove("d-none");
+                } else {
+                    successMessage.innerHTML = "An error occurred while updating permissions";
+                    successMessage.classList.remove("d-none");
+                }
+            })
+            .catch((error) => {
+                successMessage.innerHTML = "An error occurred while updating permissions";
+                successMessage.classList.remove("d-none");
+            });
+        });
+    });
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

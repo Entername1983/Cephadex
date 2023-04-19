@@ -42,11 +42,9 @@ deck_relationships = db.Table("deck_relationships",
 
 user_group_association = db.Table("user_group_association",
                                   db.Column("user_id", db.Integer, db.ForeignKey("user.id")),
-                                  db.Column("group_id", db.Integer, db.ForeignKey("group.id")))
-
-
-
-
+                                  db.Column("group_id", db.Integer, db.ForeignKey("group.id")),
+                                  db.Column("role", db.String(255)),
+                                  db.Column("permissions", db.String(255)),)
 
 ## external auth + external type + external
 class User(db.Model, UserMixin):
@@ -129,6 +127,18 @@ class Group(db.Model):
     is_private = db.Column(db.Boolean, default=False)
     users = db.relationship("User", secondary=user_group_association, back_populates="groups")
     decks = db.relationship("Deck", back_populates="group")
+
+class GroupInvite(db.Model):
+    __tablename__ = "group_invite"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
+    group = db.relationship("Group", foreign_keys=[group_id])
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    invited_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    invited_by_email = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
 
 class SubscriptionPlan(db.Model):
@@ -339,6 +349,16 @@ class Deck(db.Model):
                     backref=db.backref("parents", lazy="dynamic"),
                     lazy="dynamic")
     
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description
+        }
+
+
+
     def force_study(self):
         due_cards = []
         current_time = datetime.utcnow()

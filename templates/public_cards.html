@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block title %} View Decks {% endblock %}
+
+
+
+
+{% block main_0 %}
+
+
+<div class="container mt-5">
+    <div class="table-responsive" style = "background-color: aliceblue;">
+        <table class="table table-bordered table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Term</th>
+                    <th>Type</th>
+                    <th>Content</th>
+                    <th>Formula</th>
+                    <th>+ 1</th>
+                    <th>+ 2</th>
+                    <th>+ 3</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in cards %}
+                <tr id = "row{{card.id}}">
+                    <td>{{ card.term }}</td>
+                    <td>
+                        {{ card.category }}
+                    </td>
+                    <td id="tableContent{{ card.id }}">{{ card.content }}</td>
+                    <td>{{ card.formula }}</td>
+                    <td>{{ card.boc_2 }}</td>
+                    <td>{{ card.boc_3 }}</td>
+                    <td>{{ card.boc_4 }}</td>
+                    <td>
+                       
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+

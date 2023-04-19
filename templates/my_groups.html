@@ -1,0 +1,301 @@
+{% extends "layout.html" %}
+
+{% block title %} My groups {% endblock %}
+
+
+
+
+{% block main_0 %}
+
+<div class="container">
+
+    <div class="m-2">
+        {% if group_invites|length > 0 %}
+
+        <div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
+            <p> You have been invited to join groups. Click <a class="mx-2" data-bs-toggle="modal"
+                    data-bs-target="#inviteGroupModal" alt="shared decks" style="cursor: pointer;">here</a>to approve
+                them</p>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+
+
+
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGroupModal">Create
+        Group</button>
+
+    <h1 class="my-3">My Groups</h1>
+    <h4>My created groups</h4>
+    {% for group in created_groups %}
+    <li class="list-group-item">{{ group.name }} <a data-bs-toggle="modal" data-bs-target="#Modal{{group.id}}"
+            class="mx-2" style="cursor: pointer; text-decoration: none;">
+            <img src="\static\instagram-share-icon.png" alt="Share"
+                style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1" title="Share">
+        </a><a href = "/group/{{group.id}}">View details</a></li>
+
+
+
+
+        
+    {% endfor %}
+
+
+
+    <h4>My groups</h4>
+    <ul class="list-group my-3">
+        {% for group in groups %}
+        <li class="list-group-item">{{ group.name }}         </a><a href = "/group/{{group.id}}">View details</a></li>
+    </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Create Group Modal -->
+<div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createGroupModalLabel">Create Group</h5>
+
+            </div>
+            <div class="modal-body">
+                <form id="createGroupForm">
+                    <div class="form-group">
+                        <label for="name">Group Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="group_type">Group Type</label>
+                        <input type="text" class="form-control" id="group_type" name="group_type" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="is_private">Private Group</label>
+                        <input type="checkbox" id="is_private" name="is_private">
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="submitCreateGroup">Create Group</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $("#submitCreateGroup").on("click", function () {
+            const groupData = {
+                name: $("#name").val(),
+                description: $("#description").val(),
+                group_type: $("#group_type").val(),
+                is_private: $("#is_private").is(":checked"),
+                creator_id: {{current_user.id}},
+            };
+
+            $.ajax({
+                url: "/create_group",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(groupData),
+                success: function (response) {
+                    alert(response.message);
+                    location.reload(); // Reload the page to display the newly created group
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert("Error: " + errorThrown);
+                }
+            });
+        });
+    });
+</script>
+
+
+<!----- SHARE DECK MODAL -->
+{% for group in created_groups %}
+
+<div class="modal fade" id="Modal{{group.id}}"  aria-labelledby="#ModalLabel{{group.id}}"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header p-4" style = "background-color:#091954"
+
+            >
+                <h5 class="modal-title" id="ModalLabel{{group.id}}" style="color:  #FA9400">Add members</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="share-form" method="POST">
+                    <div class="form-group my-2">
+                        <div class="form-floating">
+
+                            <input type="email" class="form-control" id="email{{group.id}}" name="email" required
+                                placeholder="Type receiver's email here">
+                            <label for="email">Email</label>
+                        </div>
+
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="inviteGroup(event, '{{ group.id }}')">Share</button>
+                    <div>
+                        <h6>Invited</h6>
+                        {% for user_id, username, email in group_invites %}
+                        <div>
+                            <li>Username: {{ username }}, Email: {{ email }}</li>
+                        </div>
+                    {% endfor %}
+                    </div>
+                    <div>
+                        <h6>Members</h6>
+                        {% for user_id, role in user_roles.get(group.id, {}).items() %}
+                        <li>Username: {{ user_id }} - Role: {{ role }}</li>
+                    {% else %}
+                        <li>No user roles found for this group.</li>
+                    {% endfor %}
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+<script>
+    function inviteGroup(event, groupId) {
+        event.preventDefault(); // prevent default form submission behavior
+
+        var email = document.getElementById('email' + groupId).value;
+        var encodedEmail = encodeURIComponent(email);
+        var url = '/invite_group/?groupId=' + groupId + '&email=' + encodedEmail;
+
+        // use AJAX to send the form data to the backend
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                // parse the JSON response and do something with it
+                var response = JSON.parse(xhr.responseText);
+                console.log(response);
+            } else {
+                // handle error
+                console.log('Error: ' + xhr.statusText);
+            }
+        };
+
+        xhr.send(); // send the AJAX request
+    }
+</script>
+{% endfor %}
+
+<!-----APPROVE REJECT MODAL
+    ---->
+
+<div class="modal fade" id="inviteGroupModal" tabindex="-1" aria-labelledby="#inviteGroupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary-to-secondary p-4">
+                <h5 class="modal-title" id="SharedDecksModalLabel" style="color:  #eaabab">Shared Decks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {% for group in group_invites %}
+
+
+                    <div class="col-sm-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{group.name}}</h5>
+                                <p class="card-text">{{group.invited_by_email}}</p>
+                                <a id="approve{{group.id}}" onclick="approveSharedGroup(event, {{group.id}})"
+                                    class="mx-2" style="cursor: pointer; text-decoration: none;">
+                                    <img src="\static\approve-accept-icon.png" alt="See source docs"
+                                        style="max-width:30px;max-height:30px;" class="px-1" title="Approve">
+                                </a>
+
+                                <a id="reject{{group.id}}" class="mx-2" onclick="rejectSharedGroup(event, {{group.id}})"
+                                    style="cursor: pointer; text-decoration: none;">
+                                    <img src="\static\remove-cross-icon.png" alt="Reject"
+                                        style="max-width:30px;max-height:30px;" class="px-1" title="Reject">
+                                </a>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+                    <script>
+                        function approveSharedGroup(event, groupId) {
+                            event.preventDefault();
+                            $.ajax({
+                                type: "GET",
+                                url: "/approve_group/" + groupId,
+                                success: function () {
+                                    // Refresh the content of the modal
+                                    console.log("approve shared deck")
+                                    refreshinviteGroupModal();
+                                }
+                            });
+                        }
+
+                        function rejectSharedGroup(event, groupId) {
+                            event.preventDefault();
+                            if (confirm('Are you sure you want to reject this group invite?')) {
+                                $.ajax({
+                                    type: "GET",
+                                    url: "/reject_group/" + groupId,
+                                    success: function () {
+                                        // Refresh the content of the modal
+                                        refreshinviteGroupModal();
+                                    }
+                                });
+                            }
+                        }
+
+
+                    </script>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function refreshinviteGroupModal() {
+        // Get the modal element
+        const inviteGroupModal = $('#inviteGroupModal');
+
+        // Hide the modal to prevent flickering
+        //sharedDecksModal.modal('hide');
+
+        // Reload the entire modal using jQuery's load method
+        inviteGroupModal.load(location.href + ' #inviteGroupModal > *', function () {
+            // Show the modal again after the new content has been loaded
+            inviteGroupModal.modal('show');
+        });
+    }
+</script>
+
+
+
+
+
+{% endblock %}

@@ -2,6 +2,7 @@
 creds.py
 api.txt
 __pycache__/*
+migratons/*
 migrations/versions/__pycache__/*
 migrations/__pycache__/*
 database1.db
