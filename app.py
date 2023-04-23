@@ -49,10 +49,11 @@ import configparser
 import logging.config
 from events import event_tracker
 
-config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging_config.ini')
 
-logging.config.fileConfig(config_file_path)
+from logging.config import dictConfig
+from logging_config import LOGGING_CONFIG
 
+dictConfig(LOGGING_CONFIG)
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 os.environ["FLASK_DEBUG"] = "1"
@@ -75,11 +76,7 @@ werkzeug_logger.warning('warn message')
 werkzeug_logger.error('error message')
 werkzeug_logger.critical('critical message')
 
-app.logger.addHandler(logging.StreamHandler(sys.stdout))
-app.logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-app.logger.handlers[0].setFormatter(formatter)  # set formatter for the first handler
-app.logger.disabled = True
+
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
 
