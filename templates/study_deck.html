@@ -20,16 +20,13 @@
     var mcq_guess_counter = 0;
 
     // Load Deck due cards on load page 
-    console.log(deckId)
     jq.ajax({
       type: 'GET',
       url: '/get-due-cards/' + deckId,
       dataType: 'json',
       success: function (data) {
         cardList = data;
-        console.log(cardList);
         if (cardList === null || cardList === undefined) {
-          console.log("no cards")
           jq("#force-study").show();
           jq("#contain-main").hide();
           jq('#no-cards').html('<p id="no-cards">Well done! You have no reviews pending for this deck!</p>');
@@ -38,8 +35,6 @@
         else {
           cardList = cardList.sort(compareRandom)
           currentCard = cardList[currentCardIndex];
-          console.log(currentCard.category)
-          console.log(currentCard.term)
           cardsDue = cardList.length - currentCardIndex;
           mcqChecker();
           LoadRandomMcq();
@@ -55,7 +50,6 @@
       var tapLength = currentTime - lastTapTime;
       if (tapLength < 200 && tapLength > 0) {
         // Double tap
-        console.log("you double tapped")
         event.preventDefault();
         //wait 1000ms before loading next card
 
@@ -65,7 +59,6 @@
     });
 
     jq(document).on('dblclick', function () {
-      console.log("you double clicked");
       loadNextCardOnCategory()
     });
 
@@ -73,14 +66,12 @@
       jq('#forgot-btn').addClass("selected");
       jq('#remember-btn').removeClass("selected");
       jq('#card-extra-content').show();
-      console.log("forgot button active, remember button inactive")
     });
 
     jq('#remember-btn').click(function () {
       jq('#remember-btn').addClass("selected");
       jq('#forgot-btn').removeClass("selected");
       jq('#card-extra-content').show();
-      console.log("remember button active, forgot button inactive")
     });
 
     jq('#next-btn').on('click', function () {
@@ -107,10 +98,8 @@
     var touchStartY = null;
     jq(document.body).on('touchstart', function (event) {
       // disable default touch action
-      console.log("touchstart")
       touchStartX = event.changedTouches[0].clientX;
       touchStartY = event.changedTouches[0].clientY;
-      console.log(touchStartX, touchStartY)
     });
     jq(document.body).on('touchend', function (event) {
       var touchEndX = event.changedTouches[0].clientX;
@@ -118,7 +107,6 @@
       var touchDiffX = touchStartX - touchEndX;
       var touchDiffY = touchStartY - touchEndY;
       var touchDiffRatio = touchDiffY / touchDiffX;
-      console.log(touchEndX, touchEndY)
       var swipes = 0;
       if (touchDiffRatio >= -1 && touchDiffRatio <= 1) { // Horizontal swipe
         if (currentCard.category != "Mcq") {
@@ -158,13 +146,11 @@
         if (currentCard.category == "Mcq") {
           // if swipe up load next card
           if (touchDiffY < 0) { // Swipe down
-            console.log("swipe down")
             if (jq('#A-btn, #B-btn, #C-btn, #D-btn').hasClass('selected')) {
               loadNextCard();
             }
           }
           else if (touchDiffy > 0) { // Swipe up
-            console.log("swipe up")
           }
         }
 
@@ -186,16 +172,13 @@
       var card_id = currentCard.id;
       var csrf_token = jq("input[name='csrf_token']").val();
       if (currentCard.category != "Mcq") {
-        console.log("not mcq")
         if (jq('#remember-btn').hasClass('selected')) {
-          console.log("remember selected")
           incrementCard(csrf_token, card_id);
         }
         else if (jq('#forgot-btn').hasClass('selected')) {
           decrementCard(csrf_token, card_id);
         }
         else {
-          console.log("no button selected")
         }
         jq('A-btn').removeClass('selected');
         jq('B-btn').removeClass('selected');
@@ -228,7 +211,6 @@
       }
       else if (currentCard.category == "Mcq") {
         // if button a b c or d has class correct then increment the card
-        console.log("entered load next card for mcq")
       }
     }
     function loadPreviousCard() {
@@ -268,22 +250,17 @@
     // mcqChecker function
     function mcqChecker() {
       if (currentCard.category == "Mcq") {
-        console.log("mcqChecker is true")
         jq('#mcq').show();
         jq('.n-mcq').hide();
       }
       else {
-        console.log("mcqChecker is false")
         jq('#mcq').hide();
         jq('.n-mcq').show();
       }
     }
     // mcq correct answer setter
     function mcqCorrectAnswerSetter() {
-      console.log("mcqCorrectAnswersetter")
       y = currentCard.content;
-      console.log(y)
-      console.log(jq('#A-btn').text(), jq('#B-btn').text(), jq('#C-btn').text(), jq('#D-btn').text())
       var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
 
       jq('#A-btn, #B-btn, #C-btn, #D-btn')
@@ -306,9 +283,7 @@
     // Sets the data for the card and cardsDue
     function setCardData(cardData, cardsDue) {
       var formula = cardData.formula;
-      console.log(cardData.category)
       formula = '\\[' + formula + '\\]';
-      console.log(formula)
       jq('#card-term').html(currentCard.term);
       jq('#card-id').html(currentCard.id);
       jq('#card-content').html(currentCard.content);
@@ -329,7 +304,6 @@
         contentType: 'application/x-www-form-urlencoded',
         headers: { 'X-CSRFToken': csrf_token },
         success: function (response) {
-          console.log(response);
         }
       });
     }
@@ -341,13 +315,11 @@
         contentType: 'application/x-www-form-urlencoded',
         headers: { 'X-CSRFToken': csrf_token },
         success: function (response) {
-          console.log(response);
         }
       });
     }
     // change 
     function mcqCorrectAnswerChecker() {
-      console.log("mcqCorrectAnswerChecker")
       cardStack.push(currentCard)
       var card_id = currentCard.id;
       var csrf_token = jq("input[name='csrf_token']").val();
@@ -373,7 +345,6 @@
         }
         mcq_guess_counter += 1;
         jq('#A-btn, #B-btn, #C-btn, #D-btn').not(button).removeClass('selected');
-        console.log(`${button.attr('id')} button active`);
       }
     }
 
@@ -398,8 +369,7 @@
     }
 
     function mcqLoadNextCard() {
-      console.log("mcqLoadNextCard")
-      console.log(cardList.length)
+
       var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
       var counter = 0;
 
@@ -441,21 +411,16 @@
     ////////////////  HELP MODAL ////////////////
     const fab = document.getElementById('fabChatContent');
     const chatBtn = document.getElementById('chat-btn');
-    console.log("chat btn", chatBtn)
 
     let isOpen = false;
-    console.log("check check check")
     function toggleFAB() {
 
       isOpen = !isOpen;
       if (isOpen) {
-        console.log('FAB is opened');
         jq("#chat-card-id").text(currentCard.id);
         var cardId = jq('#chat-card-id').text();
         updateChatCardId()
-        console.log(cardId);
       } else {
-        console.log('FAB is closed');
         // Perform any action you want when the FAB is closed
       }
     }
@@ -469,7 +434,6 @@
         url: '/explain_further/' + cardId,
         dataType: 'json',
         success: function (data) {
-          console.log(data);
           // Update the UI with the fetched card details
           displayResponse(data);
           spinner.style.display = 'none';
@@ -481,7 +445,6 @@
       });
     }
     function whyWrong(cardId) {
-      console.log(cardId)
       var spinner = document.querySelector('#ai-spinner');
       spinner.style.display = 'block';
       jq.ajax({
@@ -491,7 +454,6 @@
         dataType: 'json',
         success: function (data) {
           spinner.style.display = 'none';
-          console.log(data);
           // Update the UI with the fetched card details
           displayResponse(data);
         },
@@ -509,7 +471,6 @@
 
     jq('#why-wrong').on('click', function () {
       var cardId = jq('#chat-card-id').text();
-      console.log(cardId)
       whyWrong(cardId);
     });
 
@@ -533,17 +494,14 @@
       var cardId = jq('#chat-card-id').text();
       var question = jq('#chat-input').val();
 
-      console.log("chatbtn clicked", cardId)
       if (question.trim() !== '') {
         var latestParagraphText = jq('#text-container p:last-child').length > 0 ? jq('#text-container p:last-child').text() : '';
         chatInput(cardId, question, latestParagraphText);
       }
 
       function chatInput(cardId, question, latestParagraphText) {
-        console.log("chatinput entered")
         var spinner = document.querySelector('#ai-spinner');
         spinner.style.display = 'block';
-        console.log(spinner.data)
 
         // Send the input and the latest paragraph tag's text to the backend
         jq.ajax({
@@ -554,7 +512,6 @@
             latest_paragraph: latestParagraphText
           },
           success: function (data) {
-            console.log('Response from the backend:', data.response);
             spinner.style.display = 'none';
 
             // Create a new div element and add the question paragraph inside it
@@ -596,12 +553,10 @@
     jq('#chat-input').on('keypress', function (event) {
       if (event.which === 13) {
         event.preventDefault();
-        console.log("pressed enter")
         jq('#chat-btn').trigger('click');
       }
     });
     function scrollToBottom() {
-      console.log("scrolling to bottom")
       var chatBody = document.querySelector('.chat-body');
       chatBody.scrollTop = chatBody.scrollHeight;
     }
@@ -609,7 +564,6 @@
     function updateChatCardId() {
       var cardId = currentCard.id;
       jq("#chat-card-id").text(cardId);
-      console.log("chat-card-id updated to", cardId);
     }
 
 
@@ -643,7 +597,10 @@
         </div>
         <div class="stat-row">
           <div class="answered">{{deck0.total_answered()}}</div>
-          <div>{{ (deck0.correct_incorrect()[0] / deck0.total_answered() * 100)|round(1) }}%</div>
+
+          <div>{% if deck0.total_answered() > 0 %} {{ (deck0.correct_incorrect()[0] / deck0.total_answered() * 100)|round(1) }}%
+            {% else %} 0% {% endif %}
+          </div>
           <div>{{deck0.cards_due()}}</div>
         </div>
       </div>
@@ -792,9 +749,7 @@
   const checkbox = document.getElementById('new-user-study-checkbox');
 
   checkbox.addEventListener('change', function () {
-    console.log(checkbox.checked)
     if (this.checked) {
-      console.log("checked")
       fetch('/new_user_settings', {
         method: 'POST',
         headers: {
@@ -802,7 +757,6 @@
         },
         body: JSON.stringify({ checked: true })
       })
-        .then(response => console.log(response))
         .catch(error => console.error('Error:', error));
     } else {
       fetch('/new_user_settings', {

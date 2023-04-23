@@ -85,26 +85,23 @@
       });
 </script>
 <div class="container mt-1">
-    <div class="d-flex justify-content-end">
-    <div class="form-check form-switch mx-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="toggleViewButton">
-                    <label class="form-check-label" for="toggleView">Switch views</label>
-                </div>
-                <div class="dropdown">
-                    <img src="/static/list-round-bullet-outline-icon.png" onclick="event.stopPropagation();" width="30px" height="30px"
-                      class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                      style="cursor: pointer;">
-                    <!-- Dropdown menu containing the list of links -->
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                      <a class="dropdown-item" href="/viewdecks">Back to decks</a>
-                      <a class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#exampleModalLong"
-                        style="cursor: pointer;">Add cards</a>
-                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDeckModalLong" class="" style="cursor: pointer;">
-                            Edit deck
-                        </a>                      
-                    </div>
-                  </div>
+    <div class = "row">
+    <div class = "col-6 d-flex justify-content-start">
+                <a href="/viewdecks"><img src = "/static/reply-arrow-outline-icon.png" style = "width: 25px; height:25px"></a>
 
+    </div>
+    <div class="col-6 d-flex justify-content-end">
+        <div class="form-check form-switch mx-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="toggleViewButton">
+            <label class="form-check-label" for="toggleView">Switch views</label>
+        </div>
+        
+        <a  class = "px-2"data-bs-toggle="modal" data-bs-target="#exampleModalLong" style="cursor: pointer;">
+            <img src = "/static/mathematics-sign-plus-outline-icon.png" style = "width: 25px; height:25px"></a>
+        <a  class = "px-2" data-bs-toggle="modal" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
+            <img src = "/static/writing-pad-clipboard-icon.png" style = "width: 25px; height:25px"></a>                      
+                 
+</div>
     </div>
 </div>
 

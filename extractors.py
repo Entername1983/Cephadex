@@ -460,29 +460,25 @@ def extract_from_docx(docx_file):
     return text
 
 def extract_from_wiki(wiki_url):
+    print("entered wiki function")
     page = requests.get(wiki_url)
-    
-    # scrape webpage
+    # Scrape webpage
     soup = BeautifulSoup(page.content, 'html.parser')
-    
+
     list(soup.children)
-    
-    # find all occurrence of p in HTML
-    # includes HTML tags
-    print(soup.find_all('p'))
-    print('\n\n')
-    # return only text
-    # does not include HTML tags
-    items = soup.find_all('p')[0].get_text()
-    for i in range(0, len(soup.find_all('p')) - 1):
-        items = soup.find_all('p')[i].get_text()
-        print("item" + str(i))
-        print(items)
-        if i == 0:
-            text = items
-        else:
-            text = text + items
-    
+
+    # Find all occurrences of p, li, h1-h6, and td in HTML
+    tags_to_extract = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'td']
+    extracted_content = []
+
+    for tag in tags_to_extract:
+        elements = soup.find_all(tag)
+        for element in elements:
+            extracted_content.append(element.get_text())
+
+    # Combine all extracted text into a single string
+    text = " ".join(extracted_content)
+
     return text
     
     

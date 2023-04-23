@@ -355,11 +355,6 @@ footer {
 }
 
 
-.extract-boxes {
-}
-//expandable part of the boxes
-.extract-boxes1 {
-}
 
 
 .full-w {
@@ -755,6 +750,10 @@ button:disabled {
   background-color:$cepha_2;
   margin-top: 8px;
 }
+.fab-main:hover {
+  transform: scale(1.1);
+  translate: translateY(-2px);
+}
 
 .fab-options {
   position: relative;
@@ -1006,8 +1005,6 @@ button:disabled {
 
 .btn-chat:hover {
   font-size: 13px;
-  width: 200px;
-  height: 50px;
   border-radius: 15px;
   background-color: $cepha_2;
   border: 2px solid $cepha_1;

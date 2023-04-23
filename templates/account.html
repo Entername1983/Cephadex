@@ -183,7 +183,7 @@ main_0 %}
                 {% endfor %}
 
                 <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
-                  id="qty-cards" placeholder="" value="{{ns.total_correct/ns.total*100}}%" disabled>
+                  id="qty-cards" placeholder="" value="{% if ns.total > 0 %} {{ns.total_correct/ns.total*100}}% {% else%} 0%{% endif %}" disabled>
                 <label for="qty-cards"> Percentage correct</label>
 
               </div>
@@ -215,7 +215,7 @@ main_0 %}
 
 
                 <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text"
-                  id="cards-mastered" placeholder="" value="{{user.quantity_cards_mastered()/ns.total*100}}%" disabled>
+                  id="cards-mastered" placeholder="" value="{% if ns.total > 0 %} {{user.quantity_cards_mastered()/ns.total*100}}% {% else %} 0% {% endif %}" disabled>
                 <label for="cards-mastered">Cards mastered</label>
 
               </div>

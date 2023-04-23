@@ -75,7 +75,7 @@ class User(db.Model, UserMixin):
     subscription_start_date = db.Column(db.DateTime)
     latest_roll_over = db.Column(db.DateTime)
     groups = db.relationship("Group", secondary=user_group_association, backref="users")
-
+    role = db.Column(db.String(255), nullable = True)
 
     def member_since(self):
         return self.time_created.strftime('%b %Y')

@@ -287,36 +287,41 @@ def index():
     logging.info("entered index logging")
     form = TryOut()
     terms = []
-    if form.validate_on_submit():
-        print("form validated")
-        text = form.select_text.data
-        print(text)
-        prompt_options = {
-            'main_opt': form.prompt.data or None,
-            'trans_opt': form.languages.data or None,
-            'lang_opt': None,
-            'detail_lvl_opt': "long",
-            'min_opt':  None,
-            'max_opt':  None,
-            'images_opt':  None,
-            'save_text_opt':  None,
-            'subject_opt':  None,
-            'custom_term':  form.custom_term.data or None,
-            'custom_content': form.custom_content.data or None,
-        }
-        print(text)
-        print(prompt_options)
+
+
+    if not current_user.is_authenticated:
         
-        response = creator(text, prompt_options)
-        terms = response[0]
-        for item in terms:
-            print(item['A'])
-            print(item['B'])
-        
-        event_tracker(None, "tryout", json.dumps(prompt_options), json.dumps(terms))
-        return render_template('index.html', form = form, terms = terms, option = prompt_options['main_opt'])
+        if form.validate_on_submit():
+            print("form validated")
+            text = form.select_text.data
+            print(text)
+            prompt_options = {
+                'main_opt': form.prompt.data or None,
+                'trans_opt': form.languages.data or None,
+                'lang_opt': None,
+                'detail_lvl_opt': "long",
+                'min_opt':  None,
+                'max_opt':  None,
+                'images_opt':  None,
+                'save_text_opt':  None,
+                'subject_opt':  None,
+                'custom_term':  form.custom_term.data or None,
+                'custom_content': form.custom_content.data or None,
+            }
+            print(text)
+            print(prompt_options)
             
-    return render_template('index.html', form = form)
+            response = creator(text, prompt_options)
+            terms = response[0]
+            for item in terms:
+                print(item['A'])
+                print(item['B'])
+            
+            event_tracker(None, "tryout", json.dumps(prompt_options), json.dumps(terms))
+            return render_template('index.html', form = form, terms = terms, option = prompt_options['main_opt'])
+  
+    return redirect(url_for("viewdecks")) 
+  
 
 
 
@@ -454,6 +459,7 @@ def register():
         contacted = request.form.get('contacted')
         subscribe = request.form.get('subscribe')
         betakey = request.form.get('betakey')
+        role = request.form.get('role')
         timezone = form.timezone.data
         if timezone == None:
             timezone = "Europe/Dublin"
@@ -478,7 +484,7 @@ def register():
                 return apology("Invalid Beta Key", 403)
         user = User(email=email, first_name=given_name, account_type = account_type, last_name=family_name,external_id=userid,
                     external_type='google', subscription_plan = subscription_plan, contacted_email=contacted, username=username,
-                    timezone = timezone, subscription_start_date = datetime.utcnow())
+                    timezone = timezone, subscription_start_date = datetime.utcnow(), role = role)
         user_settings = UserSettings(user=user.id)
         if subscribe == "subscribe":
             sub_exists = Subscriber.query.filter_by(email=email).first()
@@ -492,7 +498,7 @@ def register():
         db.session.commit()
         login_user(user)
         flash("You have been registered and logged in!", "success")
-        return redirect(url_for('index'))
+        return redirect(url_for('viewdecks'))
     return render_template('register.html', title='Register', form = form)
     
     ##register_form = RegisterForm()
