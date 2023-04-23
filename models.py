@@ -74,7 +74,8 @@ class User(db.Model, UserMixin):
     subscription_plan = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=False, default=1)
     subscription_start_date = db.Column(db.DateTime)
     latest_roll_over = db.Column(db.DateTime)
-    groups = db.relationship("Group", secondary=user_group_association, back_populates="users")
+    groups = db.relationship("Group", secondary=user_group_association, backref="users")
+
 
     def member_since(self):
         return self.time_created.strftime('%b %Y')
@@ -125,7 +126,6 @@ class Group(db.Model):
 
     avatar = db.Column(db.String(255))
     is_private = db.Column(db.Boolean, default=False)
-    users = db.relationship("User", secondary=user_group_association, back_populates="groups")
     decks = db.relationship("Deck", back_populates="group")
 
 class GroupInvite(db.Model):
@@ -349,6 +349,28 @@ class Deck(db.Model):
                     backref=db.backref("parents", lazy="dynamic"),
                     lazy="dynamic")
     
+    def correct_incorrect(self):
+        correct = 0
+        incorrect = 0
+        for card in self.cards:
+            if card.times_correct is not None and card.times_asked is not None:
+                try:
+                    correct = correct + int(card.times_correct)
+                    incorrect = incorrect + int(card.times_asked) - int(card.times_correct)
+                except ValueError:
+                    # handle invalid values here
+                    pass
+        return correct, incorrect
+    def total_answered(self):
+        total = 0
+        for card in self.cards:
+            if card.times_asked is not None:
+                try:
+                    total = total + int(card.times_asked)
+                except ValueError:
+                    # handle invalid values here
+                    pass
+        return total
 
     def serialize(self):
         return {

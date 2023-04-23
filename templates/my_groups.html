@@ -10,7 +10,7 @@
 <div class="container">
 
     <div class="m-2">
-        {% if group_invites|length > 0 %}
+        {% if invitations|length > 0 %}
 
         <div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
             <p> You have been invited to join groups. Click <a class="mx-2" data-bs-toggle="modal"
@@ -30,29 +30,60 @@
         Group</button>
 
     <h1 class="my-3">My Groups</h1>
+
+    <div style = "background-color:aliceblue; border-radius: 10px; padding: 10px; margin-bottom: 10px;">
     <h4>My created groups</h4>
-    {% for group in created_groups %}
-    <li class="list-group-item">{{ group.name }} <a data-bs-toggle="modal" data-bs-target="#Modal{{group.id}}"
-            class="mx-2" style="cursor: pointer; text-decoration: none;">
-            <img src="\static\instagram-share-icon.png" alt="Share"
-                style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1" title="Share">
-        </a><a href = "/group/{{group.id}}">View details</a></li>
 
 
-
-
-        
-    {% endfor %}
-
+    <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+     {% for group in created_groups %}
+    <tr id="invited-row-{{ username }}">
+        <td><a href = "/group/{{group.id}}"><h6>{{ group.name }}</h6></a> </td>
+        <td>        <button class ="btn btn-sm" data-bs-toggle="modal" data-bs-target="#Modal{{group.id}}">Members</button>
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
 
 
     <h4>My groups</h4>
-    <ul class="list-group my-3">
-        {% for group in groups %}
-        <li class="list-group-item">{{ group.name }}         </a><a href = "/group/{{group.id}}">View details</a></li>
-    </li>
-        {% endfor %}
-    </ul>
+
+    <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+    <tr id="invited-row-{{ username }}">
+        <td><a href = "/group/{{group.id}}"><h6>{{ group.name }}</h6></a> </td>
+        <td>        <button class ="btn btn-sm" data-bs-toggle="modal" data-bs-target="#Modal{{group.id}}">Members</button>
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+
+
+
+
+
+
 </div>
 
 <!-- Create Group Modal -->
@@ -60,7 +91,7 @@
     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header modal-header-style">
                 <h5 class="modal-title" id="createGroupModalLabel">Create Group</h5>
 
             </div>
@@ -76,11 +107,18 @@
                     </div>
                     <div class="form-group">
                         <label for="group_type">Group Type</label>
-                        <input type="text" class="form-control" id="group_type" name="group_type" required>
+                        <select  class="form-control" id="group_type" name="group_type" required>
+                            <option value="" disabled selected>Select a group type</option>
+                            <option value="school">School</option>
+                            <option value="class">Class</option>
+                            <option value="department">Department</option>
+                            <option value="club">Club</option>
+                            <option value="other">Other</option>
+                            </select>
                     </div>
                     <div class="form-group">
-                        <label for="is_private">Private Group</label>
-                        <input type="checkbox" id="is_private" name="is_private">
+                        <label for="is_private">Private</label>
+                        <input type="checkbox" id="is_private" name="is_private" checked>
                     </div>
 
                 </form>
@@ -126,14 +164,12 @@
 <!----- SHARE DECK MODAL -->
 {% for group in created_groups %}
 
-<div class="modal fade" id="Modal{{group.id}}"  aria-labelledby="#ModalLabel{{group.id}}"
+<div class="modal fade" id="Modal{{group.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{group.id}}"
     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header p-4" style = "background-color:#091954"
-
-            >
-                <h5 class="modal-title" id="ModalLabel{{group.id}}" style="color:  #FA9400">Add members</h5>
+            <div class="modal-header p-4 modal-header-style">
+                <h5 class="modal-title" id="ModalLabel{{group.id}}">Add members</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -147,22 +183,51 @@
                         </div>
 
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="inviteGroup(event, '{{ group.id }}')">Share</button>
+                    <button type="button" class="btn btn-primary" onclick="inviteGroup(event, '{{ group.id }}')">Invite</button>
                     <div>
                         <h6>Invited</h6>
+                        <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+                            <table class="table table-striped">
+                              <thead>
+                                <tr>
+                                  <th scope="col">Username</th>
+                                  <th scope="col">Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                         {% for user_id, username, email in group_invites %}
-                        <div>
-                            <li>Username: {{ username }}, Email: {{ email }}</li>
-                        </div>
+                        <tr id="invited-row-{{ username }}">
+                            <td>{{ username }}</td>
+                            <td>{{ email }}</td>
+                        </tr>
                     {% endfor %}
+                </tbody>
+            </table>
+          </div>
                     </div>
                     <div>
-                        <h6>Members</h6>
-                        {% for user_id, role in user_roles.get(group.id, {}).items() %}
-                        <li>Username: {{ user_id }} - Role: {{ role }}</li>
-                    {% else %}
-                        <li>No user roles found for this group.</li>
+                        <h3>Members:</h3>
+                        <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+                          <table class="table table-striped">
+                            <thead>
+                              <tr>
+                      
+                                <th scope="col">Username</th>
+                                <th scope="col">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for id, info in user_roles.get(group.id, {}).items() %}
+                        <tr id="invited-row-{{ username }}"></tr>
+                                               
+                        <th>{{info['username']}}</th>
+                        <th>{{info['role']}}</th>
+                        </tr>
+
                     {% endfor %}
+                </tbody>
+            </table>
+            </div>
                     </div>
                 </form>
             </div>
@@ -206,15 +271,14 @@
 <div class="modal fade" id="inviteGroupModal" tabindex="-1" aria-labelledby="#inviteGroupModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header bg-gradient-primary-to-secondary p-4">
-                <h5 class="modal-title" id="SharedDecksModalLabel" style="color:  #eaabab">Shared Decks</h5>
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="SharedDecksModalLabel">Shared Decks</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
-                    {% for group in group_invites %}
-
-
+                    {% if invitations %}
+                    {% for group in invitations %}
                     <div class="col-sm-6">
                         <div class="card">
                             <div class="card-body">
@@ -235,11 +299,6 @@
                             </div>
                         </div>
                     </div>
-
-
-
-
-
                     <script>
                         function approveSharedGroup(event, groupId) {
                             event.preventDefault();
@@ -268,9 +327,12 @@
                             }
                         }
 
-
                     </script>
+                    {% else %}
+                    <h4>You currently have no group invitations</h4>
+                    
                     {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </div>

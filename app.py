@@ -2,7 +2,7 @@ import openai
 import os
 from bs4 import BeautifulSoup
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import or_
+from sqlalchemy.sql import or_, and_, insert
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Mapped
 from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
@@ -191,11 +191,11 @@ class UploadFileForm(FlaskForm):
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
     prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
                                            ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
-                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize (coming soon)'),
-                                           ('Turn2notes', 'Turn to notes (coming soon)'), ('Custom', 'Custom')], default='Definitions')
+                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
+                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
     generate_images = BooleanField('Generate_images')
     save_text = BooleanField('Save_text')
-    languages = SelectField('Languages', choices=[("", "If you want your transcription translated selected a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
+    languages = SelectField('Languages', choices=[("", "Choose a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
                                                   ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
                                                   ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
@@ -206,7 +206,7 @@ class UploadFileForm(FlaskForm):
                                                   ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
                                                   ( "Vietnamese", "Vietnamese")], default = None)
     
-    text_input = StringField('Text Input', render_kw={"placeholder": "Paste your text here"})
+    text_input = TextAreaField('Text Input', render_kw={"placeholder": "Paste your text here"})
     link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional()])
     qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Minimum"})
     qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Maximum"})
@@ -403,7 +403,7 @@ def googleSignIn():
             login_user(user)
             flash('You have been logged in!', 'success')
             event_tracker(user.id, "login", "google")
-            return redirect(url_for('index'))
+            return redirect(url_for('viewdecks'))
         
         else:
             print("entered not user, preparing to register")
@@ -522,7 +522,7 @@ def login():
                 print("password correct")
                 login_user(user)
                 flash('You have been logged in!', 'success')
-                return render_template('index.html', title='Index')
+                return redirect(url_for('viewdecks'))
         else:
             flash('Login Unsuccessful. Please check username and password')
             return render_template('index.html', title='Index')
@@ -594,37 +594,21 @@ def viewdecks():
 
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
     if request.method == 'GET':
-        sort_method =request.args.get('sort')
-        search_query = None
+        sort_method = request.args.get('sort')
         search_query = request.args.get('search', '').strip()
-        if sort_method != 'default':
-            if sort_method == 'name_asc':
-                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.name.asc()).all()
-            elif sort_method == 'name_desc':
-                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.name.desc()).all()
-            elif sort_method == "cards_due_asc":
-                decks = sorted(decks, key=lambda deck: deck.qty_cards_due())
-            elif sort_method == "cards_due_desc":
-                decks = sorted(decks, key=lambda deck: deck.qty_cards_due(), reverse=True) 
-            elif sort_method == "category_asc":
-                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.category.asc()).all()
-            elif sort_method == "create_time_asc":
-                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.asc()).all()
-            elif sort_method == "create_time_dsc":
-                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(Deck.time_created.desc()).all()          
-        elif search_query:
-            print("entered search_query")
-            decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()   
-        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user, settings = user_settings)
-    if request.method == 'POST':
-        deck_id = request.form['deck_id']
-        deck = Deck.query.filter(Deck.id == deck_id).first()
-        new_name = request.form['new_name']
-        if new_name != '':
-            deck.name = new_name
-            db.session.commit()
-        return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user, settings = user_settings
-        )
+        if sort_method:
+            column, order = sort_method.split('_')
+            order_by = getattr(getattr(Deck, column), order)() if column in ['name', 'category', 'time_created'] else None
+
+            if order_by:
+                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(order_by).all()
+            elif column == "cards_due":
+                decks = sorted(decks, key=lambda deck: deck.qty_cards_due(), reverse=order == 'desc')
+
+    if search_query:
+        decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()
+
+
     return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user, settings = user_settings)
 
 
@@ -788,7 +772,6 @@ def deletecard(deck_id, card_id):
         print("going to to delete this card now")
         db.session.delete(card_to_delete)
         db.session.commit()
-        flash("Card deleted")
         return jsonify({"status": "success", "message": "Card deleted"})
     else:
         return jsonify({"status": "error", "message": "Card not found"})
@@ -1124,6 +1107,7 @@ def delete_account():
 
 @app.route("/import_public_deck/<int:deck_id>", methods = ["GET", "POST"])
 def import_public_deck(deck_id):
+    print("entered public decks")
     deck = Deck.query.filter_by(id=deck_id, public=True).first()
     if deck is None:
         return apology("Deck not found", 404)
@@ -1223,8 +1207,8 @@ def get_or_create_deck(form, prompt_options):
         deck = form.deck_list.data
     else:
         time = datetime.utcnow().isoformat()
-        deck_name = form.name.data or "".join(main_opt + "deck" + time)
-        deck_description = form.description.data or "".join(main_opt + "deck")
+        deck_name = form.name.data or "".join(main_opt + " "+ "deck" +" "+ time)
+        deck_description = form.description.data or "".join(main_opt + " " + "deck")
         deck = Deck(name=deck_name, description=deck_description)
         db.session.add(deck)
     deck.user_id = current_user.id
@@ -1847,7 +1831,9 @@ def about():
 
 @app.route("/query", methods=["POST"])
 def query():
+    progress = 0
     print("entered query")
+    
     # The id of the queried request comes in with a new request
     # sent from the frontend JS code
     job_id = request.form["id"]
@@ -1919,7 +1905,7 @@ def perform_operation(user_id, operation_type, n):
         new_record.operation_count = n
         new_record.remaining_count = subscription_plan.limit_count - n
     else:
-        new_record.operation_count = usage_record.operation_count + n
+        new_record.operation_count =  n
         new_record.remaining_count = usage_record.remaining_count - n
     db.session.add(new_record)
 
@@ -2036,7 +2022,8 @@ def public_decks():
 
 
 ####################### GROUPS #####################################################
-
+####################################################################################
+####################################################################################
 
 @app.route('/my_groups')
 def my_groups():
@@ -2044,9 +2031,10 @@ def my_groups():
     created_groups = Group.query.filter_by(creator_id=user_id).all()
     user_groups = current_user.groups
     group_invites = get_invited_users_info(user_id)
+    invitations = GroupInvite.query.filter_by(user_id=user_id).all()
     all_groups_member_roles = get_all_groups_member_roles(user_id)
-    print(all_groups_member_roles)
-    return render_template('my_groups.html', groups=user_groups, created_groups = created_groups, group_invites = group_invites, user_roles = all_groups_member_roles)
+    print("roles", all_groups_member_roles)
+    return render_template('my_groups.html', invitations = invitations, groups=user_groups, created_groups = created_groups, group_invites = group_invites, user_roles = all_groups_member_roles)
 
 @app.route('/create_group', methods=['POST'])
 def create_group():
@@ -2055,12 +2043,17 @@ def create_group():
     name = group_data['name']
     description = group_data['description']
     group_type = group_data['group_type']
-    private = (group_data['is_private'])
-    print("private: ", private)
+    private = group_data['is_private']
     user_id = current_user.id
     new_group = Group(name=name, description=description, group_type=group_type, is_private = private, creator_id=user_id)
     db.session.add(new_group)
+    new_group.users.append(current_user)
     db.session.commit()
+
+    update_member_permissions(new_group.id, user_id, "write")
+    db.session.commit()
+
+
     return jsonify({'message': 'Group created successfully'}), 201
 
 @app.route("/invite_group/", methods=["GET", "POST"])
@@ -2072,19 +2065,23 @@ def invite_group():
     not_users = []
     group = Group.query.filter_by(id=group_id).first()
     if check_comma_list(user_email):
+        
         users_emails = user_email.split(",")
         for email in users_emails:
+            print("user email", email)
             email = unquote(email).strip()
             user = User.query.filter_by(email=email).first()
+            already_invited = GroupInvite().query.filter_by(user_id=user.id, group_id=group_id).first()
             if user is None:
                 not_users.append(email)
-            else:
-                new_invite = GroupInvite(name = group.name, invited_by_email=current_user.email, invited_by_id=current_user.id, user_id=user.id, group_id=group_id, created_at = datetime.utcnow())
-                db.session.add(new_invite)
-                db.session.commit()
-            if len(not_users) > 0:
-                flash('The following users are not registered: ' + str(not_users), 'warning')
-            return jsonify('success', 'User invited successfully')
+            elif already_invited is None:
+                if user not in group.users:
+                    new_invite = GroupInvite(name = group.name, invited_by_email=current_user.email, invited_by_id=current_user.id, user_id=user.id, group_id=group_id, created_at = datetime.utcnow())
+                    db.session.add(new_invite)
+                    db.session.commit()
+                if len(not_users) > 0:
+                    flash('The following users are not registered: ' + str(not_users), 'warning')
+        return jsonify('success', 'User invited successfully')
 
     else:
         user = User.query.filter_by(email=user_email).first()
@@ -2101,22 +2098,30 @@ def invite_group():
 
 @app.route("/approve_group/<int:group_id>/", methods=["GET", "POST"])
 def approve_group(group_id):
-    group_invite = GroupInvite.query.get_or_404(group_id)
+    group_invite = GroupInvite.query.filter_by(id=group_id, user_id=current_user.id).first()
     if group_invite:
         group = Group.query.get_or_404(group_invite.group_id)
-        group.users.append(current_user)
+        db.session.execute(user_group_association.insert().values(
+            user_id=current_user.id, 
+            group_id=group.id, 
+            role="member", 
+            permissions="read",
+            ))
         db.session.delete(group_invite)
         db.session.commit()
         return jsonify('success', 'User added to group successfully')
     
 @app.route("/reject_group/<int:group_id>/", methods=["GET", "POST"])
 def reject_group(group_id):
-    group_invite = GroupInvite.query.get_or_404(group_id)
+    print(group_id)
+    group_invite = GroupInvite.query.filter_by(id=group_id, user_id=current_user.id).first()
+    print(group_invite)
     if group_invite:
         db.session.delete(group_invite)
         db.session.commit()
         return jsonify('success', 'User rejected successfully')
-    
+    else:
+        return jsonify('error', 'User not invited to group')
 
 
 def get_group_member_roles(group_id):
@@ -2165,12 +2170,10 @@ def get_all_groups_member_permissions(user_id):
     user_groups = db.session.query(Group).join(user_group_association).filter(
         user_group_association.c.user_id == user_id
     ).all()
-
     all_groups_member_permissions = {}
     for group in user_groups:
         group_member_permissions = get_group_member_permissions(group.id)
         all_groups_member_permissions[group.id] = group_member_permissions
-
     return all_groups_member_permissions
 
 
@@ -2179,15 +2182,12 @@ def get_invited_users_info(user_id):
     user_groups_query = db.session.query(Group.id).join(user_group_association).filter(
         user_group_association.c.user_id == user_id
     ).all()
-
     # Extract the group IDs from the Row objects
     user_groups = [row[0] for row in user_groups_query]
-
     # Get the user IDs from the invite_group table for those groups
     invited_users = db.session.query(User.id, User.username, User.email).join(GroupInvite, GroupInvite.user_id == User.id).filter(
         GroupInvite.group_id.in_(user_groups)
     ).all()
-
     return invited_users
 
 
@@ -2208,14 +2208,18 @@ def group(group_id):
 
 
 @app.route('/group/<int:group_id>/update_member_permissions', methods=['POST'])
-def update_member_permissions(group_id):
+def update_member_permissions(group_id, user_id = None, permission = None):
     print(request.data)
     user_id = current_user.id
     data = request.json
-    
-    target_user_id = int(data['target_user_id'])
-    new_permissions = data['new_permissions']
-
+    if user_id:
+        target_user_id = user_id
+    else:
+        target_user_id = int(data['target_user_id'])
+    if permission:
+        new_permissions = permission
+    else:
+        new_permissions = data['new_permissions']
     # Check if the current user is the creator of the group
     group = Group.query.get(group_id)
     if group.creator_id == user_id:
@@ -2235,7 +2239,6 @@ def update_member_permissions(group_id):
             "status": "error",
             "message": "You do not have permission to update member permissions"
         }
-
     return jsonify(response)
 
 @app.route('/search_public_decks', methods=['POST'])
@@ -2245,6 +2248,79 @@ def search_public_decks():
     decks = Deck.query.filter(Deck.public == True, Deck.name.contains(search_term)).all()
     return jsonify([deck.serialize() for deck in decks])
 
+@app.route('/add_deck_to_group', methods=['POST'])
+def add_deck_to_group():
+    data = request.json
+    group_id = data['group_id']
+    if check_group_write_permission(group_id) == False:
+        return jsonify({"status": "error", "message": "You do not have permission to add decks to this group"})
+    else:
+        deck_id = data['deck_id']
+        group = Group.query.get(group_id)
+        existing_deck = Deck.query.get(deck_id)
+        new_deck = Deck(user_id = current_user.id, name=existing_deck.name, description=existing_deck.description, group_id = group_id, time_created=datetime.utcnow())
+        db.session.add(new_deck)
+        for card in existing_deck.cards:
+            new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+            new_deck.cards.append(new_card)
+        db.session.commit()
+        return jsonify({"status": "success"})
+
+def check_group_write_permission(group_id):
+    user_id = current_user.id
+    association = db.session.query(user_group_association).filter_by(user_id=user_id, group_id=group_id).first()
+    if association and association.permissions and 'write' in association.permissions:
+        return True
+    else:
+        print("no permission to edit")
+        return False
+
+@app.route("/delete_group/<int:group_id>/", methods=["GET", "POST"])
+def delete_group(group_id):
+    group = Group.query.get(group_id)
+    if group.creator_id == current_user.id:
+        db.session.delete(group)
+        db.session.commit()
+        return redirect(url_for('my_groups'))
+    else:
+        return jsonify({"message": "You do not have permission to delete this group", "status": "error"})
+
+
+@app.route("/import_from_group/<int:deck_id>/<int:group_id>", methods=["GET", "POST"])
+def import_from_group(deck_id, group_id):
+    group = Group.query.get(group_id)
+    existing_deck = Deck.query.get(deck_id)
+    group = Group.query.filter_by(id=group_id).first()
+    user_ids = [user.id for user in group.users]
+    if current_user.id in user_ids:
+        new_deck = Deck(user_id = current_user.id, name=existing_deck.name, description=existing_deck.description, group_id = group_id, time_created=datetime.utcnow())
+        for card in existing_deck.cards:
+            new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+            new_deck.cards.append(new_card)
+        
+        db.session.add(new_deck)
+        return jsonify({"message": "Deck imported successfully", "status": "success"})
+    else:
+        return jsonify({"message": "You do not have permission to import from this group", "status": "error"})
+
+@app.route("/remove_user_group/<int:group_id>/<int:user_id>", methods=["GET", "POST"])
+def remove_user_group(group_id, user_id):
+    group = Group.query.get(group_id)
+    if group.creator_id == current_user.id:
+        association = db.session.query(user_group_association).filter(
+            and_(user_group_association.c.user_id == user_id, user_group_association.c.group_id == group_id)
+        ).first()
+        
+        if association:
+            db.session.execute(
+                user_group_association.delete().where(
+                    and_(user_group_association.c.user_id == user_id, user_group_association.c.group_id == group_id)
+                )
+            )
+            db.session.commit()
+        return jsonify({"message": "User removed successfully", "status": "success"})
+    else:
+        return jsonify({"message": "You do not have permission to remove users from this group", "status": "error"})
 ###################### TO BE REORGANIZED ###############################################################################################
 
 

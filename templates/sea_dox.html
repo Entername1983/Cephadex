@@ -12,7 +12,10 @@
 
 <div class = "container" style="text-align:center">
 <h3> View files for {{deck.name}}:</h3>
+{% if not file %}
+<h5>You have no files associated with this deck.  Files are created when you save the source text or when you use the transcribe, summarize, or turn to notes functionalities.</h5>
 </div>
+{% endif %}
 
 <div class="col-10-md box_0 m-3 p-3">
     <div class="row">

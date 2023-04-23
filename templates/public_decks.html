@@ -14,25 +14,13 @@
     </a>
  </div> ---->
 <div class="m-2">
-
-
-
-
     <div class="col-10-md box_0  p-3">
-
-
-
-
         <div class="row">
-
             <div class="col-6 d-flex justify-content-center align-items-center">
                 <h2> Public Decks</h2>
             </div>
             <div class="col-6 d-flex justify-content-end">
-
-
                 <form action="" method="get">
-
                     <div class="row justify-content-end ">
                         <div class = "row">
                         <div class="input-group mb-3 floating-form"style = "max-width:400px">
@@ -63,10 +51,6 @@
                 </form>
             </div>
         </div>
-
-
-
-    
     <table class="table table_0 mobile-optimised">
 
         <table class="table table_0 mobile-optimised">
@@ -89,22 +73,12 @@
                             <input type="hidden" name="deck_id" value="{{ deck.id }}">
                             <h6>{{ deck.name }}</h6>
                         </form>
-
                     </td>
                     <td data-th="Description:">{{ deck.description }}</td>
                     <td data-th="Category:"> {{ deck.check_cat() }} </td>
                     <td data-th="Number of Cards (cards due):"> {{ deck.quantity_cards() }} </td>
-
-
-
-
                     <td>
-                        <!------- STUDY DECK ----->
-
-                        <!---- EDIT DECK ------>
-
-                        <!---- SHARE DECK ------>
-
+              
                         <a onclick="importPublicDeck('{{deck.id}}')" class="mx-2"
                             style="cursor: pointer; text-decoration: none;"><img src="\static\save-outline-icon.png"
                                 alt="Save to my decks" style="max-width:30px;max-height:30px; text-decoration: none;"
@@ -132,27 +106,22 @@
 </div>
 </td>
 </tr>
-
-
 <div class="modal fade" id="infoDecksModal{{deck.id}}" tabindex="-1" aria-labelledby="#infoDecksModalLabel{{deck.id}}"
   aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}" style = "color:  #eaabab">Deck details:</h5>
+      <div class="modal-header modal-header-style p-4">
+        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}">Deck details:</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-
         <div class="row box_study mt-1">
           <li class="list-group-item">Deck name:
             <h5>{{deck.name}}</h5>
           </li>
-
           <li class="list-group-item">Deck description:
             <h5>{{deck.description}}</h5>
           </li>
- 
           <li class="list-group-item">Subject:
             <h5>{{deck.subject}}</h5>
           </li>
@@ -162,23 +131,12 @@
           <li class="list-group-item">Date created:
             <h5>{{deck.time_created}}</h5>
           </li>
-
+                  <div class = "row d-flex justify-content-center">
+<h5>  <a target = "_blank" href="public_cards/{{deck.id}}"> View cards</a> </h5>
         </div>
-        <div class = "row">
-<h5> Click <a target = "_blank" href="public_cards/{{deck.id}}"> here</a> to view cards</h5>
-
-
-
-          
         </div>
-
-
-
-
-
 
       </div>
-
     </div>
   </div>
 </div>
@@ -186,23 +144,11 @@
 </tbody>
 </table>
 
-
 </div>
-
 <!----- SHARE DECK MODAL -->
 
-
-
-
-
-
 </div>
 </div>
-
-
-
-
-
 <script>
     function importPublicDeck(deckId) {
         event.preventDefault();
@@ -218,11 +164,6 @@
     }
 
 </script>
-
-
-
-
-
 
 
 {% endblock %}

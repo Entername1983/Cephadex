@@ -1,207 +1,638 @@
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block title %} Group {{group.name }}{% endblock
+%} {% block main_0 %}
+<div class="container">
+  {% if current_user.id == group.creator_id %}
+  <button
+    type="button"
+    class="btn btn-primary"
+    data-bs-toggle="modal"
+    data-bs-target="#permissionsModal"
+  >
+    Permissions
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete_group/{{group.id}}'; }"
+  >
+    Delete group
+  </button>
 
-{% block title %} Group {{group.name }}{% endblock %}
+  {% endif %} {% for user_id, user_info in permissions.items() %} {% if
+  user_info['permissions'] == 'write' %}
+  <button
+    type="button"
+    class="btn btn-primary"
+    data-bs-toggle="modal"
+    data-bs-target="#importModal"
+  >
+    Import decks
+  </button>
 
+  <button
+    type="button"
+    class="btn btn-primary"
+    data-bs-toggle="modal"
+    data-bs-target="#inviteModal"
+  >
+    Invite users
+  </button>
+  {% endif %} {% endfor %}
 
-{% block main_0 %}
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#permissionsModal">
-    Edit permissions for {{group.name}} </button>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
-        Import decks</button>
+  <div class="mt-2 p-1">
+    <h3>{{group.name}}:</h3>
+    <div class="box_study mt-1 p-2">
+      <div class="row">
+        {% if invited_users %}
+        <h3>Invited:</h3>
 
+        <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Username</th>
+                <th scope="col">Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in invited_users %}
+              <tr id="invited-row-{{ user_id }}">
+                <td>{{user[1]}}</td>
+                <td>{{user[2]}}</td>
+                {% endfor %}
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
+        {% endif %}
+      </div>
 
-<div class = "container">
-<h3> {{group.name}}</h3> 
-<div class = "row">
-<h3>Invited:</h3>
-{% for user in invited_users %}
-<li>Username:{{user[1]}} Email:{{user[2]}} </li>
-{% endfor %}
+      <h3>Members:</h3>
+      <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">User ID</th>
+              <th scope="col">Username</th>
+              <th scope="col">Role</th>
+              {% if current_user.id == group.creator_id %}
+              <th scope="col">Actions</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for user_id, user_info in group_member_roles.items() %}
+            <tr id="user-row-{{ user_id }}">
+              <td>{{ user_id }}</td>
+              <td>{{ user_info['username'] }}</td>
+              <td>{{ user_info['role'] }}</td>
+              {% if current_user.id == group.creator_id %}
+              <td>
+                <button
+                  class="btn btn-sm"
+                  onclick="removeUser({{ group.id }}, {{ user_id }})"
+                >
+                  Remove
+                </button>
+              </td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="box_study mt-1 p-2">
+      <h3>Decks:</h3>
+      <div class="row">
+        {% for deck in decks %}
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">{{deck.name}}</h5>
+              <p class="card-text">{{deck.description}}</p>
+              <button class="btn btn-primary" onclick="saveDeckToMyDecks({{ deck.id }}, {{ group.id }})">Save to my decks</button>
+
+              <button
+                class="btn btn-secondary"
+                data-bs-toggle="modal"
+                data-bs-target="#cardsModal{{deck.id}}"
+              >
+                See cards
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 </div>
-<h3>Members:</h3>
-{% for user_id, user_info in group_member_roles.items() %}
-<li>User ID: {{ user_id }}, Username: {{ user_info['username'] }}, Role: {{ user_info['role'] }}</li>
 
-{% endfor %}
+<script>
+  function removeUser(group_id, user_id) {
+    fetch(`/remove_user_group/${group_id}/${user_id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "same-origin",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          document.getElementById(`user-row-${user_id}`).remove();
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
+</script>
 
-<h3>Decks:</h3>
-{% for deck in decks %}
-<li>{{deck.name}}</li>
-{% endfor %}
-
-
-</div>
+<script>
+    function saveDeckToMyDecks(deck_id, group_id) {
+      fetch(`/import_from_group/${deck_id}/${group_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin"
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message);
+        })
+        .catch(error => {
+          console.error("Error:", error);
+        });
+    }
+  </script>
 
 
 <!------- PERMISSIONS MODAL ------>
-<div class="modal fade" id="permissionsModal" tabindex="-1" role="dialog" aria-labelledby="permissionsModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="permissionsModalLabel">Edit permissions</h5>
-                <div id="successMessage" class="alert alert-success d-none" role="alert"></div>
+<div
+  class="modal fade"
+  id="permissionsModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="permissionsModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="permissionsModalLabel">Edit permissions</h5>
+        <div
+          id="successMessage"
+          class="alert alert-success d-none"
+          role="alert"
+        ></div>
+      </div>
+      <div class="modal-body">
+        <select id="target-user-id" class = "form-control">
+          {% for user_id, user_info in group_member_roles.items() %}
+          <option value="{{user_id}}">
+            {{ user_info['username'] }} 
+          </option>
+          {% endfor %}
+        </select>
+        <select id="new-permissions" class = "form-control">
+          <option value="write">Edit</option>
+          <option value="read">View</option>
+        </select>
+      </div>
+      <div id="admins" class = "p-2">
+        <h4>Edit permissions:</h4>
 
-            </div>
-            <div class="modal-body">
-                <select id = "target-user-id">
-                    {% for user_id, user_info in group_member_roles.items() %}
-                <option value="{{user_id}}">{{ user_info['username'] }} Role: {{ user_info['role'] }}</option>
-                    {% endfor %}
-                </select>
-                <select id = "new-permissions">
-                    <option value="write">Owner</option>
-                    <option value="read">Viewer</option>
-                </select>
 
-
-            </div>
-            <div id = "admins">
-                <h4> Admins (write permission)</h4>
-                {% for user_id, user_info in permissions.items() %}
-                {% if user_info['permissions'] == 'write' %}
-                <li>Username:{{user_info['username']}}  </li>
-                {% endif %}
-                
-                {% endfor %}
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="permitSave">Save</button>
-            </div>
-        </div>
+        <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                </tr>
+            </thead>
+            <tbody>
+        {% for user_id, user_info in permissions.items() %} {% if
+        user_info['permissions'] == 'write' %}
+        <tr>
+            <td>{{user_info['username']}} </td>
+        </tr>
+    </tr>
+        {% endif %} {% endfor %}
+    </tbody>
+</table>
+</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+        <button type="button" class="btn btn-primary" id="permitSave">
+          Save
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 <!----- IMPORT DECK MODAL ----->
 
+<div
+  class="modal fade"
+  id="importModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="importModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="importModalLabel">Import decks</h5>
+        <div
+          id="successMessage"
+          class="alert alert-success d-none"
+          role="alert"
+        ></div>
+      </div>
+      <div class="modal-body">
+        <h4>Import from my decks</h4>
 
-<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="importModalLabel">Import decks</h5>
-                <div id="successMessage" class="alert alert-success d-none" role="alert"></div>
+        <select id="My decks">
+          <option value="" selected disabled hidden>Choose deck</option>
+          {% for deck in mydecks %}
+          <option value="{{deck.id}}">{{deck.name}}</option>
+          {% endfor %}
+        </select>
+        <button type="button" class="btn btn-primary" id="importDeck">
+          Import
+        </button>
 
-            </div>
-            <div class="modal-body">
-                                    <h4> Import from my decks</h4>
-
-                <select id = "My decks">
-{% for deck in mydecks %}
-                <option value="{{deck.id}}">{{deck.name}}</option>
-                {% endfor %}
-
-                </select>
-<h4> Search public decks</h4>
-                <input type="text" id="search" name="search" placeholder="Search..">
-                <div id="searchResults">
-                </div>
-
-
-            </div>
-            <div id = "admins">
-         
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="permitSave">Import</button>
-            </div>
-        </div>
+        <h4>Search public decks</h4>
+        <input type="text" id="search" name="search" placeholder="Search.." />
+        <div id="searchResults"></div>
+      </div>
+      <div id="admins"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
-<script> 
-    document.addEventListener("DOMContentLoaded", function() {
-        const searchButton = document.getElementById("search");
-        const searchResults = document.getElementById("searchResults");
-        searchButton.addEventListener("change", function() {
-            console.log("change detected")
-            const search = document.getElementById("search").value;
-            console.log(search)
-            const payload = {
-                    "search": search,
-                };
-    
-                fetch(`/search_public_decks`, {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify(payload),
-                })
-                .then((response) => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        throw new Error("Something went wrong");
-                    }
-                })
+<!---- SEARCH RESULTS FUNCTION ----->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const searchButton = document.getElementById("search");
+    const searchResults = document.getElementById("searchResults");
+    searchButton.addEventListener("change", function () {
+      console.log("change detected");
+      const search = document.getElementById("search").value;
+      console.log("search", search);
+      const payload = {
+        search: search,
+      };
+
+      fetch(`/search_public_decks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify(payload),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Something went wrong");
+          }
+        })
+        .then((data) => {
+          console.log(data);
+          let table = document.createElement("table");
+          let thead = document.createElement("thead");
+          let tbody = document.createElement("tbody");
+
+          // Table headers
+          let headers = ["Name", "Description", "Add"];
+          let headerRow = document.createElement("tr");
+          headers.forEach((header) => {
+            let th = document.createElement("th");
+            th.textContent = header;
+            headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          // Table content
+          data.forEach((deck) => {
+            let tr = document.createElement("tr");
+            let tdName = document.createElement("td");
+            let tdDescription = document.createElement("td");
+            let tdButton = document.createElement("td");
+
+            tdName.textContent = deck.name;
+            tdDescription.textContent = deck.description;
+
+            let addButton = document.createElement("button");
+            addButton.textContent = "Add";
+            addButton.id = "add" + deck.id;
+            addButton.addEventListener("click", () => {
+              // Replace GROUP_ID with the actual group_id value or a variable that holds the group_id
+              let requestData = {
+                deck_id: deck.id,
+                group_id: "{{group.id}}",
+              };
+
+              fetch("/add_deck_to_group", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData),
+              })
+                .then((response) => response.json())
                 .then((data) => {
-                    console.log(data)
-                    searchResults.innerHTML = data;
+                  if (data.status === "success") {
+                    console.log("Deck added successfully");
+                    alert("Deck added successfully");
+                  } else {
+                    alert(data.message);
+
+                    console.error("Error adding the deck");
+                  }
                 })
                 .catch((error) => {
-                    console.log(error);
+                  console.error("Error:", error);
                 });
+            });
+
+            tdButton.appendChild(addButton);
+
+            tr.appendChild(tdName);
+            tr.appendChild(tdDescription);
+            tr.appendChild(tdButton);
+
+            tbody.appendChild(tr);
+          });
+
+          table.appendChild(tbody);
+
+          searchResults.innerHTML = "";
+          searchResults.appendChild(table);
+        })
+        .catch((error) => {
+          console.log(error);
         });
     });
+  });
 </script>
 
-
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        let group_id = "{{ group.id }}";
-        const permitSaveButton = document.getElementById("permitSave");
-        const successMessage = document.getElementById("successMessage");
-    
-        permitSaveButton.addEventListener("click", function() {
-            const targetUserId = document.getElementById("target-user-id").value;
-            console.log(targetUserId)
-            const newPermissions = document.getElementById("new-permissions").value;
-            console.log(newPermissions)
-    
-            const payload = {
-                    "target_user_id": targetUserId,
-                    "new_permissions": newPermissions
-                };
-    
-                fetch(`/group/${group_id}/update_member_permissions`, {
-    method: "POST",
-    headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(payload),
-})
-            .then((response) => {
-                if (response.ok) {
-                    successMessage.innerHTML = "Member permissions updated successfully";
-                    successMessage.classList.remove("d-none");
-                } else {
-                    successMessage.innerHTML = "An error occurred while updating permissions";
-                    successMessage.classList.remove("d-none");
-                }
-            })
-            .catch((error) => {
-                successMessage.innerHTML = "An error occurred while updating permissions";
-                successMessage.classList.remove("d-none");
-            });
+  const importDeckButton = document.getElementById("importDeck");
+  const decksDropdown = document.getElementById("My decks");
+
+  importDeckButton.addEventListener("click", () => {
+    const selectedDeckId = decksDropdown.value;
+
+    if (!selectedDeckId) {
+      alert("Please choose a deck to import.");
+      return;
+    }
+
+    let requestData = {
+      deck_id: selectedDeckId,
+      group_id: "{{group.id}}",
+    };
+
+    fetch("/add_deck_to_group", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          console.log("Deck added successfully");
+          // Perform any additional actions if needed, e.g., update the UI
+        } else {
+          console.log(data);
+          alert(data.message);
+          console.error("Error adding the deck");
+        }
+      })
+      .catch((error) => {
+        console.log(data);
+
+        console.error("Error:", error);
+      });
+  });
+</script>
+
+<!---- CHANGING PERMISSIONS SCRIPT ---->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let group_id = "{{ group.id }}";
+    const permitSaveButton = document.getElementById("permitSave");
+    const successMessage = document.getElementById("successMessage");
+
+    permitSaveButton.addEventListener("click", function () {
+      const targetUserId = document.getElementById("target-user-id").value;
+      console.log(targetUserId);
+      const newPermissions = document.getElementById("new-permissions").value;
+      console.log(newPermissions);
+
+      const payload = {
+        target_user_id: targetUserId,
+        new_permissions: newPermissions,
+      };
+
+      fetch(`/group/${group_id}/update_member_permissions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify(payload),
+      })
+        .then((response) => {
+          if (response.ok) {
+            successMessage.innerHTML =
+              "Member permissions updated successfully";
+            successMessage.classList.remove("d-none");
+          } else {
+            successMessage.innerHTML =
+              "An error occurred while updating permissions";
+            successMessage.classList.remove("d-none");
+          }
+        })
+        .catch((error) => {
+          successMessage.innerHTML =
+            "An error occurred while updating permissions";
+          successMessage.classList.remove("d-none");
         });
     });
-    </script>
+  });
+</script>
 
+<div
+  class="modal fade"
+  id="inviteModal"
+  tabindex="-1"
+  aria-labelledby="#inviteModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header p-4" style="background-color: #091954">
+        <h5 class="modal-title" id="inviteModalLabel" style="color: #fa9400">
+          Add members
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="share-form" method="POST">
+          <div class="form-group my-2">
+            <div class="form-floating">
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+                required
+                placeholder="Type receiver's email here"
+              />
+              <label for="email">Email</label>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary"
+            onclick="inviteGroup(event, '{{ group.id }}')"
+          >
+            Invite
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  function inviteGroup(event, groupId) {
+    event.preventDefault(); // prevent default form submission behavior
 
+    var email = document.getElementById("email").value;
+    var encodedEmail = encodeURIComponent(email);
+    var url = "/invite_group/?groupId=" + groupId + "&email=" + encodedEmail;
 
+    // use AJAX to send the form data to the backend
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
 
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        // parse the JSON response and do something with it
+        var response = JSON.parse(xhr.responseText);
+        console.log(response);
+        alert("Invitation sent successfully");
+      } else {
+        // handle error
+        console.log("Error: " + xhr.statusText);
+      }
+    };
 
+    xhr.send(); // send the AJAX request
+  }
+</script>
 
-
-
-
-
-
-{% endblock %}
+<!-------- SEE CARDS MODAL ------->
+{% for deck in decks %}
+<div
+  class="modal fade"
+  id="cardsModal{{deck.id}}"
+  tabindex="-1"
+  aria-labelledby="#cardsModal{{deck.id}}Label"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header p-4" style="background-color: #091954">
+        <h5
+          class="modal-title"
+          id="cardsModal{{deck.id}}Label"
+          style="color: #fa9400"
+        >
+          Cards for {{deck.name}}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="container mt-5">
+          <div
+            class="table-responsive"
+            style="background-color: aliceblue"
+            style="max-height: 80vh"
+            overflow="auto"
+          >
+            <table class="table table-bordered table-striped table-hover">
+              <thead>
+                <tr>
+                  <th>Term</th>
+                  <th>Image</th>
+                  <th>Content</th>
+                  <th>Formula</th>
+                  <th>extra 1</th>
+                  <th>extra 2</th>
+                  <th>extra 3</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for card in deck.cards %}
+                <tr id="row{{card.id}}">
+                  <td>{{ card.term }}</td>
+                  <td>
+                    {% if card.img is not none %}
+                    <img
+                      src="{{ card.img }}"
+                      alt="Card image cap"
+                      style="max-width: 100px; max-height: 100px"
+                    />
+                    {% endif %}
+                  </td>
+                  <td id="tableContent{{ card.id }}">{{ card.content }}</td>
+                  <td>{{ card.formula }}</td>
+                  <td>{{ card.boc_2 }}</td>
+                  <td>{{ card.boc_3 }}</td>
+                  <td>{{ card.boc_4 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %} {% endblock %}

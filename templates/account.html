@@ -123,8 +123,8 @@ main_0 %}
               <label for="email">Account type:</label>
               <div class="d-flex justify-content-center">
 
-                <button href="/upgrade" type="button" id="accountTypeUpgrade"
-                  class="btn btn-primary text-center mx-auto">Upgrade account</button>
+                <a href="/upgrade" type="button" id="accountTypeUpgrade" class="btn btn-primary d-flex text-center align-items-center mx-auto">Upgrade account</a>
+
               </div>
             </div>
 
@@ -175,10 +175,16 @@ main_0 %}
           <div class="row">
             <div class="col-md-4">
               <div class="form-floating mt-2">
+                {% set ns = namespace(total_correct=0, total=0) %}
+                {% for deck in user.decks %}
+                {% set correct, incorrect = deck.correct_incorrect() %}
+                {% set ns.total_correct = ns.total_correct + correct %}
+                {% set ns.total = ns.total + incorrect + correct %}
+                {% endfor %}
 
-                <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text" id="email"
-                  placeholder="" value="" disabled>
-                <label for="email">Hours spent studying</label>
+                <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
+                  id="qty-cards" placeholder="" value="{{ns.total_correct/ns.total*100}}%" disabled>
+                <label for="qty-cards"> Percentage correct</label>
 
               </div>
 
@@ -209,7 +215,7 @@ main_0 %}
 
 
                 <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text"
-                  id="cards-mastered" placeholder="" value="{{user.quantity_cards_mastered()}}" disabled>
+                  id="cards-mastered" placeholder="" value="{{user.quantity_cards_mastered()/ns.total*100}}%" disabled>
                 <label for="cards-mastered">Cards mastered</label>
 
               </div>

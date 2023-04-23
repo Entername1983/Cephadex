@@ -1,345 +1,278 @@
 {% extends "layout.html" %}
 
 {% block title %} View Decks {% endblock %}
-
-
-
-
 {% block main_0 %}
-{% if settings.new_user_decks == True %}
 
 
-<div class = "container box_study" id = "new-user-decks-info">
-<h5> Welcome to our decks page</h5>
-<p> This is where you will find a list of all the decks and other content you have created (except for tests which can be found under account > tests).</p>
-<p> You can do a lot of different things with these decks, here is the functionality so far:</p>
-<ul>
-    <li> <img src="\static\graduation-cap-icon.png" style="max-width:30px;max-height:30px; text-decoration: none;">
-    Study deck: if you want to study an individual deck. </li>
-    <br>
-    <li><img src="\static\edit-box-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">
-    Edit deck: if you want to edit the existing cards, add new cards, edit the deck properties...</li>
-    <br>
-    <li><img src="\static\instagram-share-icon.png" style="max-width:30px;max-height:30px; text-decoration: none;">
-    Share deck: Use this if you want to share this with your fellow users. Just enter their email address. (or a comma separated list of email addresses)</li>
-    <br>
-    <li> <img src="\static\download-csv-icon.png" style="max-width:30px;max-height:30px; text-decoration: none;">
-    Download as CSV: If you want to download the deck as a comma seperated list (useful to read in excel for example).</li>
-    <br>
-    <li><img src="\static\anki-icon.png" style="max-width:30px;max-height:30px; text-decoration: none;">
-    Export to Anki:  If you are a die hard Anki fan you can export your decks to their platform.</li>
-    <br>
-    <li>  <img src="\static\exam-test-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">
-    Create test: Use this to build a test based on your deck.  Simply follow the instructions on each page.</li>
-    <br>
-    <li><img src="\static\data-sources-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">
-    See source files: If you have chosen to save the content that you uploaded, or if you have used the transcription function you will be able to find that data here.</li>
-    <br>
-    <li> <img src="\static\information-mark-circle-outline-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">Info: Here you will find information about your deck.</li>
-    <br>
-    <li>   <img src="\static\delete-icon.png"style="max-width:30px;max-height:30px; text-decoration: none;">Delete: If you want to delete the deck.  Be careful this is irreversible.</li>
-</ul>
+<div class="fab-container">
+  <div class="fab-options">
+
+    <button onclick="document.location='/extract'" class="btn btn-primary fab-option">Create</button>
+    <button onclick="document.location='/study_deck_all'" class="btn btn-primary fab-option">Study All Decks</button>
+    <button onclick="document.location='/public_decks'" class="btn btn-primary fab-option">Public Decks</button>
+    <button onclick="document.location='/import_deck'" class="btn btn-primary fab-option">Import from Anki</button>
+
+  </div>
 
 
-<form id = "new-user-study">
-  <input type = "checkbox" class = "" id = "new-user-decks-checkbox" value = "checked">
-  <label class = "form-check-label" for = "new-user-decks-checkbox">Do not show this message again</label>
-</form>
+  <button class=" fab-main">+</button>
 
 </div>
 
 
-<script>
-const checkbox = document.getElementById('new-user-decks-checkbox');
-const newuserdiv = document.getElementById('new-user-decks-info');
-checkbox.addEventListener( 'change', function() {
-  console.log(checkbox.checked)
-  if(this.checked) {
-    newuserdiv.style.display = "none";
-    fetch('/new_user_settings_viewdecks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ checked: true })
-    })
+{% if settings.new_user_decks == True %}
+<div class="container box_study" id="new-user-decks-info">
+  <h5> Welcome to our decks page</h5>
+  <p> This is where you will find a list of all the decks and other content you have created (except for tests which can
+    be found under account > tests).</p>
+  <p> You can do a lot of different things with these decks, here is the functionality so far:</p>
+  <ul>
 
-  } else {
-    fetch('/new_user_settings', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ checked: false })
-    });
-  }
-});
-
-
-</script>
+  </ul>
+  <form id="new-user-study">
+    <input type="checkbox" class="" id="new-user-decks-checkbox" value="checked">
+    <label class="form-check-label" for="new-user-decks-checkbox">Do not show this message again</label>
+  </form>
+</div>
 
 {% endif %}
-
-
-  <!----<div class="row m-2" style="text-align: end">
+<!----<div class="row m-2" style="text-align: end">
     <a href="/test_results_overview" class="mx-2 ">
       <img src="\static\tester-icon.png" alt="Tests" style="max-width:30px;max-height:30px;" class="px-1" title="Tests">
     </a>
  </div> ---->
-<div class = "m-2">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var toastElements = document.querySelectorAll('.toast');
+    toastElements.forEach(function (toastElement) {
+      var toast = new bootstrap.Toast(toastElement);
+      toast.show();
+    });
+  });
+</script>
+
+<div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 1100" id="myToast">
   {% if shared_decks|length > 0 %}
- 
-    <div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
-      <p> You have shared decks waiting for your approval, click<a class="mx-2" data-bs-toggle="modal"
-          data-bs-target="#SharedDecksModal" alt="shared decks" style="cursor: pointer;">here</a>to approve them</p>
+
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">New decks</strong>
+      <small class="text-muted"></small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
+    <div class="toast-body">
+      <button class="mx-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#SharedDecksModal" alt="shared decks"
+        style="cursor: pointer">
+        Approve decks
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">New tests</strong>
+      <small class="text-muted"></small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      <button class="mx-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#testModal" alt="shared decks"
+        style="cursor: pointer">
+        Take test
+      </button>
+    </div>
+  </div>
 
   {% endif %}
   {% if tests|length > 0 %}
 
-    <div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
-      <p> You have a new test click<a class="mx-2" data-bs-toggle="modal" data-bs-target="#testModal" alt="shared decks"
-          style="cursor: pointer;">here</a>to take it</p>
-    </div>
- 
-  {% endif %}
 
+  {% endif %}
+</div>
+{% set ns = namespace(total_correct=0, total=0) %}
+{% for deck in decks %}
+{% set correct, incorrect = deck.correct_incorrect() %}
+{% set ns.total_correct = ns.total_correct + correct %}
+{% set ns.total = ns.total + incorrect + correct %}
+
+{% endfor %}
+
+
+<div class="dashboard">
+  <div class="stats-container">
+<div class="stat">
+      <h6>{{user.quantity_decks()}} decks</h6>
+    </div>
+  <div class="stat">
+      <h6>{{user.quantity_cards_new()}} new cards</h6>
+   </div>
+    <div class="stat">
+      <h6>{{user.quantity_cards()}} cards</h6>
+   </div>
+    <div class="stat">
+      <h6>{{user.quantity_cards_mastered()}} cards mastered</h6>
+  </div>
+
+    <div class="stat">
+      <h6>{{ ns.total }} cards practiced </h6>
+  </div>
+    <div class="stat">
+      <h6>{{ ns.total_correct }} correct answers</h6>
+   </div>
+
+
+    
+
+  
+
+ 
+  </div>
 </div>
 
-<div class="col-10-md box_0  p-3">
 
-  <div class = "m-1" id="progress-container" style="display: none;">
-    <h6>
-      🤖Your cards are being created... beep..beep..boop...beep...</h6>
-    <div class="progress">
-      <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0"
-           aria-valuemin="0" aria-valuemax="100"></div>
+
+
+
+<div class="m-3">
+
+  <div class="box_0 m-2 p-2">
+
+    <div class="m-1" id="progress-container" style="display: none;">
+      <h6 style = "color: #6019FF">
+        🤖Your cards are being created... beep..beep..boop...beep...</h6>
+      <div class="progress">
+        <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+          aria-valuemax="100"></div>
+      </div>
     </div>
-  </div>
-  <div id="result-container" style="display: none;"></div>
+    {% if not decks %}
 
-  <script>
-    function updateProgress() {
-      console.log("checking progress");
-      console.log("slug_id: " + slug_id);
-      $.post("/query", 
-      { id: slug_id },
-      function(data) {
-        var progress = data.progress;
-        console.log(progress)
-        if (progress !== null) {
-          $("#progress-bar").css("width", progress + "%").text(progress + "%");
-          $("#progress-container").show();
-        }
-        if (data.result === 1) {
-          // Job is done, update UI accordingly
-          $("#progress-container").hide();
-        } else {
-  
-          // Job is not done yet, schedule another update
-          setTimeout(updateProgress, 5000);
-        }
-      });
-    }
-  
-    $(document).ready(function() {
-      updateProgress();
-    });
-  </script>
+    <div><h5>You currently don't have any decks, click <a href = "/extract">here</a> to create some.</h5></div>
 
-  <div class="row mt-1">
-    <div class="col-xl-4 col-lg-5">
+    {% endif %}
+    <div id="result-container" style="display: none;"></div>
+    <div class="row mt-1">
 
-      <button onclick="document.location='/study_deck_all'" class="form-control mb-2 btn-primary " href="/study_deck_all"
-        style="max-width: 300px;"> Study ALL decks </button>
-
-    </div>
-    <div class = "col-xl-4 col-lg-2 "></div>
+      <!----- REMOVING SEARCH FEATURE FOR NOW
     <div class="col-xl-4 col-lg-5">
       <form action="" method="get">
-
         <div class="row justify-content-end">
-         
-            <div class="input-group mb-3 floating-form">
+            <div class="input-group mb-3 floating-form" style = "max-width: 300px">
             <input type="text" class="form-control " id="search-deck-name"
                 name="search" placeholder="Search decks by name" value="{{ request.args.get('search', '') }}">
-            
-              <button type="submit" class="btn btn-primary text-center mx-auto ">Search</button>
+              <button type="submit" class="btn btn-primary text-center mx-auto " >Search</button>
             </div>
-          
-          
-          
-              <div class="form-floating " id='sort-form'>
-                <select class="form-select my-1 mr-sm-2" id="sort" name="sort" onchange="this.form.submit();">
-                  <option value="default">Select sort method</option>
-
-                  <option value="name_asc">Name (A to Z)</option>
-                  <option value="name_desc">Name (Z to A)</option>
-                  <option value="cards_due_asc">Cards Due (Low to High)</option>
-                  <option value="cards_due_desc">Cards Due (High to Low)</option>
-                  <option value="category_asc">Category (A to Z)</option>
-                  <option value="create_time_asc">Date created (earliest first)</option>
-                  <option value="create_time_dsc">Date created (latest first)</option>
-                </select>
-
-
-              
             </form>
           </div>
         </div>
-
       </form>
     </div>
+---->
+      <table class="table table_0 mobile-optimised" id="deckTable">
+        <thead>
+          <tr>
+            <th data-sort="asc" onclick="sortTable(0)">Name <img src="/static/sort-arrows-outline-icon.png"
+                style="max-height:15px; max-width:15px"></th>
+            <th data-sort="asc" onclick="sortTable(2)">Category <img src="/static/sort-arrows-outline-icon.png"
+                style="max-height:15px; max-width:15px"></th>
+
+            <th>Description:</th>
+            <th data-sort="asc" onclick="sortTable(3)">Due/total <img src="/static/sort-arrows-outline-icon.png"
+                style="max-height:15px; max-width:15px"></th>
+            <th data-sort="asc" onclick="sortTable(4)">Created <img src="/static/sort-arrows-outline-icon.png"
+                style="max-height:15px; max-width:15px"></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for deck in decks %}
+          <tr class="view-row"  onclick="window.location.href='/study_deck/{{ deck.id }}';"
+            onmouseover="this.style.backgroundColor='#ebe6f7'; this.style.cursor='pointer';"
+            onmouseout="this.style.backgroundColor=''; " >
+            <td data-th="Name" >
+              <h5 style = "padding-left: 15px !important;">{{ deck.name }}</h5>
+            </td>
+            <td data-th="Category">{{ deck.check_cat() }}</td>
+
+            <td data-th="Description">{{ deck.description }}</td>
+            <td data-th="Due/total"> {{ deck.qty_cards_due() }}/{{ deck.quantity_cards() }}</td>
+            <td data-th="Created">{{ deck.time_created }}</td>
+            <td>
+              <div class="dropdown">
+                <img src="/static/more-options-icon.png" onclick="event.stopPropagation();" width="25px" height="25px"
+                  class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                  style="cursor: pointer;">
+                <!-- Dropdown menu containing the list of links -->
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item" href="/carousel/{{ deck.id }}">Edit deck</a>
+                  <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
+                    style="cursor: pointer;">Share deck</a>
+                  <a class="dropdown-item" href="/build_test/{{ deck.id }}">Build test</a>
+                  <a class="dropdown-item" href="/sea_dox/{{ deck.id }}" data-bs-toggle="tooltip"
+                    data-bs-placement="bottom" title="See files associated with this deck">Deck files</a>
+                  <a class="dropdown-item" onclick="exportDeckAnki('{{ deck.id }}');" style="cursor: pointer;">Export to
+                    Anki</a>
+                  <a class="dropdown-item" href="/downloadascsv/{{ deck.id }}">Download CSV</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" style="cursor: pointer;"
+                    onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{ deck.id }}'; }">Delete
+                    deck</a>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
-  <table class="table table_0 mobile-optimised">
+  <!----- SHARE DECK MODAL -->
+  {% for deck in decks %}
+  <script>
+    function shareDeck(deckId) {
 
-    <table class="table table_0 mobile-optimised">
+      var email = document.getElementById('email' + deckId).value;
+      var encodedEmail = encodeURIComponent(email);
+      var url = '/share_deck/' + deckId + '/' + encodedEmail;
+      window.location.href = url;
+    }
+  </script>
+  <div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}"
+    aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header modal-header-style p-4">
+          <h5 class="modal-title" id="ModalLabel{{deck.id}}" >Share deck</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="share-form" method="POST">
+            <div class="form-group my-2">
+              <div class="form-floating">
 
-      <thead>
-        <tr>
-          <th>Deck Name: </th>
-          <th>Description: </th>
-          <th>Category: </th>
-          <th>Number of cards(due): </th>
-          <th>Actions:</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for deck in decks%}
+                <input type="email" class="form-control" id="email{{deck.id}}" name="email" required
+                  placeholder="Type receiver's email here">
+                <label for="email">Email</label>
+              </div>
 
-        <tr>
-          <td class="ml-2" data-th="Deck Name:">
-            <form action="" method="post">
-              <input type="hidden" name="deck_id" value="{{ deck.id }}">
-              <input class="border-0" name="new_name" id="deck.id" value="{{ deck.name }}" placeholder="{{ deck.name }}"
-                onchange="this.form.submit();" />
-            </form>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="shareDeck('{{ deck.id }}')">Share</button>
+          </form>
+        </div>
 
-          </td>
-          <td data-th="Description:">{{ deck.description }}</td>
-          <td data-th="Category:"> {{ deck.check_cat() }} </td>
-          <td data-th="Number of Cards (cards due):"> {{ deck.quantity_cards() }} ({{deck.qty_cards_due() }})</td>
-
-
-
-
-          <td>
-            <!------- STUDY DECK ----->
-            <a href="/study_deck/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
-              <img src="\static\graduation-cap-icon.png" alt="Study" style="max-width:30px;max-height:30px; text-decoration: none;"
-                class="px-1" title="Study">
-            </a>
-            <!---- EDIT DECK ------>
-            <a href="/carousel/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
-              <img src="\static\edit-box-icon.png" alt="Edit" style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1"
-                title="Edit">
-            </a>
-            <!---- SHARE DECK ------>
-            <a data-bs-toggle="modal" data-bs-target="#Modal{{deck.id}}" class="mx-2" style="cursor: pointer; text-decoration: none;">
-              <img src="\static\instagram-share-icon.png" alt="Share" style="max-width:30px;max-height:30px; text-decoration: none;"
-                class="px-1" title="Share">
-            </a>
-            <!------- DOWNLOAD CSV ------->
-            <a href="/downloadascsv/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
-              <img src="\static\download-csv-icon.png" alt="Download CSV" style="max-width:30px;max-height:30px; text-decoration: none;"
-                class="px-1" title="Download as CSV">
-            </a>
-            <a onclick="exportDeckAnki('{{deck.id}}');" style="cursor: pointer; text-decoration: none;">
-              <img src="\static\anki-icon.png" alt="Export to Anki" style="max-width:30px;max-height:30px; text-decoration: none;"
-                class="px-1" title="Export to Anki">
-            </a>
-            <a href="/build_test/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
-              <img src="\static\exam-test-icon.png" alt="Build test" style="max-width:30px;max-height:30px; text-decoration: none;"
-                class="px-1" title="Build test">
-            </a>
-            <!-------- SEE SOURCE DOCS ---->
-            <a href="/sea_dox/{{deck.id}}" class="mx-2"  style="cursor: pointer; text-decoration: none;">
-              <img src="\static\data-sources-icon.png" alt="See source docs" style="max-width:30px;max-height:30px; text-decoration: none;"
-                class="px-1" title="See source docs">
-            </a>
-            <!----- DECK DETAILS ------>
-            <a data-bs-toggle="modal" data-bs-target="#infoDecksModal{{deck.id}}" class="mx-2" style="cursor: pointer; text-decoration: none;">
-              <img src="\static\information-mark-circle-outline-icon.png" alt="Info"
-                style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1" title="Info">
-            </a>
-
-            <!--------- DELETE DECK ------>
-            <a href="#" class="mx-2"  style="cursor: pointer; text-decoration: none;"
-              onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{deck.id}}'; }">
-              <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1"
-                title="Delete deck">
-            </a>
-          </td>
-</div>
-
-</div>
-</div>
-</div>
-</td>
-</tr>
-
-
-
-{% endfor %}
-</tbody>
-</table>
-
-
-</div>
-
-<!----- SHARE DECK MODAL -->
-
-{% for deck in decks %}
-<script>
-  function shareDeck(deckId) {
-
-    var email = document.getElementById('email' + deckId).value;
-    var encodedEmail = encodeURIComponent(email);
-    var url = '/share_deck/' + deckId + '/' + encodedEmail;
-    window.location.href = url;
-  }
-</script>
-
-<div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="ModalLabel{{deck.id}}" style = "color:  #eaabab">Share deck</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <form id="share-form" method="POST">
-          <div class="form-group my-2">
-            <div class = "form-floating">
-            
-            <input type="email" class="form-control" id="email{{deck.id}}" name="email" required
-              placeholder="Type receiver's email here">
-              <label for="email">Email</label>
-</div>
-
-          </div>
-          <button type="button" class="btn btn-primary" onclick="shareDeck('{{ deck.id }}')">Share</button>
-        </form>
-      </div>
-
     </div>
   </div>
 </div>
-</div>
-
-
-
-<!----- INFO MODAL ------->
+<!----- INFO MODAL OBSOLETE------->
 <div class="modal fade" id="infoDecksModal{{deck.id}}" tabindex="-1" aria-labelledby="#infoDecksModalLabel{{deck.id}}"
   aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}" style = "color:  #eaabab">Deck details:</h5>
+      <div class="modal-header modal-header-style p-4">
+        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}" >Deck details:</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-
         <div class="row box_study mt-1">
           <li class="list-group-item">Deck name:
             <h5>{{deck.name}}</h5>
@@ -371,63 +304,41 @@ checkbox.addEventListener( 'change', function() {
           <li class="list-group-item">Shared:
             <h5>{{deck.shared}}</h5>
           </li>
-
-
-
-
         </div>
-
-
-
       </div>
-
     </div>
   </div>
 </div>
-
 {% endfor %}
-
-
-
 <!---- SHARED DECKS MODAL----->
 <div class="modal fade" id="SharedDecksModal" tabindex="-1" aria-labelledby="#SharedDecksModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="SharedDecksModalLabel" style = "color:  #eaabab">Shared Decks</h5>
+      <div class="modal-header modal-header-style p-4">
+        <h5 class="modal-title" id="SharedDecksModalLabel">Shared Decks</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="row">
           {% for deck in shared_decks %}
-
-
           <div class="col-sm-6">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title" >{{deck.name}}</h5>
+                <h5 class="card-title">{{deck.name}}</h5>
                 <p class="card-text">{{deck.sender}}</p>
                 <a id="approve{{deck.id}}" onclick="approveSharedDeck(event, {{deck.id}})" class="mx-2"
-                style="cursor: pointer; text-decoration: none;">
+                  style="cursor: pointer; text-decoration: none;">
                   <img src="\static\approve-accept-icon.png" alt="See source docs"
                     style="max-width:30px;max-height:30px;" class="px-1" title="Approve">
                 </a>
-
                 <a id="reject{{deck.id}}" class="mx-2" onclick="rejectSharedDeck(event, {{deck.id}})"
-                style="cursor: pointer; text-decoration: none;">
+                  style="cursor: pointer; text-decoration: none;">
                   <img src="\static\remove-cross-icon.png" alt="Reject" style="max-width:30px;max-height:30px;"
                     class="px-1" title="Reject">
                 </a>
-
               </div>
             </div>
           </div>
-
-
-
-
-
-
           <script>
             function approveSharedDeck(event, deckId) {
               event.preventDefault();
@@ -441,7 +352,6 @@ checkbox.addEventListener( 'change', function() {
                 }
               });
             }
-
             function rejectSharedDeck(event, deckId) {
               event.preventDefault();
               if (confirm('Are you sure you want to reject this shared deck?')) {
@@ -455,27 +365,21 @@ checkbox.addEventListener( 'change', function() {
                 });
               }
             }
-
-
           </script>
           {% endfor %}
         </div>
       </div>
     </div>
   </div>
-
 </div>
 </div>
 </div>
-
 <script>
   function refreshSharedDecksModal() {
     // Get the modal element
     const sharedDecksModal = $('#SharedDecksModal');
-
     // Hide the modal to prevent flickering
     //sharedDecksModal.modal('hide');
-
     // Reload the entire modal using jQuery's load method
     sharedDecksModal.load(location.href + ' #SharedDecksModal > *', function () {
       // Show the modal again after the new content has been loaded
@@ -483,23 +387,17 @@ checkbox.addEventListener( 'change', function() {
     });
   }
 </script>
-
-
-
 <!------ TEST MODAL-->
-
 <div class="modal fade" id="testModal" tabindex="-1" aria-labelledby="#testModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title" id="testModalLabel" style = "color:  #eaabab">Tests</h5>
+      <div class="modal-header modal-header-style p-4">
+        <h5 class="modal-title" id="testModalLabel" >Tests</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="row">
           {% for test in tests %}
-
-
           <div class="col-sm-6">
             <div class="card">
               <div class="card-body">
@@ -512,33 +410,20 @@ checkbox.addEventListener( 'change', function() {
                 <a href="/take_test/{{test.id}}/{{user.id}}" class="mx-2" style="cursor: pointer;">
                   Click here to take the test
                 </a>
-
-
               </div>
             </div>
           </div>
-
-
-
-
-
-
           {% endfor %}
         </div>
       </div>
     </div>
   </div>
-
 </div>
-
-
 <script>
   async function exportDeckAnki(deckId) {
     await requestAnkiConnectPermission();
     exportDeckToAnki(deckId);
-    
-  
-  }  
+  }
   async function requestAnkiConnectPermission() {
     const url = 'http://127.0.0.1:8765/';
     const request = {
@@ -553,92 +438,188 @@ checkbox.addEventListener( 'change', function() {
     console.log(data.permission);
     return data;
   }
+  async function ankiConnectInvoke(action, version, params) {
+    const url = 'http://127.0.0.1:8765/';
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ action, version, params })
+    });
+    return await response.json();
+  }
+  async function exportDeckToAnki(deckId) {
+    // Replace this with the actual URL that returns the deck name and cards from your backend
+    const backendUrl = `/get_deck_data/` + deckId;
+    console.log(backendUrl)
+    try {
+      const response = await fetch(backendUrl);
+      if (response.ok) {
+        const deckData = await response.json();
+        const deckName = deckData.name;
+        const cards = deckData.cards;
 
-  
-    async function ankiConnectInvoke(action, version, params) {
-      const url = 'http://127.0.0.1:8765/';
-      const response = await fetch(url, {
+        // Call the exportToAnki function with the fetched deck name and cards
+        await exportToAnki(deckName, cards);
+      } else {
+        alert("Error fetching deck data1: " + response.statusText);
+      }
+    } catch (error) {
+      alert("Error fetching deck data: " + error);
+    }
+  }
+  async function exportToAnki(deckName, cards) {
+    const ankiConnectUrl = "http://127.0.0.1:8765";
+    console.log("entered export to anki")
+    console.log(deckName, cards)
+    // Create or update the deck
+    await fetch(ankiConnectUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "createDeck",
+        version: 6,
+        params: {
+          deck: deckName,
+        },
+      }),
+    });
+    // Add cards to the deck
+    for (const card of cards) {
+      console.log("individual card")
+      console.log(card.front)
+      await fetch(ankiConnectUrl, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "addNote",
+          version: 6,
+          params: {
+            note: {
+              deckName: deckName,
+              modelName: "Basic",
+              fields: {
+                Front: card.front,
+                Back: card.back,
+              },
+              options: {
+                allowDuplicate: false,
+              },
+              tags: card.tags || [],
+            },
+          },
+        }),
+      });
+    }
+    alert("Deck exported to Anki succesfully!");
+  }
+</script>
+
+<!--- ENABLE TOOLTIPS-->
+<script>
+
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+</script>
+
+
+<!---- SORTING SCRIPT ----->
+<script>
+  function sortTable(column) {
+    let table = document.getElementById("deckTable");
+    let rows = table.getElementsByTagName("tr");
+    let header = table.getElementsByTagName("th")[column];
+    let order = header.getAttribute("data-sort");
+    let sorting = true;
+    let i, x, y, shouldSwitch;
+
+    while (sorting) {
+      sorting = false;
+      for (i = 1; i < rows.length - 1; i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("td")[column];
+        y = rows[i + 1].getElementsByTagName("td")[column];
+
+        if (column === 3) {
+          if (order === 'asc' ? parseInt(x.innerHTML) > parseInt(y.innerHTML) : parseInt(x.innerHTML) < parseInt(y.innerHTML)) {
+            shouldSwitch = true;
+            break;
+          }
+        } else {
+          if (order === 'asc' ? x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase() : x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        sorting = true;
+      }
+    }
+
+    header.setAttribute("data-sort", order === 'asc' ? 'desc' : 'asc');
+  }
+</script>
+<script>
+  function updateProgress() {
+    console.log("checking progress");
+    console.log("slug_id: " + slug_id);
+    $.post("/query",
+      { id: slug_id },
+      function (data) {
+        var progress = data.progress;
+        console.log(progress)
+        if (progress !== null) {
+          $("#progress-bar").css("width", progress + "%").text(progress + "%");
+          $("#progress-container").show();
+        }
+        if (data.result === 1) {
+          // Job is done, update UI accordingly
+          $("#progress-container").hide();
+        } else {
+
+          // Job is not done yet, schedule another update
+          setTimeout(updateProgress, 5000);
+        }
+      });
+  }
+
+  $(document).ready(function () {
+    updateProgress();
+  });
+</script>
+
+<script>
+  const checkbox = document.getElementById('new-user-decks-checkbox');
+  const newuserdiv = document.getElementById('new-user-decks-info');
+  checkbox.addEventListener('change', function () {
+    console.log(checkbox.checked)
+    if (this.checked) {
+      newuserdiv.style.display = "none";
+      fetch('/new_user_settings_viewdecks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ action, version, params })
-      });
-      return await response.json();
-    }
+        body: JSON.stringify({ checked: true })
+      })
 
-    async function exportDeckToAnki(deckId) {
-      // Replace this with the actual URL that returns the deck name and cards from your backend
-      const backendUrl = `/get_deck_data/` + deckId;
-      console.log(backendUrl)
-  
-      try {
-        const response = await fetch(backendUrl);
-        if (response.ok) {
-          const deckData = await response.json();
-          const deckName = deckData.name;
-          const cards = deckData.cards;
-  
-          // Call the exportToAnki function with the fetched deck name and cards
-          await exportToAnki(deckName, cards);
-        } else {
-          alert("Error fetching deck data1: " + response.statusText);
-        }
-      } catch (error) {
-        alert("Error fetching deck data: " + error);
-      }
-    }
-
-    async function exportToAnki(deckName, cards) {
-      const ankiConnectUrl = "http://127.0.0.1:8765";
-      console.log("entered export to anki")
-      console.log(deckName, cards)
-      // Create or update the deck
-      await fetch(ankiConnectUrl, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "createDeck",
-          version: 6,
-          params: {
-            deck: deckName,
-          },
-        }),
+    } else {
+      fetch('/new_user_settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ checked: false })
       });
-  
-      // Add cards to the deck
-      for (const card of cards) {
-        console.log("individual card")
-        console.log(card.front)
-        await fetch(ankiConnectUrl, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "addNote",
-            version: 6,
-            params: {
-              note: {
-                deckName: deckName,
-                modelName: "Basic",
-                fields: {
-                  Front: card.front,
-                  Back: card.back,
-                },
-                options: {
-                  allowDuplicate: false,
-                },
-                tags: card.tags || [],
-              },
-            },
-          }),
-        });
-      }
-      alert("Deck exported to Anki succesfully!");
     }
+  });
 </script>
 
 
-
-
-
-
+</div>
 
 {% endblock %}

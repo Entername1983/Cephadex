@@ -1,0 +1,609 @@
+{% extends "layout.html" %} {% block title %} Extractor {% endblock %}
+{% block main_0 %}
+
+
+
+{% if settings.new_user == True %}
+
+
+<div class = "container box_study" id = "new-user-info">
+<h5> Welcome to our creation page</h5>
+<p> This is where the magic happens!  On this page you can create all sorts of study material.  There are just a few things to keep in mind.</p>
+<ul>
+    <li> What goes in:  In this section you have to provide some content you want us to process.  It could be a file, some text pasted in or even youtube or wikipedia links.</li>
+    <li> What comes out: Here you decide what kind of content you would like to create.  This will default to definitions but there are really tons of different options.  So feel free to play around with them.  You will find a detailed explanation of what each option does if you click the explanation button.</li>
+    <li> What's it called: Before being able to actually generate the material you have to either name a deck, or choose an existing deck.  This is an important step, without it the generate button will not be clickable.</li>
+    <li> And that's about it.  If it doesn't work immediately please refresh the page and try again.  Once the process is started you can navigate to other pages and will receive a notification when the deck is ready.</li>
+    <li> If you are looking to create tests, first create a deck of cards here and then go to decks, select the deck that contains the questions and click on the test icon.</li>
+<li> While there are quite a few options available I am eager to add more, I just need to know what you want.  So please send me some suggestions if you have any!  Happy studying!</li>
+</ul>
+
+
+<form id = "new-user-study">
+  <input type = "checkbox" class = "" id = "new-user-checkbox" value = "checked">
+  <label class = "form-check-label" for = "new-user-checkbox">Do not show this message again</label>
+</form>
+
+</div>
+
+<script>
+const checkbox = document.getElementById('new-user-checkbox');
+const newuserdiv = document.getElementById('new-user-info');
+checkbox.addEventListener( 'change', function() {
+  console.log(checkbox.checked)
+  if(this.checked) {
+    newuserdiv.style.display = "none";
+    fetch('/new_user_settings_create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ checked: true })
+    })
+
+  } else {
+    fetch('/new_user_settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ checked: false })
+    });
+  }
+});
+
+
+</script>
+
+{% endif %}
+
+
+<script>
+    function showSpinner() {
+        document.getElementById("extract-spinner").style.display = "inline-block";
+        document.getElementById("extract-message").style.display = "inline-block";
+    }
+</script>
+<div class="container" style="">
+    <div class="mb-5 mb-lg-0 text-center text-lg-start">
+   
+    <p  class="text-muted d-none d-sm-block"> Looking to import decks from Anki? Click <a href="/import_deck/">here!</a></p>
+    </div>
+    </div>
+</div>
+
+
+<div class = "container">
+<div class="scrolling-header">
+    Turn your <span class = "scrolling-header-words" id="from">youtube video</span> into <span class = "scrolling-header-words" id="to">flashcards</span>
+  </div>
+  <script>
+    window.onload = function() {
+const fromWords = [
+    "youtube video",
+    "podcasts",
+    "lecture notes",
+    "academic papers",
+    "newspaper articles",
+    "wikipedia links",
+    "assigned readings",
+    "voice memos",
+    "syllabus",
+    "textbooks",
+    "websites",
+    "powerpoints",
+    "pdfs",
+    "word documents",
+    "lessons",
+
+  ];
+  
+  const toWords = [
+    "flashcards",
+    "formulas and explanations",
+    "multiple choice questions",
+    "fill in the blank questions",
+    "comprehension questions",
+    "test questions and answers",
+    "summaries",
+    "detailed notes",
+    "poems",
+    "custom cards",
+    "worksheets",
+    "tests",
+  ];
+  
+  const fromElement = document.getElementById("from");
+  const toElement = document.getElementById("to");
+
+  function getRandomElement(array) {
+    return array[Math.floor(Math.random() * array.length)];
+  }
+  
+  function updateWords() {
+    fromElement.textContent = getRandomElement(fromWords);
+    toElement.textContent = getRandomElement(toWords);
+  }
+  
+  setInterval(updateWords, 2000);
+
+
+    }
+
+  </script>
+</div>
+<div class="col-11 mx-auto box_0 my-3 p-2" style="border-radius: 5px;">
+    <form method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data" , onsubmit="showSpinner()">
+        {{form.hidden_tag()}}
+        {{ form.csrf_token }}
+        <ul class="nav nav-pills" id="pills-tab" role="tablist">
+            <li class="nav-item " role="presentation">
+                <button class="nav-link active bg-gradient-primary-to-secondary p-4 text-light" id="extract-input-tab" data-bs-toggle="pill"
+                    data-bs-target="#extract-input" type="button" role="tab" aria-controls="extract-input"
+                    aria-selected="true" style="font-size: 20px !important"
+                    title="Enter the content you want processed here"> 1 - What goes in?</button>
+            </li>
+            <li class="nav-item " role="presentation">
+                <button class="nav-link bg-gradient-primary-to-secondary p-4 text-light" id="extract-output-tab" data-bs-toggle="pill" data-bs-target="#extract-output"
+                    type="button" role="tab" aria-controls="extract-output" aria-selected="false"
+                    style="font-size: 20px !important" title="Choose what type of material you want to create here"> 2 -
+                    What comes
+                    out?</button>
+            </li>
+            <li class="nav-item " role="presentation">
+                <button class="nav-link bg-gradient-primary-to-secondary p-4 text-light" id="extract-name-tab" data-bs-toggle="pill" data-bs-target="#extract-name"
+                    type="button" role="tab" aria-controls="extract-name" aria-selected="false"
+                    style="font-size: 20px !important"
+                    title="Create a new deck, or add your content to an existing deck"> 3 - What's it
+                    called?</button>
+            </li>
+
+
+
+
+        </ul>
+        <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active p-3" id="extract-input" role="tabpanel"
+                aria-labelledby="extract-input-tab">
+
+                <!---- SECTION ON WHAT--->
+                    <div id="accordion">
+                        <div class="card extract-boxes ">
+                            <div class="card-header extract-boxes " id="headingOne">
+
+                                <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
+                                    style="width:100%; color: grey">
+                                    Upload a file
+                                </h4>
+
+                            </div>
+
+                            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                                data-bs-parent="#accordion">
+                                <div class="card-body extract-boxes1">
+
+
+                                    {{form.file( id ="file-input", class=" form-control form-control-lg")}}
+                                    <div id="fileinputhelp" class="form-text">Accepted formats: ppt, pdf, doc, txt, mp3,
+                                        wav. Feel free to put in a request if you're desired file type is not accepted.</div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="card extract-boxes">
+                            <div class="card-header extract-boxes" id="headingTwo">
+
+                                <h4 type="button" class="d-flex justify-content-center collapsed" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo"
+                                    style="width:100%; color: grey">
+                                    Paste some text</h4>
+
+                            </div>
+                            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                                data-bs-parent="#accordion">
+                                <div class="card-body extract-boxes1">
+                                    <div class="form-floating">
+                                        {{form.text_input(id="text-input", class="form-control form-control-lg
+                                        full-w",
+                                        style="height:100%; width:100%; font-size:20px" )}}
+                                        <label for="text-input" class="form-label">Paste your text here</label>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="card extract-boxes">
+                            <div class="card-header extract-boxes" id="headingThree">
+
+                                <h4 type="button" class="d-flex justify-content-center collapsed"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false"
+                                    aria-controls="collapseThree" style="width:100%;color: grey">
+                                    OR insert a link</h4>
+
+                            </div>
+                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                                data-bs-parent="#accordion">
+                                <div class="card-body extract-boxes1">
+                                    <div class="form-floating">
+
+                                        {{form.link_input(id="link-input", class="form-control form-control-lg
+                                        ")}}
+                                        <label for="link-input" class="form-label">Insert your link(s) here</label>
+                                        <div id="fileinputhelp" class="form-text">Both wikipedia and youtube links are accepted.
+                                            If you would like to insert more than one link seperate them with a comma.</div>
+    
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <!---- SECTION ON HOW--->
+                <div class="tab-pane fade extract-boxes1 p-2" id="extract-output" role="tabpanel"
+                    aria-labelledby="extract-output-tab">
+                    <div id="accordion1">
+                        <div class="card extract-boxes">
+                            <div class="card-header extract-boxes " id="headingOne">
+                                <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
+                                    style="width:100%; color: grey">
+                                    Select type of card to create
+                                </h4>
+                            </div>
+                            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                                data-bs-parent="#accordion2">
+                                <div class="card-body extract-boxes1">
+
+                                    <div class="row">
+                                        {% for subfield in form.prompt %}
+                                        <div class="col-md-3 col-sm-6"> {{ subfield }} {{ subfield.label }} </div>
+
+                                        {% endfor %}
+                                    </div>
+
+
+                                    <div class="extract-boxes" id="custom-select" style="display: none;">
+                                        <div class="row">
+                                            {{form.custom_term (class="box_study form-control-lg")}}
+                                        </div>
+                                        <div class="row">
+                                            {{form.custom_content (class=" box_study form-control-lg my-1")}}
+                                        </div>
+                                    </div>
+                                    <div class="extract-boxes" id="language-select" style="display: none;">
+
+                                        {{form.languages (class="border-0 form-control-lg")}}
+                                    </div>
+                                    <div class="row d-flex justify-content-center">
+
+                                        <!-- Button trigger modal -->
+                                        <button type="button" class="btn btn-primary" style="max-width:max-content"
+                                            data-bs-toggle="modal" data-bs-target="#promptInfoModal">
+                                            Options explained </button>
+                                    </div>
+                                    <script type="text/javascript">
+                                        $(document).ready(function () {
+                                            $('input[name="prompt"]').change(function () {
+                                                if ($(this).val() === 'Translate' || $(this).val() === 'Transcribe') {
+                                                    $('#language-select').show();
+                                                } else {
+                                                    $('#language-select').hide();
+                                                }
+                                            });
+                                        });
+                                    </script>
+                                    <script type="text/javascript">
+                                        $(document).ready(function () {
+                                            $('input[name="prompt"]').change(function () {
+                                                if ($(this).val() === 'Custom') {
+                                                    $('#custom-select').show();
+                                                } else {
+                                                    $('#custom-select').hide();
+                                                }
+                                            });
+                                        });
+                                    </script>
+
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card extract-boxes">
+                            <div class="card-header extract-boxes" id="headingTwo">
+                                <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                    data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo"
+                                    style="width:100%; color: grey">
+                                    Advanced options:
+                                </h4>
+                            </div>
+                            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                                data-bs-parent="#accordion2">
+                                <div class="card-body extract-boxes1">
+
+
+                                    <div class="input-group my-2" id="min-max">
+
+                                        <div class="input-group-text ">Min</div>
+                                        {{ form.qmin_option(type ="number", class="form-control form-control-lg ")}}
+                                        <div class="input-group-text">Max</div>
+                                        {{ form.qmax_option(type ="number", class="form-control form-control-lg")}}
+                                        <div id="fileinputhelp" class="form-text ml-1"> Select the average amount of items per page.</div>
+                                    </div>
+
+
+                                    <div class="form-floating mt-2">
+
+                                        {{ form.subject(id = "subject-input", class="form-select")}}
+                                        <label for="subject-input">Choose a subject</label>
+                                    </div>
+                                    <div class="form-floating mt-2">
+                                        {{ form.length(id="detail-input", class="form-select")}}
+                                        <label for="subject-input">Choose a level of detail</label>
+
+                                    </div>
+                                    <div class="form-floating mt-2">
+
+                                        {{ form.main_lang(id="main-lang", class="form-select")}}
+                                        <label for="main-lang">Choose a language </label>
+                                                <div id="fileinputhelp" class="form-text">Only necessary if you would like
+                                                    the content to be in a different language thant the source
+                                                    material</div>
+                                    </div>
+
+                                    <div class="form-group mt-2">
+
+                                        {{ form.generate_images(id="gen-images", class="", disabled = "disabled") }}
+                                        <label for="gen-images">Generate images <small class="text-muted">(available for premium members)</small></label>
+
+
+                                        {{ form.save_text (id = "save-text", class="")}}
+                                        <label for="save-text">Save text</label>
+                                    </div>
+
+                                    <div class="row d-flex justify-content-center">
+                                        <!-- Button trigger modal -->
+                                        <button type="button" class="btn btn-primary" style="max-width:max-content"
+                                            data-bs-toggle="modal" data-bs-target="#promptInfoAdvancedModal">
+                                            Options explained
+                                        </button>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+
+
+                <div class="tab-pane fade p-3" id="extract-name" role="tabpanel" aria-labelledby="extract-name-tab">
+
+
+                    <! SECTION ON NAME>
+                        <div id="accordion2">
+                            <div class="card extract-boxes">
+                                <div class="card-header extract-boxes " id="headingOne">
+                                    <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
+                                        style="width:100%; color: grey">
+                                        New deck: </h4>
+
+                                </div>
+
+                                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                                    data-bs-parent="#accordion2">
+                                    <div class="card-body extract-boxes1">
+                                        <div class="form-floating my-2">
+                                            {{form.name (id = "name-input", class="form-control form-control-lg")}}
+                                            <label for="name-input">Name of the deck</label>
+                                        </div>
+                                        <div class="form-floating my-2">
+
+                                            {{form.description (id ="description-input", class="form-control
+                                            form-control-lg")}}
+                                            <label for="description-input">Description of the deck</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card extract-boxes">
+                                <div class="card-header extract-boxes" id="headingTwo">
+                                    <h4 type="button" class="d-flex justify-content-center" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo"
+                                        style="width:100%; color: grey">
+                                        Existing deck:
+                                    </h4>
+                                </div>
+                                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                                    data-bs-parent="#accordion2">
+                                    <div class="card-body extract-boxes1">
+
+                                        <div class="form-floating my-2">
+
+                                            {{form.deck_list (id="existing-input", class=" form-select full-w",
+                                            placeholder="Select a deck")}}
+                                            <label for="existing-input">Select a deck</label>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                </div>
+                <div class="row justify-content-end">
+                    <div class="col d-flex align-items-center justify-content-end">
+                       <!--- <div id="extract-message" style="display:none"><i>Your cards are being generated, this can take
+                                a few minutes. When your deck is ready you will be able to find it in "Decks". In the
+                                meantime feel free to navigate to another page or start studying a sample deck we
+                                made for you. </i></div>--->
+                    </div>
+                    <div class="col d-flex justify-content-end">
+
+                        <!---<div class="spinner-border m-4" id="extract-spinner" role="status" style="display:none"> --->
+                        </div>
+                        {{form.submit(id="generate-btn", class=" btn-outline-secondary form-control form-control-lg m-2", style
+                        = "max-width: 200px", disabled="disabled")}}
+                    </div>
+                </div>
+        </div>
+
+
+
+    </form>
+
+
+</div>
+
+
+
+
+
+<script>
+    // Disable generate button by default
+    document.getElementById('generate-btn').disabled = true;
+
+    // Add event listeners to file input field
+    const fileInput = document.getElementById('file-input');
+    fileInput.addEventListener('input', validateInputs);
+
+    // Add event listeners to text input field
+    const textInput = document.getElementById('text-input');
+    textInput.addEventListener('input', validateInputs);
+
+    // Add event listeners to link input field
+    const linkInput = document.getElementById('link-input');
+    linkInput.addEventListener('input', validateInputs);
+
+    // Add event listeners to deck select dropdowns
+    const deckNew = document.getElementById('name-input');
+    deckNew.addEventListener('input', validateInputs);
+
+    const deckExisting = document.getElementById('existing-input');
+    deckExisting.addEventListener('input', validateInputs);
+
+    console.log("deck new", deckNew.value, "deck existing", deckExisting.value)
+    // Validate input fields and enable/disable generate button accordingly
+    function validateInputs() {
+        const fileInput = document.getElementById('file-input');
+        const textInput = document.getElementById('text-input');
+        const linkInput = document.getElementById('link-input');
+        const deckNew = document.getElementById('name-input');
+        const deckExisting = document.getElementById('existing-input');
+        const generateBtn = document.getElementById('generate-btn');
+        console.log(fileInput, textInput, linkInput, deckNew, deckExisting, generateBtn)
+        // Enable generate button if file, text or link input is provided AND deck input is selected
+        if (((fileInput && fileInput.value !== '') || (textInput && textInput.value !== '') || (linkInput && linkInput.value !== ''))) {
+            generateBtn.disabled = false;
+            generateBtn.removeAttribute('disabled');
+            generateBtn.removeClass('btn-outline-secondary');
+            generateBtn.addClass('btn-primary');
+
+        } else {
+            generateBtn.disabled = true;
+            generateBtn.setAttribute('disabled', 'disabled');
+            generateBtn.removeClass('btn-primary');
+            generateBtn.addClass('btn-outline-secondary');
+        }
+    }
+</script>
+
+<!-- Prompt options modal-->
+<div class="modal fade" id="promptInfoModal" tabindex="-1" aria-labelledby="promptInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary-to-secondary p-4">
+                <h5 class="modal-title" id="promptInfoModalLabel" style = "color:  #eaabab">Main options explained:</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li><b>Definitions:</b> Our basic type of card, we will look for key terms in the content submitted
+                        and provide you with a definition for each.</li>
+                    <li><b>Multiple Choice Questions:</b> One of our favourites, we look for the key ideas and provide
+                        you with multiple choice questions to test your understanding.</li>
+                    <li><b>Translate:</b> Are you learning a new language? This option will look for key terms and
+                        provide you with a translation. Make sure to choose the language in which you want your content
+                        translated</li>
+                    <li><b>Formulas:</b> For the quantitavely inclined. This will look for any formula associated with
+                        the content and created a card with said formula as well as an explanation.</li>
+                    <li><b>Fill in the blanks:</b> A great one for language learners, the name says it all. We will
+                        select some key passages from the content and omit one or more words.</li>
+                    <li><b>Theories:</b> More academically oriented, this option identifies key theories and concepts
+                        identified in the passage and creates a card with an explanation.</li>
+                    <li><b>Rhyme:</b> Perhaps the most memorable way to learn. We identify key terms in the text and
+                        create a short descriptive poem to ensure that you'll never forget it.</li>
+                    <li><b>Comprehension:</b> Great for testing yourelf or students. We create a bunch of questions that
+                        test your overall comprehension of the material.</li>
+                    <li><b>People:</b> Are you passionate about biographical information? This one is for you. We
+                        identitify people named in the passage submitted and provide a short biography.</li>
+                    <li><b>Vocabulary builder:</b> Another great one for language learners, like definitions but this
+                        time we are looking at every single word in the passage.</li>
+                    <li><b>Transcribe:</b> Use this to transcribe an audio file or in combination with our language
+                        option to translate entire documents.</li>
+                    <li><b>Summarize:</b> Have big documents or audio files that need to be summarized? Use this option.
+                        Note: not yet implemented</li>
+                    <li><b>Turn to notes:</b> Do you have an audio recording of a lecture? Did you take notes but need
+                        them reorganized? This option is for you. Note: not yet implemented</li>
+                    <li><b>Save text:</b> If you check this box we will save the text you submitted in source docs. If
+                        you select the transcribe option this will automatically be checked. You can delete these files
+                        at any time.</li>
+                </ul>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Prompt advanced options modal-->
+<div class="modal fade" id="promptInfoAdvancedModal" tabindex="-1" aria-labelledby="promptInfoAdvancedModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary-to-secondary p-4">
+                <h5 class="modal-title" id="promptInfoAdvancedModalLabel" style = "color:  #eaabab">Advanced options explained:</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <i> For advanced users who want to refine their results.</i>
+                    <li><b>Minimum items per page:</b> Sets a minimum amount of cards per page submitted.</li>
+                    <li><b>Minimum items per page:</b> Sets a maximum amount of cards per page submitted.</li>
+                    <li><b>Subject:</b> Are you trying to focus on a particular subject? Choose this option to have the
+                        results be more specialized.</li>
+                    <li><b>Content length:</b>This will affect the amount of detail in the card produced. For example
+                        you could choose whether you want brief definitions or lengthy ones.</li>
+                    <li><b>Output language:</b>Perhaps you want a term in English but the definition to be in another
+                        language? In that case you can use this option. <i>Note: it is not necessary to use this option
+                            if you are looking for regular translations</i></li>
+                    <li><b>Generate images:</b>We will generate an image for each card created. <i>Note: this can
+                            significantly affect the time it takes to generate results. </i></li>
+
+                </ul>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

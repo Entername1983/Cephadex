@@ -734,7 +734,7 @@ def explain_more(term, subject = None, content = None):
     while retries < 3:
         print("attempt:", retries)
         try:
-            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. If questioned you should answer that you are a teacher named Ceph who is here to help."
+            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
             response = call_ai_terms(sys_instruct, prompt)
             print(response)
             response_ = response['choices'][0]['message']['content'].strip()
@@ -761,7 +761,7 @@ def why_wrong_generator(ww_prompt):
     while retries < 3:
         print("attempt:", retries)
         try:
-            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. If questioned you should answer that you are a teacher named Ceph who is here to help."
+            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
             response = call_ai_terms(sys_instruct, prompt)
             print(response)
             response_ = response['choices'][0]['message']['content'].strip()
@@ -809,7 +809,7 @@ def send_question_generator(term, content, latest_paragraph, question):
     prompt = question_prompt_builder(term, content, latest_paragraph, question)
     while retries < 3:
         try:
-            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. If questioned you should answer that you are a teacher named Ceph who is here to help."
+            sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
             response = call_ai_terms(sys_instruct, prompt)
             response_ = response['choices'][0]['message']['content'].strip()
             print(response_)

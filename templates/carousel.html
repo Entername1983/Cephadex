@@ -3,7 +3,7 @@
 
 {% endblock %} {% block main_0 %}
 <script>
-    
+
     $(document).ready(function () {
         console.log('test1')
         var deck_id = {{ deck.id }};
@@ -35,40 +35,40 @@
         $('#addCardMessage').text('')
     });
 
-    $('.regenerate-button').on('click', function() {
-        event.preventDefault(); 
-        var deckId = {{deck.id}};
-        var cardId = $(this).data('card-id');
-        console.log(cardId);
+    $('.regenerate-button').on('click', function () {
+        event.preventDefault();
+        var deckId = {{ deck.id }};
+    var cardId = $(this).data('card-id');
+    console.log(cardId);
 
-        
-        $.post('/regenerate_def',
-            { id : cardId }, 
-            function(response) {
-                $('#content'+cardId).val(response.content);
-                    $('#tableContent' + cardId).text(response.content);
-                console.log(response);
+
+    $.post('/regenerate_def',
+        { id: cardId },
+        function (response) {
+            $('#content' + cardId).val(response.content);
+            $('#tableContent' + cardId).text(response.content);
+            console.log(response);
         });
     });
 
-    $('.delete-button').on('click', function(event) {
+    $('.delete-button').on('click', function (event) {
         event.preventDefault();
-        var deckId = {{deck.id}};
-        var cardId = $(this).data('card-id');
-        var $carousel = $('.carousel');
-        var simpleId = $(this).data('simple-id');
-        console.log(simpleId);
-        if (confirm('Are you sure you want to delete this card?')) {
+        var deckId = {{ deck.id }};
+    var cardId = $(this).data('card-id');
+    var $carousel = $('.carousel');
+    var simpleId = $(this).data('simple-id');
+    console.log(simpleId);
+    if (confirm('Are you sure you want to delete this card?')) {
 
-            $.post('/deletecard/' + cardId)
-            .done(function(response) {
+        $.post('/deletecard/' + cardId)
+            .done(function (response) {
                 if (response.status === "success") {
                     var activeElement = $carousel.find('.carousel-item.active');
                     var nextElement = activeElement.next('.carousel-item');
                     if (nextElement.length === 0) {
                         nextElement = $carousel.find('.carousel-item').first();
                     }
-                    $('#row'+ simpleId).remove(); // Remove the deleted card from the table
+                    $('#row' + simpleId).remove(); // Remove the deleted card from the table
 
                     activeElement.remove(); // Remove the deleted card from the page
                     nextElement.addClass('active');
@@ -77,58 +77,56 @@
                     console.log("Error:", response.message);
                 }
             })
-            .fail(function(jqXHR, textStatus, errorThrown) {
+            .fail(function (jqXHR, textStatus, errorThrown) {
                 console.log("Error:", textStatus, errorThrown);
             });
-        }
+    }
     });
       });
 </script>
-<div class = "container">
-    <div class = "row">
-<div class = "col-6">
-<a href="/viewdecks" class="">
-    <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
-        title="Return to decks">
-</a>
+<div class="container mt-1">
+    <div class="d-flex justify-content-end">
+    <div class="form-check form-switch mx-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="toggleViewButton">
+                    <label class="form-check-label" for="toggleView">Switch views</label>
+                </div>
+                <div class="dropdown">
+                    <img src="/static/list-round-bullet-outline-icon.png" onclick="event.stopPropagation();" width="30px" height="30px"
+                      class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                      style="cursor: pointer;">
+                    <!-- Dropdown menu containing the list of links -->
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                      <a class="dropdown-item" href="/viewdecks">Back to decks</a>
+                      <a class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#exampleModalLong"
+                        style="cursor: pointer;">Add cards</a>
+                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editDeckModalLong" class="" style="cursor: pointer;">
+                            Edit deck
+                        </a>                      
+                    </div>
+                  </div>
 
-<img src="\static\mathematics-sign-plus-outline-icon.png" class="" data-bs-toggle="modal"
-    data-bs-target="#exampleModalLong" alt="Add new card" style="max-width:30px;max-height:30px;" title="Add cards">
-
-<a data-bs-toggle="modal" data-bs-target="#editDeckModalLong" class="" style="cursor: pointer;">
-    <img src="\static\edit-box-icon.png" alt="Share" style="max-width:30px;max-height:30px;" class="px-1"
-        title="Edit deck attributes">
-</a>
-</div><div class = "col-6">
-<div class="form-check form-switch">
-    <input class="form-check-input" type="checkbox" role="switch" id="toggleViewButton">
-    <label class="form-check-label" for="toggleView">Switch views</label>
-  </div>
-</div></div>
+    </div>
 </div>
 
 <script>
-$('#toggleViewButton').click(function () {
-    var carouselView = $('#carouselExampleDark');
-    var tableView = $('#tableView');
+    $('#toggleViewButton').click(function () {
+        var carouselView = $('#carouselExampleDark');
+        var tableView = $('#tableView');
 
-    if (carouselView.is(':visible')) {
-        carouselView.hide();
-        tableView.show();
-        $(this).attr('title', 'Switch to Carousel View');
-    } else {
-        carouselView.show();
-        tableView.hide();
-        $(this).attr('title', 'Switch to Table View');
-    }
-});
+        if (tableView.is(':visible')) {
+            tableView.hide();
+            carouselView.show();
+            $(this).attr('title', 'Switch to Carousel View');
+        } else {
+            tableView.show();
+            carouselView.hide();
+            $(this).attr('title', 'Switch to Table View');
+        }
+    });
 </script>
-<div id = "tableView" style="display:none">
-
-
-
+<div id="tableView">
     <div class="container mt-5">
-        <div class="table-responsive" style = "background-color: aliceblue;">
+        <div class="table-responsive" style="background-color: aliceblue;">
             <table class="table table-bordered table-striped table-hover">
                 <thead>
                     <tr>
@@ -144,7 +142,7 @@ $('#toggleViewButton').click(function () {
                 </thead>
                 <tbody>
                     {% for card in cards %}
-                    <tr id = "row{{card.id}}">
+                    <tr id="row{{card.id}}">
                         <td>{{ card.term }}</td>
                         <td>
                             {% if card.img is not none %}
@@ -158,13 +156,19 @@ $('#toggleViewButton').click(function () {
                         <td>{{ card.boc_4 }}</td>
                         <td>
                             <form action="" method="post">
-                                <input name="id" type="hidden" id="card.id" value="{{ card.id }}" placeholder="{{ card.id }}" />
+                                <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
+                                    placeholder="{{ card.id }}" />
                                 <div class="d-flex justify-content-center">
-                                    <button class="regenerate-button" data-card-id="{{card.id}}" style="border: none; background: none;">
-                                        <img src="\static\recycle-sign-icon.png" alt="Regenerate" style="max-width: 30px; max-height: 30px;" class="px-1" title="Regenerate content">
+                                    <button class="regenerate-button" data-card-id="{{card.id}}"
+                                        style="border: none; background: none;">
+                                        <img src="\static\recycle-sign-icon.png" alt="Regenerate"
+                                            style="max-width: 30px; max-height: 30px;" class="px-1"
+                                            title="Regenerate content">
                                     </button>
-                                    <button class="delete-button" data-simple-id="{{card.id}}" data-card-id="{{deck.id}}/{{card.id}}" style="border: none; background: none;">
-                                        <img src="\static\delete-icon.png" alt="Delete" style="max-width: 30px; max-height: 30px;" class="px-1" title="Delete">
+                                    <button class="delete-button" data-simple-id="{{card.id}}"
+                                        data-card-id="{{deck.id}}/{{card.id}}" style="border: none; background: none;">
+                                        <img src="\static\delete-icon.png" alt="Delete"
+                                            style="max-width: 30px; max-height: 30px;" class="px-1" title="Delete">
                                     </button>
                                 </div>
                             </form>
@@ -182,10 +186,11 @@ $('#toggleViewButton').click(function () {
 
 
 </div>
-<div id="carouselExampleDark" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="false">
+<div id="carouselExampleDark" class="carousel carousel-dark slide" data-bs-ride="carousel" data-bs-interval="false"
+    style="display: none;">
     <div class="col-1">
         <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
-            <img src = "/static/caret-left-outline-icon.png" style="max-width:30px;max-height:30px;">
+            <img src="/static/caret-left-outline-icon.png" style="max-width:30px;max-height:30px;">
         </button>
     </div>
 
@@ -205,84 +210,96 @@ $('#toggleViewButton').click(function () {
                         {% endif %}
 
                         <form action="" method="post">
-                           
-                                <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
-                                    placeholder="{{ card.id }}" />
-                                    <textarea name="term" class="card-title box_study input_0 form-control flex-grow-1 d-flex align-items-center justify-content-center text-center"
-                                    type="text" id="{{ card.id }}" placeholder="{{ card.term }}" value="{{ card.term }}"
-                                    style ="min-height:50px; border-width: 5px!important;" overflow="auto">{{ card.term }}</textarea>
-                                {% if card.category == "Formulas" %}
-                                <div>
-                                    \[{{ card.formula}}\]
-                                </div>
-                              
-                                <div class="row mt-1">
-                                    <textarea name="formula"
-                                        class="form-control card-text box_study input_0 form-control"
-                                        type="text" id="card.id" rows="1"
-                                        placeholder="{{ card.formula }}"> {{ card.formula }}</textarea>
-                                </div>
-                                
-                                {% endif %}
-                                {% if card.category == 'Mcq' %}
-                                <div class="row mt-1">
-                                <textarea  name="content"
-                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                    type="text" id="content{{ card.id }}" rows="3" style="border-width: 5px!important; border-color: green!important;"
-                                    placeholder="{{ card.content }}"> {{ card.content }}</textarea>
-                                    </div>
-                            {% else %}
+
+                            <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
+                                placeholder="{{ card.id }}" />
+                            <textarea name="term"
+                                class="card-title box_study input_0 form-control flex-grow-1 d-flex align-items-center justify-content-center text-center"
+                                type="text" id="{{ card.id }}" placeholder="{{ card.term }}" value="{{ card.term }}"
+                                style="min-height:50px; border-width: 5px!important;"
+                                overflow="auto">{{ card.term }}</textarea>
+                            {% if card.category == "Formulas" %}
+                            <div>
+                                \[{{ card.formula}}\]
+                            </div>
+
+                            <div class="row mt-1">
+                                <textarea name="formula" class="form-control card-text box_study input_0 form-control"
+                                    type="text" id="card.id" rows="1"
+                                    placeholder="{{ card.formula }}"> {{ card.formula }}</textarea>
+                            </div>
+
+                            {% endif %}
+                            {% if card.category == 'Mcq' %}
+                            <div class="row mt-1">
                                 <textarea name="content"
                                     class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                    type="text" id="content{{ card.id }}" rows="8"
+                                    type="text" id="content{{ card.id }}" rows="3"
+                                    style="border-width: 5px!important; border-color: green!important;"
                                     placeholder="{{ card.content }}"> {{ card.content }}</textarea>
+                            </div>
+                            {% else %}
+                            <textarea name="content"
+                                class="form-control card-text box_study input_0 form-control  flex-grow-1" type="text"
+                                id="content{{ card.id }}" rows="8"
+                                placeholder="{{ card.content }}"> {{ card.content }}</textarea>
                             {% endif %}
 
 
-                                {% if card.boc_2 is not none %}
+                            {% if card.boc_2 is not none %}
 
-                                <div class="row mt-1">
-                                    <textarea name="boc_2"
-                                        class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                        type="text" id="card.id" rows="1"
-                                        placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
-                                </div>
-                                {% if card.category != "Formulas" %}
-                                <div class="row mt-1">
-                                    <textarea name="boc_3"
-                                        class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                        type="text" id="card.id" rows="1"
-                                        placeholder="{{ card.boc_3 }}"> {{ card.boc_3 }}</textarea>
-                                </div>
-                                <div class="row mt-1">
-                                    <textarea name="boc_4"
-                                        class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                        type="text" id="card.id" rows="1"
-                                        placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
-                                </div>
-                                {% endif %}
-                                {% endif %}
+                            <div class="row mt-1">
+                                <textarea name="boc_2"
+                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
+                                    type="text" id="card.id" rows="1"
+                                    placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
+                            </div>
+                            {% if card.category != "Formulas" %}
+                            <div class="row mt-1">
+                                <textarea name="boc_3"
+                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
+                                    type="text" id="card.id" rows="1"
+                                    placeholder="{{ card.boc_3 }}"> {{ card.boc_3 }}</textarea>
+                            </div>
+                            <div class="row mt-1">
+                                <textarea name="boc_4"
+                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
+                                    type="text" id="card.id" rows="1"
+                                    placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
+                            </div>
+                            {% endif %}
+                            {% endif %}
 
-                                <div class="row mt-3 align-item-end align-bottom align-self-end" style="position:absolute; bottom:10px; left:0; right:0;">
-                                    <div class=" text-center col-4 align-items-center justify-content-center align-self-end">
-                                        <input type="image" src="\static\save-outline-icon.png"
-                                            style="max-width:30px;max-height:30px;" name="edit-card" value="Save" title="Save changes" />
+                            <div class="row mt-3 align-item-end align-bottom align-self-end"
+                                style="position:absolute; bottom:10px; left:0; right:0;">
+                                <div
+                                    class=" text-center col-4 align-items-center justify-content-center align-self-end">
+                                    <input type="image" src="\static\save-outline-icon.png"
+                                        style="max-width:30px;max-height:30px;" name="edit-card" value="Save"
+                                        title="Save changes" />
 
-                                    </div>
-                                    <div class=" col-4 text-center align-items-center justify-content-center align-self-end">
-                                        <button class="regenerate-button" card-id="{{card.id}}" data-card-id="{{card.id}}" style="border: none; background: none;">
-                                            <img src="\static\recycle-sign-icon.png" alt="Regenerate" style="max-width:30px;max-height:30px;" class="px-1" title="Regenerate content">
-                                        </button>
-
-                                    </div>
-                                    <div class=" col-4 text-center align-items-center justify-content-center align-self-end">
-                                        <button class="delete-button" data-simple-id="{{card.id}}"data-card-id="{{deck.id}}/{{card.id}}" style="border: none; background: none;">
-                                            <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class="px-1" title="Delete">
-                                        </button>
-                                 
-                                    </div>
                                 </div>
-                           
+                                <div
+                                    class=" col-4 text-center align-items-center justify-content-center align-self-end">
+                                    <button class="regenerate-button" card-id="{{card.id}}" data-card-id="{{card.id}}"
+                                        style="border: none; background: none;">
+                                        <img src="\static\recycle-sign-icon.png" alt="Regenerate"
+                                            style="max-width:30px;max-height:30px;" class="px-1"
+                                            title="Regenerate content">
+                                    </button>
+
+                                </div>
+                                <div
+                                    class=" col-4 text-center align-items-center justify-content-center align-self-end">
+                                    <button class="delete-button" data-simple-id="{{card.id}}"
+                                        data-card-id="{{deck.id}}/{{card.id}}" style="border: none; background: none;">
+                                        <img src="\static\delete-icon.png" alt="Delete"
+                                            style="max-width:30px;max-height:30px;" class="px-1" title="Delete">
+                                    </button>
+
+                                </div>
+                            </div>
+
                     </div>
 
 
@@ -305,37 +322,38 @@ $('#toggleViewButton').click(function () {
                         <form action="" method="post">
                             <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
                                 placeholder="{{ card.id }}" />
-                                    <textarea name="term" class="card-title box_study input_0 form-control flex-grow-1 d-flex align-items-center justify-content-center text-center"
-                                    type="text" id="{{ card.id }}" placeholder="{{ card.term }}" value="{{ card.term }}"
-                                    style ="min-height:50px; border-width: 5px!important;" overflow="auto">{{ card.term }}</textarea>
-                               
+                            <textarea name="term"
+                                class="card-title box_study input_0 form-control flex-grow-1 d-flex align-items-center justify-content-center text-center"
+                                type="text" id="{{ card.id }}" placeholder="{{ card.term }}" value="{{ card.term }}"
+                                style="min-height:50px; border-width: 5px!important;"
+                                overflow="auto">{{ card.term }}</textarea>
+
                             {% if card.category == "Formulas" %}
                             <div>
                                 \[{{ card.formula}}\]
                             </div>
-                          
+
                             <div class="row mt-1">
-                                <textarea name="formula"
-                                    class="form-control card-text box_study input_0 form-control"
+                                <textarea name="formula" class="form-control card-text box_study input_0 form-control"
                                     type="text" id="card.id" rows="1"
                                     placeholder="{{ card.formula }}"> {{ card.formula }}</textarea>
                             </div>
-                            
+
                             {% endif %}
                             {% if card.category == 'Mcq' %}
                             <div class="row mt-1">
-                            <textarea  name="content"
-                                class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                type="text" id="card.id" rows="3" style="border-width: 5px!important; border-color: green!important;"
-                                placeholder="{{ card.content }}"> {{ card.content }}</textarea>
-                                </div>
-                        {% else %}
+                                <textarea name="content"
+                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
+                                    type="text" id="card.id" rows="3"
+                                    style="border-width: 5px!important; border-color: green!important;"
+                                    placeholder="{{ card.content }}"> {{ card.content }}</textarea>
+                            </div>
+                            {% else %}
                             <textarea name="content"
-                                class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                type="text" id="card.id" rows="8"
-                                placeholder="{{ card.content }}"> {{ card.content }}</textarea>
-                        {% endif %}
-         
+                                class="form-control card-text box_study input_0 form-control  flex-grow-1" type="text"
+                                id="card.id" rows="8" placeholder="{{ card.content }}"> {{ card.content }}</textarea>
+                            {% endif %}
+
                             {% if card.boc_2 is not none %}
                             <div class="row mt-1">
                                 <textarea name="boc_2"
@@ -358,21 +376,31 @@ $('#toggleViewButton').click(function () {
                             </div>
                             {% endif %}
                             {% endif %}
-                            
-                            <div class="row mt-3 align-item-end align-bottom align-self-end" style="position:absolute; bottom:10px; left:0; right:0;">
-                                <div class=" text-center col-4 align-items-center justify-content-center align-self-end">
+
+                            <div class="row mt-3 align-item-end align-bottom align-self-end"
+                                style="position:absolute; bottom:10px; left:0; right:0;">
+                                <div
+                                    class=" text-center col-4 align-items-center justify-content-center align-self-end">
                                     <input type="image" src="\static\save-outline-icon.png"
-                                        style="max-width:30px;max-height:30px;" name="edit-card" value="Save" title="Save changes" />
+                                        style="max-width:30px;max-height:30px;" name="edit-card" value="Save"
+                                        title="Save changes" />
 
                                 </div>
-                                <div class=" col-4 text-center align-items-center justify-content-center align-self-end">
-                                    <button class="regenerate-button" data-card-id="{{card.id}}" style="border: none; background: none;">
-                                        <img src="\static\recycle-sign-icon.png" alt="Regenerate" style="max-width:30px;max-height:30px;" class="px-1" title="Regenerate content">
+                                <div
+                                    class=" col-4 text-center align-items-center justify-content-center align-self-end">
+                                    <button class="regenerate-button" data-card-id="{{card.id}}"
+                                        style="border: none; background: none;">
+                                        <img src="\static\recycle-sign-icon.png" alt="Regenerate"
+                                            style="max-width:30px;max-height:30px;" class="px-1"
+                                            title="Regenerate content">
                                     </button>
                                 </div>
-                                <div class=" col-4 text-center align-items-center justify-content-center align-self-end">
-                                    <button class="delete-button" data-card-id="{{deck.id}}/{{card.id}}" style="border: none; background: none;">
-                                        <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class="px-1" title="Delete">
+                                <div
+                                    class=" col-4 text-center align-items-center justify-content-center align-self-end">
+                                    <button class="delete-button" data-card-id="{{deck.id}}/{{card.id}}"
+                                        style="border: none; background: none;">
+                                        <img src="\static\delete-icon.png" alt="Delete"
+                                            style="max-width:30px;max-height:30px;" class="px-1" title="Delete">
                                     </button>
                                 </div>
                             </div>
@@ -392,163 +420,167 @@ $('#toggleViewButton').click(function () {
 
     <div class="col-1">
         <div class="col-1">
-            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
-                <img src = "/static/caret-right-outline-icon.png" style="max-width:30px;max-height:30px;">
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark"
+                data-bs-slide="next">
+                <img src="/static/caret-right-outline-icon.png" style="max-width:30px;max-height:30px;">
             </button>
         </div>
     </div>
 
 </div>
-    <!--- MODAL -->
-    <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-gradient-primary-to-secondary p-4">
-                    <h5 class="modal-title" id="exampleModalLongTitle" style="color:#eaabab;">Add card</h5>
-                    <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close">
-                    </button>
+<!--- MODAL -->
+<div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="exampleModalLongTitle">Add card</h5>
+                <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close">
+                </button>
 
-                </div>
-                <div class="m-2" id="addCardMessage"></div>
-                <div class="modal-body">
-                    <form id="newCardForm" action="" method="post" novalidate>
+            </div>
+            <div class="m-2" id="addCardMessage"></div>
+            <div class="modal-body">
+                <form id="newCardForm" action="" method="post" novalidate>
 
-                        <div class="form-floating mt-1">
+                    <div class="form-floating mt-1">
 
-                            <input class="form-control" name="new_term" type="text" id="new_term" placeholder="Term" required/>
-                            <label for = "new_term">Front of card</label>
-                        </div>
-                        <div class="form-floating mt-1">
-                            <input class="form-control" name="new_content" type="text" id="new_content"
-                                placeholder="Main content" required/>
-                                <label for = "new_content">Main content</label>
+                        <input class="form-control" name="new_term" type="text" id="new_term" placeholder="Term"
+                            required />
+                        <label for="new_term">Front of card</label>
+                    </div>
+                    <div class="form-floating mt-1">
+                        <input class="form-control" name="new_content" type="text" id="new_content"
+                            placeholder="Main content" required />
+                        <label for="new_content">Main content</label>
 
-                        </div>
-                        <div class="form-floating mt-1">
-                            <input class="form-control" name="new_boc_2" type="text" id="new_boc_2"
-                                placeholder="Optional content" />
-                                <label for = "new_boc_2">Extra content</label>
+                    </div>
+                    <div class="form-floating mt-1">
+                        <input class="form-control" name="new_boc_2" type="text" id="new_boc_2"
+                            placeholder="Optional content" />
+                        <label for="new_boc_2">Extra content</label>
 
-                        </div>
-                        <div class="form-floating mt-1">
-                            <input class="form-control" name="new_boc_3" type="text" id="new_boc_3"
-                                placeholder="Optional content" />
-                                <label for = "new_boc_3">Extra content</label>
+                    </div>
+                    <div class="form-floating mt-1">
+                        <input class="form-control" name="new_boc_3" type="text" id="new_boc_3"
+                            placeholder="Optional content" />
+                        <label for="new_boc_3">Extra content</label>
 
-                        </div>
-                        <div class="form-floating mt-1">
-                            <input class="form-control" name="new_boc_4" type="text" id="new_boc_4"
-                                placeholder="Optional content" />
-                                <label for = "new_boc_2">Extra content</label>
+                    </div>
+                    <div class="form-floating mt-1">
+                        <input class="form-control" name="new_boc_4" type="text" id="new_boc_4"
+                            placeholder="Optional content" />
+                        <label for="new_boc_2">Extra content</label>
 
-                        </div>
-                        <div class="form-floating mt-1">
-                            <select class="form-select" name="new_category" id="choose-card" placeholder="Choose card type" required>
-                                <option value="" disabled selected>Choose a card type</option>
-                                <option value="Definitions">Definitions</option>
-                                <option value="Translate">Translate</option>
-                                <option value="Rhyme">Rhyme</option>
-                                <option value="People">People</option>
-                                <option value="Theories">Theories</option>
-                                <option value="Cloze">Cloze</option>
-                                <option value="MCQ">MCQ</option>
-                                <option value="Comprehension">Comprehension</option>
-                            </select>
-                            <label for="choose-card">Card type</label>
-                        </div>
+                    </div>
+                    <div class="form-floating mt-1">
+                        <select class="form-select" name="new_category" id="choose-card" placeholder="Choose card type"
+                            required>
+                            <option value="" disabled selected>Choose a card type</option>
+                            <option value="Definitions">Definitions</option>
+                            <option value="Translate">Translate</option>
+                            <option value="Rhyme">Rhyme</option>
+                            <option value="People">People</option>
+                            <option value="Theories">Theories</option>
+                            <option value="Cloze">Cloze</option>
+                            <option value="MCQ">MCQ</option>
+                            <option value="Comprehension">Comprehension</option>
+                        </select>
+                        <label for="choose-card">Card type</label>
+                    </div>
 
-                </div>
-                <div class="modal-footer">
-                    <input type="image" id="saveButton" src="\static\save-outline-icon.png"
-                        style="max-width:30px;max-height:30px;" name="edit-card" value="Save" />
-                    </form>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="image" id="saveButton" src="\static\save-outline-icon.png"
+                    style="max-width:30px;max-height:30px;" name="edit-card" value="Save" />
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        const form = document.querySelector('#newCardForm');
-        const saveButton = document.querySelector('#saveButton');
-    
-        saveButton.addEventListener('click', e => {
-            e.preventDefault();
-            if (form.checkValidity()) {
-                // Perform form submission
-                form.submit();
-            } else {
-                // Show validation feedback
-                form.classList.add('was-validated');
-            }
-        });
-    </script>
+<script>
+    const form = document.querySelector('#newCardForm');
+    const saveButton = document.querySelector('#saveButton');
 
-
-    <!-- END MODAL -->
-    <!---- EDIT DECK ATTRIBUTES MODAL -->
-    <div class="modal fade" id="editDeckModalLong" tabindex="-1" role="dialog" aria-labelledby="editDeckModalLongTitle"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-gradient-primary-to-secondary p-4">
-                    <h5 class="modal-title" id="editDeckModalLongTitle" style="color:#eaabab;">Edit Deck</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    </button>
-
-                </div>
-                <div class="m-2" id="addCardMessage"></div>
-                <div class="modal-body">
-                    <form id="newCardForm" action="" method="post">
-
-                        <div class="form-floating mt-1">
-                            <input class="form-control" name="new_deck_name" type="text" id="new_deck_name"
-                                placeholder="{{deck.name}}" value = "{{deck.name}}"/>
-                                                            <label for="new_deck_name">Name</label>
-
-                        </div>
+    saveButton.addEventListener('click', e => {
+        e.preventDefault();
+        if (form.checkValidity()) {
+            // Perform form submission
+            form.submit();
+        } else {
+            // Show validation feedback
+            form.classList.add('was-validated');
+        }
+    });
+</script>
 
 
-                        <div class="form-floating mt-1">
-                         
-                            <input class="form-control" name="new_deck_description" type="text" id="new_deck_description"
-                                placeholder="{{deck.description}}" value = "{{deck.description}}"/>
-                                  <label for="new_deck_description">Description</label> 
-                        </div>
+<!-- END MODAL -->
+<!---- EDIT DECK ATTRIBUTES MODAL -->
+<div class="modal fade" id="editDeckModalLong" tabindex="-1" role="dialog" aria-labelledby="editDeckModalLongTitle"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="editDeckModalLongTitle">Edit Deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                </button>
 
-                        <div class="form-floating mt-1">
-                            
-                            <input class="form-control" name="new_deck_subject" type="text" id="new_deck_subject"
-                                placeholder="{{deck.subject}}" value = "{{deck.subject}}"/>
-                            <label  for="new_deck_subject">Subject</label>
+            </div>
+            <div class="m-2" id="addCardMessage"></div>
+            <div class="modal-body">
+                <form id="newCardForm" action="" method="post">
 
-                        </div>
-                        <div class="form-floating mt-1">
-                                         <input class="form-control" name="new_deck_topic" type="text" id="new_deck_topic"
-                                placeholder="{{deck.topic}}" value=" {{deck.topic}}"/>
-                            <label for="new_deck_subject">Topic</label>
+                    <div class="form-floating mt-1">
+                        <input class="form-control" name="new_deck_name" type="text" id="new_deck_name"
+                            placeholder="{{deck.name}}" value="{{deck.name}}" />
+                        <label for="new_deck_name">Name</label>
 
-                        </div>
-                        <div class="form-floating my-2">
+                    </div>
 
-                            {{form.deck_list (id="existing-input", class=" form-select full-w",
-                            placeholder="Select a deck")}}
-                            <label for="existing-input">Make child of:</label>
-                        </div>
-                        
-            <div class="form-check form-switch mt-2">
-                <input class="form-check-input" type="checkbox" name="public-checkbox" id="public-checkbox" value="public" {% if deck.public %} checked {% endif %}>
-                <label class="form-check-label" for="public-checkbox" value="public">Make deck public?</label>
-              </div>
 
-                        <div class="modal-footer">
-                            <input type="image" id="saveButton" src="\static\save-outline-icon.png"
-                                style="max-width:30px;max-height:30px;" name="edit-deck" value="Save" />
-                    </form>
-                </div>
+                    <div class="form-floating mt-1">
+
+                        <input class="form-control" name="new_deck_description" type="text" id="new_deck_description"
+                            placeholder="{{deck.description}}" value="{{deck.description}}" />
+                        <label for="new_deck_description">Description</label>
+                    </div>
+
+                    <div class="form-floating mt-1">
+
+                        <input class="form-control" name="new_deck_subject" type="text" id="new_deck_subject"
+                            placeholder="{{deck.subject}}" value="{{deck.subject}}" />
+                        <label for="new_deck_subject">Subject</label>
+
+                    </div>
+                    <div class="form-floating mt-1">
+                        <input class="form-control" name="new_deck_topic" type="text" id="new_deck_topic"
+                            placeholder="{{deck.topic}}" value=" {{deck.topic}}" />
+                        <label for="new_deck_subject">Topic</label>
+
+                    </div>
+                    <div class="form-floating my-2">
+
+                        {{form.deck_list (id="existing-input", class=" form-select full-w",
+                        placeholder="Select a deck")}}
+                        <label for="existing-input">Make child of:</label>
+                    </div>
+
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" name="public-checkbox" id="public-checkbox"
+                            value="public" {% if deck.public %} checked {% endif %}>
+                        <label class="form-check-label" for="public-checkbox" value="public">Make deck public?</label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <input type="image" id="saveButton" src="\static\save-outline-icon.png"
+                            style="max-width:30px;max-height:30px;" name="edit-deck" value="Save" />
+                </form>
             </div>
         </div>
     </div>
+</div>
 
 
 </div>
