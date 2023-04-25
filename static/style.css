@@ -25,6 +25,7 @@
 body {
   background-color: #ffffff !important;
   background-size: cover;
+  font-family: "Poppins", sans-serif !important;
 }
 
 .main-class {

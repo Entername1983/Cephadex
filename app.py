@@ -19,6 +19,7 @@ from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, 
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import ImmutableDict
 from cardcreator import create_image, creator
 from extractors import send_question_generator, why_wrong_generator, explain_more, split_text, regenerate_definition, count_tokens, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
 from google.oauth2 import id_token
@@ -48,6 +49,8 @@ from models import GroupInvite, Group, user_group_association, UsageRecord, Subs
 import configparser
 import logging.config
 from events import event_tracker
+from flask_talisman import Talisman
+
 
 
 from logging.config import dictConfig
@@ -60,6 +63,29 @@ os.environ["FLASK_DEBUG"] = "1"
 # Configure application
 app = Flask(__name__)
 app.config.from_object('config')
+
+
+### AUTO ESCAPE
+""""
+jinja_options = ImmutableDict(
+ extensions=[
+  'jinja2.ext.autoescape', 'jinja2.ext.with_' 
+ ])
+
+app.jinja_env.autoescape = True
+"""
+
+### CSP 
+Talisman(app)
+app.config['CSP_POLICY'] = {
+    'default-src': "'self'",
+    'connect-src': "'self' https://accounts.google.com/gsi/log https://region1.google-analytics.com/g/collect",
+    'font-src': "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com",
+    'frame-src': "https://accounts.google.com",
+    'img-src': "'self' data:",
+    'script-src': "'self' 'unsafe-inline' https://accounts.google.com/gsi/client https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js https://code.jquery.com/jquery-3.6.0.min.js https://polyfill.io/v3/polyfill.min.js https://www.googletagmanager.com/gtag/js https://www.termsfeed.com/public/cookie-consent/4.1.0/cookie-consent.js",
+    'style-src': "'self' 'unsafe-inline' https://accounts.google.com/gsi/ https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/ https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/ https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/ https://fonts.googleapis.com/"
+}
 
 
 bcrypt = Bcrypt(app)
@@ -1176,7 +1202,7 @@ def extract():
                         session['slug'] = slug
                     db.session.add(data)
                     db.session.commit()
-                flash('Yor cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
+                flash('Your cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
         return redirect('/viewdecks')
     return render_template("extract.html", title="Extract", form=form, settings = user_settings)
 
