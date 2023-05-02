@@ -26,6 +26,10 @@ def process_job(slug):
     payload = json.loads(slug.payload)    
     deck_id = payload["deck"]
     deck = Deck.query.filter_by(id=deck_id).first()
+    if deck == None:
+        print("deck is none, deleting job")
+        db.session.delete(slug)
+        return
     text = payload["text"]
     prompt_options = payload["prompt_options"]
     main_opt = prompt_options['main_opt'] 

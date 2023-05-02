@@ -164,10 +164,12 @@
       }
       else {
         loadNextCard();
-      }
+       
+            }
     }
     //load next card
     function loadNextCard() {
+      updateValues() 
       cardStack.push(currentCard)
       var card_id = currentCard.id;
       var csrf_token = jq("input[name='csrf_token']").val();
@@ -193,7 +195,7 @@
           location.reload(true);
           cardsDue = cardList.length;
           //$$BUG jq("#force-study").show();
-          //$$BUG jq("#contain-main").hide();
+          jq("#contain-main").hide();
           jq('#cards-due').html(cardsDue);
           return;
 
@@ -202,7 +204,7 @@
           currentCard = cardList[currentCardIndex];
           cardsDue = cardList.length;
           mcqChecker();
-
+          updateValues()
           setCardData(currentCard, cardsDue);
 
           LoadRandomMcq();
@@ -369,7 +371,7 @@
     }
 
     function mcqLoadNextCard() {
-
+      updateValues() 
       var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
       var counter = 0;
 
@@ -384,15 +386,12 @@
             jq('#cards-due').html(cardsDue);
 
             return;
-
           }
           else {
             currentCard = cardList[currentCardIndex];
             cardsDue = cardList.length;
             mcqChecker();
-
             setCardData(currentCard, cardsDue);
-
             LoadRandomMcq();
             mcqCorrectAnswerSetter();
             hideCorrectMcq();
@@ -566,9 +565,21 @@
       jq("#chat-card-id").text(cardId);
     }
 
+    function updateValues() {
+      console.log("updateValues called")
+      const deckId2 = "{{ deck }}";
+      const url = `/update_study_data/${deckId2}`;
 
-
-
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            // Update the content using the new data
+            document.getElementById("answered").innerHTML = data.total_answered;
+            document.getElementById("percentage").innerHTML = data.percentage;
+            document.getElementById("cards_due_2").innerHTML = data.cards_due;
+          })
+          .catch(error => console.error("Error fetching data:", error));
+      }
   });
 
 
@@ -593,15 +604,20 @@
         <div class="stat-row header">
           <div class="answered">Answered</div>
           <div>% Correct</div>
-          <div>Left in session</div>
+          <div>Left to study</div>
         </div>
         <div class="stat-row">
-          <div class="answered">{{deck0.total_answered()}}</div>
+          <div id="answered" class="answered">{{deck0.total_answered()}}</div>
 
-          <div>{% if deck0.total_answered() > 0 %} {{ (deck0.correct_incorrect()[0] / deck0.total_answered() * 100)|round(1) }}%
-            {% else %} 0% {% endif %}
+          <div id="percentage">
+              {% if deck0.total_answered() > 0 %}
+                  {{ (deck0.correct_incorrect()[0] / deck0.total_answered() * 100)|round(1) }}%
+              {% else %}
+                  0%
+              {% endif %}
           </div>
-          <div>{{deck0.cards_due()}}</div>
+          
+          <div id="cards_due_2">{{deck0.cards_due()}}</div>
         </div>
       </div>
     </div>
@@ -609,7 +625,7 @@
 </div>
 
 
-<div class="container study-container mb-2">
+<div class="container study-container mb-2" id = "contain-main">
   <div class="study-header"  id="cardHeader">
     <h3 id="card-term"></h3>
       <div id="card-id" style="display: none">
@@ -709,7 +725,7 @@
       <button id="explain-further" class="btn-chat">I want to know more.</button>
     </div>
   </div>
-  <img src="/static/question-inquiry-icon.png" class="fab-chat-main" alt="chat icon">
+  <img src="/static/avatar-octopus.png" class="fab-chat-main" alt="chat icon">
 </div>
 
 

@@ -402,7 +402,7 @@ class Deck(db.Model):
         return jsonify(due_cards)
      
         
-    def get_due_cards(self, n):
+    def get_due_cards(self, n=20):
         due_cards = []
         current_time = datetime.utcnow()
         new_card_counter = 0

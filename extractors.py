@@ -493,7 +493,6 @@ def extract_from_youtube(youtube_url):
             full_text = x
         else:
             full_text = full_text + x
-    print(full_text)
     return full_text
 
 

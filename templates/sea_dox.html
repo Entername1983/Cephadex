@@ -23,32 +23,17 @@
 
         <div class="col-md-6">
             <form action="" method="get">
-
+                {{ search_form.hidden_tag() }}
+            
                 <div class="row justify-content-end">
-                    
-                    <div class="input-group mb-3 floating-form">
-                        <input type="text" class="form-control" id="search-deck-name"
-                                 name="search" placeholder="Search documents by name"
-                                value="{{ request.args.get('search', '') }}">
-
-                            <button type="submit" class="btn btn-primary">Search</button>
-                    </div>
-                        <div class="form-floating">
-                            <div id='sort-form' >
-                                <select class="form-select my-1 mr-sm-2" id="sort" name="sort"
-                                    onchange="this.form.submit();">
-                                    <option value="default">Select sort method</option>
-                                    <option value="date">Date</option>
-                                    <option value="name_asc">Name (A-Z)</option>
-                                    <option value="name_desc">Name (Z-A)</option>
-                                    <option value="type">Type</option>
-                                </select>
-
-                            </div>
-                        </form>
+ 
+                    <div class="form-floating">
+                        <div id="sort-form">
+                            {{ search_form.sort(class="form-select my-1 mr-sm-2", id="sort", onchange="this.form.submit();", choices=[('default', 'Select sort method'), ('date', 'Date'), ('name_asc', 'Name (A-Z)'), ('name_desc', 'Name (Z-A)'), ('type', 'Type')]) }}
+                        </div>
                     </div>
                 </div>
-
+            
             </form>
         </div>
     </div>
@@ -68,10 +53,9 @@
                 <tr>
                     <td data-th="File name:">
                         <form action="" method="post">
-                            <input type="hidden" name="file_id" value="{{ file.id }}">
-                            <input class="border-0" style="width: 400px" name="new_name" id="file.id"
-                                value="{{ file.file_name }}" placeholder="{{ file.file_name }}"
-                                onchange="this.form.submit();" />
+                            {{ form.hidden_tag() }}
+                            {{ form.file_id(value=file.id, type="hidden") }}
+                            {{ form.new_name(class="border-0", style="width: 400px", id="file.id", value=file.file_name, placeholder=file.file_name, onchange="this.form.submit();") }}
                         </form>
                     </td>
                     <td data-th="Type:"> {{ file.create_type }} </td>

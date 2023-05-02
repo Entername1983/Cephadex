@@ -1,29 +1,46 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
 main_0 %}
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const forms = document.querySelectorAll('.question-form');
-        console.log("javacsript loaded")
-        console.log(forms)
-        forms.forEach(form => {
-            form.addEventListener('change', (event) => {
-                console.log("change detected")
-                const formData = new FormData(form);
-                const cardId = form.getAttribute('question-id');
+document.addEventListener("DOMContentLoaded", function () {
+    const forms = document.querySelectorAll('.question-form');
+    const csrfToken = document.getElementsByName("csrf_token")[0].value;
 
-                fetch('/update_card', {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
+    console.log("javacsript loaded")
+    console.log(forms)
+    forms.forEach(form => {
+        form.addEventListener('change', (event) => {
+            event.preventDefault(); // Added to prevent page reload
+
+
+            console.log("change detected");
+            const formData = new FormData(form);
+            console.log("Form Data:", formData);
+            const cardId = form.getAttribute('data-question-id');
+            const data = Object.fromEntries(formData);
+            data['question-id'] = cardId; // Add 'question-id' to the JSON payload
+            console.log("JSON Payload:", data);
+
+            fetch('/update_card', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.error(error);
             });
         });
+    });
+
+
+
+
         $(document).ready(function () {
             // Send data to server on input change
             $('#test-form').on('input', function () {
@@ -82,19 +99,21 @@ main_0 %}
             </div>
         </div>
         <form action="" method="POST">
+            {{ form.hidden_tag() }}
+
             <div class="collapse show" id="collapseTestInfo" data-bs-parent="#collap">
                 <div class="container m-2 p-2 box_study">
                     <input type="hidden" name="test-id" value="{{test.id}}">
                     <div class="form-floating mt-1">
-                        <input name="test-name" class=" form-control form-control-lg" type="text" id="test-name"
+                        <input name="name" class=" form-control form-control-lg" type="text" id="name"
                             placeholder="{{test.name}}" value="{{test.name}}" required>
                         <label for="test-name">Test name</label>
 
                     </div>
                     <div class="form-floating mt-1">
-                        <input name="due-date" class=" form-control form-control-lg" type="datetime-local" id="due-date"
+                        <input name="due_date" class=" form-control form-control-lg" type="datetime-local" id="due_date"
                             placeholder="{{test.due_date}}" value="{{test.due_date}}">
-                        <label for="due-date">Due date</label>
+                        <label for="due_date">Due date</label>
 
 
                     </div>
@@ -134,15 +153,15 @@ main_0 %}
                         <div class="col-6">
                             <div class="form-floating mt-1">
 
-                                <input name="time-limit" class=" form-control form-control-lg" type="number"
-                                    id="time-limit" placeholder="{{test.time_limit}}" value="{{test.time_limit}}">
+                                <input name="time_limit" class=" form-control form-control-lg" type="number"
+                                    id="time_limit" placeholder="{{test.time_limit}}" value="{{test.time_limit}}">
                                 <label for="time-limit">Time limit (minutes, leave blank if no time limit):</label>
 
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="form-floating mt-1">
-                                <input class="form-control" name="qty-questions" type="text" id="qty-questions"
+                                <input class="form-control" name="" type="text" id=""
                                     placeholder="{{test.time_limit}}" value="{{test.time_limit}}" disabled>
                                 <label for="qty-questions">Time limit</label>
                             </div>
@@ -153,21 +172,23 @@ main_0 %}
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" name="shuffle" id="shuffle" value="shuffle" {%
                             if test.shuffle %} checked {% endif %}>
-                        <label class="form-check-label" for="shuffle" value="contacted">Shuffle  (coming soon)</label>
+                        <label class="form-check-label" for="shuffle" value="contacted">Shuffle (coming soon)</label>
                     </div>
 
 
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" name="answer-reveal" id="answer-reveal"
                             value="answer-reveal" {% if test.answer_reveal %} checked {% endif %}>
-                        <label class="form-check-label" for="answer-reveal" value="answer-reveal">Reveal answers  (coming soon)</label>
+                        <label class="form-check-label" for="answer-reveal" value="answer-reveal">Reveal answers (coming
+                            soon)</label>
                     </div>
 
 
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" name="result-reveal" id="result-reveal"
                             value="result-reveal" {% if test.result_reveal %} checked {% endif %}>
-                        <label class="form-check-label" for="result-reveal" value="result-reveal">Reveal results (coming soon)</label>
+                        <label class="form-check-label" for="result-reveal" value="result-reveal">Reveal results (coming
+                            soon)</label>
                     </div>
 
 
@@ -199,11 +220,10 @@ main_0 %}
         <div class="collapse" id="collapseTestQuestions" data-bs-parent="#collap">
             <div class="container m-2 box_study">
                 {% for question in test.questions %}
-                {% if question.q_type == "mcq" %}
-                <form class="question-form">
+                {% if question.q_type == "multiple_choice" %}
+                <form class="question-form" method="POST" data-question-id="{{question.id}}">
+                    {{ update_card_form.hidden_tag() }}
                     <div class="card m-1">
-                        <input type="hidden" name="question-id" value="{{question.id}}">
-                        <input type="hidden" name="category" value="{{question.q_type}}">
                         <div class="card-header">
                             <h5>Multiple choice</h5>
                         </div>
@@ -212,32 +232,23 @@ main_0 %}
                                 <div class="col-9 m-1">
                                     <div class="row">
                                         Question:
-                                        <input name="question" class=" form-control form-control-lg" type="text"
-                                            id="question" placeholder="{{question.question}}"
-                                            value="{{question.question}}">
+                                        {{ update_card_form.question(class="form-control form-control-lg",
+                                        placeholder=question.question) }}
                                     </div>
                                     <div class="row">
                                         Answers:
                                         <div class="row mt-1">
-                                            <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                                    name="content{{question.id}}" value="A - {{question.content}}">
+                                            {% for option in update_card_form.options %}
+                                            <li class="list-group-item box_study mt-1">
+                                                {{ option.label }} - {{ option(class="border-0 w-100") }}
                                             </li>
-                                            <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                                    name="boc_2{{question.id}}" value="B - {{question.boc_2}}">
-                                            </li>
-                                            <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                                    name="boc_3{{question.id}}" value="C - {{question.boc_3}}">
-                                            </li>
-                                            <li class="list-group-item box_study mt-1"><input class="border-0 w-100"
-                                                    name="boc_4{{question.id}}" value="D - {{question.boc_4}}">
-                                            </li>
+                                            {% endfor %}
                                         </div>
                                     </div>
                                     <div class="col-2 m-1">
                                         <div class="row"> Marks:
-                                            <input name="points" class=" form-control form-control-lg" type="text"
-                                                id="points" placeholder="{{question.points}}"
-                                                value="{{question.points}}">
+                                            {{ update_card_form.points(class="form-control form-control-lg",
+                                            placeholder=question.points) }}
                                         </div>
                                         <div class="row">
                                             <a href="#" class="mx-2"
@@ -254,10 +265,9 @@ main_0 %}
                     </div>
                 </form>
                 {% elif question.q_type == "cloze" %}
-                <form class="question-form">
+                <form class="question-form" method="POST" data-question-id="{{question.id}}">
+                    {{ update_card_form.hidden_tag() }}
                     <div class="card m-1">
-                        <input type="hidden" name="question-id" value="{{question.id}}">
-                        <input type="hidden" name="category" value="{{question.q_type}}">
                         <div class="card-header">
                             <h5>Fill in the blank</h5>
                         </div>
@@ -266,20 +276,18 @@ main_0 %}
                                 <div class="col-9 m-1">
                                     <div class="row">
                                         Question:
-                                        <input name="question" class=" form-control form-control-lg" type="text"
-                                            id="question" placeholder="{{question.question}}"
-                                            value="{{question.question}}">
+                                        {{ update_card_form.question(class="form-control form-control-lg",
+                                        placeholder=question.question) }}
                                     </div>
                                     <div class="row">
                                         Correct answer:
-                                        <input name="answer" class=" form-control form-control-lg" type="text"
-                                            id="answer" placeholder="{{question.content}}" value="{{question.content}}">
+                                        {{ update_card_form.answer(class="form-control form-control-lg",
+                                        placeholder=question.content) }}
                                     </div>
                                     <div class="col-2 m-1">
                                         <div class="row"> Marks:
-                                            <input name="points" class=" form-control form-control-lg" type="text"
-                                                id="points" placeholder="{{question.points}}"
-                                                value="{{question.points}}">
+                                            {{ update_card_form.points(class="form-control form-control-lg",
+                                            placeholder=question.points) }}
                                         </div>
                                         <div class="row">
                                             <a href="#" class="mx-2"
@@ -295,11 +303,10 @@ main_0 %}
                         </div>
                     </div>
                 </form>
-                {% elif question.q_type =="jeopardy" %}
-                <form class="question-form">
+                {% elif question.q_type == "jeopardy" %}
+                <form class="question-form" method="POST" data-question-id="{{question.id}}">
+                    {{ update_card_form.hidden_tag() }}
                     <div class="card m-1">
-                        <input type="hidden" name="question-id" value="{{question.id}}">
-                        <input type="hidden" name="jeopardy" value="{{question.q_type}}">
                         <div class="card-header">
                             Jeopardy question
                         </div>
@@ -308,20 +315,19 @@ main_0 %}
                                 <div class="col-9 m-1">
                                     <div class="row">
                                         Question:
-                                        <input name="question" class=" form-control form-control-lg" type="text"
-                                            id="question" placeholder="{{question.question}}"
-                                            value="{{question.question}}">
+                                        {{ update_card_form.question(class="form-control form-control-lg",
+                                        placeholder=question.question) }}
                                     </div>
                                     <div class="row">
                                         Correct answer:
-                                        <input name="answer" class=" form-control form-control-lg" type="text"
-                                            id="answer" placeholder="{{question.term}}" value="{{question.term}}">
+                                        {{ update_card_form.answer(class="form-control form-control-lg",
+                                        placeholder=question.term) }}
                                     </div>
                                 </div>
                                 <div class="col-2 m-1">
                                     <div class="row"> Marks:
-                                        <input name="points" class=" form-control form-control-lg" type="text"
-                                            id="points" placeholder="{{question.points}}" value="{{question.points}}">
+                                        {{ update_card_form.points(class="form-control form-control-lg",
+                                        placeholder=question.points) }}
                                     </div>
                                     <div class="row">
                                         <a href="#" class="mx-2"
@@ -336,6 +342,7 @@ main_0 %}
                         </div>
                     </div>
                 </form>
+
                 {% endif %}
                 {% endfor %}
             </div>

@@ -517,7 +517,7 @@ button:disabled {
 // LANDING PAGE
 .modal-header-style {
     background: linear-gradient(45deg, $cepha_4, $cepha_3) !important;
-    color: $cepha_105;
+    color: $cepha_2;
   }
 
 
@@ -547,7 +547,7 @@ button:disabled {
 }
 
 .hero {
-  min-height: calc(100vh - 700px);
+  min-height: calc(100vh - 70px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -603,7 +603,7 @@ button:disabled {
 .scroll-down-icon {
   position: relative;
 
-  transform: translateX(-50%);
+  transform: translateX(-75%);
   z-index: 1;
   animation: pulse 2s ease-in-out infinite;
 }
@@ -728,7 +728,7 @@ button:disabled {
 
 .fab-container {
   position: fixed;
-  bottom: 24px;
+  bottom: 20px;
   right: 24px;
   z-index: 1000;
   display: flex;
@@ -807,7 +807,7 @@ button:disabled {
 
 .fab-chat-container:hover .fab-chat-main{
   background-color: none;
-  transform: scale(1.2);
+  transform: scale(1.4);
 }
 
 
@@ -826,9 +826,9 @@ button:disabled {
   position: relative;
   display: none;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   width: 50vw;
-
+  margin-top: 10px;
   z-index: 0;
   align-items: end;
 }
@@ -1120,7 +1120,7 @@ button:disabled {
 }
 
 .button-initals:hover {
-  background-color: $cepha_205;
+  background-color: $cepha_2;
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
   transform: scale(1.1);
@@ -1137,10 +1137,11 @@ button:disabled {
   cursor: pointer;
 }
 .btn-feedback:hover {
-  background-color: $cepha_205 !important;
+  background-color: $cepha_2 !important;
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
   transform: scale(1.1);
+  
 }
 .progress {
   color: $cepha_1!important;

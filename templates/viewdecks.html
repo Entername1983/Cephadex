@@ -68,6 +68,11 @@
     </div>
   </div>
 
+  
+
+
+  {% endif %}
+  {% if tests|length > 0 %}
   <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="toast-header">
       <strong class="me-auto">New tests</strong>
@@ -81,10 +86,6 @@
       </button>
     </div>
   </div>
-
-  {% endif %}
-  {% if tests|length > 0 %}
-
 
   {% endif %}
 </div>
@@ -147,6 +148,7 @@
     {% if not decks %}
 
     <div><h5>You currently don't have any decks, click <a href = "/extract">here</a> to create some.</h5></div>
+    <p>You can also import some from Anki or get some from public decks, just click on the button on the bottom right of this page</p>
 
     {% endif %}
     <div id="result-container" style="display: none;"></div>
@@ -194,7 +196,7 @@
             <td data-th="Category">{{ deck.check_cat() }}</td>
 
             <td data-th="Description">{{ deck.description }}</td>
-            <td data-th="Due/total"> {{ deck.qty_cards_due() }}/{{ deck.quantity_cards() }}</td>
+            <td data-th="Due/total"> {{ deck.cards_due() }}/{{ deck.quantity_cards() }}</td>
             <td data-th="Created">{{ deck.time_created }}</td>
             <td>
               <div class="dropdown">
@@ -203,19 +205,18 @@
                   style="cursor: pointer;">
                 <!-- Dropdown menu containing the list of links -->
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item" href="/carousel/{{ deck.id }}">Edit deck</a>
-                  <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/carousel/{{ deck.id }}">Edit deck</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
                     style="cursor: pointer;">Share deck</a>
-                  <a class="dropdown-item" href="/build_test/{{ deck.id }}">Build test</a>
-                  <a class="dropdown-item" href="/sea_dox/{{ deck.id }}" data-bs-toggle="tooltip"
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/build_test/{{ deck.id }}">Build test</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/sea_dox/{{ deck.id }}" data-bs-toggle="tooltip"
                     data-bs-placement="bottom" title="See files associated with this deck">Deck files</a>
-                  <a class="dropdown-item" onclick="exportDeckAnki('{{ deck.id }}');" style="cursor: pointer;">Export to
+                  <a class="dropdown-item" onclick="event.stopPropagation();" onclick="exportDeckAnki('{{ deck.id }}');" style="cursor: pointer;">Export to
                     Anki</a>
-                  <a class="dropdown-item" href="/downloadascsv/{{ deck.id }}">Download CSV</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/downloadascsv/{{ deck.id }}">Download CSV</a>
                   <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" style="cursor: pointer;"
-                    onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{ deck.id }}'; }">Delete
-                    deck</a>
+                  <a class="dropdown-item" style="cursor: pointer;" onclick="event.stopPropagation(); if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{ deck.id }}'; }">Delete deck</a>
+
                 </div>
               </div>
             </td>
@@ -228,42 +229,52 @@
   <!----- SHARE DECK MODAL -->
   {% for deck in decks %}
   <script>
-    function shareDeck(deckId) {
-
-      var email = document.getElementById('email' + deckId).value;
-      var encodedEmail = encodeURIComponent(email);
-      var url = '/share_deck/' + deckId + '/' + encodedEmail;
-      window.location.href = url;
-    }
+function shareDeck(deckId) {
+  var email = document.getElementById('email' + deckId).value;
+  var encodedEmail = encodeURIComponent(email);
+  var form = document.getElementById('share-form' + deckId);
+  var formData = new FormData(form);
+  formData.append("email", email);
+  fetch('/share_deck/' + deckId, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+    alert("Deck shared successfully!")
+  })
+  .catch(error => {
+    console.error(error);
+    alert("Error sharing deck. Please try again.")
+  });
+}
   </script>
   <div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}"
     aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header modal-header-style p-4">
-          <h5 class="modal-title" id="ModalLabel{{deck.id}}" >Share deck</h5>
+          <h5 class="modal-title" id="ModalLabel{{deck.id}}">Share deck</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form id="share-form" method="POST">
+          <form id="share-form{{deck.id}}" method="POST">
+            {{ share_form.csrf_token }}
             <div class="form-group my-2">
               <div class="form-floating">
-
-                <input type="email" class="form-control" id="email{{deck.id}}" name="email" required
-                  placeholder="Type receiver's email here">
-                <label for="email">Email</label>
+                {{ share_form.emails(id='email' + deck.id|string, class_='form-control', required=True, placeholder="Type receiver's email here")|safe }}
+                <label for="email{{deck.id}}">Email</label>
               </div>
-
             </div>
             <button type="button" class="btn btn-primary" onclick="shareDeck('{{ deck.id }}')">Share</button>
           </form>
         </div>
-
       </div>
     </div>
   </div>
 </div>
-<!----- INFO MODAL OBSOLETE------->
+<!----- INFO MODAL OBSOLETE--
 <div class="modal fade" id="infoDecksModal{{deck.id}}" tabindex="-1" aria-labelledby="#infoDecksModalLabel{{deck.id}}"
   aria-hidden="true">
   <div class="modal-dialog modal-xl">
@@ -309,6 +320,7 @@
     </div>
   </div>
 </div>
+----->
 {% endfor %}
 <!---- SHARED DECKS MODAL----->
 <div class="modal fade" id="SharedDecksModal" tabindex="-1" aria-labelledby="#SharedDecksModalLabel" aria-hidden="true">

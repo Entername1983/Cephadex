@@ -5,17 +5,18 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import or_, and_, insert
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Mapped
-from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
+from flask import g, Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
 from flask_session import Session
 from tempfile import mkdtemp
 import pytz
 from pytz import common_timezones
 from sqlalchemy_utils import database_exists, create_database
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from wtforms import StringField, PasswordField, SubmitField, RadioField, SelectField, BooleanField, TextAreaField
-from flask_wtf.file import FileField, FileRequired
+from wtforms import DateField, IntegerField, StringField, PasswordField, SubmitField, RadioField, SelectField, BooleanField, TextAreaField
+from email_validator import validate_email, EmailNotValidError
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, Optional, URL
+from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, Optional, URL, DataRequired, Email
 from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
@@ -50,9 +51,6 @@ import configparser
 import logging.config
 from events import event_tracker
 from flask_talisman import Talisman
-
-
-
 from logging.config import dictConfig
 from logging_config import LOGGING_CONFIG
 
@@ -66,26 +64,15 @@ app.config.from_object('config')
 
 
 ### AUTO ESCAPE
-""""
+
 jinja_options = ImmutableDict(
  extensions=[
   'jinja2.ext.autoescape', 'jinja2.ext.with_' 
  ])
 
 app.jinja_env.autoescape = True
-"""
 
-### CSP 
-Talisman(app)
-app.config['CSP_POLICY'] = {
-    'default-src': "'self'",
-    'connect-src': "'self' https://accounts.google.com/gsi/log https://region1.google-analytics.com/g/collect",
-    'font-src': "https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com",
-    'frame-src': "https://accounts.google.com",
-    'img-src': "'self' data:",
-    'script-src': "'self' 'unsafe-inline' https://accounts.google.com/gsi/client https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js https://code.jquery.com/jquery-3.6.0.min.js https://polyfill.io/v3/polyfill.min.js https://www.googletagmanager.com/gtag/js https://www.termsfeed.com/public/cookie-consent/4.1.0/cookie-consent.js",
-    'style-src': "'self' 'unsafe-inline' https://accounts.google.com/gsi/ https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/ https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/ https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/ https://fonts.googleapis.com/"
-}
+
 
 
 bcrypt = Bcrypt(app)
@@ -204,6 +191,25 @@ class TryOut(FlaskForm):
     
 class DeckOrg(FlaskForm):    
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
+    term = StringField('Term', render_kw={"placeholder": "Term"})
+    content = TextAreaField('Content', render_kw={"placeholder": "Content"})
+    boc_2 = StringField('boc_2')
+    boc_3 = StringField('boc_3')
+    boc_4 = StringField('boc_4')
+    id = StringField('id')
+    formula = StringField('formula')
+    new_deck_name = StringField('deck_name')
+    new_deck_description = StringField('deck_description')
+    new_deck_subject = StringField('deck_subject')
+    new_deck_topic = StringField('deck_topic')
+    is_public = BooleanField('is_public')
+    new_term = StringField('new_term')
+    new_content = TextAreaField('new_content')
+    new_boc_2 = StringField('new_boc_2')
+    new_boc_3 = StringField('new_boc_3')
+    new_boc_4 = StringField('new_boc_4')
+    new_category = StringField('new_category')
+    edit_deck = SubmitField("Edit deck", render_kw={"id": "edit-deck"})
 
         
 class UploadFileForm(FlaskForm):
@@ -292,6 +298,88 @@ class AddTermForm(FlaskForm):
     content = StringField(validators=[InputRequired(), Length(min=1, max=50)])
     submit = SubmitField("Save")
     
+class AccountForm(FlaskForm):
+    first_name = StringField("First Name:")
+    last_name = StringField("Last Name:")
+    username = StringField("Username:")
+    email = StringField("Email:")
+    gender = SelectField("Gender:", choices=[('', 'Select your gender'), ('Female', 'Female'), ('Male', 'Male'), ('Other', 'Other'), ('Prefer not to say', 'Prefer not to say')])
+    role = SelectField("Role:", choices=[('', 'Select your role'), ('school-administrator', 'School Administrator'), ('teacher', 'Teacher'), ('student', 'Student'), ('part-time-student', 'Part-Time Student'), ('lifelong-learner', 'Lifelong Learner'), ('parent-guardian', 'Parent/Guardian'), ('homeschooling-parent', 'Homeschooling Parent'), ('tutor', 'Tutor'), ('curriculum-developer', 'Curriculum Developer'), ('educational-researcher', 'Educational Researcher'), ('educational-consultant', 'Educational Consultant'), ('instructional-designer', 'Instructional Designer'), ('academic-advisor', 'Academic Advisor'), ('admissions-counselor', 'Admissions Counselor'), ('school-counselor', 'School Counselor'), ('librarian', 'Librarian'), ('it-administrator', 'IT Administrator'), ('education-technology-specialist', 'Education Technology Specialist'), ('education-policy-maker', 'Education Policy Maker'), ('education-advocate-activist', 'Education Advocate/Activist'), ('other', 'Other')])
+    timezone = SelectField("Timezone:", choices=[(tz, tz) for tz in pytz.all_timezones]) # Don't forget to import pytz
+    contacted_email = BooleanField("Agree to be contacted by email")
+    subscribe = BooleanField("Sign up to our mailing list")
+
+class DeleteAccountForm(FlaskForm):
+    del_email = StringField('Email')
+    del_submit = SubmitField('Delete account')
+
+class UpdateProfilePicForm(FlaskForm):
+    profile_pic = FileField('Profile Picture', validators=[FileAllowed(['jpg', 'jpeg', 'png'])])
+    submit = SubmitField('Update Profile Picture')
+
+class FeedbackForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    type_feedback = SelectField('Feedback Type', choices=[('', ''),('general', 'General Feedback'), ('bug', 'Bug Report'), ('feature', 'Feature Request')])
+    message = TextAreaField('Message', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+class UpdateFileNameForm(FlaskForm):
+    new_name = StringField('New Name', [DataRequired()])
+    file_id = IntegerField('File ID', [InputRequired()])
+
+class SearchAndSortForm(FlaskForm):
+    name = StringField('Name')
+    search = StringField('Search')
+    sort = SelectField('Sort', choices=[
+        ('default', 'Default'),
+        ('name_asc', 'Name Ascending'),
+        ('name_desc', 'Name Descending'),
+        ('type', 'Type'),
+        ('date', 'Date')
+    ])
+
+
+class Share(FlaskForm):
+    emails = StringField('Emails', validators=[DataRequired()])
+    submit = SubmitField('Share')
+
+
+class BuildTest(FlaskForm):
+    name = StringField('Test Name', validators=[DataRequired()])
+    due_date = DateField('Due Date')
+    subject = StringField('Subject')
+    topic = StringField('Topic')
+    instructions = StringField('Instructions')
+    description = StringField('Description')
+    time_limit = StringField('Time Limit')
+    shuffle = BooleanField('Shuffle')
+    reveal_answers = BooleanField('Reveal Answers')
+    reveal_results = BooleanField('Reveal Results')
+
+
+class UpdateCardForm(FlaskForm):
+    question = StringField('Question', validators=[DataRequired()])
+    points = IntegerField('Points', validators=[DataRequired()])
+    category = SelectField('Category', choices=[('mcq', 'Multiple Choice'), ('saq', 'Short Answer')], validators=[DataRequired()])
+    answer = StringField('Answer', validators=[DataRequired()])
+    boc_2 = StringField('Option 2')
+    boc_3 = StringField('Option 3')
+    boc_4 = StringField('Option 4')
+
+class GroupForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired(), Length(min=1, max=100)])
+    description = TextAreaField('Description', validators=[DataRequired(), Length(min=1, max=500)])
+    group_type = SelectField('Group Type', validators=[DataRequired()], choices=[
+        ('', 'Select a group type'),
+        ('school', 'School'),
+        ('class', 'Class'),
+        ('department', 'Department'),
+        ('club', 'Club'),
+        ('other', 'Other')
+    ], default='')
+    is_private = BooleanField('Is Private')
+    submit = SubmitField('Create Group')
 
 @app.after_request
 def after_request(response):
@@ -307,20 +395,20 @@ def after_request(response):
 
 print("APP STARTING2")
 
+@app.before_request
+def before_request():
+    g.feedback_form = FeedbackForm()
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
-    print("entered index")
-    logging.info("entered index logging")
     form = TryOut()
     terms = []
-
-
     if not current_user.is_authenticated:
         
         if form.validate_on_submit():
             print("form validated")
             text = form.select_text.data
-            print(text)
             prompt_options = {
                 'main_opt': form.prompt.data or None,
                 'trans_opt': form.languages.data or None,
@@ -334,7 +422,6 @@ def index():
                 'custom_term':  form.custom_term.data or None,
                 'custom_content': form.custom_content.data or None,
             }
-            print(text)
             print(prompt_options)
             
             response = creator(text, prompt_options)
@@ -355,51 +442,49 @@ def index():
 @app.route("/tryout", methods=["GET", "POST"])
 def tryout():
     form = TryOut()
-
     terms = []
-    if form.validate_on_submit():
-        print("form validated")
-        text = form.select_text.data
-        print(text)
-        prompt_options = {
-            'main_opt': form.prompt.data or None,
-            'trans_opt': form.languages.data or None,
-            'lang_opt': None,
-            'detail_lvl_opt': "long",
-            'min_opt':  None,
-            'max_opt':  None,
-            'images_opt':  None,
-            'save_text_opt':  None,
-            'subject_opt':  None,
-            'custom_term':  form.custom_term.data or None,
-            'custom_content': form.custom_content.data or None,
-        }
-        print(text)
-        print(prompt_options)
-        
-        response = creator(text, prompt_options)
-        terms = response[0]
-        print(terms)
-        json_terms = []
-        count = 0
-        for item in terms:
-            print(item)
-        if prompt_options['main_opt'] == 'Mcq':
+    try:
+        if form.validate_on_submit():
+            print("form validated")
+            text = form.select_text.data
+            prompt_options = {
+                'main_opt': form.prompt.data or None,
+                'trans_opt': form.languages.data or None,
+                'lang_opt': None,
+                'detail_lvl_opt': "long",
+                'min_opt':  None,
+                'max_opt':  None,
+                'images_opt':  None,
+                'save_text_opt':  None,
+                'subject_opt':  None,
+                'custom_term':  form.custom_term.data or None,
+                'custom_content': form.custom_content.data or None,
+            }
+            response = creator(text, prompt_options)
+            terms = response[0]
+            json_terms = []
+            count = 0
             for item in terms:
-                if count >= 8:
-                    break
-                json_terms.append({'A': item['A'], 'B': item['B'], 'C': item['C'], 'D': item['D'], 'E': item['E']})
-                count += 1
-        else:
-            for item in terms:
-                if count >= 8:
-                    break
-                json_terms.append({'A': item['A'], 'B': item['B']})
-                count += 1
-        print(json_terms)
-        
-        event_tracker(None, "tryout", json.dumps(prompt_options), json.dumps(terms))
-        return jsonify({'terms': json_terms, 'option': prompt_options['main_opt'], 'text': text})
+                print(item)
+            if prompt_options['main_opt'] == 'Mcq':
+                for item in terms:
+                    if count >= 8:
+                        break
+                    json_terms.append({'A': item['A'], 'B': item['B'], 'C': item['C'], 'D': item['D'], 'E': item['E']})
+                    count += 1
+            else:
+                for item in terms:
+                    if count >= 8:
+                        break
+                    json_terms.append({'A': item['A'], 'B': item['B']})
+                    count += 1
+            print(json_terms)
+            
+            event_tracker(None, "tryout", json.dumps(prompt_options), json.dumps(terms))
+            return jsonify({'terms': json_terms, 'option': prompt_options['main_opt'], 'text': text})
+    except Exception as e: 
+        logging.error(f"Exception occurred in tryout(): {str(e)}")
+        return jsonify({"error": "An error occurred while processing your request."}), 500
     
 @app.route("/googleSignIn", methods=["POST"])
 def googleSignIn():
@@ -606,6 +691,8 @@ def logout():
 @app.route("/viewdecks", methods = ["GET", "POST"])
 @login_required
 def viewdecks():
+    share_form = Share()
+
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings == None:
         print("user settings not found")
@@ -638,7 +725,7 @@ def viewdecks():
         decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()
 
 
-    return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user, settings = user_settings)
+    return render_template('viewdecks.html', decks=decks, shared_decks = shared_decks, tests=tests, user = user, settings = user_settings, share_form = share_form)
 
 
 @app.route("/createdeck", methods = ["GET", "POST"])
@@ -656,39 +743,8 @@ def account_settings():
 def study():
     return render_template("study.html", title="Study")
 
-@app.route("/currentdeck/<deck_id>", methods = ["POST", "GET"])
-@login_required
-def currentdeck(deck_id):
-    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-    if request.method == 'POST':
-        term = request.form['term'] ## new term for card
-        content = request.form['content'] ## new content for card
-        id = request.form['id'] ## id of card to be edited
-        card = Card.query.filter_by(id=id).first()
-        if term != "":
-            card.term = term
-        if content != "":
-            card.content = content
-        db.session.commit()
-    return render_template("currentdeck.html", title="Card Editor", deck=deck, cards=cards)
 
-@app.route("/edit_deck/<deck_id>", methods = ["POST", "GET"])
-@login_required
-def edit_deck(deck_id):
-    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-    if request.method == 'POST':
-        term = request.form['term'] ## new term for card
-        content = request.form['content'] ## new content for card
-        id = request.form['id'] ## id of card to be edited
-        card = Card.query.filter_by(id=id).first()
-        if term != "":
-            card.term = term
-        if content != "":
-            card.content = content
-        db.session.commit()
-    return render_template("edit_deck.html", title="Card Editor", deck=deck, cards=cards)                                
+                         
     
 @app.route("/delete/<int:id>", methods = ["POST", "GET"])
 @login_required
@@ -713,77 +769,62 @@ def rename_deck(id, new_name):
 @app.route("/account", methods = ["POST", "GET"])
 @login_required
 def account():
-    form = RegisterForm()
+    form = AccountForm()
     user = User.query.filter_by(id=current_user.id).first()
     subscriber = Subscriber.query.filter_by(email=user.email).first()
-    if request.method == 'POST':
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        username = request.form.get('username')
-        gender = request.form.get('gender')
-        email_checkbox = request.form.get('email-checkbox')
-        role = request.form.get('role')
-        timezone = form.timezone.data
-        print("email checkbox")
-        print(email_checkbox)
-        if email_checkbox == "contacted":
-            user.contacted_email = True
-        elif email_checkbox == None:
-            user.contacted_email = False
-        subscribe_checkbox = request.form.get('subscriber-checkbox')
-        print(subscribe_checkbox)
-        if first_name != "":
-            user.first_name = first_name
-        if last_name != "":
-            user.last_name = last_name
-        if timezone != "":
-            user.timezone = timezone
-        if username != "":
-            if User.query.filter_by(username=username).first() is not None and username != user.username:
-                flash("Username already taken")
-            else:
-                user.username = username
-        if gender != "":
-            user.gender = gender
-        if role != "":
-            user.role = role
-        if subscribe_checkbox == "subscribe":
-            if not Subscriber.query.filter_by(email=user.email).first():
-                subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name, timestamp = datetime.utcnow())
+    form_del = DeleteAccountForm()
+
+    if form.validate_on_submit():
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.username = form.username.data
+        user.gender = form.gender.data
+        user.role = form.role.data
+        user.timezone = form.timezone.data
+        user.contacted_email = form.contacted_email.data
+
+        if form.subscribe.data:
+            if not subscriber:
+                subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name, timestamp=datetime.utcnow())
                 db.session.add(subscriber)
                 db.session.commit()
-                print("subscribe")
                 flash("You have been subscribed to our mailing list")
-        elif subscribe_checkbox == "":
-            subscriber = Subscriber.query.filter_by(email=user.email).first()
-            db.session.delete(subscriber)
-            db.session.commit()
-            flash("You have been unsubscribed from our mailing list")
         else:
-            if Subscriber.query.filter_by(email=user.email).first():
-                subscriber = Subscriber.query.filter_by(email=user.email).first()
+            if subscriber:
                 db.session.delete(subscriber)
                 db.session.commit()
                 flash("You have been unsubscribed from our mailing list")
-        db.session.commit()
+
+        db.session.commit
         flash("Your account has been updated")
-    return render_template("account.html", title="Account", form = form, user = user, subscriber = subscriber)
+    return render_template("account.html", title="Account", form_del = form_del, form = form, user = user, subscriber = subscriber)
 
 @app.route('/update_profile_pic', methods=['POST'])
 def update_profile_pic():
-  # get the uploaded file
-  profile_picture = request.files['profile-pic']
-  if profile_picture:
-  # save the file to our server
-    pic = os.path.join('static', 'profile_pictures', profile_picture.filename)
-    user = User.query.filter_by(id=current_user.id).first()
-    ##save the file to the server
-    profile_picture.save(pic)
-    user.pic = pic
-    db.session.commit()
-  else:
-      flash('No file selected')
-  return redirect(url_for('account'))
+    form = UpdateProfilePicForm()
+
+    if form.validate_on_submit():
+        profile_picture = form.profile_pic.data
+
+        if profile_picture:
+            # Generate a random and secure filename
+            filename = secure_filename(profile_picture.filename)
+
+            # Save the file to our server
+            pic_path = os.path.join('static', 'profile_pictures', filename)
+            profile_picture.save(pic_path)
+
+            # Update the user's profile picture
+            user = User.query.filter_by(id=current_user.id).first()
+            user.pic = pic_path
+            db.session.commit()
+        else:
+            flash('No file selected')
+    else:
+        for error in form.profile_pic.errors:
+            flash(error)
+
+    return redirect(url_for('account'))
 
 
 @app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST"])
@@ -807,25 +848,7 @@ def deletecard(deck_id, card_id):
     ##cards = deck.cards
  ##   return render_template('carousel.html', title="Deck", deck=deck, cards=cards)
 
-@app.route("/addterms/<int:deck_id>", methods = ["POST", "GET"])
-@login_required
-def addterms(deck_id):
-    form = AddTermForm()
-    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    if(current_user.id != deck.user_id):
-       return apology('Deck not assigned to user', 403)
-    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-    if form.validate_on_submit():
-        key = form.term.data
-        value = form.content.data
-        entry = Card(term=key, content=value)
-        db.session.add(entry)
-        deck.cards.append(entry)  
-        db.session.commit()
-        deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-        cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
-        return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
-    return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
+
 
 @app.route("/downloadascsv/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
@@ -888,6 +911,7 @@ def process_prompt_options_regen(card):
 
 
 @app.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])
+@login_required
 def get_due_cards(deck_id):
     deck = Deck.query.get(deck_id)
     ## later add in option to modify number of new cards to be shown
@@ -944,6 +968,7 @@ def new_user_settings_viewdecks():
 
 
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
+@login_required
 def study_deck(deck_id):
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings == None:
@@ -956,6 +981,22 @@ def study_deck(deck_id):
     if(current_user.id != deck.user_id):
         return apology('Deck not assigned to user', 403)
     return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck,  settings = user_settings) 
+
+
+@app.route("/update_study_data/<int:deck_id>", methods = ["POST", "GET"])
+@login_required
+def update_study_data(deck_id):
+    deck0 = Deck.query.get(deck_id)
+    total_answered = deck0.total_answered()
+    percentage = ((deck0.correct_incorrect()[0] / total_answered) * 100) if total_answered > 0 else 0
+    cards_due = deck0.cards_due()
+
+    return jsonify({
+        'total_answered': total_answered,
+        'percentage': f'{percentage:.1f}%',
+        'cards_due': cards_due
+    })
+
 
 @app.route("/study_deck_all", methods = ["POST", "GET"])   
 @login_required   
@@ -974,6 +1015,7 @@ def study_deck_all():
     return render_template('study_deck_all.html', title='Study all decks', decks_json=decks_json, decks=decks, settings = user_settings)
 
 @app.route("/increment/<card_id>", methods = ["POST", "GET"])
+@login_required
 def increment(card_id):
     card = Card.query.get(card_id)
     deck = Deck.query.filter(Deck.cards.any(id=card_id)).first()
@@ -987,6 +1029,7 @@ def increment(card_id):
     
 
 @app.route("/decrement/<card_id>", methods = ["POST"])
+@login_required
 def decrement(card_id):
     card = Card.query.get(card_id)
     
@@ -1011,10 +1054,12 @@ def force_study(deck_id):
     return deck.force_study()
     
 @app.route("/casualmode/<int:deck_id>")
+@login_required
 def casual_mode(deck_id):
     return render_template("casualmode.html", title="Casual Mode", deck=deck_id)   
 
 @app.route('/generate_img/<int:deck_id>', methods=['GET', 'POST'])
+@login_required
 def generate_img(deck_id):
     event_tracker(current_user.id, "generate_img", deck_id)
     deck = Deck.query.get(deck_id)
@@ -1039,80 +1084,68 @@ def create_parent_child_relationship(parent_deck_id, child_deck_id):
 
 
 @app.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
+@login_required
 def carousel(deck_id):
-    form = DeckOrg()
     deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+
+    form = DeckOrg(obj=deck)
     cards = Card.query.filter(Card.decks_backref.any(id=deck_id)).order_by(Card.id.desc()).all()
     if(current_user.id != deck.user_id):
          return apology('Deck not assigned to user', 403)
-    if request.method == 'POST' and 'term' in request.form:
-        term = request.form['term'] ## new term for card
-        content = request.form['content']
-        boc_2 = request.form.get('boc_2')
-        boc_3 = request.form.get('boc_3')
-        boc_4 = request.form.get('boc_4')
-        id = request.form['id'] ## id of card to be edited
-        formula = request.form.get('formula')
-        card = Card.query.filter_by(id=id).first()
-        if term != "":
-            if card.term != None:
-                card.term = term.strip()
-        if content != "":
-            if card.content != None:
-                card.content = content.strip()
-        if boc_2 != "":
-            if boc_2 != None:
-                card.boc_2 = boc_2.strip()
-        if boc_3 != "":
-            if boc_3 != None:
-                card.boc_3 = boc_3.strip()
-        if boc_4 != "":
-            if boc_4 != None:
-                card.boc_4 = boc_4.strip()
-        if formula != "":
-            if formula != None:
-                card.formula = formula.strip()
-        db.session.commit()
-    if request.method == 'POST' and 'new_term' in request.form:
-        entry = Card(term=request.form['new_term'], content=request.form['new_content'], boc_2=request.form['new_boc_2'],
-                     boc_3=request.form['new_boc_3'], boc_4=request.form['new_boc_4'], category=request.form['new_category'],
-                     time_created=datetime.utcnow())
-        deck.cards.append(entry)
-        db.session.commit()
-    if request.method == 'POST' and 'new_deck_name' in request.form:
-        deck.name = request.form['new_deck_name']
-        deck.description = request.form['new_deck_description']
-        deck.subject = request.form['new_deck_subject']
-        deck.topic = request.form['new_deck_topic']
-        
-        
-        parent = form.deck_list.data
-        public = request.form.get('public-checkbox')
-        if public == "public":
-            deck.public = True
-        else:
-            deck.public = False
-   
-        if parent:
-            db.session.execute(deck_relationships.insert().values(parent_deck=parent.id, child_deck=deck.id))
+    if form.validate_on_submit():
+        if form.term.data:
+            term = form.term.data
+            content = form.content.data
+            boc_2 = form.boc_2.data
+            boc_3 = form.boc_3.data
+            boc_4 = form.boc_4.data
+            id = form.id.data
+            formula = form.formula.data
+            card = Card.query.filter_by(id=id).first()
+            if term != "":
+                if card.term != None:
+                    card.term = term.strip()
+            if content != "":
+                if card.content != None:
+                    card.content = content.strip()
+            if boc_2 != "":
+                if boc_2 != None:
+                    card.boc_2 = boc_2.strip()
+            if boc_3 != "":
+                if boc_3 != None:
+                    card.boc_3 = boc_3.strip()
+            if boc_4 != "":
+                if boc_4 != None:
+                    card.boc_4 = boc_4.strip()
+            if formula != "":
+                if formula != None:
+                    card.formula = formula.strip()
+            db.session.commit()
+        elif form.new_term.data:
+            entry = Card(term=form.new_term.data, content=form.new_content.data, boc_2=form.new_boc_2.data,
+                boc_3=form.new_boc_3.data, boc_4=form.new_boc_4.data, category=form.new_category.data,
+                time_created=datetime.utcnow())
+            deck.cards.append(entry)
+            db.session.commit()
+        elif form.new_deck_name.data:
+            deck.name = form.new_deck_name.data
+            deck.description = form.new_deck_description.data
+            deck.subject = form.new_deck_subject.data
+            deck.topic = form.new_deck_topic.data
+            parent = form.deck_list.data
+            public = form.is_public.data
+            if public:
+                deck.public = True
+            else:
+                deck.public = False
 
-# Execute the insert statement
-        db.session.commit()   
-    return render_template("carousel.html", title="Carousel", deck=deck, cards=cards, form = form) 
+            if parent:
+                db.session.execute(deck_relationships.insert().values(parent_deck=parent.id, child_deck=deck.id))
 
-@app.route("/add_new_card/<int:deck_id>", methods = ["GET", "POST"])
-def add_new_card(deck_id):
-    print("entered add new card")
-    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
-    if(current_user.id != deck.user_id):
-        return apology('Deck not assigned to user', 403)
-    entry = Card(term=request.form['new_term'] , content=request.form['new_content'], boc_2=request.form['new_boc_2'],
-                 boc_3=request.form['new_boc_3'], boc_4=request.form['new_boc_4'],
-                 category=request.form['new_category'])
-    db.session().add(entry)
-    deck.cards.append(entry)
-    db.session.commit()
-    return 'Card saved successfully'
+            db.session.commit()
+    return render_template("carousel.html", title="Carousel", deck=deck, cards=cards, form=form)
+
+
 
 @app.route("/landingpage", methods = ["GET", "POST"])
 def landingpage():
@@ -1123,18 +1156,24 @@ def terms_and_conditions():
     return render_template("terms_and_conditions.html", title="Terms and Conditions")
 
 @login_required
-@app.route("/delete_account", methods = ["POST"])
+@app.route("/delete_account", methods=["GET", "POST"])
 def delete_account():
-    user = User.query.filter_by(id=current_user.id).first()
-    if user.email == request.form['del_email']:
-        user.account_status = 'inactive'
-        user.expiration = datetime.utcnow()
-        user.account_expiration_reason = "Deleted"
-        db.session.commit()
-        flash("We'are sorry to see you go. Your account is now inactive and will be permanently deleted within 48 hours.")
-    return redirect(url_for('logout'))
+    form = DeleteAccountForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(id=current_user.id).first()
+        if user.email == form.del_email.data:
+            user.account_status = 'inactive'
+            user.expiration = datetime.utcnow()
+            user.account_expiration_reason = "Deleted"
+            db.session.commit()
+            flash("We're sorry to see you go. Your account is now inactive and will be permanently deleted within 48 hours.")
+            return redirect(url_for('logout'))
+
+    return render_template('delete_account.html', form_del=form)
 
 @app.route("/import_public_deck/<int:deck_id>", methods = ["GET", "POST"])
+@login_required
 def import_public_deck(deck_id):
     print("entered public decks")
     deck = Deck.query.filter_by(id=deck_id, public=True).first()
@@ -1308,17 +1347,24 @@ def get_text_from_link(link_input):
 
 
 @app.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
+@login_required
 def sea_dox(deck_id):
+    form = UpdateFileNameForm()
+    search_and_sort_form = SearchAndSortForm()
+
     ## GET DECK
     deck = Deck.query.get_or_404(deck_id)
     ## GET source files
     files = deck.deck_files
+    if deck.user_id != current_user.id:
+        return apology("You do not have permission to view this deck", 403)
     ##files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.desc()).all()
     if request.method == 'GET':
         print("entered get request")
-        sort_method =request.args.get('sort')
         search_query = None
-        search_query = request.args.get('search', '').strip()
+        sort_method = search_and_sort_form.sort.data
+        search_query = request.args.get('search', '')
+
         if sort_method != 'default':
                 if sort_method == 'name_asc':
                     files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.asc()).all()
@@ -1329,25 +1375,29 @@ def sea_dox(deck_id):
                 if sort_method == 'date':
                     files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.time_created.desc()).all()
         elif search_query:
+                search_query = search_query.strip()
                 files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).filter(DeckFiles.file_name.contains(search_query)).all()
-        return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
-    if request.method == 'POST':
-        file_id = request.form['file_id']
+        return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck, form = form, search_form = search_and_sort_form)
+    if form.validate():
+        file_id = form.file_id.data
+        new_name = form.new_name.data
         file = DeckFiles.query.get_or_404(file_id)
-        new_name = request.form['new_name']
+
         if new_name != '':
             file.file_name = new_name
             db.session.commit()
-        return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
-    return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck)
+        return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck, form = form, search_form = search_and_sort_form)
+    return render_template("sea_dox.html", title="Sea Dox", files=files, deck = deck, form = form, search_form = search_and_sort_form)
 
 @app.route("/source_file/<int:file_id>", methods=["GET", "POST"])
+@login_required
 def source_file(file_id):
     ## GET FILE
     file = DeckFiles.query.get_or_404(file_id)
     return render_template("source_file.html", title="Source File", file=file)
 
 @app.route("/download_source/<int:file_id>", methods=["GET", "POST"])
+@login_required
 def download_source(file_id):
     ## GET FILE
     event_tracker(current_user.id, "download_source", file_id)
@@ -1359,6 +1409,7 @@ def download_source(file_id):
     return send_file(pdf_buffer, download_name = name)
 
 @app.route("/delete_file/<int:deck_id>/<int:file_id>/", methods=["GET", "POST"])
+@login_required
 def delete_file(deck_id, file_id):
     print("entered delete file")
     event_tracker(current_user.id, "delete_file", file_id)
@@ -1368,35 +1419,42 @@ def delete_file(deck_id, file_id):
     db.session.commit()
     return redirect(("/sea_dox/{deck}").format(deck=deck.id)) 
 
-@app.route("/share_deck/<int:deck_id>/<string:user_email>/", methods=["GET", "POST"])
-def share_deck(deck_id, user_email):
+class Share(FlaskForm):
+    emails = StringField('Emails', validators=[DataRequired()])
+    submit = SubmitField('Share')
+@app.route("/share_deck/<int:deck_id>/", methods=["GET", "POST"])
+@login_required
+def share_deck(deck_id):
+    share_form = Share()
     sender_id = current_user.id
     deck_to_copy = Deck.query.get_or_404(deck_id)
     event_tracker(current_user.id, "share_deck", deck_id)
-    if check_comma_list(user_email):
-        users_emails = user_email.split(",")
-        for email in users_emails:
-            email = unquote(email).strip()
-            user = User.query.filter_by(email=email).first()
-            shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=user.id)
-            db.session.add(shared_deck)
-            for card in deck_to_copy.cards:
-                new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-                shared_deck.cards.append(new_card)
-            db.session.commit()
-        return jsonify('success', 'Deck shared successfully')
-    else:
-        email = unquote(user_email)
-        user = User.query.filter_by(email=email).first()
 
-        shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender = sender_id, time_created=datetime.utcnow(), receiver=user.id)
-        db.session.add(shared_deck)
-        for card in deck_to_copy.cards:
-            new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-            shared_deck.cards.append(new_card)
-        db.session.commit()
+    if share_form.validate_on_submit():
+        users_emails = share_form.emails.data.split(",")
+
+        for email in users_emails:
+            email = email.strip()
+            user = User.query.filter_by(email=email).first()
+
+            if user:
+                shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name, description=deck_to_copy.description, sender=sender_id, time_created=datetime.utcnow(), receiver=user.id)
+                db.session.add(shared_deck)
+
+                for card in deck_to_copy.cards:
+                    new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+                    shared_deck.cards.append(new_card)
+
+                db.session.commit()
+
         return jsonify('success', 'Deck shared successfully')
+
+    else:
+        return jsonify('error', 'Deck not shared')
+    
+
 @app.route("/approve_shared/<int:deck_id>/", methods=["GET", "POST"])
+@login_required
 def approve_shared(deck_id):
     event_tracker(current_user.id, "approve_shared", deck_id)
     shared_deck = SharedDecks.query.get_or_404(deck_id)
@@ -1413,6 +1471,7 @@ def approve_shared(deck_id):
 
 
 @app.route("/reject_shared/<int:deck_id>/", methods=["GET", "POST"])
+@login_required
 def reject_shared(deck_id):
     event_tracker(current_user.id, "reject_shared", deck_id)
     print("entered reject shared")
@@ -1423,14 +1482,19 @@ def reject_shared(deck_id):
     return jsonify({'success': success})
 
 
+
 @app.route("/feedback", methods=["GET", "POST"])
 def feedback():
-    if request.method == 'POST' and 'message_feedback' in request.form:
-        entry = Feedback(name=request.form['name_feedback'], email=request.form['email_feedback'], message=request.form['message_feedback'], type_feedback=request.form['type_feedback'])
+    form = FeedbackForm()
+    if form.validate_on_submit():
+        entry = Feedback(name=form.name.data, email=form.email.data, message=form.message.data, type_feedback=form.type_feedback.data)
         entry.send_feedback()
-        flash("Thank you for your feedback!", "success")
-    return render_template('index.html', title='Index')
-
+        return jsonify(status="success", message="Thank you for your feedback!")
+    errors = []
+    for field, error_msgs in form.errors.items():
+        for msg in error_msgs:
+            errors.append(f"{field}: {msg}")
+    return jsonify(status="error", errors=errors)
 
 @app.route("/legal", methods = ["GET", "POST"])
 def legal():
@@ -1483,56 +1547,66 @@ def build_test(deck_id):
 
 @app.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
 def assign_test(test_id):
-        event_tracker(current_user.id, "assign_test", test_id)
-        test = Test.query.get_or_404(test_id)
-        print(request.form)
-        if request.method == 'POST' and 'test-name' in request.form:
-            print("entered post request3")
-            test.name= request.form['test-name']
-            test.creator = current_user.id
-            due_date = request.form.get('due-date')
-            if due_date:
-                due_date = dt.datetime.strptime(due_date[:16],'%Y-%m-%dT%H:%M')
-                test.due_date = due_date
-            test.subject = request.form['subject']
-            test.topic = request.form['topic']
-            test.instructions = request.form['instructions']
-            test.description = request.form['description']
-            time_limit = request.form.get('time-limit')
-            if time_limit != '':
-                time_limit = int(time_limit)
-                test.time_limit = time_limit
-            
-            answer_reveal = request.form.get('answer-reveal', False)
-            result_reveal = request.form.get('result-reveal', False)
-            shuffle = request.form.get('shuffle', False)
-            if answer_reveal == 'answer-reveal':
-                test.answer_reveal = True
-            if result_reveal == 'result-reveal':
-                test.result_reveal = True
-            if shuffle == 'shuffle':
-                test.shuffle = True
-            test.count_questions()
-            test.sum_points()
-            db.session.commit()
-        return render_template('assign_test.html', title='Assign test', test=test, )
+    update_card_form = UpdateCardForm(request.form)
+    form = BuildTest()
+    event_tracker(current_user.id, "assign_test", test_id)
+    test = Test.query.get_or_404(test_id)
+    print(request.form)
+    if request.method == 'POST' and 'name' in request.form:
+        print("entered post request3")
+        test.name = form.name.data
+        test.creator = current_user.id
+        due_date = request.form['due_date']
+        if due_date:
+            due_date = dt.datetime.strptime(due_date[:16],'%Y-%m-%dT%H:%M')
+            test.due_date = due_date
+        test.subject = form.subject.data
+        test.topic = form.topic.data
+        test.instructions = form.instructions.data
+        test.description = form.description.data
+        time_limit = form.time_limit.data
+        if time_limit != '' and time_limit != None:
+            time_limit = int(time_limit)
+            test.time_limit = time_limit
+        
+        answer_reveal = form.reveal_answers.data
+        result_reveal = form.reveal_results.data
+        shuffle = form.shuffle.data
+        if answer_reveal == 'answer-reveal':
+            test.answer_reveal = True
+        if result_reveal == 'result-reveal':
+            test.result_reveal = True
+        if shuffle == 'shuffle':
+            test.shuffle = True
+        test.count_questions()
+        test.sum_points()
+        db.session.commit()
+    return render_template('assign_test.html', title='Assign test', test=test, form = form, update_card_form = update_card_form)
     
 @app.route('/update_card', methods=['POST'])
+@login_required
 def update_card():
-    print("entered updated card")
-    question_id = request.form['question-id']
-    question = Question.query.get(question_id)
-    question.question = request.form['question']
-    question.points = request.form['points']
-    category = request.form['category']
-    question.term = request.form['answer']
-    if category == 'mcq':
-        print("recognized mcq")
-        question.boc_2 = request.form['boc_2']
-        question.boc_3 = request.form['boc_3']
-        question.boc_4 = request.form['boc_4']
-    db.session.commit()
-    return jsonify(success=True)
+    print("entered update card")
+    data = request.get_json()
+    form = UpdateCardForm(data=data)
+    print(data)
+    
+    question_id = data['question-id']
+    print(question_id)
+    question = Question.query.filter_by(id = question_id).first_or_404()
+    print(question)
+    print(data['question'])
+    try:
+        question.question = data['question']
+        question.content = data['answer']
+        question.points = data['points']
+        db.session.flush()
+        db.session.commit()
+        return jsonify(success=True)
+    except Exception as e:
+        print("Error while updating the question:", e)
+        return jsonify(success=False, error=str(e))
+
 
 
 @app.route("/delete_question/<int:test_id>/<int:question_id>", methods = ["POST", "GET"])
@@ -1553,6 +1627,7 @@ def delete_test(test_id):
 
 
 @app.route("/assign/<int:test_id>/<string:user_email>/", methods=["GET", "POST"])
+@login_required
 def assign(test_id, user_email):
     test = Test.query.filter_by(id=test_id).first()
     test.count_questions()
@@ -1585,6 +1660,7 @@ def assign(test_id, user_email):
 
 
 @app.route("/take_test/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
+@login_required
 def take_test(test_id, user_id):
     event_tracker(current_user.id, "take_test", test_id)
     test_result = TestResult.query.filter_by(test_id = test_id, taker = user_id).first()
@@ -1833,6 +1909,7 @@ def export_deck(deck_id):
 
 #### JAVASCRIPT ANKI CONNECT
 @app.route('/get_deck_data/<int:deck_id>', methods=['GET'])
+@login_required
 def get_deck_data(deck_id):
     print("entered get_deck_data")
     deck_name = Deck.query.get_or_404(deck_id).name
@@ -1885,6 +1962,7 @@ def query():
     )
 
 @app.route("/notification_complete", methods=["POST"])
+@login_required
 def notification_complete():
     print("entered notification")
     slug_id= request.form["id"]
@@ -1904,9 +1982,19 @@ def notification_complete():
     return jsonify("success")
  
 @app.route("/latest_deck", methods=["POST", "GET"])
+@login_required
 def latest_deck():
-    deck = Deck.query.filter_by(user_id=current_user.id).order_by(Deck.id.desc()).first()
-    return redirect('/carousel/{deck_id}'.format(deck_id = deck.id))
+    if current_user.is_authenticated:
+        deck = Deck.query.filter_by(user_id=current_user.id).order_by(Deck.id.desc()).first()
+
+        if deck is not None:
+            return redirect('/carousel/{deck_id}'.format(deck_id=deck.id))
+        else:
+            # Handle the case when the user has no decks, e.g., show an error message or redirect to a create deck page
+            return "No decks found for this user. Please create a deck."
+    else:
+        # Handle the case when the user is not authenticated, e.g., redirect to login page or show an error message
+        return "User is not authenticated. Please log in to continue."
 
  
 @app.route("/documentation/", methods=['GET', 'POST'])
@@ -1946,6 +2034,7 @@ def check_subscription_plan(user):
 ####################  MORE INFO ABOUT CARDS ################################################
 
 @app.route("/explain_further/<int:card_id>/", methods=['GET', 'POST'])
+@login_required
 def explain_further(card_id):
     card = Card.query.filter_by(id=card_id).first()
     if card is None:
@@ -1959,6 +2048,7 @@ def explain_further(card_id):
     return json_response
 
 @app.route("/why_wrong/<int:card_id>/", methods=['GET', 'POST'])
+@login_required
 def why_wrong(card_id):
     print("why wrong")
     card = Card.query.filter_by(id=card_id).first()
@@ -1985,6 +2075,7 @@ def why_wrong_builder(card_id):
 
 
 @app.route("/send_question/<int:card_id>/", methods=['GET', 'POST'])
+@login_required
 def send_question(card_id):
     print("send question")
     card = Card.query.filter_by(id=card_id).first()
@@ -2001,6 +2092,7 @@ def news():
     return render_template('news.html')
 
 @app.route("/public_cards/<int:deck_id>/", methods=['GET', 'POST'])
+@login_required
 def public_cards(deck_id):
     deck = Deck.query.filter_by(id=deck_id).first()
     if deck.public == False:
@@ -2010,42 +2102,37 @@ def public_cards(deck_id):
 
 
 @app.route("/public_decks", methods = ['GET', 'POST'])
+@login_required
 def public_decks():
+    form = SearchAndSortForm()
     decks = Deck.query.filter_by(public=True).all()
-    print("entered public decks")
-    if request.method == 'GET':
-        sort_method = request.args.get('sort')
-        search_query = request.args.get('search', '').strip()
-        
-        # Start building the query
-        query = Deck.query.filter(Deck.public == True)
-        
-        # Apply search filters if search_query is present
-        if search_query:
-            query = query.filter(
-                or_(
-                    Deck.name.ilike(f'%{search_query}%'),
-                    Deck.description.ilike(f'%{search_query}%'),
-                    Deck.category.ilike(f'%{search_query}%')
-                )
+    search_query= form.search.data
+    sort_method = form.sort.data
+    # Start building the query
+    query = Deck.query.filter(Deck.public == True)
+    # Apply search filters if search_query is present
+    if search_query:
+        query = query.filter(
+            or_(
+                Deck.name.ilike(f'%{search_query}%'),
+                Deck.description.ilike(f'%{search_query}%'),
+                Deck.category.ilike(f'%{search_query}%')
             )
+        )
+    # Apply sorting if sort_method is not 'default'
+    if sort_method != 'default':
+        if sort_method == 'name_asc':
+            query = query.order_by(Deck.name.asc())
+        elif sort_method == 'name_desc':
+            query = query.order_by(Deck.name.desc())
+        elif sort_method == "category_asc":
+            query = query.order_by(Deck.category.asc())
+        elif sort_method == "category_desc":
+            query = query.order_by(Deck.category.desc())
 
-        # Apply sorting if sort_method is not 'default'
-        if sort_method != 'default':
-            if sort_method == 'name_asc':
-                query = query.order_by(Deck.name.asc())
-            elif sort_method == 'name_desc':
-                query = query.order_by(Deck.name.desc())
-            elif sort_method == "category_asc":
-                query = query.order_by(Deck.category.asc())
-            elif sort_method == "category_desc":
-                query = query.order_by(Deck.category.desc())
-
-        # Execute the query and fetch all the decks
-        decks = query.all()
-
-
-    return render_template('public_decks.html', decks=decks)
+    # Execute the query and fetch all the decks
+    decks = query.all()
+    return render_template('public_decks.html', decks=decks, form = form)
 
 
 
@@ -2055,46 +2142,58 @@ def public_decks():
 ####################################################################################
 
 @app.route('/my_groups')
+@login_required
 def my_groups():
+    group_form = GroupForm()
     user_id = current_user.id
     created_groups = Group.query.filter_by(creator_id=user_id).all()
     user_groups = current_user.groups
     group_invites = get_invited_users_info(user_id)
     invitations = GroupInvite.query.filter_by(user_id=user_id).all()
     all_groups_member_roles = get_all_groups_member_roles(user_id)
-    print("roles", all_groups_member_roles)
-    return render_template('my_groups.html', invitations = invitations, groups=user_groups, created_groups = created_groups, group_invites = group_invites, user_roles = all_groups_member_roles)
+    return render_template('my_groups.html', invitations = invitations, groups=user_groups, created_groups = created_groups,
+                            group_invites = group_invites, user_roles = all_groups_member_roles,
+                            form = group_form)
 
 @app.route('/create_group', methods=['POST'])
+@login_required
 def create_group():
     print("create group")
-    group_data = request.json
-    name = group_data['name']
-    description = group_data['description']
-    group_type = group_data['group_type']
-    private = group_data['is_private']
-    user_id = current_user.id
-    new_group = Group(name=name, description=description, group_type=group_type, is_private = private, creator_id=user_id)
-    db.session.add(new_group)
-    new_group.users.append(current_user)
-    db.session.commit()
-
-    update_member_permissions(new_group.id, user_id, "write")
-    db.session.commit()
-
-
-    return jsonify({'message': 'Group created successfully'}), 201
+    form = GroupForm(request.form)
+    if form.validate():
+        print("form validated")
+        name = form.name.data
+        description = form.description.data
+        group_type = form.group_type.data
+        private = form.is_private.data
+        user_id = current_user.id
+        
+        new_group = Group(name=name, description=description, group_type=group_type, is_private=private, creator_id=user_id)
+        db.session.add(new_group)
+        new_group.users.append(current_user)
+        db.session.commit()
+        
+        update_member_permissions(new_group.id, user_id, "write")
+        print("where")
+        db.session.commit()
+        success_response = jsonify({'message': 'Group created successfully'}), 201
+        
+        print("Success response:", success_response)  # Log the success response
+        return success_response
+    else:
+        print("form not validated")
+        print("Form errors:", form.errors)  # Log the form errors
+        errors = form.errors
+        return jsonify(errors), 400
 
 @app.route("/invite_group/", methods=["GET", "POST"])
+@login_required
 def invite_group():
     group_id = request.args.get('groupId', type=int)
     user_email = request.args.get('email', type=str)
-    print("invite group")
-    print(user_email)
     not_users = []
     group = Group.query.filter_by(id=group_id).first()
     if check_comma_list(user_email):
-        
         users_emails = user_email.split(",")
         for email in users_emails:
             print("user email", email)
@@ -2111,7 +2210,6 @@ def invite_group():
                 if len(not_users) > 0:
                     flash('The following users are not registered: ' + str(not_users), 'warning')
         return jsonify('success', 'User invited successfully')
-
     else:
         user = User.query.filter_by(email=user_email).first()
         if user is None:
@@ -2126,6 +2224,7 @@ def invite_group():
 
 
 @app.route("/approve_group/<int:group_id>/", methods=["GET", "POST"])
+@login_required
 def approve_group(group_id):
     group_invite = GroupInvite.query.filter_by(id=group_id, user_id=current_user.id).first()
     if group_invite:
@@ -2141,6 +2240,7 @@ def approve_group(group_id):
         return jsonify('success', 'User added to group successfully')
     
 @app.route("/reject_group/<int:group_id>/", methods=["GET", "POST"])
+@login_required
 def reject_group(group_id):
     print(group_id)
     group_invite = GroupInvite.query.filter_by(id=group_id, user_id=current_user.id).first()
@@ -2157,7 +2257,6 @@ def get_group_member_roles(group_id):
     results = db.session.query(User.id, User.username, User.email, user_group_association.c.role).join(user_group_association).filter(
         user_group_association.c.group_id == group_id
     ).all()
-
     group_member_roles = {}
     for result in results:
         username_or_email = result.username if result.username is not None else result.email
@@ -2171,7 +2270,6 @@ def get_all_groups_member_roles(user_id):
     user_groups = db.session.query(Group).join(user_group_association).filter(
         user_group_association.c.user_id == user_id
     ).all()
-
     all_groups_member_roles = {}
     for group in user_groups:
         group_member_roles = get_group_member_roles(group.id)
@@ -2221,6 +2319,7 @@ def get_invited_users_info(user_id):
 
 
 @app.route("/group/<int:group_id>/", methods=["GET", "POST"])
+@login_required
 def group(group_id):
     mydecks = Deck.query.filter_by(user_id = current_user.id).all()
     group = Group.query.get_or_404(group_id)
@@ -2229,28 +2328,29 @@ def group(group_id):
     ## get invited group members
     invited_users = get_invited_users_info(current_user.id)
     decks = Deck.query.filter_by(group_id=group_id).all()
-    print(invited_users)
-    print(group_member_roles)
     permissions = get_group_member_permissions(group_id)
-    print(permissions)
     return render_template('group.html', mydecks = mydecks, group=group, group_member_roles=group_member_roles, invited_users=invited_users, decks = decks, permissions = permissions)
 
 
 @app.route('/group/<int:group_id>/update_member_permissions', methods=['POST'])
+@login_required
 def update_member_permissions(group_id, user_id = None, permission = None):
-    print(request.data)
-    user_id = current_user.id
-    data = request.json
+    print("entered member permissions update")
     if user_id:
+        print("user id is", user_id)
         target_user_id = user_id
     else:
+        data = request.json
+
         target_user_id = int(data['target_user_id'])
     if permission:
+        print("permission is", permission)
         new_permissions = permission
     else:
         new_permissions = data['new_permissions']
     # Check if the current user is the creator of the group
     group = Group.query.get(group_id)
+    print("group is", group)
     if group.creator_id == user_id:
         # Update the target user's permissions
         db.session.query(user_group_association).filter(
@@ -2258,7 +2358,6 @@ def update_member_permissions(group_id, user_id = None, permission = None):
             user_group_association.c.user_id == target_user_id
         ).update({user_group_association.c.permissions: new_permissions})
         db.session.commit()
-
         response = {
             "status": "success",
             "message": "Member permissions updated successfully"
@@ -2268,9 +2367,11 @@ def update_member_permissions(group_id, user_id = None, permission = None):
             "status": "error",
             "message": "You do not have permission to update member permissions"
         }
+    print(response)
     return jsonify(response)
 
 @app.route('/search_public_decks', methods=['POST'])
+@login_required
 def search_public_decks():
     data = request.json
     search_term = data['search']
@@ -2278,6 +2379,7 @@ def search_public_decks():
     return jsonify([deck.serialize() for deck in decks])
 
 @app.route('/add_deck_to_group', methods=['POST'])
+@login_required
 def add_deck_to_group():
     data = request.json
     group_id = data['group_id']
@@ -2305,6 +2407,7 @@ def check_group_write_permission(group_id):
         return False
 
 @app.route("/delete_group/<int:group_id>/", methods=["GET", "POST"])
+@login_required
 def delete_group(group_id):
     group = Group.query.get(group_id)
     if group.creator_id == current_user.id:
@@ -2316,6 +2419,7 @@ def delete_group(group_id):
 
 
 @app.route("/import_from_group/<int:deck_id>/<int:group_id>", methods=["GET", "POST"])
+@login_required
 def import_from_group(deck_id, group_id):
     group = Group.query.get(group_id)
     existing_deck = Deck.query.get(deck_id)
@@ -2326,20 +2430,19 @@ def import_from_group(deck_id, group_id):
         for card in existing_deck.cards:
             new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
             new_deck.cards.append(new_card)
-        
         db.session.add(new_deck)
         return jsonify({"message": "Deck imported successfully", "status": "success"})
     else:
         return jsonify({"message": "You do not have permission to import from this group", "status": "error"})
 
 @app.route("/remove_user_group/<int:group_id>/<int:user_id>", methods=["GET", "POST"])
+@login_required
 def remove_user_group(group_id, user_id):
     group = Group.query.get(group_id)
     if group.creator_id == current_user.id:
         association = db.session.query(user_group_association).filter(
             and_(user_group_association.c.user_id == user_id, user_group_association.c.group_id == group_id)
         ).first()
-        
         if association:
             db.session.execute(
                 user_group_association.delete().where(
@@ -2359,6 +2462,7 @@ def split_string(string):
 ################## CURRENTLY UNUSED ###############################################################################################
 
 @app.route("/change_password", methods=["GET", "POST"])
+@login_required
 def change_pass():
     form = ChangePassForm()
     if form.validate_on_submit():
@@ -2371,9 +2475,77 @@ def change_pass():
     flash('Your password has been updated!')
     return redirect(url_for('index'))
 
+@app.route("/currentdeck/<deck_id>", methods = ["POST", "GET"])
+@login_required
+def currentdeck(deck_id):
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+    if request.method == 'POST':
+        term = request.form['term'] ## new term for card
+        content = request.form['content'] ## new content for card
+        id = request.form['id'] ## id of card to be edited
+        card = Card.query.filter_by(id=id).first()
+        if term != "":
+            card.term = term
+        if content != "":
+            card.content = content
+        db.session.commit()
+    return render_template("currentdeck.html", title="Card Editor", deck=deck, cards=cards)
+
+
+@app.route("/edit_deck/<deck_id>", methods = ["POST", "GET"])
+@login_required
+def edit_deck(deck_id):
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+    if request.method == 'POST':
+        term = request.form['term'] ## new term for card
+        content = request.form['content'] ## new content for card
+        id = request.form['id'] ## id of card to be edited
+        card = Card.query.filter_by(id=id).first()
+        if term != "":
+            card.term = term
+        if content != "":
+            card.content = content
+        db.session.commit()
+    return render_template("edit_deck.html", title="Card Editor", deck=deck, cards=cards)      
 
 
 
+@app.route("/add_new_card/<int:deck_id>", methods = ["GET", "POST"])
+def add_new_card(deck_id):
+    print("entered add new card")
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    if(current_user.id != deck.user_id):
+        return apology('Deck not assigned to user', 403)
+    entry = Card(term=request.form['new_term'] , content=request.form['new_content'], boc_2=request.form['new_boc_2'],
+                 boc_3=request.form['new_boc_3'], boc_4=request.form['new_boc_4'],
+                 category=request.form['new_category'])
+    db.session().add(entry)
+    deck.cards.append(entry)
+    db.session.commit()
+    return 'Card saved successfully'
+
+
+@app.route("/addterms/<int:deck_id>", methods = ["POST", "GET"])
+@login_required
+def addterms(deck_id):
+    form = AddTermForm()
+    deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+    if(current_user.id != deck.user_id):
+       return apology('Deck not assigned to user', 403)
+    cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+    if form.validate_on_submit():
+        key = form.term.data
+        value = form.content.data
+        entry = Card(term=key, content=value)
+        db.session.add(entry)
+        deck.cards.append(entry)  
+        db.session.commit()
+        deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+        cards = Card.query.filter(Card.decks.any(id=deck_id)).order_by(Card.id.desc()).all()
+        return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
+    return render_template("addterms.html".format(deck=deck), title="Add Terms", form=form, cards=cards, deck=deck)
   ## OBSOLETE CODE BELOW ###############################################################################################  
 ############################################################################################################    
 

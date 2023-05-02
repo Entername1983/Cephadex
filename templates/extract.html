@@ -248,6 +248,8 @@
             </div>
             </div>
         </div>
+        <button type="submit" id="hidden-submit-btn" style="display: none;"></button>
+
         <div class="row justify-content-end">
 
             {{form.submit(id="generate-btn", class=" btn-generate form-control form-control-lg", style
@@ -437,6 +439,18 @@
         setInterval(updateWords, 2000);
     }
 </script>
+<script>
+    $(document).ready(function() {
+        $("#generate-btn").on("click", function() {
+            // Trigger the hidden button click event to submit the form
+            $("#hidden-submit-btn").click();
 
+            // Delay resetting the form fields to allow the form to be submitted
+            setTimeout(function() {
+                $(this).closest("form")[0].reset();
+            }.bind(this), 100);  // Adjust the delay if needed
+        });
+    });
+</script>
 
 {% endblock %}

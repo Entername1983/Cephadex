@@ -14,92 +14,77 @@
     </a>
  </div> ---->
 <div class="m-2">
-    <div class="col-10-md box_0  p-3">
-        <div class="row">
-            <div class="col-6 d-flex justify-content-center align-items-center">
-                <h2> Public Decks</h2>
-            </div>
-            <div class="col-6 d-flex justify-content-end">
-                <form action="" method="get">
-                    <div class="row justify-content-end ">
-                        <div class = "row">
-                        <div class="input-group mb-3 floating-form"style = "max-width:400px">
-                            <input type="text" class="form-control " id="search-deck-name" name="search"
-                                placeholder="Search decks by name" value="{{ request.args.get('search', '') }}" >
-
-                            <button type="submit" class="btn btn-primary text-center mx-auto ">Search</button>
-                        </div>
-</div>                        <div class = "row">
-
-
-
-                        <div class="form-floating " id='sort-form'style = "max-width:400px">
-                            <select class="form-select my-1 mr-sm-2" id="sort" name="sort"
-                                onchange="this.form.submit();" >
-                                <option value="default">Select sort method</option>
-
-                                <option value="name_asc">Name (A to Z)</option>
-                                <option value="name_desc">Name (Z to A)</option>
-                                <option value="category_asc">Category (A to Z)</option>
-                                <option value="category_desc">Category (Z to A)</option>
-
-
-                            </select>
-</div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+  <div class="col-10-md box_0  p-3">
+    <div class="row">
+      <div class="col-6 d-flex justify-content-center align-items-center">
+        <h2> Public Decks</h2>
+      </div>
+      <div class="col-6 d-flex justify-content-end">
+        <form action="{{ url_for('public_decks') }}" method="post">
+          {{ form.csrf_token }}
+          <div class="row justify-content-end">
+              <div class="row">
+                  <div class="input-group mb-3 floating-form" style="max-width:400px">
+                      {{ form.search(class_="form-control", placeholder="Search decks by name") }}
+                      <button type="submit" class="btn btn-primary text-center mx-auto">Search</button>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="form-floating" id="sort-form" style="max-width:400px">
+                      {{ form.sort(class_="form-select my-1 mr-sm-2", onchange="this.form.submit();") }}
+                  </div>
+              </div>
+          </div>
+      </form>
+      </div>
+    </div>
     <table class="table table_0 mobile-optimised">
 
-        <table class="table table_0 mobile-optimised">
+      <table class="table table_0 mobile-optimised">
 
-            <thead>
-                <tr>
-                    <th>Deck Name: </th>
-                    <th>Description: </th>
-                    <th>Category: </th>
-                    <th>Number of cards: </th>
-                    <th>Actions:</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for deck in decks%}
+        <thead>
+          <tr>
+            <th>Deck Name: </th>
+            <th>Description: </th>
+            <th>Category: </th>
+            <th>Number of cards: </th>
+            <th>Actions:</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for deck in decks%}
 
-                <tr>
-                    <td class="ml-2" data-th="Deck Name:">
-                        <form action="" method="post">
-                            <input type="hidden" name="deck_id" value="{{ deck.id }}">
-                            <h6>{{ deck.name }}</h6>
-                        </form>
-                    </td>
-                    <td data-th="Description:">{{ deck.description }}</td>
-                    <td data-th="Category:"> {{ deck.check_cat() }} </td>
-                    <td data-th="Number of Cards (cards due):"> {{ deck.quantity_cards() }} </td>
-                    <td>
-              
-                        <a onclick="importPublicDeck('{{deck.id}}')" class="mx-2"
-                            style="cursor: pointer; text-decoration: none;"><img src="\static\save-outline-icon.png"
-                                alt="Save to my decks" style="max-width:30px;max-height:30px; text-decoration: none;"
-                                class="px-1" title="Save to my decks">
-                        </a>
+          <tr>
+            <td class="ml-2" data-th="Deck Name:">
+              <form action="" method="post">
+                <input type="hidden" name="deck_id" value="{{ deck.id }}">
+                <h6>{{ deck.name }}</h6>
+              </form>
+            </td>
+            <td data-th="Description:">{{ deck.description }}</td>
+            <td data-th="Category:"> {{ deck.check_cat() }} </td>
+            <td data-th="Number of Cards (cards due):"> {{ deck.quantity_cards() }} </td>
+            <td>
 
-                        <!-------- SEE SOURCE DOCS ---->
+              <a onclick="importPublicDeck('{{deck.id}}')" class="mx-2"
+                style="cursor: pointer; text-decoration: none;"><img src="\static\save-outline-icon.png"
+                  alt="Save to my decks" style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1"
+                  title="Save to my decks">
+              </a>
 
-                        <!----- DECK DETAILS ------>
-                        <a data-bs-toggle="modal" data-bs-target="#infoDecksModal{{deck.id}}" class="mx-2"
-                            style="cursor: pointer; text-decoration: none;">
-                            <img src="\static\information-mark-circle-outline-icon.png" alt="Info"
-                                style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1"
-                                title="Info">
-                        </a>
-                        <a target = "_blank" href="public_cards/{{deck.id}}">  <img src="\static\view-show-all-icon.png" alt="Info"
-                          style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1"
-                          title="Info"></a>
+              <!-------- SEE SOURCE DOCS ---->
 
-                    </td>
-</div>
+              <!----- DECK DETAILS ------>
+              <a data-bs-toggle="modal" data-bs-target="#infoDecksModal{{deck.id}}" class="mx-2"
+                style="cursor: pointer; text-decoration: none;">
+                <img src="\static\information-mark-circle-outline-icon.png" alt="Info"
+                  style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1" title="Info">
+              </a>
+              <a target="_blank" href="public_cards/{{deck.id}}"> <img src="\static\view-show-all-icon.png" alt="Info"
+                  style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1" title="Info"></a>
+
+            </td>
+  </div>
 
 </div>
 </div>
@@ -131,9 +116,9 @@
           <li class="list-group-item">Date created:
             <h5>{{deck.time_created}}</h5>
           </li>
-                  <div class = "row d-flex justify-content-center">
-<h5>  <a target = "_blank" href="public_cards/{{deck.id}}"> View cards</a> </h5>
-        </div>
+          <div class="row d-flex justify-content-center">
+            <h5> <a target="_blank" href="public_cards/{{deck.id}}"> View cards</a> </h5>
+          </div>
         </div>
 
       </div>
@@ -150,18 +135,18 @@
 </div>
 </div>
 <script>
-    function importPublicDeck(deckId) {
-        event.preventDefault();
-        $.ajax({
-            type: "GET",
-            url: "/import_public_deck/" + deckId,
-            success: function () {
-                // Refresh the content of the modal
-                console.log("Importing public deck")
-                alert('Succesfully imported public deck, you can now find it in My ')
-            }
-        });
-    }
+  function importPublicDeck(deckId) {
+    event.preventDefault();
+    $.ajax({
+      type: "GET",
+      url: "/import_public_deck/" + deckId,
+      success: function () {
+        // Refresh the content of the modal
+        console.log("Importing public deck")
+        alert('Succesfully imported public deck, you can now find it in My Decks ')
+      }
+    });
+  }
 
 </script>
 

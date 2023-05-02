@@ -207,65 +207,46 @@
                         {% endif %}
 
                         <form action="" method="post">
-
-                            <input name="id" type="hidden" id="card.id" value="{{ card.id }}"
-                                placeholder="{{ card.id }}" />
-                            <textarea name="term"
-                                class="card-title box_study input_0 form-control flex-grow-1 d-flex align-items-center justify-content-center text-center"
-                                type="text" id="{{ card.id }}" placeholder="{{ card.term }}" value="{{ card.term }}"
-                                style="min-height:50px; border-width: 5px!important;"
-                                overflow="auto">{{ card.term }}</textarea>
+                            {{ form.csrf_token }}
+                            <input type="hidden" name="id" id="card.id" value="{{ card.id }}" placeholder="{{ card.id }}" />
+                            {{ form.term(class="card-title box_study input_0 form-control flex-grow-1 d-flex align-items-center justify-content-center text-center", id=card.id, placeholder=card.term, value=card.term, style="min-height:50px; border-width: 5px!important;", overflow="auto") }}
+                            
                             {% if card.category == "Formulas" %}
                             <div>
                                 \[{{ card.formula}}\]
                             </div>
 
                             <div class="row mt-1">
-                                <textarea name="formula" class="form-control card-text box_study input_0 form-control"
-                                    type="text" id="card.id" rows="1"
-                                    placeholder="{{ card.formula }}"> {{ card.formula }}</textarea>
+                                {{ form.formula(class="form-control card-text box_study input_0 form-control", id="card.id", rows="1", placeholder=card.formula) }}
+
                             </div>
 
                             {% endif %}
                             {% if card.category == 'Mcq' %}
                             <div class="row mt-1">
-                                <textarea name="content"
-                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                    type="text" id="content{{ card.id }}" rows="3"
-                                    style="border-width: 5px!important; border-color: green!important;"
-                                    placeholder="{{ card.content }}"> {{ card.content }}</textarea>
+                                {{ form.content(class="form-control card-text box_study input_0 form-control  flex-grow-1", id="content" + card.id|string, rows="3", style="border-width: 5px!important; border-color: green!important;", placeholder=card.content) }}
+
                             </div>
                             {% else %}
-                            <textarea name="content"
-                                class="form-control card-text box_study input_0 form-control  flex-grow-1" type="text"
-                                id="content{{ card.id }}" rows="8"
-                                placeholder="{{ card.content }}"> {{ card.content }}</textarea>
+                            {{ form.content(class="form-control card-text box_study input_0 form-control  flex-grow-1", id="content" ~ card.id|string, rows="8", placeholder=card.content) }}
+
                             {% endif %}
 
 
                             {% if card.boc_2 is not none %}
-
                             <div class="row mt-1">
-                                <textarea name="boc_2"
-                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                    type="text" id="card.id" rows="1"
-                                    placeholder="{{ card.boc_2 }}"> {{ card.boc_2 }}</textarea>
+                                {{ form.boc_2(class="form-control card-text box_study input_0 form-control  flex-grow-1", id="card.id", rows="1", placeholder=card.boc_2) }}
                             </div>
+                    
                             {% if card.category != "Formulas" %}
-                            <div class="row mt-1">
-                                <textarea name="boc_3"
-                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                    type="text" id="card.id" rows="1"
-                                    placeholder="{{ card.boc_3 }}"> {{ card.boc_3 }}</textarea>
-                            </div>
-                            <div class="row mt-1">
-                                <textarea name="boc_4"
-                                    class="form-control card-text box_study input_0 form-control  flex-grow-1"
-                                    type="text" id="card.id" rows="1"
-                                    placeholder="{{ card.boc_4 }}"> {{ card.boc_4 }}</textarea>
-                            </div>
+                                <div class="row mt-1">
+                                    {{ form.boc_3(class="form-control card-text box_study input_0 form-control  flex-grow-1", id="card.id", rows="1", placeholder=card.boc_3) }}
+                                </div>
+                                <div class="row mt-1">
+                                    {{ form.boc_4(class="form-control card-text box_study input_0 form-control  flex-grow-1", id="card.id", rows="1", placeholder=card.boc_4) }}
+                                </div>
                             {% endif %}
-                            {% endif %}
+                        {% endif %}
 
                             <div class="row mt-3 align-item-end align-bottom align-self-end"
                                 style="position:absolute; bottom:10px; left:0; right:0;">
@@ -439,57 +420,37 @@
             <div class="m-2" id="addCardMessage"></div>
             <div class="modal-body">
                 <form id="newCardForm" action="" method="post" novalidate>
-
+                    {{ form.hidden_tag() }}
+                    
                     <div class="form-floating mt-1">
-
-                        <input class="form-control" name="new_term" type="text" id="new_term" placeholder="Term"
-                            required />
+                        {{ form.new_term(class="form-control", id="new_term") }}
                         <label for="new_term">Front of card</label>
                     </div>
                     <div class="form-floating mt-1">
-                        <input class="form-control" name="new_content" type="text" id="new_content"
-                            placeholder="Main content" required />
+                        {{ form.new_content(class="form-control", id="new_content") }}
                         <label for="new_content">Main content</label>
-
                     </div>
                     <div class="form-floating mt-1">
-                        <input class="form-control" name="new_boc_2" type="text" id="new_boc_2"
-                            placeholder="Optional content" />
+                        {{ form.new_boc_2(class="form-control", id="new_boc_2") }}
                         <label for="new_boc_2">Extra content</label>
-
                     </div>
                     <div class="form-floating mt-1">
-                        <input class="form-control" name="new_boc_3" type="text" id="new_boc_3"
-                            placeholder="Optional content" />
+                        {{ form.new_boc_3(class="form-control", id="new_boc_3") }}
                         <label for="new_boc_3">Extra content</label>
-
                     </div>
                     <div class="form-floating mt-1">
-                        <input class="form-control" name="new_boc_4" type="text" id="new_boc_4"
-                            placeholder="Optional content" />
-                        <label for="new_boc_2">Extra content</label>
-
+                        {{ form.new_boc_4(class="form-control", id="new_boc_4") }}
+                        <label for="new_boc_4">Extra content</label>
                     </div>
                     <div class="form-floating mt-1">
-                        <select class="form-select" name="new_category" id="choose-card" placeholder="Choose card type"
-                            required>
-                            <option value="" disabled selected>Choose a card type</option>
-                            <option value="Definitions">Definitions</option>
-                            <option value="Translate">Translate</option>
-                            <option value="Rhyme">Rhyme</option>
-                            <option value="People">People</option>
-                            <option value="Theories">Theories</option>
-                            <option value="Cloze">Cloze</option>
-                            <option value="MCQ">MCQ</option>
-                            <option value="Comprehension">Comprehension</option>
-                        </select>
+                        {{ form.new_category(class="form-select", id="choose-card") }}
                         <label for="choose-card">Card type</label>
                     </div>
-
-            </div>
-            <div class="modal-footer">
-                <input type="image" id="saveButton" src="\static\save-outline-icon.png"
-                    style="max-width:30px;max-height:30px;" name="edit-card" value="Save" />
+                
+                    </div>
+                    <div class="modal-footer">
+                        <input type="image" id="saveButton" src="\static\save-outline-icon.png"
+                               style="max-width:30px;max-height:30px;" name="edit-card" value="Save" />
                 </form>
             </div>
         </div>
@@ -528,51 +489,39 @@
             <div class="m-2" id="addCardMessage"></div>
             <div class="modal-body">
                 <form id="newCardForm" action="" method="post">
-
+                    {{ form.hidden_tag() }}
                     <div class="form-floating mt-1">
-                        <input class="form-control" name="new_deck_name" type="text" id="new_deck_name"
-                            placeholder="{{deck.name}}" value="{{deck.name}}" />
+                        {{ form.new_deck_name(class="form-control", value=deck.name, placeholder=deck.name|default('Name')) }}
                         <label for="new_deck_name">Name</label>
-
                     </div>
-
-
+                
                     <div class="form-floating mt-1">
-
-                        <input class="form-control" name="new_deck_description" type="text" id="new_deck_description"
-                            placeholder="{{deck.description}}" value="{{deck.description}}" />
+                        {{ form.new_deck_description(class="form-control", value = deck.desccription, placeholder=deck.description|default("Description")) }}
                         <label for="new_deck_description">Description</label>
                     </div>
-
+                
                     <div class="form-floating mt-1">
-
-                        <input class="form-control" name="new_deck_subject" type="text" id="new_deck_subject"
-                            placeholder="{{deck.subject}}" value="{{deck.subject}}" />
+                        {{ form.new_deck_subject(class="form-control", value = deck.subject, placeholder=deck.subject|default("Subject")) }}
                         <label for="new_deck_subject">Subject</label>
-
                     </div>
+                
                     <div class="form-floating mt-1">
-                        <input class="form-control" name="new_deck_topic" type="text" id="new_deck_topic"
-                            placeholder="{{deck.topic}}" value=" {{deck.topic}}" />
-                        <label for="new_deck_subject">Topic</label>
-
+                        {{ form.new_deck_topic(class="form-control", value = deck.topic, placeholder=deck.topic|default("Topic")) }}
+                        <label for="new_deck_topic">Topic</label>
                     </div>
+                
                     <div class="form-floating my-2">
-
-                        {{form.deck_list (id="existing-input", class=" form-select full-w",
-                        placeholder="Select a deck")}}
+                        {{ form.deck_list(id="existing-input", class="form-select full-w", placeholder="Select a deck") }}
                         <label for="existing-input">Make child of:</label>
                     </div>
-
+                
                     <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" name="public-checkbox" id="public-checkbox"
-                            value="public" {% if deck.public %} checked {% endif %}>
+                        {{ form.is_public(class="form-check-input", value = deck.public) }}
                         <label class="form-check-label" for="public-checkbox" value="public">Make deck public?</label>
                     </div>
-
+                
                     <div class="modal-footer">
-                        <input type="image" id="saveButton" src="\static\save-outline-icon.png"
-                            style="max-width:30px;max-height:30px;" name="edit-deck" value="Save" />
+                        {{ form.edit_deck(class="btn btn-primary") }}
                 </form>
             </div>
         </div>

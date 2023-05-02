@@ -93,34 +93,26 @@
         <div class="modal-content">
             <div class="modal-header modal-header-style">
                 <h5 class="modal-title" id="createGroupModalLabel">Create Group</h5>
-
             </div>
             <div class="modal-body">
                 <form id="createGroupForm">
+                    {{ form.csrf_token }}
                     <div class="form-group">
-                        <label for="name">Group Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <label for="{{ form.name.id }}">Group Name</label>
+                        {{ form.name(class_="form-control") }}
                     </div>
                     <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea class="form-control" id="description" name="description"></textarea>
+                        <label for="{{ form.description.id }}">Description</label>
+                        {{ form.description(class_="form-control") }}
                     </div>
                     <div class="form-group">
-                        <label for="group_type">Group Type</label>
-                        <select  class="form-control" id="group_type" name="group_type" required>
-                            <option value="" disabled selected>Select a group type</option>
-                            <option value="school">School</option>
-                            <option value="class">Class</option>
-                            <option value="department">Department</option>
-                            <option value="club">Club</option>
-                            <option value="other">Other</option>
-                            </select>
+                        <label for="{{ form.group_type.id }}">Group Type</label>
+                        {{ form.group_type(class_="form-control") }}
                     </div>
                     <div class="form-group">
-                        <label for="is_private">Private</label>
-                        <input type="checkbox" id="is_private" name="is_private" checked>
+                        <label for="{{ form.is_private.id }}">Private</label>
+                        {{ form.is_private }}
                     </div>
-
                 </form>
             </div>
             <div class="modal-footer">
@@ -135,31 +127,39 @@
 <script>
     $(document).ready(function () {
         $("#submitCreateGroup").on("click", function () {
-            const groupData = {
-                name: $("#name").val(),
-                description: $("#description").val(),
-                group_type: $("#group_type").val(),
-                is_private: $("#is_private").is(":checked"),
-                creator_id: {{current_user.id}},
-            };
+            const formData = new FormData($("#createGroupForm")[0]);
+            for (const [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
 
             $.ajax({
                 url: "/create_group",
                 type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(groupData),
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function (response) {
                     alert(response.message);
                     location.reload(); // Reload the page to display the newly created group
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    alert("Error: " + errorThrown);
+                    if (jqXHR.status === 400) {
+                        // Handle validation errors
+                        const errors = JSON.parse(jqXHR.responseText);
+                        let errorMessage = "Please fix the following errors:\n";
+                        for (const field in errors) {
+                            errorMessage += `\n${field}: ${errors[field]}`;
+                        }
+                        alert(errorMessage);
+                    } else {
+                        // Handle other errors
+                        alert("Error: " + errorThrown);
+                    }
                 }
             });
         });
     });
 </script>
-
 
 <!----- SHARE DECK MODAL -->
 {% for group in created_groups %}
