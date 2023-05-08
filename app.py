@@ -55,6 +55,8 @@ from logging.config import dictConfig
 from logging_config import LOGGING_CONFIG
 from Crypto.Cipher import AES
 from bleach import clean
+from json import JSONEncoder
+
 
 
 dictConfig(LOGGING_CONFIG)
@@ -88,7 +90,6 @@ ALLOWED_ATTRIBUTES = {
     'td': ['colspan', 'rowspan'],
     'iframe': ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen']
 }
-cleaned_str = clean(STRING, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
 
 
 bcrypt = Bcrypt(app)
@@ -600,8 +601,10 @@ def viewdecks():
 
     decks = Deck.query.filter(Deck.user_id == current_user.id).all()
     if request.method == 'GET':
-        sort_method = clean(request.args.get('sort'))
-        search_query = clean(request.args.get('search', '').strip())
+        if request.args.get('sort'):
+            sort_method = clean(request.args.get('sort'))
+        if request.args.get('search'):
+            search_query = clean(request.args.get('search', '').strip())
         if sort_method:
             column, order = sort_method.split('_')
             order_by = getattr(getattr(Deck, column), order)() if column in ['name', 'category', 'time_created'] else None
@@ -639,7 +642,8 @@ def study():
 @app.route("/delete/<int:id>", methods = ["POST", "GET"])
 @login_required
 def delete(id):
-    deck_to_delete = Deck.query.get_or_404(id)
+    c_id = clean(id)
+    deck_to_delete = Deck.query.get_or_404(c_id)
     if(current_user.id != deck_to_delete.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
     db.session.delete(deck_to_delete)
@@ -649,10 +653,12 @@ def delete(id):
 @app.route("/rename_deck/<int:id>/<string:new_name>", methods = ["POST", "GET"])
 @login_required
 def rename_deck(id, new_name):
-    deck = Deck.query.get_or_404(id)
+    c_id = clean(id)
+    c_new_name = clean(new_name)
+    deck = Deck.query.get_or_404(c_id)
     if(current_user.id != deck.user_id):
         return jsonify({'error': 'Deck not assigned to user'}), 403
-    deck.rename(clean(new_name))
+    deck.rename(clean(c_new_name))
     db.session.commit()
     return redirect(url_for('viewdecks'))
     
@@ -720,10 +726,12 @@ def update_profile_pic():
 @app.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST"])
 @login_required
 def deletecard(deck_id, card_id):
-    deck = Deck.query.get_or_404(deck_id)
+    c_deck_id = clean(deck_id)
+    c_card_id = clean(card_id)
+    deck = Deck.query.get_or_404(c_deck_id)
     if(current_user.id != deck.user_id):
         return apology('Deck not assigned to user', 403)
-    card_to_delete = Card.query.get_or_404(card_id)
+    card_to_delete = Card.query.get_or_404(c_card_id)
     if card_to_delete != None:
         db.session.delete(card_to_delete)
         db.session.commit()
@@ -738,9 +746,10 @@ def deletecard(deck_id, card_id):
 @app.route("/downloadascsv/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
 def downloadascsv(deck_id):
+    c_deck_id = clean(deck_id)
     event_tracker(current_user.id, "downloadascsv")
     print("entered download as csv")
-    deck = Deck.query.filter_by(id=deck_id).first()
+    deck = Deck.query.filter_by(id=c_deck_id).first()
     if(current_user.id != deck.user_id):
        return jsonify({'error': 'Deck not assigned to user'}), 403
     termsstrings = []
@@ -793,7 +802,8 @@ def process_prompt_options_regen(card):
 @app.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])
 @login_required
 def get_due_cards(deck_id):
-    deck = Deck.query.get(clean(deck_id))
+    c_deck_id = clean(deck_id)
+    deck = Deck.query.get(clean(c_deck_id))
     ## later add in option to modify number of new cards to be shown
     n=20
     if(current_user.id != deck.user_id):
@@ -850,14 +860,15 @@ def new_user_settings_viewdecks():
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
 def study_deck(deck_id):
+    c_deck_id = clean(deck_id)
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings == None:
         print("user settings not found")
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
-    event_tracker(current_user.id, "study_deck", clean(deck_id))
-    deck = Deck.query.get(clean(deck_id))
+    event_tracker(current_user.id, "study_deck", c_deck_id)
+    deck = Deck.query.get(c_deck_id)
     if(current_user.id != deck.user_id):
         return apology('Deck not assigned to user', 403)
     return render_template("study_deck.html", title="Study deck", deck=deck_id, deck0 = deck,  settings = user_settings) 
@@ -2377,8 +2388,6 @@ def split_string(string):
     items = string.split("&-&-&")
     return items
 ################## CURRENTLY UNUSED ###############################################################################################
-
-
 
 
 
