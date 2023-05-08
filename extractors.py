@@ -571,6 +571,32 @@ def comma_list_to_list(string):
 ## remove unecessary elements of youtube link
 def get_video_id(link):
     # Remove any whitespace from the link
+    link = ''.join(link)
+    link = link.strip()
+
+    # Define regular expression patterns for different YouTube video URL formats
+    patterns = [
+        r"youtu\.be/([^/]+)",
+        r"youtube\.com/watch\?v=([^&]+)",
+        r"youtube\.com/embed/([^/]+)",
+        r"youtube\.com/v/([^/]+)",
+        r"youtube\.googleapis\.com/v/([^/]+)"
+    ]
+
+    # Try to match the link to one of the patterns
+    for pattern in patterns:
+        match = re.search(pattern, link)
+        if match:
+            video_id = match.group(1)
+            return video_id
+
+    # If the link does not match any of the patterns, return None
+    return None
+
+
+""""
+Old function kept in case new one does not work
+def get_video_id(link):
     print(type(link))
     link = ''.join(link)
     link = link.strip()
@@ -580,8 +606,10 @@ def get_video_id(link):
     # Check if the link is in the "youtube.com" format
     elif "watch?v=" in link:
         video_id = link.split("v=")[1].split("&")[0]
+    else:
+        video_id = None
     return video_id
-
+"""
 ###################################################################
 ###################################################################
 

@@ -11,3 +11,4 @@ config.py
 dump.sql
 static/files/*
 /Text/*
+/UNUSED/*
