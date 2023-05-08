@@ -2,7 +2,7 @@ alembic==1.9.4
 beautifulsoup4==4.12.0
 celery==5.2.7
 docx2txt==0.8
-Flask==2.2.2
+Flask==2.3.2
 Flask_Bcrypt==1.0.1
 Flask_Login==0.6.2
 Flask_Migrate==4.0.4
@@ -22,7 +22,7 @@ schedule==1.1.0
 SQLAlchemy==1.4.45
 SQLAlchemy_Utils==0.39.0
 tiktoken==0.2.0
-Werkzeug==2.2.2
+Werkzeug==2.3.3
 WTForms==3.0.1
 WTForms_SQLAlchemy==0.3
 youtube_transcript_api==0.5.0
