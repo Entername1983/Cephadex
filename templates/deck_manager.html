@@ -75,21 +75,10 @@
     </div>
 
     <div class="row">
+ 
         <div class="col-md-6">
             <div class="card mt-4">
-                <div class="card-header card-header1">Files</div>
-                <div class="card-body " style="height: 200px; overflow-y: scroll;">
-                    <ul>
-                        {% for file in deck.deck_files %}
-                        <li><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card mt-4">
-                <div class="card-header card-header1">Cards</div>
+                <div class="card-header card-header1"> Cards ({{ deck.quantity_cards() }}) </div>
                 <div class="card-body" style="height: 200px; overflow-y: scroll;">
                     <ul>
                         {% for card in deck.cards %}
@@ -99,9 +88,30 @@
                 </div>
             </div>
         </div>
+       <div class="col-md-6">
+            <div class="card mt-4">
+                <div class="card-header card-header1">Files</div>
+                <div class="card-body " style="height: 200px; overflow-y: scroll;">
+                    <ul>
+                        {% if deck.deck_files  %}
+
+                        {% for file in deck.deck_files %}
+                        <li><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
+                        {% endfor %}
+                        {% else %}
+                        <p>No files found</p>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+
     </div>
-    {% if tests|length>0 %}
+ 
     <div class="row">
+           {% if tests|length>0 %}
         <div class="col-md-4">
             <div class="card mt-4">
                 <div class="card-header card-header1">Assignments</div>
@@ -115,7 +125,7 @@
             </div>
         </div>
         {% endif %}
-        {% if deck.children %}
+        {% if deck.children.all()|length > 0 %}
         <div class="col-md-4">
             <div class="card mt-4">
                 <div class="card-header card-header1">Child Decks</div>
