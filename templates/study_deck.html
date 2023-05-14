@@ -169,7 +169,6 @@
     }
     //load next card
     function loadNextCard() {
-      updateValues() 
       cardStack.push(currentCard)
       var card_id = currentCard.id;
       var csrf_token = jq("input[name='csrf_token']").val();
@@ -371,7 +370,7 @@
     }
 
     function mcqLoadNextCard() {
-      updateValues() 
+      
       var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
       var counter = 0;
 

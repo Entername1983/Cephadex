@@ -131,15 +131,22 @@
 </div>
 
 <script>
-  function removeUser(group_id, user_id) {
-    fetch(`/remove_user_group/${group_id}/${user_id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "same-origin",
-    })
-      .then((response) => response.json())
+function removeUser(group_id, user_id) {
+  const csrfToken = getCsrfToken();
+  console.log(csrfToken)
+  fetch(`/remove_user_group/${group_id}/${user_id}`, {
+  method: "POST",
+  mode: "no-cors",
+  headers: {
+    "Content-Type": "application/json",
+    "X-CSRFToken": csrfToken,
+  },
+  credentials: "same-origin",
+})
+        .then((response) => {
+        console.log("Response:", response);
+        return response.json();
+      })
       .then((data) => {
         if (data.status === "success") {
           document.getElementById(`user-row-${user_id}`).remove();
@@ -151,6 +158,16 @@
         console.error("Error:", error);
       });
   }
+
+  function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta) {
+    return meta.getAttribute("content");
+  }
+  return null;
+}
+
+
 </script>
 
 <script>

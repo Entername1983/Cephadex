@@ -76,6 +76,7 @@ class User(db.Model, UserMixin):
     latest_roll_over = db.Column(db.DateTime)
     groups = db.relationship("Group", secondary=user_group_association, backref="users")
     role = db.Column(db.String(255), nullable = True)
+    stripe_customer_id = db.Column(db.String(255), nullable=True)
 
     def member_since(self):
         return self.time_created.strftime('%b %Y')
@@ -110,6 +111,19 @@ class User(db.Model, UserMixin):
                     counter += 1
         return counter
         
+class StripeEvents(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    stripe_event_id = db.Column(db.String(255), nullable=True)
+    event_type = db.Column(db.String(255), nullable=True)
+    event_data = db.Column(db.Text, nullable=True)
+    event_created = db.Column(db.DateTime, default=datetime.utcnow)
+    stripe_customer_id = db.Column(db.String(255), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    processed = db.Column(db.Boolean, default=False)
+    processed_at = db.Column(db.DateTime, nullable=True)
+    error_message = db.Column(db.String(255), nullable=True)
+    
+
 
 class Group(db.Model):
     __tablename__ = "group"
@@ -255,7 +269,7 @@ class Card(db.Model):
         self.times_correct = self.times_correct + 1
         self.times_asked = self.times_asked + 1
         self.times_correct_row = self.times_correct_row + 1
-        if self.times_correct_row > 3:
+        if self.times_correct_row > 2:
             self.box_id = self.box_id + 1
             if self.box_id > 3:
                 self.box_id = 3
@@ -639,6 +653,7 @@ class Test(db.Model):
     shuffle = db.Column(db.Boolean)
     image = db.Column(db.String(255))
     text = db.Column(db.String(2550))
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id', ondelete='SET NULL'), nullable=True)
     
     def sum_points(self):
         sum = 0
@@ -732,6 +747,7 @@ class Job(db.Model):
     error_type = db.Column(db.String(64), nullable=True)
     item_number = db.Column(db.Integer, nullable=True)
     item_quantity = db.Column(db.Integer, nullable=True)
+    processed_content = db.Column(db.Text, nullable=True)
 
 
 class EventTracking(db.Model):

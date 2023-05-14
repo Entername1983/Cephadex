@@ -23,8 +23,8 @@ def roll_over():
             if subscription.latest_roll_over is None:
                 if subscription.subscription_start_date == None:
                     subscription.subscription_start_date = datetime.utcnow()
-                else:
-                    subscription.latest_roll_over = subscription.subscription_start_date 
+                
+                subscription.latest_roll_over = subscription.subscription_start_date 
             if subscription.latest_roll_over + timedelta(days=30) <= datetime.utcnow():
                 print("rolling over " + subscription.username)
                 subscription.latest_roll_over = datetime.utcnow()

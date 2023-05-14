@@ -4,7 +4,7 @@ import numpy as np
 from flask import redirect, render_template, request, session
 
 
-encoding = tiktoken.get_encoding('gpt2')
+encoding = tiktoken.get_encoding("cl100k_base")
 
 def remove_punctuation(words):
     s = words
@@ -20,13 +20,15 @@ def remove_punctuation(words):
     return s_clean
 
 
-def split_text(text, n = 3000):
+def split_text(text, n = 1700):
     print("entered split text")
     tokens = count_tokens(text)
+    print("tokens:",tokens)
+
     if tokens > n:
-        print(tokens)
+        print("tokens:",tokens)
         n_chunks = tokens//n
-        print(n_chunks)
+        print("chunks", n_chunks)
         if n_chunks < 1:
             n_chunks = 1
         chunks = np.array_split(text.split(), n_chunks)
@@ -38,8 +40,8 @@ def split_text(text, n = 3000):
     
 ## TOKEN HANDLERS
 def count_tokens(text):
-    encoding.encode(text)
-    return len(text)
+    tokens = encoding.encode(text)
+    return len(tokens)
 
 def token_encoding(text):
     return encoding.encode(text)

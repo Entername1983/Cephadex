@@ -1,153 +1,211 @@
-{% extends "layout.html" %} {% block title %} Account  {% endblock %} {% block
+{% extends "layout.html" %} {% block title %} Account {% endblock %} {% block
 main_0 %}
 
 
 
-<div class = "container">
+<div class="container">
   <a href="#" id="open_preferences_center">Update cookies preferences</a>
   {% macro render_field(field, class='', id='', placeholder='', value='', disabled=False, is_switch=False) %}
   {% if is_switch %}
-    <div class="form-check form-switch mt-1">
-      {{ field(class=class, id=id, value=value, disabled=disabled) }}
-      <label class="form-check-label" for="{{ id }}">{{ field.label.text }}</label>
-    </div>
+  <div class="form-check form-switch mt-1">
+    {{ field(class=class, id=id, value=value, disabled=disabled) }}
+    <label class="form-check-label" for="{{ id }}">{{ field.label.text }}</label>
+  </div>
   {% else %}
-    <div class="form-floating mt-1">
-      {{ field(class=class, id=id, placeholder=placeholder, value=value, disabled=disabled) }}
-      <label for="{{ id }}">{{ field.label.text }}:</label>
-    </div>
+  <div class="form-floating mt-1">
+    {{ field(class=class, id=id, placeholder=placeholder, value=value, disabled=disabled) }}
+    <label for="{{ id }}">{{ field.label.text }}:</label>
+  </div>
   {% endif %}
-{% endmacro %}
+  {% endmacro %}
 
-<form method="POST" action="{{ url_for('account') }}">
+  <form method="POST" action="{{ url_for('account') }}">
     {{ form.csrf_token }}
     <div class="accordion" id="accordionExample">
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"
-                    aria-expanded="true" aria-controls="collapseOne" style = "color: #10003B; background-color: #a0f9f9;">
-                    Account information:
-                </button>
-            </h2>
-            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
-                data-bs-parent="#accordionExample">
-                <div class="accordion-body">
-                    <div class="row">
-                        <div class="col-6">
-                            {{ render_field(form.first_name, class="input_0 form-control form-control-lg", id="first_name", placeholder=user.first_name, value=user.first_name) }}
-                            {{ render_field(form.last_name, class="input_0 form-control form-control-lg", id="last_name", placeholder=user.last_name, value=user.last_name) }}
-                            {{ render_field(form.username, class="input_0 form-control form-control-lg", id="username", placeholder=user.username, value=user.username) }}
-                            {{ render_field(form.email, class="form-control form-control-lg", id="email", placeholder=user.email, value=user.email, disabled=True) }}
-                            {{ render_field(form.gender, class="form-select", id="gender", placeholder=user.gender, value=user.gender) }}
-                            {{ render_field(form.role, class="form-select", id="role", placeholder="Choose role", value=user.role) }}
-                            {{ render_field(form.timezone, class="form-select", id="timezone", placeholder="user.timezone", value="user.timezone") }}
-                        </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"
+            aria-expanded="true" aria-controls="collapseOne" >
+            Account information:
+          </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
+          data-bs-parent="#accordionExample">
+          <div class="accordion-body">
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group mt-1">
+                  <label for="first_name">First Name</label>
+                  {{ form.first_name(class="form-control form-control-lg", id="first_name", placeholder=user.first_name,
+                  value=user.first_name) }}
+                </div>
+                <div class="form-group mt-1">
+                  <label for="last_name">Last Name</label>
+                  {{ form.last_name(class="form-control form-control-lg", id="last_name", placeholder=user.last_name,
+                  value=user.last_name) }}
+                </div>
+                <div class="form-group mt-1">
+                  <label for="username">Username</label>
+                  {{ form.username(class="form-control form-control-lg", id="username", placeholder=user.username,
+                  value=user.username) }}
+                </div>
+                <div class="form-group mt-1">
+                  <label for="email">Email</label>
+                  {{ form.email(class="form-control form-control-lg", id="email", placeholder=user.email,
+                  value=user.email, disabled=True) }}
+                </div>
+                <div class="form-group mt-1">
+                  <label for="gender">Gender - {{ user.gender }}</label>
+                  {{ form.gender(class="form-control", id="gender", placeholder=user.gender, value=user.gender) }}
+                </div>
+                <div class="form-group mt-1">
+                  <label for="role">Role - {{ user.role }}</label>
+                  {{ form.role(class="form-control", id="role", placeholder="Choose role", value=user.role) }}
+                </div>
+                <div class="form-group mt-1">
+                  <label for="timezone">Timezone - {{ user.timezone}} </label>
+                  {{ form.timezone(class="form-control", id="timezone", placeholder="user.timezone",
+                  value=user.timezone) }}
+                </div>
+              </div>
 
-                        <div class="col-6">
-                          <div class="row justify-content-center" style="text-align:center">
-                            {% if user.pic == None %}
-                            <img  class="circle-img" src="static/cephadex-std-profile.png" style="max-height:fit-content; max-width:fit-content;" alt="logo">
-                            {% else %}
-                            <img class = "circle-img" src="\{{user.pic}}" style="max-height:400px; max-width:400px;" alt="profile pic">
-                            {% endif %}
-                          </div>
-                          <div class="row justify-content-center mt-2">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                              style="max-width:300px;">Change profile picture</button>
-                          </div>
-                        </div>
-                    </div>
-                    {{ render_field(form.contacted_email, class='form-check-input', id='contacted', is_switch=True) }}
-                    {{ render_field(form.subscribe, class='form-check-input', id='subscribe', is_switch=True) }}
-                  </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingTwo">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo"
-              aria-expanded="true" aria-controls="collapseTwo" style = "color: #10003B; background-color: #a0f9f9;">
-              Study stats:
-            </button>
-          </h2>
-          <div id="collapseTwo" class="accordion-collapse collapse show" aria-labelledby="headingTwo"
-            data-bs-parent="#accordionExample">
-            <div class="accordion-body">
-    
-    
-    
-    
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="form-floating mt-2">
-                    {% set ns = namespace(total_correct=0, total=0) %}
-                    {% for deck in user.decks %}
-                    {% set correct, incorrect = deck.correct_incorrect() %}
-                    {% set ns.total_correct = ns.total_correct + correct %}
-                    {% set ns.total = ns.total + incorrect + correct %}
-                    {% endfor %}
-    
-                    <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
-                      id="qty-cards" placeholder="" value="{% if ns.total > 0 %} {{ (ns.total_correct / ns.total * 100)|round(2) }}% {% else %} 0%{% endif %}"
-                      disabled>
-                    <label for="qty-cards"> Percentage correct</label>
-    
-                  </div>
-    
-    
-    
+              <div class="col-6">
+                <div class="row justify-content-center" style="text-align:center">
+                  {% if user.pic == None %}
+                  <img class="circle-img" src="static/cephadex-std-profile.png"
+                    style="max-height:fit-content; max-width:fit-content;" alt="logo">
+                  {% else %}
+                  <img class="circle-img" src="\{{user.pic}}" style="max-height:400px; max-width:400px;"
+                    alt="profile pic">
+                  {% endif %}
                 </div>
-                <div class="col-md-4">
-                  <div class="form-floating mt-2">
-                    <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
-                      id="qty-decks" placeholder="" value="{{user.quantity_decks()}}" disabled>
-                    <label for="qty-decks">Number of decks</label>
-    
-                  </div>
-                </div>
-    
-                <div class="col-md-4">
-                  <div class="form-floating mt-2">
-    
-    
-                    <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
-                      id="qty-cards" placeholder="" value="{{user.quantity_cards()}}" disabled>
-                    <label for="qty-cards">Number of cards</label>
-    
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="form-floating mt-2">
-    
-    
-                    <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text"
-                      id="cards-mastered" placeholder="" value="{% if ns.total > 0 %} {{user.quantity_cards_mastered()/ns.total*100}}% {% else %} 0% {% endif %}" disabled>
-                    <label for="cards-mastered">Cards mastered</label>
-    
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="form-floating mt-2">
-    
-                    <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text"
-                      id="cards-learning" placeholder="" value="{{user.quantity_cards_learning()}}" disabled>
-    
-                    <label for="cards-learning">Cards learning</label>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="form-floating mt-2">
-    
-    
-    
-                    <input name="term" class="form-control form-control-lg" style="max-width:200px" type="text"
-                      id="new-cards" placeholder="" value="{{user.quantity_cards_new()}}" disabled>
-                    <label for="new-cards">New cards:</label>
-                  </div>
-    
+                <div class="row justify-content-center mt-2">
+                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                    style="max-width:300px;">Change profile picture</button>
                 </div>
               </div>
             </div>
+            <!-----
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" name="contacted_email" id="contacted" value="True" {{ 'checked' if form.contacted_email.data }}>
+                      <label class="form-check-label" for="contacted">{{ form.contacted_email.label.text }}</label>
+                  </div>---->
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" name="subscribe" id="subscribe" value="True" {{ 'checked'
+                if subscriber }}>
+              <label class="form-check-label" for="subscribe">{{ form.subscribe.label.text }}</label>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group mt-1">
+                  <label for="account_type">Account type</label>
+                  <input class="form-control form-control-lg" value="{% if user.subscription_plan in [5, 7] %}Premium
+                  {% elif user.subscription_plan in [4, 6] %}Basic
+                  {% else %}Free
+                  {% endif %}" disabled=True>
+                </div>
+              </div>
+              <div class="col-md-6 d-flex justify-content-center align-items-center">
+               <a href="/upgrade" class="btn btn-primary mx-1">upgrade your account</a>
+              <a href='https://billing.stripe.com/p/login/dR66pKbnh8vn7qo9AA' class="btn btn-primary mx-1">payment settings</a>
+                </p>
+              </div>
+            </div>
+       
+            
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingTwo">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo"
+          aria-expanded="true" aria-controls="collapseTwo">
+          Study stats:
+        </button>
+      </h2>
+      <div id="collapseTwo" class="accordion-collapse collapse show" aria-labelledby="headingTwo"
+        data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+
+
+
+
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+                {% set ns = namespace(total_correct=0, total=0) %}
+                {% for deck in user.decks %}
+                {% set correct, incorrect = deck.correct_incorrect() %}
+                {% set ns.total_correct = ns.total_correct + correct %}
+                {% set ns.total = ns.total + incorrect + correct %}
+                {% endfor %}
+
+                <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
+                  id="qty-cards" placeholder=""
+                  value="{% if ns.total > 0 %} {{ (ns.total_correct / ns.total * 100)|round(2) }}% {% else %} 0%{% endif %}"
+                  disabled>
+                <label for="qty-cards"> Percentage correct</label>
+
+              </div>
+
+
+
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+                <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
+                  id="qty-decks" placeholder="" value="{{user.quantity_decks()}}" disabled>
+                <label for="qty-decks">Number of decks</label>
+
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+
+
+                <input name="term" class="  form-control form-control-lg" style="max-width:200px" type="text"
+                  id="qty-cards" placeholder="" value="{{user.quantity_cards()}}" disabled>
+                <label for="qty-cards">Number of cards</label>
+
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+
+
+                <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text"
+                  id="cards-mastered" placeholder=""
+                  value="{% if ns.total > 0 %} {{(user.quantity_cards_mastered()/ns.total*100)|round(2)}}% {% else %} 0% {% endif %}"
+                  disabled>
+                <label for="cards-mastered">Cards mastered</label>
+
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+
+                <input name="term" class=" form-control form-control-lg" style="max-width:200px" type="text"
+                  id="cards-learning" placeholder="" value="{{user.quantity_cards_learning()}}" disabled>
+
+                <label for="cards-learning">Cards learning</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-floating mt-2">
+
+
+
+                <input name="term" class="form-control form-control-lg" style="max-width:200px" type="text"
+                  id="new-cards" placeholder="" value="{{user.quantity_cards_new()}}" disabled>
+                <label for="new-cards">New cards:</label>
+              </div>
+
+            </div>
           </div>
+        </div>
+      </div>
+      <!---
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingThree">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree"
@@ -164,21 +222,22 @@ main_0 %}
               </div>
             </div>
           </div>
-        </div>
+          --->
     </div>
+</div>
 
-    <div class="row my-2">
-        <div class="col-6">
-            <button type="submit" class="btn btn-primary" value="Save">Save changes</button>
-        </div>
-    
-</form>
- 
+<div class="row my-2">
+  <div class="col-6">
+    <button type="submit" class="btn btn-primary" value="Save">Save changes</button>
+  </div>
+  </form>
+
   <div class="col-6">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#delModal">Delete
       account</button>
   </div>
-</div></div>
+</div>
+</div>
 </div>
 <!-- change profile pic modal-->
 <div class="modal" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -190,8 +249,18 @@ main_0 %}
       </div>
       <div class="modal-body">
         <form action="{{ url_for('update_profile_pic') }}" method="POST" enctype="multipart/form-data">
-          <input type="file" class = "form-control m-2" name="profile-pic">
-          <button class = "btn btn-primary" type="submit">Update Profile Picture</button>
+          {{ form.csrf_token }}
+          <div class="form-group">
+            <label for="{{ form2.profile_pic.id }}" class="form-label"></label>
+            <div class="input-group">
+              {{ form2.profile_pic(class="form-control") }}
+              <div class="input-group-append">
+                <span class="input-group-text">Max size: 1MB</span>
+              </div>
+            </div>
+            <small class="form-text text-muted">Accepted formats: jpg, jpeg, png</small>
+          </div>
+          {{ form2.submit(class="btn btn-primary") }}
         </form>
       </div>
     </div>
@@ -208,17 +277,17 @@ main_0 %}
       </div>
       <div class="modal-body">
 
-      
+
         <form action="{{ url_for('delete_account') }}" id="delForm" method="POST" enctype="multipart/form-data">
-            {{ form_del.csrf_token }}
-            <p> Deleting your account is permanent.  You will lose all cards and decks as well any progress! If you are
-                sure you want to delete your account enter your email.</p>
-        
-            <div class="form-floating">
-                {{ render_field(form_del.del_email, class="form-control form-control-lg") }}
-            </div>
-        
-            {{ form_del.del_submit(class="btn btn-danger m-1") }}
+          {{ form_del.csrf_token }}
+          <p> Deleting your account is permanent. You will lose all cards and decks as well any progress! If you are
+            sure you want to delete your account enter your email.</p>
+
+          <div class="form-floating">
+            {{ render_field(form_del.del_email, class="form-control form-control-lg") }}
+          </div>
+
+          {{ form_del.del_submit(class="btn btn-danger m-1") }}
         </form>
       </div>
 

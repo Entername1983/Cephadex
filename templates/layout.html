@@ -92,6 +92,7 @@
     {% block head %} {% endblock %}
     <title>Cephadex {% block title %}{% endblock %}</title>
 
+    <meta name="csrf-token" content="{{ csrf_token }}">
 
 
 </head>
@@ -221,7 +222,7 @@
                     
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" href="/account">Account info</a>
-                        <a class="dropdown-item" href="/upgrade">Upgrade 🚧</a>
+                        <a class="dropdown-item" href="/upgrade">Upgrade </a>
                         <a class="dropdown-item" href="/my_groups">My groups 🚧</a>
                         <a class="dropdown-item" href="/test_results_overview">My tests 🚧</a>
                         <div class="dropdown-divider"></div>
@@ -455,7 +456,7 @@
         <a class="text-white" href="/news">News</a>
         <a class="text-white" href="/about">About us</a>
         <a class="text-white" href="/documentation">User guide</a>
-        <a class="text-white" href="/upgrade">Pricing</a>
+        <a class="text-white" href="/pricing">Pricing</a>
         © 2023 Copyright:
         <a class="text-white" href="/">Cephadex</a></p>
         

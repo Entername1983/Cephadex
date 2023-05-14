@@ -187,13 +187,13 @@
         </thead>
         <tbody>
           {% for deck in decks %}
-          <tr class="view-row"  onclick="window.location.href='/study_deck/{{ deck.id }}';"
+          <tr id = "deck-{{deck.id}}" class="view-row"  onclick="window.location.href='/deck_manager/{{ deck.id }}';"
             onmouseover="this.style.backgroundColor='#ebe6f7'; this.style.cursor='pointer';"
             onmouseout="this.style.backgroundColor=''; " >
             <td data-th="Name" >
               <h5 style = "padding-left: 15px !important;">{{ deck.name }}</h5>
             </td>
-            <td data-th="Category">{{ deck.check_cat() }}</td>
+            <td data-th="Category">{{ deck.check_cat() }} {% if deck.deck_files|length > 0 %} + files {% endif %}</td>
 
             <td data-th="Description">{{ deck.description }}</td>
             <td data-th="Due/total"> {{ deck.cards_due() }}/{{ deck.quantity_cards() }}</td>
@@ -215,7 +215,7 @@
                     Anki</a>
                   <a class="dropdown-item" onclick="event.stopPropagation();" href="/downloadascsv/{{ deck.id }}">Download CSV</a>
                   <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" style="cursor: pointer;" onclick="event.stopPropagation(); if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete/{{ deck.id }}'; }">Delete deck</a>
+                  <a class="dropdown-item" style="cursor: pointer;" onclick="event.stopPropagation(); { deleteDeck('{{ deck.id }}'); }">Delete deck</a>
 
                 </div>
               </div>
@@ -410,7 +410,7 @@ function shareDeck(deckId) {
       <div class="modal-body">
         <div class="row">
           {% for test in tests %}
-          <div class="col-sm-6">
+          <div id="testCard_{{ test.id }}" class="col-sm-6">
             <div class="card">
               <div class="card-body">
                 <h5 class="card-title">Name: {{test.name}}</h5>
@@ -422,6 +422,7 @@ function shareDeck(deckId) {
                 <a href="/take_test/{{test.id}}/{{user.id}}" class="mx-2" style="cursor: pointer;">
                   Click here to take the test
                 </a>
+                <a href="#" class="mx-2" onclick="rejectTest('{{test.id}}', '{{user.id}}');">Delete Test</a> <!-- Added delete button -->
               </div>
             </div>
           </div>
@@ -629,6 +630,61 @@ function shareDeck(deckId) {
       });
     }
   });
+</script>
+
+<script>
+  function rejectTest(testId, userId) {
+    if (confirm('Are you sure you want to delete this test?')) {
+      const csrfToken = getCsrfToken();
+
+      $.ajax({
+        url: '/reject_test/' + testId + '/' + userId, // Replace with your Flask route URL
+        type: 'DELETE',
+        headers: {
+          'X-CSRFToken': csrfToken // Set the CSRF token in the request headers
+        },
+        success: function(response) {
+          // Handle success response if needed
+          console.log('Test deleted successfully');
+          $('#testCard_' + testId).remove();
+        },
+        error: function(error) {
+          // Handle error response if needed
+          console.log('Error deleting test:', error);
+        }
+      });
+    }
+  }
+  function deleteDeck(deckId) {
+  if (confirm('Are you sure you want to delete this deck?')) {
+    // Get the CSRF token from the page
+    var csrfToken = getCsrfToken();
+
+    // Make an AJAX request to delete the deck
+    $.ajax({
+      url: '/delete/' + deckId,
+      type: 'DELETE',
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
+      success: function(response) {
+        // Deck deleted successfully, remove it from the DOM
+        $('#deck-' + deckId).remove();
+      },
+      error: function(xhr) {
+        // Handle error
+        console.error('Error deleting deck:', xhr.status);
+      }
+    });
+  }
+}
+  function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta) {
+    return meta.getAttribute("content");
+  }
+  return null;
+}
 </script>
 
 

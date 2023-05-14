@@ -1,0 +1,329 @@
+{% extends "layout.html" %}
+
+{% block title %} Decks Dashboard {% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block main_0 %}
+<div class="m-3">
+    <div class="row">
+        <div class="col-md-6 d-flex justify-content-center align-items-center">
+            <h1 class="my-4 hcepha1">{{ deck.name }} </h1>
+        </div>
+        <div class="col-md-6">
+           <div class="card mt-4">
+                <div class="card-header card-header1">Actions</div>
+                <div class="card-body">
+                    {% if deck.cards|length > 0 %}
+                    <a href='/study_deck/{{ deck.id }}' class="btn btn-primary">Study</a>
+
+                    <a href="/build_test/{{ deck.id }}" class="btn btn-primary">Create assignment</a>
+                    <a href="/carousel/{{ deck.id }}" class="btn btn-primary">Edit deck</a>
+
+                    <a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
+                        style="cursor: pointer;">Share deck</a>
+                    {% else %}
+                    <p>You don't seem to have any cards in this deck, click <a href="/extract"> here </a> to create
+                        some.</p>
+                    {% endif %}
+                    <a class="btn btn-primary" onclick="event.stopPropagation();" width="25px" height="25px"
+                        class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                        style="cursor: pointer;">...</a>
+
+
+                    <!-- Dropdown menu containing the list of links -->
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" onclick="event.stopPropagation();"
+                            onclick="exportDeckAnki('{{ deck.id }}');" style="cursor: pointer;">Export to
+                            Anki</a>
+                        <a class="dropdown-item" onclick="event.stopPropagation();"
+                            href="/downloadascsv/{{ deck.id }}">Download CSV</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" style="cursor: pointer;"
+                            onclick="event.stopPropagation(); { deleteDeck('{{ deck.id }}'); }">Delete deck</a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row d-none d-md-block">
+        <div class="col-md-12">
+            <div class="card mt-4">
+                <div class="card-header card-header1">About</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>Category: {{ deck.category }}</p>
+                            <p>Description: {{ deck.description }}</p>
+                        </div>
+                        <div class="col-md-6">
+
+                            {% if deck.public == 1 %}
+                            <p>Public</p>
+                            {% else %}
+                            <p>Private</p>
+                            {% endif %}
+                            <p>Created on: {{ deck.time_created }}</p>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mt-4">
+                <div class="card-header card-header1">Files</div>
+                <div class="card-body " style="height: 200px; overflow-y: scroll;">
+                    <ul>
+                        {% for file in deck.deck_files %}
+                        <li><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mt-4">
+                <div class="card-header card-header1">Cards</div>
+                <div class="card-body" style="height: 200px; overflow-y: scroll;">
+                    <ul>
+                        {% for card in deck.cards %}
+                        <li>{{ card.term }} - {{card.category}}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if tests|length>0 %}
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mt-4">
+                <div class="card-header card-header1">Assignments</div>
+                <div class="card-body" style="min-height: 100px; overflow-y: scroll;">
+                    <ul>
+                        {% for test in tests %}
+                        <li><a href="/test_created/{{test.id}}">{{ test.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if deck.children %}
+        <div class="col-md-4">
+            <div class="card mt-4">
+                <div class="card-header card-header1">Child Decks</div>
+                <div class="card-body" style="min-height: 100px; overflow-y: scroll;">
+                    <ul>
+                        {% for child_deck in deck.children %}
+                        <li><a href="/deck_manager/{{child_deck.id}}">{{ child_deck.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+        {% if deck.parents.all()|length > 0 %}
+        <div class="col-md-4">
+            <div class="card mt-4">
+                <div class="card-header card-header1">Parent Decks</div>
+                <div class="card-body" style="min-height: 100px; overflow-y: scroll;">
+                    <ul>
+                        {% for parent in deck.parents.all() %}
+                        <li><a href="/deck_manager/{{parent.id}}">{{ parent.name }}</a> </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>{% endif %}
+    </div>
+</div>
+
+</div>
+<br>
+
+<script>
+    function shareDeck(deckId) {
+        var email = document.getElementById('email' + deckId).value;
+        var encodedEmail = encodeURIComponent(email);
+        var form = document.getElementById('share-form' + deckId);
+        var formData = new FormData(form);
+        formData.append("email", email);
+        fetch('/share_deck/' + deckId, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                alert("Deck shared successfully!")
+            })
+            .catch(error => {
+                console.error(error);
+                alert("Error sharing deck. Please try again.")
+            });
+    }
+    function deleteDeck(deckId) {
+        if (confirm('Are you sure you want to delete this deck?')) {
+            // Get the CSRF token from the page
+            var csrfToken = getCsrfToken();
+
+            // Make an AJAX request to delete the deck
+            $.ajax({
+                url: '/delete/' + deckId,
+                type: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                success: function (response) {
+                    // Deck deleted successfully, remove it from the DOM
+                    window.location.href = '/viewdecks';
+                },
+                error: function (xhr) {
+                    // Handle error
+                    console.error('Error deleting deck:', xhr.status);
+                }
+            });
+        }
+        function getCsrfToken() {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            if (meta) {
+                return meta.getAttribute("content");
+            }
+            return null;
+        }
+    }
+</script>
+
+
+<script>
+    async function exportDeckAnki(deckId) {
+        await requestAnkiConnectPermission();
+        exportDeckToAnki(deckId);
+    }
+    async function requestAnkiConnectPermission() {
+        const url = 'http://127.0.0.1:8765/';
+        const request = {
+            action: 'requestPermission',
+            version: 6,
+        };
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(request),
+        });
+        const data = await response.json();
+        console.log(data.permission);
+        return data;
+    }
+    async function ankiConnectInvoke(action, version, params) {
+        const url = 'http://127.0.0.1:8765/';
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ action, version, params })
+        });
+        return await response.json();
+    }
+    async function exportDeckToAnki(deckId) {
+        // Replace this with the actual URL that returns the deck name and cards from your backend
+        const backendUrl = `/get_deck_data/` + deckId;
+        console.log(backendUrl)
+        try {
+            const response = await fetch(backendUrl);
+            if (response.ok) {
+                const deckData = await response.json();
+                const deckName = deckData.name;
+                const cards = deckData.cards;
+
+                // Call the exportToAnki function with the fetched deck name and cards
+                await exportToAnki(deckName, cards);
+            } else {
+                alert("Error fetching deck data1: " + response.statusText);
+            }
+        } catch (error) {
+            alert("Error fetching deck data: " + error);
+        }
+    }
+    async function exportToAnki(deckName, cards) {
+        const ankiConnectUrl = "http://127.0.0.1:8765";
+        console.log("entered export to anki")
+        console.log(deckName, cards)
+        // Create or update the deck
+        await fetch(ankiConnectUrl, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "createDeck",
+                version: 6,
+                params: {
+                    deck: deckName,
+                },
+            }),
+        });
+        // Add cards to the deck
+        for (const card of cards) {
+            console.log("individual card")
+            console.log(card.front)
+            await fetch(ankiConnectUrl, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "addNote",
+                    version: 6,
+                    params: {
+                        note: {
+                            deckName: deckName,
+                            modelName: "Basic",
+                            fields: {
+                                Front: card.front,
+                                Back: card.back,
+                            },
+                            options: {
+                                allowDuplicate: false,
+                            },
+                            tags: card.tags || [],
+                        },
+                    },
+                }),
+            });
+        }
+        alert("Deck exported to Anki succesfully!");
+    }
+</script>
+<div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="ModalLabel{{deck.id}}">Share deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="share-form{{deck.id}}" method="POST">
+                    {{ share_form.csrf_token }}
+                    <div class="form-group my-2">
+                        <div class="form-floating">
+                            {{ share_form.emails(id='email' + deck.id|string, class_='form-control', required=True,
+                            placeholder="Type receiver's email here")|safe }}
+                            <label for="email{{deck.id}}">Email</label>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="shareDeck('{{ deck.id }}')">Share</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+
+
+
+{% endblock %}

@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
             {{ form.hidden_tag() }}
 
             <div class="collapse show" id="collapseTestInfo" data-bs-parent="#collap">
-                <div class="container m-2 p-2 box_study">
+                <div class="container m-2 p-2 ">
                     <input type="hidden" name="test-id" value="{{test.id}}">
                     <div class="form-floating mt-1">
                         <input name="name" class=" form-control form-control-lg" type="text" id="name"
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         <div class="collapse" id="collapseTestQuestions" data-bs-parent="#collap">
-            <div class="container m-2 box_study">
+            <div class="container m-2 ">
                 {% for question in test.questions %}
                 {% if question.q_type == "multiple_choice" %}
                 <form class="question-form" method="POST" data-question-id="{{question.id}}">
@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         Answers:
                                         <div class="row mt-1">
                                             {% for option in update_card_form.options %}
-                                            <li class="list-group-item box_study mt-1">
+                                            <li class="list-group-item  mt-1">
                                                 {{ option.label }} - {{ option(class="border-0 w-100") }}
                                             </li>
                                             {% endfor %}
@@ -324,16 +324,14 @@ document.addEventListener("DOMContentLoaded", function () {
                                         placeholder=question.term) }}
                                     </div>
                                 </div>
-                                <div class="col-2 m-1">
-                                    <div class="row"> Marks:
-                                        {{ update_card_form.points(class="form-control form-control-lg",
-                                        placeholder=question.points) }}
+                                <div class="col-2 m-1 d-flex flex-column">
+                                    <div class="row align-items-center"> Marks:
+                                        {{ update_card_form.points(class="form-control form-control-lg", placeholder=question.points) }}
                                     </div>
-                                    <div class="row">
-                                        <a href="#" class="mx-2"
+                                    <div class="row d-flex justify-content-center align-items-center">
+                                        <a href="#" class="m-4"
                                             onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/delete_question/{{test.id}}/{{question.id}}'; }">
-                                            <img src="\static\delete-icon.png" alt="Delete"
-                                                style="max-width:30px;max-height:30px;" class="px-1"
+                                            <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class="px-1"
                                                 title="Delete question">
                                         </a>
                                     </div>
@@ -390,4 +388,44 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
 </div>
 </div>
+
+
+
+<script>
+    $(document).ready(function() {
+      $('.question-form input, .question-form textarea').on('change', function() {
+        const form = $(this).closest('form');
+        const questionId = form.data('question-id');
+        const question = form.find('[name="question"]').val();
+        const answer = form.find('[name="answer"]').val();
+        const points = form.find('[name="points"]').val();
+        const options = form.find('[name="options"]').map(function() {
+          return $(this).val();
+        }).get();
+    
+        $.ajax({
+          url: '/update_card',
+          type: 'POST',
+          data: JSON.stringify({
+            'question-id': questionId,
+            'question': question,
+            'answer': answer,
+            'points': points,
+            'options': options,
+          }),
+          contentType: 'application/json;charset=UTF-8',
+          success: function(response) {
+            if (response.success) {
+              console.log('Question updated successfully');
+            } else {
+              console.error('Error updating question:', response.error);
+            }
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            console.error('AJAX error:', textStatus, errorThrown);
+          }
+        });
+      });
+    });
+    </script>
 {% endblock %}

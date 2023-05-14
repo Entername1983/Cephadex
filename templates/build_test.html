@@ -1,10 +1,11 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
     main_0 %}
-    <div class="container" style="border: 3px solid #26475e; border-radius: 5px;">
+    <div class="container" style="border: 3px solid #6019FF;; border-radius: 5px;">
     
     
-        <div class="row " style="background-color: #26475e; color:aliceblue">
-            <form action="" method="POST" class="">
+        <div class="row " style="background-color: #6019FF;; color:aliceblue">
+            <form action="" method="POST" class="" id="selection-form">
+
         
         
                 <div class="row mt-1">
@@ -34,7 +35,7 @@
             </div>
         </div>
         <div class="col-9 d-flex justify-content-end p-4">
-            <input class=" p-2  btn-test-1" type="submit" value="Done selecting questions" onclick="return validateForm()">
+            <input class=" p-2  btn-test-1 " type="submit" value="Done selecting questions" onclick="return validateForm()">
         </div>
         </div>
     </div>
@@ -44,35 +45,35 @@
     {% if card.category in ["Mcq", "Cloze"] %}
     
     <div class="card mt=1" style="">
-        <div class="card-body box_study w-100">
+        <div class="card-body w-100">
             <div class="row">
                 <div class="col-1 ">
     
-                    <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
+                    <input type="checkbox" class="" name="selected_cards[]" value="{{card.id}}">
                 </div>
                 <div class="col-11">
                     <div class="row ">
-                        <div class="col-8 box_study p-1">
-                            <input class="card-title border-0 w-100 " id="term{{card.id}}" rows="2"
+                        <div class="col-8  p-1">
+                            <textarea class="card-title border-0 w-100 " id="term{{card.id}}" rows="2"
                                 value="{{card.term}}"></textarea>
                         </div>
-                        <div class="col-3 box_study p-1 m-1">
+                        <div class="col-3  p-1 m-1">
                             <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
                                 name="category{{card.id}}" value="{{card.category}}">
                             <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
                         </div>
                     </div>
                     <div class="row mt-1">
-                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="content{{card.id}}"
+                        <li class="list-group-item  mt-1"><input class="border-0 w-100" name="content{{card.id}}"
                                 value="A - {{card.content}}">
                         </li>
-                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_2{{card.id}}"
+                        <li class="list-group-item  mt-1"><input class="border-0 w-100" name="boc_2{{card.id}}"
                                 value="B - {{card.boc_2}}">
                         </li>
-                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_3{{card.id}}"
+                        <li class="list-group-item  mt-1"><input class="border-0 w-100" name="boc_3{{card.id}}"
                                 value="C - {{card.boc_3}}">
                         </li>
-                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="boc_4{{card.id}}"
+                        <li class="list-group-item  mt-1"><input class="border-0 w-100" name="boc_4{{card.id}}"
                                 value="D - {{card.boc_4}}">
                         </li>
                     </div>
@@ -86,33 +87,33 @@
     
     {% elif card.category == "Formulas" %}
     <div class="card mt-1" style="">
-        <div class="card-body box_study w-100">
+        <div class="card-body  w-100">
             <div class="row">
                 <div class="col-1 ">
     
-                    <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
+                    <input type="checkbox" class="" name="selected_cards[]" value="{{card.id}}">
                 </div>
                 <div class="col-11">
                     <div class="row ">
-                        <div class="col-8 box_study p-1">
+                        <div class="col-8  p-1">
                             <div>
                                 \[{{ card.formula}}\]
                             </div>
                         </div>
-                        <div class="col-3 box_study p-1 m-1">
+                        <div class="col-3  p-1 m-1">
                             <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
                                 name="category{{card.id}}" value="{{card.category}}">
                             <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
                         </div>
                     </div>
                     <div class="row mt-1">
-                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="content{{card.id}}"
+                        <li class="list-group-item  mt-1"><input class="border-0 w-100" name="content{{card.id}}"
                                 value="{{card.content}}">
                         </li>
-                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="term{{card.id}}"
+                        <li class="list-group-item  mt-1"><input class="border-0 w-100" name="term{{card.id}}"
                                 value="{{card.term}}">
                         </li>
-                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="formula{{card.id}}"
+                        <li class="list-group-item  mt-1"><input class="border-0 w-100" name="formula{{card.id}}"
                                 value="{{card.formula}}">
                         </li>
                     </div>
@@ -124,30 +125,33 @@
     {% else %}
     
     <div class="card mt-1" style="">
-        <div class="card-body box_study w-100"  style = "margin:0px !important;">
+        <div class="card-body  w-100"  style = "margin:0px !important;">
             <div class="row">
-                <div class="col-1 ">
+                <div class="col-2 ">
     
-                    <input type="checkbox" class="box_study" name="selected_cards[]" value="{{card.id}}">
+                    <input type="checkbox" class="" name="selected_cards[]" value="{{card.id}}">
                 </div>
-                <div class="col-11">
+                <div class="col-10">
                     <div class="row ">
-                        <div class="col-8 box_study p-1">
-                            <input class="card-title border-0 w-100 " id="content{card.id}}" rows="2"
-                                value="{{card.content}}">
-                        </div>
-                        <div class="col-3 box_study p-1 m-1">
-                            <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
-                                name="category{{card.id}}" value="{{card.category}}">
-                            <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
-                        </div>
+                        <h6>Question:</h6>
+                            <textarea class=" border-0 w-100 " id="content{{card.id}}" rows="2"
+                                value="{{card.content}}">{{card.content}}</textarea>
+      
                     </div>
-                    <div class="row mt-1">
-                        <li class="list-group-item box_study mt-1"><input class="border-0 w-100" name="term{{card.id}}"
+                    <div class="row mt-1 ">
+                        <h6>Answer:</h6>
+
+                        <input class="border-0 w-100" name="term{{card.id}}"
                                 value="{{card.term}}">
-                        </li>
+                        
                     </div>
                 </div>
+                <!---
+                <div class = "col = 3">
+                    <input class="card-subtitle mb-2 text-muted border-0" style="max-width: 100%;"
+                    name="category{{card.id}}" value="{{card.category}}">
+                <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
+                </div>--->
             </div>
         </div>
     </div>

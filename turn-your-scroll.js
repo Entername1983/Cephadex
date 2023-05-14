@@ -33,4 +33,4 @@ const fromWords = [
     toElement.textContent = getRandomElement(toWords);
   }
   
-  setInterval(updateWords, 3000);
+  setInterval(updateWords, 4000);

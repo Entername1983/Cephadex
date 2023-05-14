@@ -26,43 +26,46 @@ from helpers import split_text
 import aiohttp
 import asyncio
 from aiohttp import ClientSession
-import asyncify
-import codecs
-import wikipediaapi
+
+encoding = tiktoken.get_encoding('gpt2')
+## for large documents only (otherwise just use extract_terms directly) passes through items one by one and returns a string with all terms
 
 
-encoding = tiktoken.get_encoding("cl100k_base")
+
 
 
 
 ## CALLS TO OPEN AI API
-async def call_ai_terms(sys_instruct, user_prompt):
-    response = await asyncify(openai.ChatCompletion.create)(
-        model="gpt-3.5-turbo",
-        messages=[
-                {"role": "system", "content": sys_instruct},
-                {"role": "user", "content": user_prompt},
-            ],
-        )
-    return response
-
 async def extract_terms(text: str, prompt_options: dict):
+
     print("entered extract term function")
+    print(prompt_options)
+    print("text TYPE")
+    print(type(text))
     main_opt = prompt_options['main_opt']
+    retries = 0
     prompt = build_prompt(prompt_options)
-    try:
-        sys_instruct = f"You are a helpful teacher who wants to help students learn {prompt_options['subject_opt']}."
-        user_prompt = (prompt + text + 'The JSON object: \n')
-        response = await call_ai_terms(sys_instruct, user_prompt)
-        response_ = response['choices'][0]['message']['content'].strip()
-        if main_opt == "Cloze":
-            response_ = add_underscores(response_)
-        byte_string = response_.encode('utf-8')
-        x = byte_string.decode('utf-8')
-        x = json.loads(x)
-        return x, user_prompt, response, x
-    except Exception as e:
-        print(f"Error: {e}.")
+    print("prompt is:", prompt)
+    while retries < 3:
+        print("attempt:", retries)
+        try:
+            sys_instruct = f"You are a helpful teacher who wants to help students learn {prompt_options['subject_opt']}."
+            user_prompt = (prompt + text + 'The JSON object: \n')
+            response = await extract_terms(text, prompt_options)
+
+            response_ = response['choices'][0]['message']['content'].strip()
+            
+            if main_opt == "Cloze":
+                response_ = add_underscores(response_)
+                
+            byte_string = response_.encode('utf-8')
+            x = byte_string.decode('utf-8')
+            x = json.loads(x)
+            return x, user_prompt, response, x
+        
+        except Exception as e:
+            retries += 1
+            print(f"Error: {e}. Retrying ({retries}/3)")
 
 def build_prompt(prompt_options: dict):
     if prompt_options['main_opt'] not in prompt_choices:
@@ -107,29 +110,137 @@ def build_prompt(prompt_options: dict):
         print(prompt)
     return prompt
 
+def get_replacement_value(value, prefix='', suffix=''):
+    if value:
+        return prefix + value + suffix
+    return ''
+
+async def call_ai_terms(sys_instruct, user_prompt):
+    response = await openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": sys_instruct},
+                {"role": "user", "content": user_prompt},
+            ]
+        )
+    return response
+
+async def insert_paragraph(text):
+    prompt = "Go through the following block of text and insert '&-&-&' where you think a paragraph break should be. \n  block of text: \n" + text + "\n The JSON object: \n"
+    response = await openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": "You are an expert at the written word"},
+                    {"role": "user", "content": prompt},
+                ]
+            )
+    x = response['choices'][0]['message']['content']
+    print(x)
+    return x
+
+def render_latex(latex_code):
+    unicode_str = LatexNodes2Text().latex_to_text(latex_code)
+    return unicode_str
+
+def double_backslashes(s):
+    result = ''
+    pattern = r'\\\[.*?\\\]|\\\(.*?\\\)|(?<!\\)\$.+?(?<!\\)\$'
+    # Match LaTeX formulas delimited by \[...\] or \(...\), or inline formulas delimited by $...$
+    matches = re.findall(pattern, s)
+    last_end = 0
+    for match in matches:
+        start = s.index(match, last_end)
+        result += s[last_end:start]
+        result += re.sub(r'\\', r'\\\\', match)
+        last_end = start + len(match)
+    result += s[last_end:]
+    return result
+
+def decode_latex_in_string(string):
+    # Define a regular expression pattern to match LaTeX formulas
+    pattern = r'(\$[^\$]*\$|\\\([^\)]*\\\))'
+    # Use the pattern to find all LaTeX formulas in the string
+    matches = re.findall(pattern, string)
+    # Loop over the matches and replace each LaTeX formula with its decoded equivalent
+    for match in matches:
+        decoded = render_latex(match)
+        string = string.replace(match, decoded)
+    
+    return string
+
+
+
+
 async def summarize(items, prompt_options):
     print("entered summarize function")
     print(items, prompt_options)
     option_1 = "You are an expert and summarizing key points in a passage" 
-    option_2 = f"Summarize the following passage and return it with HTML formatting, using header tags, paragraph tags and list tags where appropriate {items}"
-    response = await call_ai_terms(option_1, option_2)
-    response = response['choices'][0]['message']['content']
-    byte_string = response.encode('utf-8')
-    response = byte_string.decode('utf-8') 
-    print(response)
-    print("summary completed")
+
+    if items is list:
+        for item in items:
+            option_2 = f"Summarize the following passage and return it with HTML formatting, using header tags, paragraph tags and list tags where appropriate {item}"
+            response = await openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": option_1},
+                    {"role": "user", "content": option_2},
+                ]
+            )
+            response = response['choices'][0]['message']['content']
+            byte_string = response.encode('utf-8')
+            response = byte_string.decode('utf-8')
+            long_response = long_response + response
+        response = long_response         
+    else:
+        option_2 = f"Summarize the following passage and return it with HTML formatting, using header tags, paragraph tags and list tags where appropriate {items}"
+        response = await openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": option_1},
+                {"role": "user", "content": option_2},
+            ]
+        )
+        response = response['choices'][0]['message']['content']
+        byte_string = response.encode('utf-8')
+        response = byte_string.decode('utf-8') 
+    print(response)  
     return response
+    
 
 async def turn_to_notes(items, prompt_options):
     print("entered text_to_notes function")
     option_1 = "You are an expert at turning text into study notes" 
-    option_2 = f"Turn the following passage into study notes and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate, ignore table of contents and indexes {items}"
-    response = await call_ai_terms(option_1, option_2)
-    response = response['choices'][0]['message']['content']
-    byte_string = response.encode('utf-8')
-    response = byte_string.decode('utf-8')   
+
+    if items is list:
+        for item in items:
+            option_2 = f"Turn the following passage into study notes and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate {item}"
+            response = await openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": option_1},
+                    {"role": "user", "content": option_2},
+                ]
+            )
+            response = response['choices'][0]['message']['content']
+            byte_string = response.encode('utf-8')
+            response = byte_string.decode('utf-8')
+            long_response = long_response + response
+        response = long_response         
+    else:
+        option_2 = f"Turn the following passage into study notes and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate {items}"
+        response = await openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": option_1},
+                {"role": "user", "content": option_2},
+            ]
+        )
+        response = response['choices'][0]['message']['content']
+        byte_string = response.encode('utf-8')
+        response = byte_string.decode('utf-8')   
     print(response)
     return response
+
 
 ## TAKES TEXT OR LIST OF TEXT AND TRANSLATES IT TO THE LANGUAGE CHOSEN
 ## ISSUE IS HOW TO HAVE PARAGRAPH BREAKS
@@ -137,11 +248,34 @@ async def transcribe_and_translate(items, prompt_options):
     language = prompt_options['trans_opt']
     print(language)
     option_1 = f"You are a helpful {language} translator"
-    option_2 = f"translate the following passage to {language}  return it with html formatting, use paragraph and header tags as appropriate: {items}"
-    response = await call_ai_terms(option_1, option_2)
-    response = response['choices'][0]['message']['content']
-    byte_string = response.encode('utf-8')
-    response = byte_string.decode('utf-8')   
+    if items is list:
+        for item in items:
+            option_2 = f"translate the following passage to {language} return it with html formatting, use paragraph and header tags as appropriate: {item}"
+            response = await openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": option_1},
+                    {"role": "user", "content": option_2},
+                ]
+            )
+            response = response['choices'][0]['message']['content']
+            byte_string = response.encode('utf-8')
+            response = byte_string.decode('utf-8')
+            long_response = long_response + response
+        response = long_response
+            
+    else:
+        option_2 = f"translate the following passage to {language}  return it with html formatting, use paragraph and header tags as appropriate: {items}"
+        response = await openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": option_1},
+                {"role": "user", "content": option_2},
+            ]
+        )
+        response = response['choices'][0]['message']['content']
+        byte_string = response.encode('utf-8')
+        response = byte_string.decode('utf-8')   
     return response
 
 ## AUDIO TRANSCRIPTION
@@ -152,15 +286,17 @@ def transcribe_whisper(audio_file):
     transcript = transcript["text"]
     print(transcript)
     
-def call_ai_terms_non_async(sys_instruct, user_prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-                {"role": "system", "content": sys_instruct},
-                {"role": "user", "content": user_prompt},
-            ],
-        )
-    return response
+    ## split text up into element of at most 3000 tokens
+    ##split_transcript = split_text(transcript, 3000)
+    ## insert paragraphs
+    ##formatted_transcript = ""
+    ##for item in split_transcript:
+      ###  x = insert_paragraph(item)
+       ## formatted_transcript = formatted_transcript + x
+    ##print("----------------------FORMATTED TRANSCRIPT------------------------")
+    ##print(formatted_transcript)
+    return transcript
+
 ## REGENERATE A DEFINITION
 def regenerate_definition(term, prompt_options):
     retries = 0
@@ -172,7 +308,7 @@ def regenerate_definition(term, prompt_options):
         try:
             sys_instruct = f"You are a helpful teacher who wants to help students learn."
             user_prompt = prompt
-            response = call_ai_terms_non_async(sys_instruct, user_prompt)
+            response = call_ai_terms(sys_instruct, user_prompt)
             x = response['choices'][0]['message']['content'].strip()
             print(x)
             z = [term, ":"]
@@ -221,56 +357,6 @@ def build_prompt_regen(term, prompt_options: dict):
 
 
 ###################################
-def get_replacement_value(value, prefix='', suffix=''):
-    if value:
-        return prefix + value + suffix
-    return ''
-
-
-
-async def insert_paragraph(text):
-    prompt = "Go through the following block of text and insert '&-&-&' where you think a paragraph break should be. \n  block of text: \n" + text + "\n The JSON object: \n"
-    response = await asyncify(openai.ChatCompletion.create)(
-            model="gpt-3.5-turbo",
-            messages=[
-                    {"role": "system", "content": "You are an expert at the written word"},
-                    {"role": "user", "content": prompt},
-                ],
-            )
-    x = response['choices'][0]['message']['content']
-    print(x)
-    return x
-
-def render_latex(latex_code):
-    unicode_str = LatexNodes2Text().latex_to_text(latex_code)
-    return unicode_str
-
-def double_backslashes(s):
-    result = ''
-    pattern = r'\\\[.*?\\\]|\\\(.*?\\\)|(?<!\\)\$.+?(?<!\\)\$'
-    # Match LaTeX formulas delimited by \[...\] or \(...\), or inline formulas delimited by $...$
-    matches = re.findall(pattern, s)
-    last_end = 0
-    for match in matches:
-        start = s.index(match, last_end)
-        result += s[last_end:start]
-        result += re.sub(r'\\', r'\\\\', match)
-        last_end = start + len(match)
-    result += s[last_end:]
-    return result
-
-def decode_latex_in_string(string):
-    # Define a regular expression pattern to match LaTeX formulas
-    pattern = r'(\$[^\$]*\$|\\\([^\)]*\\\))'
-    # Use the pattern to find all LaTeX formulas in the string
-    matches = re.findall(pattern, string)
-    # Loop over the matches and replace each LaTeX formula with its decoded equivalent
-    for match in matches:
-        decoded = render_latex(match)
-        string = string.replace(match, decoded)
-    
-    return string
-
 ###################################
 
 
@@ -297,191 +383,122 @@ def text_extractor(file):
     elif file.endswith('.txt'):
         with open(file) as file:
             items = file.read()
-    items = clean_text(items)
+    print(items)
     print(count_tokens(items))
     return items
 
 ## AUDIO EXTRACTORS
-def extract_audio(file):
+def extract_audio(file): 
     print("entered extract audio function")
     text = []
-    try:
-        segments = divide_audio(file)
-        for segment in segments:
-            transcript = transcribe_whisper(segment)
-            text.append(transcript)
-        concatenated_text = " ".join(text)
-        return concatenated_text
-    except FileNotFoundError:
-        print("File not found.")
-    except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+    segments = divide_audio(file) 
+    for segment in segments:
+        transcript = transcribe_whisper(segment)
+        text.append(transcript)
+    concatenated_text = " ".join(text)
+    return concatenated_text
 
 ## PDF
 def extract_from_pdf(pdf_file):
-    try:
-        with open(pdf_file, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
-            total_pages = len(reader.pages)
-            text = []
-            for i in range(total_pages):
-                page = reader.pages[i]
-                page_content = page.extract_text()
-                page_content = clean_text(page_content)
-                text.append(page_content)
-            concatenated_text = " ".join(text)
-        return concatenated_text
-    except FileNotFoundError:
-        print("File not found.")
-    except PyPDF2.utils.PdfReadError:
-        print("Error reading PDF.")
-    except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+    with open(pdf_file, 'rb') as f:
+        reader = PyPDF2.PdfReader(f)
+        total_pages = len(reader.pages)
+        text = []
+        for i in range(total_pages):
+            page = reader.pages[i]
+            page_content = page.extract_text()
+            page_content = page_content.replace("\n", " ")
+            text.append(page_content)
+        concatenated_text = " ".join(text)
+    return concatenated_text
 
-def clean_text(text):
-    # Decode Unicode escape sequences into actual characters
-    text = codecs.decode(text, 'unicode_escape')
-    # Replace newline characters with spaces
-    # This pattern matches any character that is not a letter, digit, whitespace, or regular punctuation.
-    pattern = r"[^\w\s.,;:?!-’'\"()]+"
-    cleaned_text = re.sub(pattern, "", text)
-    return cleaned_text
 # PPTX
 def extract_from_pptx(ppt_file):
-    try:
-        prs = Presentation(ppt_file)
-        text_runs = []
-        for slide in prs.slides:
-            for shape in slide.shapes:
-                if hasattr(shape, "text"):
-                    cleaned_text = clean_text(shape.text)
-                    text_runs.append(cleaned_text)
+    prs = Presentation(ppt_file)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text_runs.append(shape.text)
         concatenated_text = " ".join(text_runs)
-        return concatenated_text
-    except FileNotFoundError:
-        print("File not found.")
-    except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+    return concatenated_text
 
 #DOCX
-def extract_from_docx(docx_file):
-    try:
-        text = docx2txt.process(docx_file)
-        text = text.replace("\n", " ")
-        return text
-    except FileNotFoundError:
-        print("File not found.")
-    except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+def extract_from_docx(docx_file):            
+    text = docx2txt.process(docx_file)
+    text = text.replace("\n", " ")          
+    return text
+
 def extract_from_wiki(wiki_url):
-    try:
-        print("entered wiki function")
-        # Replace the URL with the mobile version
-        wiki_url = wiki_url.replace("https://en.wikipedia.org", "https://en.m.wikipedia.org")
-        page = requests.get(wiki_url)
-        page.raise_for_status()  # Check for any HTTP request errors
-        soup = BeautifulSoup(page.content, 'html.parser')
+    print("entered wiki function")
+    page = requests.get(wiki_url)
+    # Scrape webpage
+    soup = BeautifulSoup(page.content, 'html.parser')
 
-        # Remove unwanted elements
-        for tag in soup(['script', 'style', 'table', 'noscript', 'nav']):
-            tag.extract()
-        for elem in soup.find_all('sup', class_='reference'):
-            elem.extract()
-        for div in soup.find_all('div', class_='toc'):
-            div.extract()
-        for div in soup.find_all('div', class_='thumbcaption'):
-            div.extract()
-        for div in soup.find_all('div', class_='reflist'):
-            div.extract()
-        for div in soup.find_all('div', class_='navbox'):
-            div.extract()
-        for ref in soup.find_all(class_='references'):
-            ref.extract()
+    list(soup.children)
 
-        # Remove table of contents and language list
-        for div in soup.find_all('div', {'id': 'toc'}):
-            div.extract()
-        for div in soup.find_all('div', {'id': 'page-secondary-actions'}):
-            div.extract()
-        for li in soup.find_all('li', class_='interlanguage-link'):
-            li.extract()
-        for li in soup.find_all('li', {'id': 'toc'}):
-            li.extract()
-        tags_to_extract = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'td']
-        extracted_content = []
-        for tag in tags_to_extract:
-            elements = soup.find_all(tag)
-            for element in elements:
-                extracted_content.append(str(element))
+    # Find all occurrences of p, li, h1-h6, and td in HTML
+    tags_to_extract = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'td']
+    extracted_content = []
 
-        text = "\n\n".join(extracted_content)
-        return text
+    for tag in tags_to_extract:
+        elements = soup.find_all(tag)
+        for element in elements:
+            extracted_content.append(element.get_text())
 
-    except requests.exceptions.RequestException as e:
-        print("Error making the HTTP request:", str(e))
-    except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+    # Combine all extracted text into a single string
+    text = " ".join(extracted_content)
 
-
-
-
+    return text
+    
+    
 ##YOUTUBE
 def extract_from_youtube(youtube_url):
-    try:
-        full_text = None
-        print("entered youtube function")
-        srt = YouTubeTranscriptApi.get_transcript(youtube_url)
-        for dict in srt:
-            x = dict['text']
-            if full_text is None:
-                full_text = x
-            else:
-                full_text += x
-        return full_text
-    except YouTubeTranscriptApi.CouldNotRetrieveTranscript:
-        print("Could not retrieve transcript for the YouTube video.")
-    except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+    full_text = None
+    print("entered youtube function")
+    srt = YouTubeTranscriptApi.get_transcript(youtube_url)
+    for dict in srt:
+        x = dict['text']
+        if full_text == None:
+            full_text = x
+        else:
+            full_text = full_text + x
+    return full_text
 
 
 ## DIVIDE AUDIO
 def divide_audio(input_file, segment_length=25):
-    try:
-        # Open the audio file
-        audio = AudioSegment.from_file(input_file)
-        # Calculate the segment size in bytes
-        segment_size = segment_length * 1024 * 1024
-        # Calculate the total number of segments
-        num_segments = math.ceil(len(audio) / segment_size)
-        print("number of segments:", num_segments)
-        # Create a list to hold the file paths for the audio segments
-        segments = []
-        # Split the audio file into segments and save each segment as an MP3 file
-        for i in range(num_segments):
-            start = i * segment_size
-            end = min((i + 1) * segment_size, len(audio))
-            segment = audio[start:end]
-            # Define the output file path for the segment
-            output_file = os.path.join(os.path.dirname(input_file), f"segment_{i}.mp3")
-            # Export the segment as an MP3 file
-            segment.export(output_file, format="mp3")
-            # Add the output file path to the list of segments
-            segments.append(output_file)
-        return segments
-    except FileNotFoundError:
-        print("File not found.")
-    except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+    """
+    Split an audio file into segments of at most 25mb and save each segment as an MP3 file in the same folder as the input file
+    :param input_file: the path to the input audio file
+    :param segment_length: the maximum size of each audio segment, in megabytes
+    :return: a list of audio segment file paths
+    """
+    # Open the audio file
+    audio = AudioSegment.from_file(input_file)
+    # Calculate the segment size in bytes
+    segment_size = segment_length * 1024 * 1024
+    # Calculate the total number of segments
+    num_segments = math.ceil(len(audio) / segment_size)
+    print("number of segments", num_segments)
+    # Create a list to hold the file paths for the audio segments
+    segments = []
+    # Split the audio file into segments and save each segment as an MP3 file
+    for i in range(num_segments):
+        start = i * segment_size
+        end = min((i + 1) * segment_size, len(audio))
+        segment = audio[start:end]
+        # Define the output file path for the segment
+        output_file = os.path.join(os.path.dirname(input_file), f"segment_{i}.mp3")
+        # Export the segment as an MP3 file
+        segment.export(output_file, format="mp3")
+        # Add the output file path to the list of segments
+        segments.append(output_file)
+    return segments
 
 ## TOKEN HANDLERS
 def count_tokens(text):
+    print("token count:")
     text = encoding.encode(text)
     print("token count:", len(text))
     return len(text)
