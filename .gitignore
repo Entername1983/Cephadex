@@ -12,3 +12,6 @@ dump.sql
 static/files/*
 /Text/*
 /UNUSED/*
+app.log
+test.py
+loggers.txt

@@ -170,11 +170,11 @@ footer {
 }
 
 .correct-selected {
-  background-color: #269949 !important;
+  background-color: #8fdaa2 !important;
 }
 
 .incorrect-selected {
-  background-color: #cf3636 !important;
+  background-color: #fa5252 !important;
 }
 
 .deck_t {

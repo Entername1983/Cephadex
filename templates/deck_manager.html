@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block main_0 %}
-<div class="m-3">
+<div class="container">
     <div class="row">
         <div class="col-md-6 d-flex justify-content-center align-items-center">
             <h1 class="my-4 hcepha1">{{ deck.name }} </h1>
@@ -78,7 +78,7 @@
  
         <div class="col-md-6">
             <div class="card mt-4">
-                <div class="card-header card-header1"> Cards ({{ deck.quantity_cards() }}) </div>
+                <div class="card-header card-header1"> <a href = "/carousel/{{deck.id}}">Cards ({{ deck.quantity_cards() }}) </a></div>
                 <div class="card-body" style="height: 200px; overflow-y: scroll;">
                     <ul>
                         {% for card in deck.cards %}
@@ -90,7 +90,7 @@
         </div>
        <div class="col-md-6">
             <div class="card mt-4">
-                <div class="card-header card-header1">Files</div>
+                <div class="card-header card-header1"><a href="/sea_dox/{{ deck.id }}">Files</a></div>
                 <div class="card-body " style="height: 200px; overflow-y: scroll;">
                     <ul>
                         {% if deck.deck_files  %}
@@ -114,7 +114,7 @@
            {% if tests|length>0 %}
         <div class="col-md-4">
             <div class="card mt-4">
-                <div class="card-header card-header1">Assignments</div>
+                <div class="card-header card-header1"><a href = "/test_results_overview/">Assignments</a></div>
                 <div class="card-body" style="min-height: 100px; overflow-y: scroll;">
                     <ul>
                         {% for test in tests %}

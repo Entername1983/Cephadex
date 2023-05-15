@@ -437,8 +437,6 @@ class Deck(db.Model):
                         'sound': card.sound,
                     })
                 if card.box_id == 0 and new_card_counter < n:
-                    print("card box = 0")
-                    print("new card counter = ", new_card_counter)
                     new_card_counter += 1
                     due_cards.append({
                         'term': card.term,

@@ -63,6 +63,10 @@ from threading import Thread
 import uuid
 import codecs
 import random
+from forms import RegSub, RegisterForm, LoginForm, ChangePassForm, TryOut, DeckOrg, UploadFileForm
+from forms import EditCard, EditDeck, AddTermForm, AccountForm, DeleteAccountForm, UpdateProfilePicForm, FeedbackForm
+from forms import SearchAndSortForm, Share, BuildTest, UpdateCardForm, GroupForm, UpdateFileNameForm
+
 
 dictConfig(LOGGING_CONFIG)
 
@@ -75,7 +79,7 @@ os.environ["FLASK_DEBUG"] = "1"
 app = Flask(__name__)
 app.config.from_object('config')
 
-
+"""""
 ### AUTO ESCAPE"
 jinja_options = ImmutableDict(
  extensions=[
@@ -83,7 +87,7 @@ jinja_options = ImmutableDict(
  ])
 
 app.jinja_env.autoescape = True
-
+"""""
 
 ### BLEACH ALLOWED TAGS
 ALLOWED_TAGS = [    'a', 'abbr', 'acronym', 'b', 'br', 'code', 'em', 'i', 'li',    'ol', 'strong', 'ul', 'p', 'pre', 'blockquote', 'hr', 'img',    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'div',    'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
@@ -107,11 +111,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.debug('debug message')
-werkzeug_logger.info('info message')
-werkzeug_logger.warning('warn message')  
-werkzeug_logger.error('error message')
-werkzeug_logger.critical('critical message')
+werkzeug_logger.setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
@@ -141,274 +141,8 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-print("APP STARTING")
 ######################## WTFORMS ###########################################          
-class RegSub(FlaskForm):
-    first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
-    last_name = StringField('Last Name', validators=[InputRequired()], render_kw= {"placeholder": "Last Name"})           
-    email = StringField(validators=[InputRequired(), EqualTo('conf_email', message = 'Emails must match'), Length(min=5, max=100)], render_kw={"placeholder": "Email"})
-    conf_email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Confirm Email"})        
-    submit = SubmitField('Subscribe')
-    
-      
-class RegisterForm(FlaskForm):
-    username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
-    password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "Password"})
-    conf_password = PasswordField(validators=[InputRequired(), EqualTo('password', message = 'Passwords must match'), Length(min=8, max=80)], render_kw={"placeholder": "Confirm Password"})
-    email = StringField(validators=[InputRequired(), EqualTo('conf_email', message = 'Emails must match'), Length(min=5, max=100)], render_kw={"placeholder": "Email"})
-    conf_email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Confirm Email"})
-    first_name = StringField(validators=[InputRequired(), Length(min=4, max=50)], render_kw={"placeholder": "First Name"})
-    last_name = StringField(validators=[InputRequired(), Length(min=4, max=50)], render_kw={"placeholder": "Last Name"})
-    timezone = SelectField('Timezone',
-                           choices=[('', 'Choose a time zone')] + [(tz, tz) for tz in common_timezones],
-                           default=None,
-                           render_kw={'class': 'form-select', 'id': 'timezone', 'placeholder': 'Choose timezone'})
-    submit = SubmitField('Register')
 
-    def validate_username(self, username):
-        existing_user_username = User.query.filter_by(username=username.data).first()
-        if existing_user_username:
-            raise ValidationError("Username is already taken")
-            
-    def validate_email(self, email):
-        existing_user_email = User.query.filter_by(email=email.data).first()
-        if existing_user_email:
-            raise ValidationError("Email is already taken")
-        
-
-        
-class LoginForm(FlaskForm):
-    username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
-    password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "Password"})
-    submit = SubmitField('Login')
-class ChangePassForm(FlaskForm):
-    username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
-    password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "Password"})
-    new_password = PasswordField(validators=[InputRequired(), Length(min=8, max=80)], render_kw={"placeholder": "New Password"})
-    conf_new_password = PasswordField(validators=[InputRequired(), EqualTo('new_password', message = 'passwords must match'), Length(min=8, max=80)], render_kw={"placeholder": "Confirm New Password"})
-    submit = SubmitField('Change Password')
-        
-    def confirm_new_pass(self, new_password, conf_new_password):
-        if new_password.data != conf_new_password.data:
-            raise ValidationError("Passwords must match")
-        
-        
-        
-class TryOut(FlaskForm):
-    text_input = StringField('Text Input', validators=[Length(max=250)], render_kw={"placeholder": "Paste your text here (max 250 characters)"})
-    select_text = SelectField('Select Text', choices=[('', 'Select a passage on one of the following topics'), ('A cephalopod  is any member of the molluscan class Cephalopoda  (Greek plural "head-feet") such as a squid, octopus, cuttlefish, or nautilus. These exclusively marine animals are characterized by bilateral body symmetry, a prominent head, and a set of arms or tentacles (muscular hydrostats) modified from the primitive molluscan foot. Fishers sometimes call cephalopods "inkfish", referring to their common ability to squirt ink. The study of cephalopods is a branch of malacology known as teuthology.', 'Cephalopods'),
-                                                      ('A deck is a permanent covering over a compartment or a hull of a ship. On a boat or ship, the primary or upper deck is the horizontal structure that forms the "roof" of the hull, strengthening it and serving as the primary working surface. Vessels often have more than one level both within the hull and in the superstructure above the primary deck, similar to the floors of a multi-storey building, that are also referred to as decks, as are certain compartments and decks built over specific areas of the superstructure. Decks for some purposes have specific names.', 'Ship decks'), 
-                                                      ('The Great Library of Alexandria in Alexandria, Egypt, was one of the largest and most significant libraries of the ancient world. The Library was part of a larger research institution called the Mouseion, which was dedicated to the Muses, the nine goddesses of the arts. The idea of a universal library in Alexandria may have been proposed by Demetrius of Phalerum, an exiled Athenian statesman living in Alexandria, to Ptolemy I Soter, who may have established plans for the Library, but the Library itself was probably not built until the reign of his son Ptolemy II Philadelphus. The Library quickly acquired many papyrus scrolls, owing largely to the Ptolemaic kings aggressive and well-funded policies for procuring texts. It is unknown precisely how many such scrolls were housed at any given time, but estimates range from 40,000 to 400,000 at its height.', 'The Great Library of Alexandria'), 
-                                                      ('Spaced repetition is an evidence-based learning technique that is usually performed with flashcards. Newly introduced and more difficult flashcards are shown more frequently, while older and less difficult flashcards are shown less frequently in order to exploit the psychological spacing effect. The use of spaced repetition has been proven to increase the rate of learning. Although the principle is useful in many contexts, spaced repetition is commonly applied in contexts in which a learner must acquire many items and retain them indefinitely in memory. It is, therefore, well suited for the problem of vocabulary acquisition in the course of second-language learning. A number of spaced repetition software programs have been developed to aid the learning process. It is also possible to perform spaced repetition with physical flashcards using the Leitner system.', 'Spaced Repetition and Flashcards'), 
-                                                      ], default='Choose a text')
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
-                                           ('Comprehension', 'Comprehension'), ('Custom', 'Custom')], default='Definitions')
-    languages = SelectField('Languages', choices=[("",  "Choose a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
-                                                  ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
-                                                  ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
-                                                  ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
-                                                  ("Italian", "Italian"), ("Japanese", "Japanese"), ("Korean", "Korean"), ("Klingon", "Klingon"),
-                                                  ("Latvian", "Latvian"), ("Lithuanian", "Lithuanian"), ("Malay", "Malay"), ("Norwegian", "Norwegian"),
-                                                  ("Polish", "Polish"), ("Portuguese", "Portuguese"), ("Romanian", "Romanian"), ("Russian",  "Russian"),
-                                                  ("Spanish", "Spanish"), ("Serbian", "Serbian"), ("Swahili", "Swahili"), ("Swedish", "Swedish"),
-                                                  ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
-                                                  ( "Vietnamese", "Vietnamese")], default = None)
-    custom_term = StringField('Custom extraction', render_kw={"placeholder": "What do you want us to get out of the text?"})
-    custom_content = StringField('Custom content', render_kw={"placeholder": "What do you want us to do with what you extracted?"})
-    submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
-    
-    
-class DeckOrg(FlaskForm):    
-    deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    term = StringField('Term', render_kw={"placeholder": "Term"})
-    content = TextAreaField('Content', render_kw={"placeholder": "Content"})
-    boc_2 = StringField('boc_2')
-    boc_3 = StringField('boc_3')
-    boc_4 = StringField('boc_4')
-    id = StringField('id')
-    formula = StringField('formula')
-    new_deck_name = StringField('deck_name')
-    new_deck_description = StringField('deck_description')
-    new_deck_subject = StringField('deck_subject')
-    new_deck_topic = StringField('deck_topic')
-    is_public = BooleanField('is_public')
-    new_term = StringField('new_term')
-    new_content = TextAreaField('new_content')
-    new_boc_2 = StringField('new_boc_2')
-    new_boc_3 = StringField('new_boc_3')
-    new_boc_4 = StringField('new_boc_4')
-    new_category = StringField('new_category')
-    edit_deck = SubmitField("Edit deck", render_kw={"id": "edit-deck"})
-
-        
-class UploadFileForm(FlaskForm):
-    file = FileField("File")
-    name = StringField("Deck name", render_kw={"placeholder": "Name your deck"})
-    description = StringField("Description", render_kw={"placeholder": "Describe your deck"})
-    submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
-    deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
-                                           ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
-                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
-                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
-    generate_images = BooleanField('Generate_images')
-    save_text = BooleanField('Save_text')
-    languages = SelectField('Languages', choices=[("", "Choose a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
-                                                  ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
-                                                  ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
-                                                  ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
-                                                  ("Italian", "Italian"), ("Japanese", "Japanese"), ("Korean", "Korean"), ("Klingon", "Klingon"),
-                                                  ("Latvian", "Latvian"), ("Lithuanian", "Lithuanian"), ("Malay", "Malay"), ("Norwegian", "Norwegian"),
-                                                  ("Polish", "Polish"), ("Portuguese", "Portuguese"), ("Romanian", "Romanian"), ("Russian",  "Russian"),
-                                                  ("Spanish", "Spanish"), ("Serbian", "Serbian"), ("Swahili", "Swahili"), ("Swedish", "Swedish"),
-                                                  ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
-                                                  ( "Vietnamese", "Vietnamese")], default = None)
-    
-    text_input = TextAreaField('Text Input', render_kw={"placeholder": "Paste your text here"})
-    link_input = StringField('Link Input', render_kw={"placeholder": "Paste your link here"}, validators=[Optional()])
-    qmin_option = StringField("Minimum number of items", render_kw={"placeholder": "Minimum"})
-    qmax_option = StringField("Maximum number of items", render_kw={"placeholder": "Maximum"})
-    subject = SelectField('Subject', choices=[('', ''),('Art', 'Art'), ('Anatomy', 'Anatomy'), ('Astron', 'Astronomy'), ('Bus', 'Business'), 
-                                              ('Bio', 'Biology'), ('Chem', 'Chemistry'), ('CS', 'Computer Science'), ('Econ', 'Economics'), 
-                                              ('Eng', 'Engineering'), ('Film', 'Film'), ('Geo', 'Geography'), ('Hist', 'History'), 
-                                              ('Lit', 'Literature'), ('Law', 'Law'),
-                                              ('Math', 'Math'), ('Music', 'Music'), ('Med', 'Medecine'), 
-                                              ('Politics', 'Politics'), ('Physics', 'Physics'), ('Psych', 'Psychology'), ('Phil', 'Philosophy'), ('Phys', 'Physiology'),
-                                              ('Science', 'Science'), ('Soc', 'Sociology'),], default = None, render_kw={"placeholder": "Select subject"})
-    length = SelectField('Length', choices=[('', ''), ('long', 'Long'), ('short', 'Short')], default = None,  render_kw={"placeholder": ""})
-    main_lang = SelectField('Main Language', choices=[('', ''), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
-                                                  ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
-                                                  ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
-                                                  ("Hebrew", "Hebrew"), ("Hindi", "Hindi"), ("Hungarian", "Hungarian"), ("Indonesian", "Indonesian"),
-                                                  ("Italian", "Italian"), ("Japanese", "Japanese"), ("Korean", "Korean"), ("Klingon", "Klingon"),
-                                                  ("Latvian", "Latvian"), ("Lithuanian", "Lithuanian"), ("Malay", "Malay"), ("Norwegian", "Norwegian"),
-                                                  ("Polish", "Polish"), ("Portuguese", "Portuguese"), ("Romanian", "Romanian"), ("Russian",  "Russian"),
-                                                  ("Spanish", "Spanish"), ("Serbian", "Serbian"), ("Swahili", "Swahili"), ("Swedish", "Swedish"),
-                                                  ("Tagalog", "Tagalog"), ("Thai", "Thai"), ("Turkish", "Turkish"), ("Urdu",  "Urdu"),
-                                                  ( "Vietnamese", "Vietnamese")], default = None, render_kw={"placeholder": ""})
-    custom_term = StringField('Custom extraction', render_kw={"placeholder": "What do you want us to get out of the text?"})
-    custom_content = StringField('Custom content', render_kw={"placeholder": "What do you want us to do with what you extracted?"})
-    ##def validate_deck_list(self, name, deck_list):
-       ## if name == '' and deck_list == '':            
-        ##    raise ValidationError("You must select an existing deck OR enter a name for a new deck")
-        ##elif name != '' and deck_list != '':            
-        ##    raise ValidationError("You must select an existing deck OR enter a name for a new deck")
-    
-   ## def validate_name(self, name):
-       ## deck_object = Deck.query.filter_by(name=name.data).first()
-       ## if deck_object:
-##raise ValidationError("Deck name already exists")
-        
-    
-    ##def validate(self):
-        ##count = 0
-       ## if self.file.data:
-       ##     count += 1
-      ###  if self.text_input.data:
-      ##      count += 1
-      ##  if self.link_input.data:
-      ##      count += 1
-      ##  if count != 1:
-      ##      raise ValidationError('Please select one and only one option: a file, input text, or input link.')
-      ##  if self.prompt.data == 'Translate' and not self.languages.data:
-       ##     raise ValidationError('Please select a language for translation.')
-      ##  return True  
-        
-class EditCard(FlaskForm):
-    term = StringField()
-    content = StringField()
-    submit = SubmitField("Save")
-class EditDeck(FlaskForm):
-    name = StringField()
-    description = StringField()
-    submit = SubmitField("Save")
-class AddTermForm(FlaskForm):
-    term = StringField(validators=[InputRequired(), Length(min=1, max=50)])
-    content = StringField(validators=[InputRequired(), Length(min=1, max=50)])
-    submit = SubmitField("Save")
-    
-class AccountForm(FlaskForm):
-    first_name = StringField("First Name:")
-    last_name = StringField("Last Name:")
-    username = StringField("Username:")
-    email = StringField("Email:")
-    gender = SelectField("Gender:", choices=[('', 'Select your gender'), ('Female', 'Female'), ('Male', 'Male'), ('Other', 'Other'), ('Prefer not to say', 'Prefer not to say')])
-    role = SelectField("Role:", choices=[('', 'Select your role'), ('school-administrator', 'School Administrator'), ('teacher', 'Teacher'), ('student', 'Student'), ('part-time-student', 'Part-Time Student'), ('lifelong-learner', 'Lifelong Learner'), ('parent-guardian', 'Parent/Guardian'), ('homeschooling-parent', 'Homeschooling Parent'), ('tutor', 'Tutor'), ('curriculum-developer', 'Curriculum Developer'), ('educational-researcher', 'Educational Researcher'), ('educational-consultant', 'Educational Consultant'), ('instructional-designer', 'Instructional Designer'), ('academic-advisor', 'Academic Advisor'), ('admissions-counselor', 'Admissions Counselor'), ('school-counselor', 'School Counselor'), ('librarian', 'Librarian'), ('it-administrator', 'IT Administrator'), ('education-technology-specialist', 'Education Technology Specialist'), ('education-policy-maker', 'Education Policy Maker'), ('education-advocate-activist', 'Education Advocate/Activist'), ('other', 'Other')])
-    timezone = SelectField("Timezone:", choices=[(tz, tz) for tz in pytz.all_timezones]) # Don't forget to import pytz
-    contacted_email = BooleanField("Agree to be contacted by email")
-    subscribe = BooleanField("Sign up to our mailing list")
-
-class DeleteAccountForm(FlaskForm):
-    del_email = StringField('Email')
-    del_submit = SubmitField('Delete account')
-
-class UpdateProfilePicForm(FlaskForm):
-    profile_pic = FileField('Profile Picture', validators=[FileAllowed(['jpg', 'jpeg', 'png']), FileSize(max_size=1 * 1024 * 1024, message='File size must be less than 1 MB.')])
-    submit = SubmitField('Update Profile Picture')
-
-class FeedbackForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    type_feedback = SelectField('Feedback Type', choices=[('', ''),('general', 'General Feedback'), ('bug', 'Bug Report'), ('feature', 'Feature Request')])
-    message = TextAreaField('Message', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-class UpdateFileNameForm(FlaskForm):
-    new_name = StringField('New Name', [DataRequired()])
-    file_id = IntegerField('File ID', [InputRequired()])
-
-class SearchAndSortForm(FlaskForm):
-    name = StringField('Name')
-    search = StringField('Search')
-    sort = SelectField('Sort', choices=[
-        ('default', 'Default'),
-        ('name_asc', 'Name Ascending'),
-        ('name_desc', 'Name Descending'),
-        ('type', 'Type'),
-        ('date', 'Date')
-    ])
-
-
-class Share(FlaskForm):
-    emails = StringField('Emails', validators=[DataRequired()])
-    submit = SubmitField('Share')
-
-
-class BuildTest(FlaskForm):
-    name = StringField('Test Name', validators=[DataRequired()])
-    due_date = DateField('Due Date')
-    subject = StringField('Subject')
-    topic = StringField('Topic')
-    instructions = StringField('Instructions')
-    description = StringField('Description')
-    time_limit = StringField('Time Limit')
-    shuffle = BooleanField('Shuffle')
-    reveal_answers = BooleanField('Reveal Answers')
-    reveal_results = BooleanField('Reveal Results')
-
-
-class UpdateCardForm(FlaskForm):
-    question = StringField('Question', validators=[DataRequired()])
-    points = IntegerField('Points', validators=[DataRequired()])
-    category = SelectField('Category', choices=[('mcq', 'Multiple Choice'), ('saq', 'Short Answer')], validators=[DataRequired()])
-    answer = StringField('Answer', validators=[DataRequired()])
-    boc_2 = StringField('Option 2')
-    boc_3 = StringField('Option 3')
-    boc_4 = StringField('Option 4')
-
-class GroupForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired(), Length(min=1, max=100)])
-    description = TextAreaField('Description', validators=[DataRequired(), Length(min=1, max=500)])
-    group_type = SelectField('Group Type', validators=[DataRequired()], choices=[
-        ('', 'Select a group type'),
-        ('school', 'School'),
-        ('class', 'Class'),
-        ('department', 'Department'),
-        ('club', 'Club'),
-        ('other', 'Other')
-    ], default='')
-    is_private = BooleanField('Is Private')
-    submit = SubmitField('Create Group')
 
 @app.after_request
 def after_request(response):
@@ -422,7 +156,6 @@ def after_request(response):
     return response    
 
 
-print("APP STARTING2")
 
 @app.before_request
 def before_request():
@@ -542,6 +275,7 @@ def check_username(username):
         response.status_code = 200
         return response
     
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -871,6 +605,7 @@ def process_prompt_options_regen(card):
 @app.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])
 @login_required
 def get_due_cards(deck_id):
+    print("entered get due cards")
     c_deck_id = deck_id
     deck = Deck.query.get(clean(c_deck_id))
     ## later add in option to modify number of new cards to be shown
@@ -902,7 +637,7 @@ def new_user_settings():
 def new_user_settings_create():
     print("entered new user settings")
     data = request.get_json()
-    checked = clean(data.get('checked'))
+    checked = data.get('checked')
     if checked:
         print("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
@@ -916,7 +651,7 @@ def new_user_settings_create():
 def new_user_settings_viewdecks():
     print("entered new user settings")
     data = request.get_json()
-    checked = clean(data.get('checked'))
+    checked = data.get('checked')
     if checked:
         print("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
@@ -1187,17 +922,14 @@ def extract():
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
-        
     ## plan level requried for genereting images
     form = UploadFileForm()
-
     if form.validate_on_submit():
         now = datetime.utcnow().isoformat()
         deck, text, prompt_options = handle_form_submission(form)
+        print(text)
         tokens = count_tokens(text)
-
         texts = None
-        print(type(text))
         if text != None and len(text) > 0:      
             if perform_operation(current_user.id, prompt_options['main_opt'], tokens) == False:
                 flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
@@ -1215,17 +947,12 @@ def extract():
                     texts = [texts]
                 counter = 0
                 for text in texts:
-                    print(type(text))
-                    print(text)
                     total_len = len(texts)
                     counter = counter + 1
                     payload_dict = {'deck': deck.id, 'text': text, 'prompt_options': prompt_options}
                     payload = json.dumps(payload_dict)
                     current_user_id = current_user.id
                     slug = str(current_user_id) + now
-                    print("counter")
-                    print(counter)
-                    print(total_len)
                     task_type = prompt_options['main_opt']
                     data = Job(slug=slug, user = current_user_id, task_type=task_type, payload=payload, item_number = counter, item_quantity = total_len)
                     event_tracker(current_user.id, 'extract_start', 'success', payload)
@@ -1265,7 +992,10 @@ def get_or_create_deck(form, prompt_options):
     if form.deck_list.data:
         deck = form.deck_list.data
     else:
-        time = datetime.utcnow().isoformat()
+        time = datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ")
+
+
+
         deck_name = form.name.data or "".join(main_opt + " "+ "deck" +" "+ time)
         deck_description = form.description.data or "".join(main_opt + " " + "deck")
         deck = Deck(name=deck_name, description=deck_description)
@@ -2000,7 +1730,6 @@ def query():
     if data:
         task_type = data.task_type 
         deck_id = json.loads(data.payload)['deck']
-        print("deck id is", deck_id)
         # And return a response containing the state and the result
     num_completed = Job.query.filter_by(slug=job_id, state="completed").count()
     total_jobs = Job.query.filter_by(slug=job_id).order_by(Job.id.asc()).all()
@@ -2261,7 +1990,7 @@ def stripe_webhook():
         )
     except ValueError as e:
         # Invalid payload
-        current_app.logger.error("An exception occurred in stribe_webhook() route): %s", e)
+        logger.exception("An exception occurred in stribe_webhook() route): %s", e)
         return 'Invalid payload', 401
     except stripe.error.SignatureVerificationError as e:
         # Invalid signature

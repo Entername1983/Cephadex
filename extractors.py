@@ -385,9 +385,10 @@ def extract_from_wiki(wiki_url):
         page = requests.get(wiki_url)
         page.raise_for_status()  # Check for any HTTP request errors
         soup = BeautifulSoup(page.content, 'html.parser')
-
+        for a in soup.find_all('a'):
+            a.replace_with(a.text)
         # Remove unwanted elements
-        for tag in soup(['script', 'style', 'table', 'noscript', 'nav']):
+        for tag in soup(['script', 'style', 'table', 'noscript', 'nav', 'header', 'footer']):
             tag.extract()
         for elem in soup.find_all('sup', class_='reference'):
             elem.extract()
@@ -399,9 +400,15 @@ def extract_from_wiki(wiki_url):
             div.extract()
         for div in soup.find_all('div', class_='navbox'):
             div.extract()
+
+        for h2 in soup.find_all('h2', class_='section-heading'):
+            h2.extract()
         for ref in soup.find_all(class_='references'):
             ref.extract()
-
+        for tag in soup.select('.portalbox-entry, .firstHeading'):
+             tag.extract()
+        for tag in soup.select('#footer-info-lastmod, #footer-info-copyright, #footer-places-privacy, #footer-places-about, #footer-places-disclaimers, #footer-places-contact, #footer-places-terms-use, #footer-places-desktop-toggle, #footer-places-developers, #footer-places-statslink, #footer-places-cookiestatement'):
+            tag.extract()
         # Remove table of contents and language list
         for div in soup.find_all('div', {'id': 'toc'}):
             div.extract()
@@ -411,8 +418,9 @@ def extract_from_wiki(wiki_url):
             li.extract()
         for li in soup.find_all('li', {'id': 'toc'}):
             li.extract()
-        for li in soup.find_all('li', {'id': 'toc'}):
-            li.extract()
+        for li in soup.find_all('li'):
+            if li.find('a'):
+                li.extract()
         tags_to_extract = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'td']
         extracted_content = []
         for tag in tags_to_extract:
@@ -680,7 +688,7 @@ def send_question_generator(term, content, latest_paragraph, question):
     while retries < 3:
         try:
             sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
-            response = call_ai_terms(sys_instruct, prompt)
+            response = call_ai_terms_non_async(sys_instruct, prompt)
             response_ = response['choices'][0]['message']['content'].strip()
             print(response_)
             return response_
