@@ -15,3 +15,4 @@ static/files/*
 app.log
 test.py
 loggers.txt
+/Obsolete/*

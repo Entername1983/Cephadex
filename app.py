@@ -45,7 +45,7 @@ from celery import Celery
 import time
 import schedule
 from beta import BetaKeys
-from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS
+from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS, FLASK_DEBUG
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
 import configparser
@@ -74,7 +74,7 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
 endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET_TEST")
 
-os.environ["FLASK_DEBUG"] = "1"
+os.environ["FLASK_DEBUG"] = FLASK_DEBUG
 # Configure application
 app = Flask(__name__)
 app.config.from_object('config')
@@ -111,9 +111,11 @@ app.config['SECRET_KEY'] = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(logging.WARNING)
+werkzeug_logger.setLevel(logging.DEBUG)
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
@@ -141,8 +143,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-######################## WTFORMS ###########################################          
-
+logger.debug("app started")
 
 @app.after_request
 def after_request(response):
@@ -168,7 +169,7 @@ def index():
     terms = []
     if not current_user.is_authenticated:
         if form.validate_on_submit():
-            print("form validated")
+            logger.debug("form validated")
             text = clean(form.select_text.data)
             prompt_options = {
                 'main_opt': clean(form.prompt.data) or None,
@@ -183,13 +184,13 @@ def index():
                 'custom_term':  clean(form.custom_term.data) or None,
                 'custom_content': clean(form.custom_content.data) or None,
             }
-            print(prompt_options)
+            logger.debug(prompt_options)
             
             response = creator(text, prompt_options)
             terms = response[0]
             for item in terms:
-                print(item['A'])
-                print(item['B'])
+                logger.debug(item['A'])
+                logger.debug(item['B'])
             
             event_tracker(None, "tryout", json.dumps(prompt_options), json.dumps(terms))
             return render_template('index.html', form = form, terms = terms, option = prompt_options['main_opt'])
@@ -208,17 +209,17 @@ def index():
 def googleSignIn():
     #Security validation
     form = TryOut()
-    print("entered google sign in")
+    logger.debug("entered google sign in")
     csrf_token_cookie = request.cookies.get('g_csrf_token')
     if not csrf_token_cookie:
-        print('No CSRF token in Cookie.')#webapp2.abort(400, 'No CSRF token in Cookie.')
+        logger.debug('No CSRF token in Cookie.')#webapp2.abort(400, 'No CSRF token in Cookie.')
         return jsonify({'error': 'No CSRF token in Cookie'}), 400
     csrf_token_body = request.form.get('g_csrf_token')
     if not csrf_token_body:
-        print('No CSRF token in post body.')#webapp2.abort(400, 'No CSRF token in post body.')
+        logger.debug('No CSRF token in post body.')#webapp2.abort(400, 'No CSRF token in post body.')
         return jsonify({'error': 'No CSRF token in post body.'}), 400
     if csrf_token_cookie != csrf_token_body:
-        print('Failed to verify double submit cookie.')#webapp2.abort(400, 'Failed to verify double submit cookie.')
+        logger.debug('Failed to verify double submit cookie.')#webapp2.abort(400, 'Failed to verify double submit cookie.')
         return jsonify({'error': 'Failed to verify double submit cookie.'}), 400
     try:
         #encrypted credential
@@ -237,7 +238,7 @@ def googleSignIn():
             return redirect(url_for('viewdecks'))
         
         else:
-            print("entered not user, preparing to register")
+            logger.debug("entered not user, preparing to register")
             session['google_id_token'] = idinfo['sub']
             if idinfo.get('email'):
                 session['google_email'] = idinfo['email']
@@ -247,12 +248,12 @@ def googleSignIn():
                 session['given_name'] = idinfo['given_name']
             else: 
                 session['given_name'] = "Anonymous"
-            print(session['given_name'])
+            logger.debug(session['given_name'])
             if idinfo.get('family_name'):
                 session['family_name'] = idinfo['family_name']
             else: 
                 session['family_name'] = "Anonymous"
-            print(session['family_name'])
+            logger.debug(session['family_name'])
             return redirect(url_for('register'))
     
     except ValueError:
@@ -281,7 +282,7 @@ def check_username(username):
 def register():
     form = RegisterForm()
     if request.method == 'POST':
-        print("entered register post request")
+        logger.debug("entered register post request")
         # Get the user's name and password from the form data
         username = request.form['username']
         ##timezone = request.form['password']
@@ -293,8 +294,8 @@ def register():
         timezone = form.timezone.data
         if timezone == None:
             timezone = "Europe/Dublin"
-        print(contacted)
-        print(subscribe)
+        logger.debug(contacted)
+        logger.debug(subscribe)
         if contacted == 'contacted':
             contacted = True
         else:
@@ -357,8 +358,8 @@ def subscribe2():
         flash("You are already subscribed!")
         return jsonify({'status': 'failure', 'message': 'You are already subscribed!'})
     else:
-        print(email)
-        print("not subscribed, subscribing")
+        logger.debug(email)
+        logger.debug("not subscribed, subscribing")
         subscriber = Subscriber(email=email, first_name=first_name, last_name=last_name, timestamp = datetime.utcnow())
         db.session.add(subscriber)
         db.session.commit()
@@ -383,7 +384,7 @@ def viewdecks():
 
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings == None:
-        print("user settings not found")
+        logger.debug("user settings not found")
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
@@ -477,7 +478,7 @@ def account():
         user.role = form.role.data
         user.timezone = form.timezone.data
        ## user.contacted_email = form.contacted_email.data
-        ###print("contacted", form.contacted_email.data)
+        ###logger.debug("contacted", form.contacted_email.data)
         db.session.commit()
         if form.subscribe.data:
             if not subscriber:
@@ -501,10 +502,10 @@ def update_profile_pic():
     form = UpdateProfilePicForm()
 
     if form.validate_on_submit():
-        print("form validated")
+        logger.debug("form validated")
         profile_picture = form.profile_pic.data
         if profile_picture:
-            print("recognized file")
+            logger.debug("recognized file")
             # Generate a random and secure filename
             filename = secure_filename(profile_picture.filename)
 
@@ -550,14 +551,14 @@ def deletecard(deck_id, card_id):
 def downloadascsv(deck_id):
     c_deck_id = deck_id
     event_tracker(current_user.id, "downloadascsv")
-    print("entered download as csv")
+    logger.debug("entered download as csv")
     deck = Deck.query.filter_by(id=c_deck_id).first()
     if(current_user.id != deck.user_id):
        return jsonify({'error': 'Deck not assigned to user'}), 403
     termsstrings = []
     for card in deck.cards:
-        print("entered cards")
-        print(card.term)
+        logger.debug("entered cards")
+        logger.debug(card.term)
         if card.boc_2 == None:
             card.boc_2 = "null"
         if card.boc_3 == None:
@@ -582,11 +583,11 @@ def regenerate_def():
     card.content = content
     try:
         db.session.commit()
-        print("card updated succesfully")
-        print(card.id)
-        print(card.content)
+        logger.debug("card updated succesfully")
+        logger.debug(card.id)
+        logger.debug(card.content)
     except:
-        print("An error occurred while updating the card")      
+        logger.debug("An error occurred while updating the card")      
     return jsonify({'content': content})
 
 def process_prompt_options_regen(card):
@@ -605,7 +606,7 @@ def process_prompt_options_regen(card):
 @app.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])
 @login_required
 def get_due_cards(deck_id):
-    print("entered get due cards")
+    logger.debug("entered get due cards")
     c_deck_id = deck_id
     deck = Deck.query.get(clean(c_deck_id))
     ## later add in option to modify number of new cards to be shown
@@ -620,14 +621,14 @@ def get_due_cards(deck_id):
 @app.route("/new_user_settings", methods = ["POST", "GET"])
 @login_required
 def new_user_settings():
-    print("entered new user settings")
+    logger.debug("entered new user settings")
     data = request.get_json()
     checked = data.get('checked')
     if checked:
-        print("option is checked")
+        logger.debug("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user_study = False
-        print(user_settings.new_user_study)
+        logger.debug(user_settings.new_user_study)
         db.session.add(user_settings)
         db.session.commit()
     return jsonify({'success': True})
@@ -635,11 +636,11 @@ def new_user_settings():
 @app.route("/new_user_settings_create", methods = ["POST", "GET"])
 @login_required
 def new_user_settings_create():
-    print("entered new user settings")
+    logger.debug("entered new user settings")
     data = request.get_json()
     checked = data.get('checked')
     if checked:
-        print("option is checked")
+        logger.debug("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user = False
         db.session.add(user_settings)
@@ -649,11 +650,11 @@ def new_user_settings_create():
 @app.route("/new_user_settings_viewdecks", methods = ["POST", "GET"])
 @login_required
 def new_user_settings_viewdecks():
-    print("entered new user settings")
+    logger.debug("entered new user settings")
     data = request.get_json()
     checked = data.get('checked')
     if checked:
-        print("option is checked")
+        logger.debug("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user_decks = False
         db.session.add(user_settings)
@@ -667,7 +668,7 @@ def study_deck(deck_id):
     c_deck_id = deck_id
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings == None:
-        print("user settings not found")
+        logger.debug("user settings not found")
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
@@ -848,7 +849,7 @@ def carousel(deck_id):
 @app.route("/edit_card", methods=["POST"])
 @login_required
 def edit_card():
-    print("edit_card")
+    logger.debug("edit_card")
     form = DeckOrg(request.form)
 
     if form.validate():
@@ -899,7 +900,7 @@ def delete_account():
 @login_required
 def import_public_deck(deck_id):
     c_deck_id = deck_id
-    print("entered public decks")
+    logger.debug("entered public decks")
     deck = Deck.query.filter_by(id=c_deck_id, public=True).first()
     if deck is None:
         return apology("Deck not found", 404)
@@ -910,7 +911,7 @@ def import_public_deck(deck_id):
             new_card = Card(term=card.term, content=card.content, boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img, sound=card.sound, subject=card.subject, topic=card.topic, category=card.category, prompt_option=card.prompt_option, prompt_option2=card.prompt_option2, trans_option=card.trans_option, len_option=card.len_option, qmin_option=card.qmin_option, qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
             shared_deck.cards.append(new_card)
         db.session.commit()
-        print(shared_deck)
+        logger.debug(shared_deck)
     return jsonify({"success": True})
 
 @app.route("/extract", methods = ["GET", "POST"])
@@ -918,50 +919,55 @@ def import_public_deck(deck_id):
 def extract():
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings == None:
-        print("user settings not found")
+        logger.debug("user settings not found")
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
     ## plan level requried for genereting images
     form = UploadFileForm()
     if form.validate_on_submit():
-        now = datetime.utcnow().isoformat()
-        deck, text, prompt_options = handle_form_submission(form)
-        print(text)
-        tokens = count_tokens(text)
-        texts = None
-        if text != None and len(text) > 0:      
-            if perform_operation(current_user.id, prompt_options['main_opt'], tokens) == False:
-                flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
-                event_tracker(current_user.id, 'extract_start', 'fail', "limit_reached")
-                return redirect(url_for('upgrade'))
-            else:
-                if prompt_options['save_text_opt'] == True:
-                    method = "Source"
-                    deck_name = deck.name + " - Source" + " - " + now
-                    save_source_text_to_deck(deck_name, deck, text, prompt_options, method)
+        try:
+            now = datetime.utcnow().isoformat()
+            deck, text, prompt_options = handle_form_submission(form)
+            logger.debug(text)
+            tokens = count_tokens(text)
+            texts = None
+            if text != None and len(text) > 0:      
+                if perform_operation(current_user.id, prompt_options['main_opt'], tokens) == False:
+                    flash('You have reached your monthly usage limit. Please upgrade your account to continue.')
+                    event_tracker(current_user.id, 'extract_start', 'fail', "limit_reached")
+                    return redirect(url_for('upgrade'))
+                else:
+                    if prompt_options['save_text_opt'] == True:
+                        method = "Source"
+                        deck_name = deck.name + " - Source" + " - " + now
+                        save_source_text_to_deck(deck_name, deck, text, prompt_options, method)
 
-                texts= split_text(text)
+                    texts= split_text(text)
 
-                if not isinstance(texts, list):
-                    texts = [texts]
-                counter = 0
-                for text in texts:
-                    total_len = len(texts)
-                    counter = counter + 1
-                    payload_dict = {'deck': deck.id, 'text': text, 'prompt_options': prompt_options}
-                    payload = json.dumps(payload_dict)
-                    current_user_id = current_user.id
-                    slug = str(current_user_id) + now
-                    task_type = prompt_options['main_opt']
-                    data = Job(slug=slug, user = current_user_id, task_type=task_type, payload=payload, item_number = counter, item_quantity = total_len)
-                    event_tracker(current_user.id, 'extract_start', 'success', payload)
-                    if counter == total_len:
-                        session['slug'] = slug
-                    db.session.add(data)
-                    db.session.commit()
-                flash('Your cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
-        return redirect('/viewdecks')
+                    if not isinstance(texts, list):
+                        texts = [texts]
+                    counter = 0
+                    for text in texts:
+                        total_len = len(texts)
+                        counter = counter + 1
+                        payload_dict = {'deck': deck.id, 'text': text, 'prompt_options': prompt_options}
+                        payload = json.dumps(payload_dict)
+                        current_user_id = current_user.id
+                        slug = str(current_user_id) + now
+                        task_type = prompt_options['main_opt']
+                        data = Job(slug=slug, user = current_user_id, task_type=task_type, payload=payload, item_number = counter, item_quantity = total_len)
+                        event_tracker(current_user.id, 'extract_start', 'success', payload)
+                        if counter == total_len:
+                            session['slug'] = slug
+                        db.session.add(data)
+                        db.session.commit()
+                    flash('Your cards are being created, once finished they will appear in your decks.  In the meantime feel free to create more decks or start studying!')
+            return redirect('/viewdecks')
+        except Exception as e:
+            logger.error(e)
+            flash('Something went wrong. Please try again.')
+            return redirect('/extract')
     return render_template("extract.html", title="Extract", form=form, settings = user_settings)
 
 ## Functions for extract:
@@ -1015,7 +1021,7 @@ def get_text_from_form_input(form):
     return text
 
 def save_source_text_to_deck(name, deck, text, prompt_options, method="extract"):
-    print("entered save_source_text_to_deck", deck, text, prompt_options, method)
+    logger.debug("entered save_source_text_to_deck %s", deck)
     try:
         main_opt = prompt_options['main_opt']
         f_name = name
@@ -1024,7 +1030,7 @@ def save_source_text_to_deck(name, deck, text, prompt_options, method="extract")
         deck.deck_files.append(file_storage)
         db.session.commit()
     except Exception as e:
-        print(f"Error while saving source text to deck: {e}")
+        logger.debug(f"Error while saving source text to deck: {e}")
         db.session.rollback()
     return True
 
@@ -1048,7 +1054,7 @@ def get_text_from_file(file_data):
         os.remove(file_loc)
         return text
     except Exception as e:
-        print(f"Error occurred while processing file: {e}")
+        logger.debug(f"Error occurred while processing file: {e}")
         return None
     
 def get_text_from_link(link_input):
@@ -1080,7 +1086,7 @@ def get_text_from_link(link_input):
                 text = extract_from_youtube(link_input)
         return text
     except Exception as e:
-        print(f"Error occurred while processing link: {e}")
+        logger.debug(f"Error occurred while processing link: {e}")
         return None
 
 
@@ -1098,7 +1104,7 @@ def sea_dox(deck_id):
         return apology("You do not have permission to view this deck", 403)
     ##files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by(DeckFiles.file_name.desc()).all()
     if request.method == 'GET':
-        print("entered get request")
+        logger.debug("entered get request")
         search_query = None
         sort_method = search_and_sort_form.sort.data
         search_query = request.args.get('search', '')
@@ -1154,7 +1160,7 @@ def download_source(file_id):
 def delete_file(deck_id, file_id):
     c_deck_id = deck_id
     c_file_id = file_id
-    print("entered delete file")
+    logger.debug("entered delete file")
     event_tracker(current_user.id, "delete_file", c_file_id)
     file = DeckFiles.query.get_or_404(c_file_id)
     deck = Deck.query.get_or_404(c_deck_id)
@@ -1220,7 +1226,7 @@ def approve_shared(deck_id):
 def reject_shared(deck_id):
     c_deck_id = deck_id
     event_tracker(current_user.id, "reject_shared", c_deck_id)
-    print("entered reject shared")
+    logger.debug("entered reject shared")
     shared_deck = SharedDecks.query.get_or_404(c_deck_id)
     shared_deck.delete()
     db.session.commit()
@@ -1261,10 +1267,10 @@ def build_test(deck_id):
         new_test = Test(creator=current_user.id, deck_id = deck.id)
         db.session.add(new_test)
         new_test.name = name
-        print(new_test.name)
+        logger.debug(new_test.name)
         for question in test_questions:
-            print("Entering question in test questions")
-            print(question)
+            logger.debug("Entering question in test questions")
+            logger.debug(question)
             card = Card.query.get_or_404(question)
             question = Question()
             db.session.add(question)
@@ -1299,9 +1305,9 @@ def assign_test(test_id):
     form = BuildTest()
     event_tracker(current_user.id, "assign_test", c_test_id)
     test = Test.query.get_or_404(c_test_id)
-    print(request.form)
+    logger.debug(request.form)
     if request.method == 'POST' and 'name' in request.form:
-        print("entered post request3")
+        logger.debug("entered post request3")
         test.name = form.name.data
         test.creator = current_user.id
         due_date = request.form['due_date']
@@ -1347,7 +1353,7 @@ def update_card():
             question.term = clean(data['answer'])
         if data['answer'] != '':
             question.content = clean(data['answer'])
-        print(data['answer'])
+        logger.debug(data['answer'])
         if data['points'] != '':
             question.points = data['points']
 
@@ -1360,7 +1366,7 @@ def update_card():
         db.session.commit()
         return jsonify(success=True)
     except Exception as e:
-        print("Error while updating the question:", e)
+        logger.debug("Error while updating the question:", e)
         return jsonify(success=False, error=str(e))
 
 
@@ -1399,7 +1405,7 @@ def assign(test_id, user_email):
     test.sum_points()
     not_users = []
     if check_comma_list(c_user_email):
-        print(user_email)
+        logger.debug(user_email)
         users_emails = user_email.split(",")
         for email in users_emails:
             email = unquote(email).strip()
@@ -1460,7 +1466,7 @@ def take_test(test_id, user_id):
 
 @app.route('/reject_test/<int:test_id>/<int:user_id>', methods=['DELETE'])
 def reject_test(test_id, user_id):
-    print("entered reject test")
+    logger.debug("entered reject test")
     distribution_entry = distribution.delete().where(
         (distribution.c.test_id == test_id) & (distribution.c.taker_id == user_id)
     )
@@ -1489,7 +1495,6 @@ def test_results(test_id, user_id):
             answer_expected = remove_punctuation(question.content).lower().strip()
         elif question.q_type == "mcq":
             answer_expected = remove_punctuation(question.content).lower().strip()
-        print(answer_given, answer_expected)
         matcher = difflib.SequenceMatcher(None, answer_given.lower(), answer_expected.lower())
         if matcher.ratio() > 0.9:
             point_counter += question.points
@@ -1629,7 +1634,7 @@ def import_deck():
 @app.route('/import_anki', methods=['POST'])
 @login_required
 def import_anki():
-    print("entered import_anki")
+    logger.debug("entered import_anki")
     data = request.json
     for card in data:
         deck_name = clean(card['deckName'])
@@ -1663,7 +1668,7 @@ def export_deck(deck_id):
     try:
         request_anki_permission()
     except:
-        print("anki permission NOT GRANTED")
+        logger.debug("anki permission NOT GRANTED")
         return apology("Anki did not grant permission")
     if check_anki_connect() == True:
         deck = Deck.query.get_or_404(c_deck_id)
@@ -1675,7 +1680,7 @@ def export_deck(deck_id):
         for card in cards:
             query = card.term
             notes = find_notes(query)
-            print(notes)
+            logger.debug(notes)
             if notes == False:
                 srs_interval = str(int(card.srs_interval/1440))
                 anki_create_card(deck.name, card.term, card.content)
@@ -1693,7 +1698,7 @@ def export_deck(deck_id):
 @login_required
 def get_deck_data(deck_id):
     c_deck_id = deck_id
-    print("entered get_deck_data")
+    logger.debug("entered get_deck_data")
     deck_name = Deck.query.get_or_404(c_deck_id).name
     cards = Deck.query.get_or_404(c_deck_id).cards
     card_list = []
@@ -1766,14 +1771,14 @@ def assemble_file(total_jobs, deck_id, task_type):
             deck.deck_files.append(file_storage)
             db.session.commit()
     except:
-        print("error assembling file")
+        logger.debug("error assembling file")
 
 
 
 @app.route("/notification_complete", methods=["POST"])
 @login_required
 def notification_complete():
-    print("entered notification")
+    logger.debug("entered notification")
     slug_id= clean(request.form["id"])
     slug = Job.query.filter_by(slug=slug_id).first()
     jobs = Job.query.filter_by(slug=slug.slug).all()
@@ -1808,7 +1813,7 @@ def documentation():
 def perform_operation(user_id, operation_type, n):
     # Check the user's remaining count for this time period
     user = User.query.filter_by(id=user_id).first()
-    print("checking operation", operation_type, n)
+    logger.debug("checking operation %s, %s", operation_type, n)
     sub_start_date = current_user.subscription_start_date
     usage_record = UsageRecord.query.filter_by(user_id=user.id).order_by(UsageRecord.date.desc()).first()
     subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()
@@ -1882,7 +1887,7 @@ def why_wrong_builder(card_id):
 @login_required
 def send_question(card_id):
     c_card_id = card_id
-    print("send question")
+    logger.debug("send question")
     card = Card.query.filter_by(id=c_card_id).first()
     latest_paragraph = clean(request.form.get('latest_paragraph'))
     question = clean(request.form.get('question'))
@@ -1974,13 +1979,14 @@ counter = 0
 
 @app.route("/stripe_webhook", methods=['POST'])
 def stripe_webhook():
+    logger.debug("entered webhook")
     valid_events = ['checkout.session.completed', 'invoice.paid', 'invoice.payment_failed', 'invoice.payment_succeeded',
                     'customer.subscription.deleted', 'customer.subscription.updated', 'customer.subscription.created',
                     'customer.subscription.trial_will_end','customer.subscription.updated', 'customer.updated'
                     ]
     global counter
     counter += 1
-    print(f"Webhook call #{counter}")
+    logger.debug(f"Webhook call #{counter}")
     payload = request.data.decode('utf-8')
     sig_header = request.headers.get('stripe-signature')
     event = None
@@ -1994,8 +2000,8 @@ def stripe_webhook():
         return 'Invalid payload', 401
     except stripe.error.SignatureVerificationError as e:
         # Invalid signature
-        print(f"Signature verification error: {str(e)}")
-        current_app.logger.error("An exception occurred in stribe_webhook() route): %s", e)
+        logger.debug(f"Signature verification error: {str(e)}")
+        logger.error("An exception occurred in stribe_webhook() route): %s", e)
 
         return 'Invalid signature', 402
     # Handle the checkout.session.completed event
@@ -2006,14 +2012,14 @@ def stripe_webhook():
 
     else:
         # Unknown event type
-        print("unused event type", event['type'])
+        logger.debug("unused event type %s", event['type'])
         return 'Unused event type', 200
     return 'Success', 200
 
 def process_event_in_background(event):
     try:
-        print('entered process_event_in_background')
-        print("event type", event['type'])
+        logger.debug('entered process_event_in_background')
+        logger.debug("unused event type: %s", event['type'])
         stripe_event_id = event['id']
         event_type = event['type']
         event_data = json.dumps(event)
@@ -2024,7 +2030,7 @@ def process_event_in_background(event):
             user_id = None
         if event['type'] != 'customer.updated':
             stripe_customer_id = event['data']['object']['customer']
-            print("CUSTOMER ID", event['data']['object']['customer'])
+            logger.debug("CUSTOMER ID %s", event['data']['object']['customer'])
 
         else:
             stripe_customer_id = None
@@ -2040,7 +2046,7 @@ def process_event_in_background(event):
         db.session.add(stripe_event)
         db.session.commit()
     except:
-        current_app.logger.error("An exception occurred in process_event_background function): %s", e)
+        logger.error("An exception occurred in process_event_background function): %s", e)
         pass
     
     if event['type'] == 'checkout.session.completed':
@@ -2048,15 +2054,15 @@ def process_event_in_background(event):
         # Add a small delay to give the webhook function enough time to return a response
         time.sleep(1)
         # Store the event data in the StripeEvents table
-        print("event type", event['type'])
+        logger.debug("unused event type: %s", event['type'])
         stripe_event_id = event['id']
         event_type = event['type']
         event_data = json.dumps(event)
         created_at = datetime.utcnow()
         user_id = event['data']['object']['client_reference_id']
         stripe_customer_id = event['data']['object']['customer']
-        print("CLIENT REF ID", event['data']['object']['client_reference_id'])
-        print("CUSTOMER ID", event['data']['object']['customer'])
+        logger.debug("CLIENT REF ID %s", event['data']['object']['client_reference_id'])
+        logger.debug("CUSTOMER ID %s", event['data']['object']['customer'])
 
         stripe_event = StripeEvents(
             stripe_event_id=stripe_event_id,
@@ -2099,7 +2105,7 @@ def process_event_in_background(event):
 def associate_stripe_customer_with_user(event):
     try:
         idempo = str(uuid.uuid4())
-        print("associating stripe customer with user")
+        logger.debug("associating stripe customer with user")
         user_id = event['data']['object']['client_reference_id']
         stripe_customer_id = event['data']['object']['customer']
         ## modify user entry in DB
@@ -2113,13 +2119,12 @@ def associate_stripe_customer_with_user(event):
             )
         db.session.commit()
     except Exception as e:
-        print("error associating stripe customer with user", e)
-        current_app.logger.error("An exception occurred in associate_stripe_customer_with_user function): %s", e)
+        logger.debug("error associating stripe customer with user %s", e)
 
         raise
 
 def handle_checkout_session(event):
-    print('entered handle_checkout_session')
+    logger.debug('entered handle_checkout_session')
     plans_dict = {
     'price_1N6yvqGXWJkeH44yvvt9kDGl':'premium_yearly',
     'price_1N6yvbGXWJkeH44ycLdsgr1z': 'premium_monthly', 
@@ -2128,7 +2133,7 @@ def handle_checkout_session(event):
     }
     # Extract customer ID and subscription ID from the invoice object
     customer_id = event['data']['object']['customer']
-    print("recognized customer id as", customer_id)
+    logger.debug("recognized customer id as %s", customer_id)
     ##subscription_id = event['data']['object']['subscription']
     checkout_session_id = event['data']['object']['id']
     line_items = stripe.checkout.Session.list_line_items(checkout_session_id)
@@ -2136,35 +2141,35 @@ def handle_checkout_session(event):
     # Look up the user in your database using the customer ID
     user = User.query.filter_by(stripe_customer_id=customer_id).first()
 
-    print('user is: ', user)
+    logger.debug('user is:  %s', user)
     if line_items.data:
-        print("entered line_items.data")
+        logger.debug("entered line_items.data")
         # Assuming there is only one line item
         item = line_items.data[0]
         product_id = item['price']['product']        
         price_id = item['price']['id']
-        print(price_id)
-        print("product_id",product_id)
+        logger.debug(price_id)
+        logger.debug("product_id %s",product_id)
         # Retrieve the product details from Stripe API
         product = stripe.Product.retrieve(product_id)
         product_name = product['name']
-        print("product_name",product_name)
+        logger.debug("product_name %s",product_name)
         plan = plans_dict[price_id]
-        print(plan)
+        logger.debug(plan)
     try:
         if user:
             update_plan(user, plan)
 
     except Exception as e:
             ## log user not found error
-            print("user not found")
-            current_app.logger.error(f"Exception occurred in handle_checkout_session: {str(e)}")
+            logger.debug("user not found")
+            logger.error(f"Exception occurred in handle_checkout_session: {str(e)}")
             
             raise e
 
 
 def update_plan(user,plan):
-    print('entered update_plan')
+    logger.debug('entered update_plan')
     try:
         if plan == 'basic_yearly':
             user.subscription_plan = 6
@@ -2188,12 +2193,12 @@ def update_plan(user,plan):
             user.subscription_latest_roll_over = datetime.utcnow()
             set_usage_limit(user, 2048000)
         else:
-            print("plan not found")
-        print(user.id, user.subscription_plan)
+            logger.debug("plan not found")
+        logger.debug("%s, %s", user.id, user.subscription_plan)
         db.session.commit()
     except Exception as e:
-        print(e)
-        print("error updating plan")
+        logger.debug(e)
+        logger.debug("error updating plan")
         raise e
 
 
@@ -2233,10 +2238,10 @@ def my_groups():
 @app.route('/create_group', methods=['POST'])
 @login_required
 def create_group():
-    print("create group")
+    logger.debug("create group")
     form = GroupForm(request.form)
     if form.validate():
-        print("form validated")
+        logger.debug("form validated")
         name = form.name.data
         description = form.description.data
         group_type = form.group_type.data
@@ -2249,15 +2254,15 @@ def create_group():
         db.session.commit()
         
         update_member_permissions(new_group.id, user_id, "write")
-        print("where")
+        logger.debug("where")
         db.session.commit()
         success_response = jsonify({'message': 'Group created successfully'}), 201
         
-        print("Success response:", success_response)  # Log the success response
+        logger.debug("Success response: %s", success_response)  # Log the success response
         return success_response
     else:
-        print("form not validated")
-        print("Form errors:", form.errors)  # Log the form errors
+        logger.debug("form not validated")
+        logger.debug("Form errors: %s", form.errors)  # Log the form errors
         errors = form.errors
         return jsonify(errors), 400
 
@@ -2271,7 +2276,7 @@ def invite_group():
     if check_comma_list(user_email):
         users_emails = user_email.split(",")
         for email in users_emails:
-            print("user email", email)
+            logger.debug("user email %s", email)
             email = unquote(email).strip()
             user = User.query.filter_by(email=email).first()
             already_invited = GroupInvite().query.filter_by(user_id=user.id, group_id=group_id).first()
@@ -2416,23 +2421,23 @@ def group(group_id):
 @app.route('/group/<int:group_id>/update_member_permissions', methods=['POST'])
 @login_required
 def update_member_permissions(group_id, user_id = None, permission = None):
-    print("entered member permissions update")
+    logger.debug("entered member permissions update")
     c_group_id = group_id
     if user_id:
-        print("user id is", user_id)
+        logger.debug("user id is %s", user_id)
         target_user_id = user_id
     else:
         data = request.json
 
         target_user_id = int(data['target_user_id'])
     if permission:
-        print("permission is", permission)
+        logger.debug("permission is %s", permission)
         new_permissions = permission
     else:
         new_permissions = data['new_permissions']
     # Check if the current user is the creator of the group
     group = Group.query.get(c_group_id)
-    print("group is", group)
+    logger.debug("group is %s", group)
     user_id = current_user.id
     if group.creator_id == user_id:
         # Update the target user's permissions
@@ -2450,7 +2455,7 @@ def update_member_permissions(group_id, user_id = None, permission = None):
             "status": "error",
             "message": "You do not have permission to update member permissions"
         }
-    print(response)
+    logger.debug(response)
     return jsonify(response)
 
 @app.route('/search_public_decks', methods=['POST'])
@@ -2487,7 +2492,7 @@ def check_group_write_permission(group_id):
     if association and association.permissions and 'write' in association.permissions:
         return True
     else:
-        print("no permission to edit")
+        logger.debug("no permission to edit")
         return False
 
 @app.route("/delete_group/<int:group_id>/", methods=["GET", "POST"])
@@ -2526,7 +2531,7 @@ def import_from_group(deck_id, group_id):
 @app.route("/remove_user_group/<int:group_id>/<int:user_id>", methods=["GET", "POST"])
 @login_required
 def remove_user_group(group_id, user_id):
-    print("remove user group")
+    logger.debug("remove user group")
     c_group_id = group_id
     c_user_id = user_id
     group = Group.query.get(c_group_id)
@@ -2556,7 +2561,7 @@ def split_string(string):
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=DEBUG)
 else:
     # For Alembic
     from models import db

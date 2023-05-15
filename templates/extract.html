@@ -63,7 +63,7 @@
 </div>
 </div>
 <div class="container box_study">
-    <form method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data" , onsubmit="showSpinner()">
+    <form id = "extract-form" method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data", onsubmit="showSpinner()">
         {{form.hidden_tag()}}
         {{ form.csrf_token }}
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
@@ -96,6 +96,8 @@
                         <div class="input-group">
                             {{form.file(id="file-input", class="form-control")}}
                             <label class="input-group-text" for="file-input">Upload</label>
+                            <div style="color:red" id="error-message"></div>
+
                         </div>
 
                         <h6 class="mb-1"> Paste some text</h6>
@@ -251,7 +253,8 @@
         <button type="submit" id="hidden-submit-btn" style="display: none;"></button>
 
         <div class="row justify-content-end">
-
+    <div id = "extract-spinner" class="spinner-grow text-info m-3" role="status" color="#FF6700!important"style="display: none;" >
+        </div>
             {{form.submit(id="generate-btn", class=" btn-generate form-control form-control-lg", style
             = "max-width: 200px", disabled="disabled")}}
         </div>
@@ -259,6 +262,50 @@
 </div>
 </form>
 </div>
+
+
+<script>
+    $(document).ready(function() {
+        var fileInput = $('#file-input')[0];
+    
+        fileInput.addEventListener('change', function() {
+            // reset custom validity
+            fileInput.setCustomValidity('');
+    
+            var file = fileInput.files[0];
+    
+            // check file size
+            var maxSize = 80 * 1024 * 1024;  // 80MB in bytes
+            if (file.size > maxSize) {
+                fileInput.setCustomValidity('File is too large. Maximum size is 80MB.');
+                displayError(fileInput.validationMessage);
+                return;
+            }
+    
+            // check file type
+            var allowedTypes = ["mp3", "wav", "pdf", "docx", "doc", "ppt", "pptx", "txt"];
+            var fileType = file.name.split('.').pop().toLowerCase();
+            if (!allowedTypes.includes(fileType)) {
+                fileInput.setCustomValidity('Invalid file type. Allowed types are: ' + allowedTypes.join(", "));
+                displayError(fileInput.validationMessage);
+                return;
+            }
+    
+            // Clear error message when file is valid
+            displayError('');
+        });
+    
+        function displayError(message) {
+            $('#error-message').text(message);
+            if (message !== '') {
+            // clear the input field if there is an error
+            fileInput.value = '';
+        }
+        }
+    });
+    </script>
+
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         console.log("loaded")
