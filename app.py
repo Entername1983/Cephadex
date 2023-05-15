@@ -75,7 +75,7 @@ os.environ["FLASK_DEBUG"] = "1"
 app = Flask(__name__)
 app.config.from_object('config')
 
-"""""
+
 ### AUTO ESCAPE"
 jinja_options = ImmutableDict(
  extensions=[
@@ -83,7 +83,7 @@ jinja_options = ImmutableDict(
  ])
 
 app.jinja_env.autoescape = True
-"""""
+
 
 ### BLEACH ALLOWED TAGS
 ALLOWED_TAGS = [    'a', 'abbr', 'acronym', 'b', 'br', 'code', 'em', 'i', 'li',    'ol', 'strong', 'ul', 'p', 'pre', 'blockquote', 'hr', 'img',    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'div',    'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
