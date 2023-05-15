@@ -113,6 +113,7 @@ werkzeug_logger.warning('warn message')
 werkzeug_logger.error('error message')
 werkzeug_logger.critical('critical message')
 
+logger = logging.getLogger(__name__)
 
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
@@ -542,8 +543,59 @@ def check_username(username):
         return response
     
 
-
-
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    form = RegisterForm()
+    if request.method == 'POST':
+        print("entered register post request")
+        # Get the user's name and password from the form data
+        username = request.form['username']
+        ##timezone = request.form['password']
+        ##role = request.form['role']
+        contacted = request.form.get('contacted')
+        subscribe = request.form.get('subscribe')
+        betakey = request.form.get('betakey')
+        role = request.form.get('role')
+        timezone = form.timezone.data
+        if timezone == None:
+            timezone = "Europe/Dublin"
+        print(contacted)
+        print(subscribe)
+        if contacted == 'contacted':
+            contacted = True
+        else:
+            contacted = False
+        # Get the user's email address and ID token from the session
+        email = session['google_email']
+        userid= session['google_id_token']
+        given_name = session['given_name']
+        family_name = session['family_name']
+        account_type = "free"
+        subscription_plan = 1
+        if betakey:
+            if betakey in BetaKeys:
+                subscription_plan = 3
+                account_type = betakey
+            else:
+                return apology("Invalid Beta Key", 403)
+        user = User(email=email, first_name=given_name, account_type = account_type, last_name=family_name,external_id=userid,
+                    external_type='google', subscription_plan = subscription_plan, contacted_email=contacted, username=username,
+                    timezone = timezone, subscription_start_date = datetime.utcnow(), role = role)
+        user_settings = UserSettings(user=user.id)
+        if subscribe == "subscribe":
+            sub_exists = Subscriber.query.filter_by(email=email).first()
+            if not sub_exists:
+                timestamp = datetime.utcnow()
+                subscriber = Subscriber(email=email, first_name=given_name, last_name=family_name, timestamp = timestamp)
+                db.session.add(subscriber)
+        event_tracker(user.id, "register", "google")
+        db.session.add(user_settings)
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+        flash("You have been registered and logged in!", "success")
+        return redirect(url_for('viewdecks'))
+    return render_template('register.html', title='Register', form = form)
 
 
 
@@ -2209,16 +2261,19 @@ def stripe_webhook():
         )
     except ValueError as e:
         # Invalid payload
+        current_app.logger.error("An exception occurred in stribe_webhook() route): %s", e)
         return 'Invalid payload', 401
     except stripe.error.SignatureVerificationError as e:
         # Invalid signature
         print(f"Signature verification error: {str(e)}")
+        current_app.logger.error("An exception occurred in stribe_webhook() route): %s", e)
+
         return 'Invalid signature', 402
     # Handle the checkout.session.completed event
     if event['type'] in valid_events:
         # Fulfill the purchase...
-        bg_thread = Thread(target=process_event_in_background, args=(event, app))
-        bg_thread.start()
+        process_event_in_background(event)
+        
 
     else:
         # Unknown event type
@@ -2226,8 +2281,8 @@ def stripe_webhook():
         return 'Unused event type', 200
     return 'Success', 200
 
-def process_event_in_background(event, app):
-    with app.app_context():
+def process_event_in_background(event):
+    try:
         print('entered process_event_in_background')
         print("event type", event['type'])
         stripe_event_id = event['id']
@@ -2255,46 +2310,52 @@ def process_event_in_background(event, app):
         )
         db.session.add(stripe_event)
         db.session.commit()
+    except:
+        current_app.logger.error("An exception occurred in process_event_background function): %s", e)
+        pass
+    
+    if event['type'] == 'checkout.session.completed':
+        associate_stripe_customer_with_user(event)
+        # Add a small delay to give the webhook function enough time to return a response
+        time.sleep(1)
+        # Store the event data in the StripeEvents table
+        print("event type", event['type'])
+        stripe_event_id = event['id']
+        event_type = event['type']
+        event_data = json.dumps(event)
+        created_at = datetime.utcnow()
+        user_id = event['data']['object']['client_reference_id']
+        stripe_customer_id = event['data']['object']['customer']
+        print("CLIENT REF ID", event['data']['object']['client_reference_id'])
+        print("CUSTOMER ID", event['data']['object']['customer'])
 
-        if event['type'] == 'checkout.session.completed':
-            associate_stripe_customer_with_user(event)
-            # Add a small delay to give the webhook function enough time to return a response
-            time.sleep(1)
-            # Store the event data in the StripeEvents table
-            print("event type", event['type'])
-            stripe_event_id = event['id']
-            event_type = event['type']
-            event_data = json.dumps(event)
-            created_at = datetime.utcnow()
-            user_id = event['data']['object']['client_reference_id']
-            stripe_customer_id = event['data']['object']['customer']
-            print("CLIENT REF ID", event['data']['object']['client_reference_id'])
-            print("CUSTOMER ID", event['data']['object']['customer'])
+        stripe_event = StripeEvents(
+            stripe_event_id=stripe_event_id,
+            event_type=event_type,
+            event_data=event_data,
+            event_created=created_at,
+            user_id=user_id,
+            stripe_customer_id=stripe_customer_id,
+        )
+        db.session.add(stripe_event)
+        db.session.commit()
+        try:
+            # Your event processing logic
+            handle_checkout_session(event)
+            # Update the event as processed in the StripeEvents table
+            stripe_event.processed = True
+            stripe_event.processed_at = datetime.utcnow()
 
-            stripe_event = StripeEvents(
-                stripe_event_id=stripe_event_id,
-                event_type=event_type,
-                event_data=event_data,
-                event_created=created_at,
-                user_id=user_id,
-                stripe_customer_id=stripe_customer_id,
-            )
-            db.session.add(stripe_event)
+        except Exception as e:
+            # Update the StripeEvents table with the error message if processing fails
+            stripe_event.error_message = str(e)
+            current_app.logger.error("An exception occurred in process_event_background function): %s", e)
+
+        finally:
             db.session.commit()
-            try:
-                # Your event processing logic
-                handle_checkout_session(event)
-                # Update the event as processed in the StripeEvents table
-                stripe_event.processed = True
-                stripe_event.processed_at = datetime.utcnow()
-            except Exception as e:
-                # Update the StripeEvents table with the error message if processing fails
-                stripe_event.error_message = str(e)
-            finally:
-                db.session.commit()
-        else:
-            ## handle other event types
-            pass
+    else:
+        ## handle other event types
+        pass
 """"
     plans_dict = {
     'price_1N6ccWGXWJkeH44yHoF4PAJK':'premium_yearly',
@@ -2324,6 +2385,8 @@ def associate_stripe_customer_with_user(event):
         db.session.commit()
     except Exception as e:
         print("error associating stripe customer with user", e)
+        current_app.logger.error("An exception occurred in associate_stripe_customer_with_user function): %s", e)
+
         raise
 
 def handle_checkout_session(event):

@@ -411,6 +411,8 @@ def extract_from_wiki(wiki_url):
             li.extract()
         for li in soup.find_all('li', {'id': 'toc'}):
             li.extract()
+        for li in soup.find_all('li', {'id': 'toc'}):
+            li.extract()
         tags_to_extract = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'td']
         extracted_content = []
         for tag in tags_to_extract:
@@ -603,7 +605,7 @@ def explain_more(term, subject = None, content = None):
         print("attempt:", retries)
         try:
             sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
-            response = call_ai_terms(sys_instruct, prompt)
+            response = call_ai_terms_non_async(sys_instruct, prompt)
             print(response)
             response_ = response['choices'][0]['message']['content'].strip()
             print(response_)
@@ -630,7 +632,7 @@ def why_wrong_generator(ww_prompt):
         print("attempt:", retries)
         try:
             sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
-            response = call_ai_terms(sys_instruct, prompt)
+            response = call_ai_terms_non_async(sys_instruct, prompt)
             print(response)
             response_ = response['choices'][0]['message']['content'].strip()
             print(response_)
