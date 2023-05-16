@@ -71,8 +71,8 @@ from forms import SearchAndSortForm, Share, BuildTest, UpdateCardForm, GroupForm
 dictConfig(LOGGING_CONFIG)
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
-stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
-endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET_TEST")
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
 
 os.environ["FLASK_DEBUG"] = FLASK_DEBUG
 # Configure application
@@ -1034,9 +1034,6 @@ def save_source_text_to_deck(name, deck, text, prompt_options, method="extract")
         db.session.rollback()
     return True
 
-
-
-
 def get_text_from_file(file_data):
     try:
         file = file_data
@@ -1048,14 +1045,15 @@ def get_text_from_file(file_data):
         folder_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-        file_loc = (os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], secure_filename(file.filename)))
+        file_loc = os.path.join(folder_path, secure_filename(file.filename))
         file.save(file_loc)
         text = text_extractor(file_loc)
-        os.remove(file_loc)
         return text
     except Exception as e:
         logger.debug(f"Error occurred while processing file: {e}")
         return None
+    finally:
+        os.remove(file_loc)
     
 def get_text_from_link(link_input):
     text = None
@@ -2019,7 +2017,7 @@ def stripe_webhook():
 def process_event_in_background(event):
     try:
         logger.debug('entered process_event_in_background')
-        logger.debug("unused event type: %s", event['type'])
+        logger.debug("event type: %s", event['type'])
         stripe_event_id = event['id']
         event_type = event['type']
         event_data = json.dumps(event)

@@ -151,6 +151,7 @@ def transcribe_whisper(audio_file):
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
     transcript = transcript["text"]
     print(transcript)
+    return transcript
     
 def call_ai_terms_non_async(sys_instruct, user_prompt):
     response = openai.ChatCompletion.create(

@@ -107,7 +107,7 @@
     gtag('config', 'G-6NB4ZPCNB0');
 </script>
 
-<body>
+<body class = "custom-body-class">
     {% if current_user.is_authenticated %}
 
     <input type="hidden" id="slug_id" value="{{ session['slug'] }}">
@@ -221,7 +221,8 @@
                     </button>
                     
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="/account">Account info</a>
+                        <a class="dropdown-item" href="/viewdecks">My decks</a>
+                        <a class="dropdown-item" href="/account">Account</a>
                         <a class="dropdown-item" href="/upgrade">Upgrade </a>
                         <a class="dropdown-item" href="/my_groups">My groups 🚧</a>
                         <a class="dropdown-item" href="/test_results_overview">My tests 🚧</a>

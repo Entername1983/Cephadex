@@ -179,7 +179,7 @@ body {
     background-color: $cepha_605 !important;
     border-width:3px !important;
     border-radius: 10px !important;
-    border-color: $cepha_205 !important;
+    border-color: $cepha_305 !important;
     align-self: center !important;
     color: $textC !important;
 }
@@ -253,7 +253,7 @@ main {
 
 footer {
     background-color: $cepha_4!important;
-    opacity: 0.7;
+    opacity: 1;
 }
 
 .correct {
@@ -751,10 +751,15 @@ button:disabled {
   color: $cepha_1;
   background-color:$cepha_2;
   margin-top: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
+
 }
 .fab-main:hover {
   transform: scale(1.1);
   translate: translateY(-2px);
+  transition: all 0.1s ease !important;
+
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
 }
 
 .fab-options {
@@ -1101,7 +1106,14 @@ button:disabled {
     background-color:$cepha_2;
 }
 
+.btn-feedback {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
+}
+.btn-feedback:hover {
+  transition: all 0.1s ease !important;
 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
+}
 
 
 .button-initals {
@@ -1118,6 +1130,7 @@ button:disabled {
   color: $cepha_1;
   font-size: 24px;
   cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
 }
 
 .button-initals:hover {
@@ -1125,6 +1138,9 @@ button:disabled {
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
   transform: scale(1.1);
+  transition: all 0.1s ease;
+  box-shadow: 0 5px 7px rgba(0, 0, 0, 0.5);
+
 }
 
 

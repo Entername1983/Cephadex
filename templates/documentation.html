@@ -6,95 +6,227 @@
 
 {% block main_0 %}
 
-<div class = "container">
+<div class="container my-2">
 
 
-<h2>Cephadex user guide:</h2>
+  <h1>User guide:</h1>
 
-<br>
-<br>
+  <br>
 
-<h4>Create:</h4>
-<p>Use this feature to:</p>
-<ul>
-    <li>Create decks of flashcards</li>
-    <li>Create tests</li>
-    <li>Create transcriptions</li>
-    <li>Translate documents</li>
-    <li>Summarize documents (coming soon)</li>
-</ul>
-<p><strong>How it works?</strong></p>
-<p>The creation process is divided into 3 parts.</p>
-<p><strong>Choose content to process (What goes in?).</strong> 3 choices:</p>
-<ul>
-    <li>An existing document (pdf, doc, ppt, .txt, mp3, wav)</li>
-    <li>Copy/paste some text</li>
-    <li>Insert a youtube or wikipedia link (or a series of links separated by a comma, note that if the content is too large this may cause problems at this time)</li>
-</ul>
-<p><strong>Choose what you want returned (What comes out?).</strong></p>
-<p>Here you have several options, most of them should be self explanatory. You do not have to use the advanced options but can do so if you want to try and refine your results.</p>
-<p>Note that the creation process for flashcards, tests, transcriptions… is the same. For tests, once the deck is created you will be able to select questions from the deck and create/assign the test. For transcription the results will be found in the source documents link for said deck.</p>
-<p><strong>Choose how you want to save the content (What’s it called?)</strong>:</p>
-<p>Pretty straightforward, you can either choose to create a new deck or add it to an existing deck.</p>
-<p><strong>Notes:</strong></p>
-<ul>
-    <li>You must select at least some content and either a name for a new deck or an existing deck for the “generate” button to be active (we are currently experiencing a few issues with it so you if it doesn’t work please try refreshing the page)</li>
-    <li>Once the process is launched you don’t have to remain on the page. A pop up will appear notifying you when your deck is ready, if you go to the decks page (or refresh the decks page) you'll see your deck with the cards inside.</li>
-    <li>Depending on the size of the content and how busy our servers are this process can take a while. While testing, pdfs of 80 pages could take up to 10 minutes. So please be patient. If you don’t see anything after 10 minutes please let me know. I will be accelerating this process in the next couple weeks.</li>
-    <li>I really appreciate any feedback on this creation process as it is essential that we get this right. Is there something you would like to see that is not currently there? Let me know and if I can I will implement it.</li>
-</ul>
-<h4>Decks:</h4>
-<p>Use this feature to:</p>
-<ul>
-    <li>Manage and edit your decks.</li>
-    <li>Export them them as a .csv file or directly to Anki (requires anki connect add on and anki desktop open)</li>
-    <li>See source files used to create the deck</li>
-    <li>Turn the decks into tests</li>
-    <li>Share decks with other users</li>
-    <li>Access individual decks to study</li>
-    <li>Delete decks</li>
-    <li>Edit decks name</li>
-</ul>
+  <div class="accordion" id="accordionExample">
+    <div class="card">
+      <div class="card-header" id="headingCreate">
+        <h3 class="mb-0">
+          <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCreate"
+            aria-expanded="true" aria-controls="collapseCreate">
+            Create
+          </button>
+        </h3>
+      </div>
 
-<h4>Study:</h4>
-<p>Use this feature to:</p>
-<ul>
-  <li>Study individual decks (if selecting the deck in decks) or all decks, if going straight to study from the nav bar.</li>
-</ul>
-<p><strong>How it works:</strong></p>
-<p>The study feature is a spaced repetition system. The cards listed as due are unique cards, so the actual amount of reviews you will do will be higher than that. Right now the cards are queued, and when reaching the end of the queue the queue is refreshed depending on whether you answered cards correctly or not. At most 20 new cards loaded so as not to overwhelm the user. Currently there is no customization possible but I hope to implement some in April. Feedback on this is greatly appreciated.</p>
-<p><strong>On Mobile:</strong></p>
-<ul>
-  <li><strong>Regular cards:</strong> For most cards on mobile you can swipe left if you don’t know the card, and right if you do. At that point it will display the content. At that point you can just swipe again in any direction and it will move on to the next card. You can also double tap.</li>
-  <li><strong>MCQ:</strong> Since there are 4 options presented, swiping left or right doesn’t work for MCQ questions. Instead you have to select the response and then double tap to go to the next card.</li>
-</ul>
-<p><strong>On desktop:</strong></p>
-<p>The process is similar except that you can’t swipe. Instead you can select the appropriate option and either double click (for MCQ) or you can also just click next (for regular cards).</p>
-<p><strong>No more cards to study:</strong></p>
-<p>If you reach the end of your deck you will be informed that you have no cards left to study and asked if you want to study anyway. If so you will enter a different mode (with a very very ugly layout for now! It’s on my to do list!). This will allow you to cycle through the cards but none of the data will be retained or affect the spaced repetition system.</p>
+      <div id="collapseCreate" class="collapse show" aria-labelledby="headingCreate" data-parent="#accordionExample">
+        <div class="card-body">
+          <p>Use this feature to:</p>
+          <ul>
+            <li>Create decks of flashcards of various types</li>
+            <li>Create tests</li>
+            <li>Create transcriptions, and potentially translate them</li>
+            <li>Translate documents</li>
+            <li>Summarize documents</li>
+            <li>Create notes</li>
+          </ul>
+          <p><strong>How it works?</strong></p>
+          <p>The creation process is divided into 3 parts.</p>
+          <p><strong>Choose content to process, </strong> 3 choices:</p>
+          <ul>
+            <li>An existing document (pdf, doc, ppt, .txt, mp3, wav)</li>
+            <li>Copy/paste some text</li>
+            <li>Insert a YouTube or Wikipedia link (or a series of links separated by a semi-colon)</li>
+          </ul>
+          <p><strong>Choose how you want to save the content(optional):</strong></p>
+          <p>Pretty straightforward, you can either choose to create a new deck or add it to an existing deck. If you do
+            not choose or name a deck we will do that for you.</p>
+          <p><strong>Customize the output (optional):</strong></p>
+          <p>Here you have several options, most of them should be self-explanatory. You do not have to use the advanced
+            options but can do so if you want to try and refine your results.</p>
+          <p>Note that the creation process for flashcards, tests, transcriptions… is the same. For tests, once the deck
+            is created you will be able to select questions from the deck and create/assign the test.</p>
+          <p><small>Notes:</small></p>
+          <ul>
+            <li><small>Once the process is launched you don’t have to remain on the page. A pop-up will appear notifying
+                you when your deck is ready. If you go to the decks page (or refresh the decks page), you'll see your
+                deck with the cards inside.</small></li>
+            <li><small>The process can take a few minutes, depending on how busy our servers are and the size of the
+                document you are processing.</small></li>
+            <li><small>I really appreciate any feedback on this creation process as it is essential that I get this
+                right. Is there something you would like to see that is not currently there? Let me know, and if I can,
+                I will implement it.</small></li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
-
-<h4>Tests:</h4>
-
-<p>Use this feature to:</p>
-<ul>
-  <li>Create tests to print out</li>
-  <li>Create tests to assign through the platform</li>
-  <li>Assign tests</li>
-  <li>Access created tests</li>
-  <li>Take assigned tests</li>
-  <li>View results</li>
-</ul>
-<p><strong>How it works:</strong></p>
-<p>If you go to your decks page you will find an option to create a test. If you click on that it will allow you to go through the test creation process. Select the questions you want to put on the test (you can also edit them in the first screen). Then in the next page, you can decide on the marks per question, test name, set a time limit… (not all options are fully implemented). Finally, you can assign the tests.</p>
-<p>If you go to account → tests you will be able to see the tests you have created/assigned/taken.</p>
-<p>The tests are automatically graded, but this only works really well for MCQ questions and somewhat well for definitions. Still, for non MCQ tests, I recommend reviewing all the answers submitted and making sure the appropriate amount of marks have been assigned. You can do that in tests taken.</p>
-<p>I should note that tests are the newest and least developed feature at the moment. There is a lot more I’d like to do with this, so once again any feedback/suggestions/bug reports are greatly appreciated!</p>
-<p>That should cover most of it! If you have any questions, please don’t hesitate to contact me through kevin@cephadex.com or just send a message through the feedback form.</p>
+    <div class="card">
+      <div class="card-header" id="headingViewDecks">
+        <h3 class="mb-0">
+          <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseViewDecks"
+            aria-expanded="false" aria-controls="collapseViewDecks">
+            View Decks
+          </button>
+        </h3>
+      </div>
+      <div id="collapseViewDecks" class="collapse" aria-labelledby="headingViewDecks" data-parent="#accordionExample">
+        <div class="card-body">
+          <p>This is the main navigation page, from here you can get an overview of all the decks you have created and
+            their content. You also have shortcuts to use the decks for different purposes.</p>
+          <p>It's also from this page that you can re-access the creation page or access public decks by clicking on the
+            plus sign on the bottom right of the screen</p>
+        </div>
+      </div>
+    </div>
 
 
 
+    <div class="card">
+      <div class="card-header" id="headingDeckManager">
+        <h3 class="mb-0">
+          <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDeckManager" aria-expanded="false" aria-controls="collapseDeckManager">
+            Deck Manager
+          </button>
+        </h3>
+      </div>
+      <div id="collapseDeckManager" class="collapse" aria-labelledby="headingDeckManager" data-parent="#accordionExample">
+        <div class="card-body">
+          <p>Use this feature to:</p>
+          <ul>
+            <li>View the contents of each deck. This includes cards, notes, summarize, transcriptions, source files, assignments (tests or worksheets), and also parent and child decks.</li>
+            <li>Access all the features related to individual decks such as sharing, editing, test/worksheet creation, exporting, printing...</li>
+            <li>View the data related to that deck</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="headingTests">
+        <h3 class="mb-0">
+          <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTests" aria-expanded="false" aria-controls="collapseTests">
+            Tests
+          </button>
+        </h3>
+      </div>
+      <div id="collapseTests" class="collapse" aria-labelledby="headingTests" data-parent="#accordionExample">
+        <div class="card-body">
+          <p>Use this feature to:</p>
+          <ul>
+            <li>Create tests/worksheets to print out</li>
+            <li>Create tests to assign through the platform</li>
+            <li>Assign tests</li>
+            <li>Access created tests</li>
+            <li>Take assigned tests</li>
+            <li>View results</li>
+          </ul>
+          <p><strong>How it works:</strong></p>
+          <p>If you go to your decks page, you will find an option to create a test. If you click on that, it will allow you to go through the test creation process. Select the questions you want to put on the test (you can also edit them in the first screen). Then, in the next page, you can decide on the marks per question, test name, set a time limit… (not all options are fully implemented). Finally, you can assign the tests.</p>
+          <p>If you go to account → tests, you will be able to see the tests you have created/assigned/taken. You can also access the tests/worksheets for each deck in the deck manager.</p>
+          <p>The tests are automatically graded, but this only works really well for MCQ questions and somewhat well for definitions. Still, for non-MCQ tests, I recommend reviewing all the answers submitted and making sure the appropriate amount of marks have been assigned. You can do that in tests taken.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header" id="headingEditDeck">
+        <h3 class="mb-0">
+          <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEditDeck" aria-expanded="false" aria-controls="collapseEditDeck">
+            Edit Deck
+          </button>
+        </h3>
+      </div>
+      <div id="collapseEditDeck" class="collapse" aria-labelledby="headingEditDeck" data-parent="#accordionExample">
+        <div class="card-body">
+          <p>Use this feature to:</p>
+          <ul>
+            <li>Edit the deck attributes, such as name, description...</li>
+            <li>Make the deck a public deck</li>
+            <li>Make the deck a child of another deck</li>
+            <li>Edit individual cards</li>
+            <li>Add cards individually</li>
+            <li>Regenerate individual cards (this currently only works with definitions. If you are unhappy with the definition given, or the response is too short you can click on the recycle symbol and we will create a new one for you).</li>
+          </ul>
+          <p><strong>A note about child/parent decks:</strong> In order to better organize content, I have created a system where every deck can be a parent or child of another deck. This way, users can easily build knowledge trees with the lowest order levels of understanding having no child decks, and the
+    highest order decks having no parents.</p>
+    <p>For example, if I were to create decks related to the supply and demand, the lowest order deck would be definitions of key terms such as supply, quantity supplied, demand, quantity demanded... a parent of that deck would be one that has content testing the user's ability to explain how the law of demand works, and a parent of that deck could be a deck which focuses on evaluating the use of market mechanisms.</p>
+    </div>
+    
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="headingGroups">
+        <h3 class="mb-0">
+          <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGroups" aria-expanded="false" aria-controls="collapseGroups">
+            Groups
+          </button>
+        </h3>
+      </div>
+      <div id="collapseGroups" class="collapse" aria-labelledby="headingGroups" data-parent="#accordionExample">
+        <div class="card-body">
+          <p>Use this feature to:</p>
+          <ul>
+            <li>Create groups, invite users to group.</li>
+            <li>Store decks in the group or copy decks from groups you are in.</li>
+            <li>At this time, only cards from each deck can be shared. If you would like specific features implementing in regards to groups, let me know, and I will prioritize them.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- Repeat the above code for other sections -->
+    <div class="card">
+      <div class="card-header" id="headingPublicDecks">
+        <h3 class="mb-0">
+          <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePublicDecks" aria-expanded="false" aria-controls="collapsePublicDecks">
+            Public Decks
+          </button>
+        </h3>
+      </div>
+      <div id="collapsePublicDecks" class="collapse" aria-labelledby="headingPublicDecks" data-parent="#accordionExample">
+        <div class="card-body">
+          <p>Here you can search for decks made by others and copy them to your account. If you would like to make a deck you have created public, you can do so in "edit deck".</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" id="headingStudy">
+        <h3 class="mb-0">
+          <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStudy" aria-expanded="false" aria-controls="collapseStudy">
+            Study
+          </button>
+        </h3>
+      </div>
+      <div id="collapseStudy" class="collapse" aria-labelledby="headingStudy" data-parent="#accordionExample">
+        <div class="card-body">
+          <p>Use this feature to:</p>
+          <ul>
+            <li>Study individual decks (if selecting the deck in decks) or all decks, if going straight to study from the nav bar.</li>
+            <li>If studying individual decks, you also have access to our AI interface where you can get more information about each individual card.</li>
+          </ul>
+          <p><strong>How it works:</strong></p>
+          <p>The study feature is a spaced repetition system. The cards listed as due are unique cards, so the actual amount of reviews you will do will be higher than that. Right now, the cards are queued, and when reaching the end
+    of the queue, the queue is refreshed depending on whether you answered cards correctly or not. At most 20 new cards loaded so as not to overwhelm the user. Currently, there is no customization possible, but I hope to implement some in April. Feedback on this is greatly appreciated.</p>
+    <p><strong>On Mobile:</strong></p>
+    <ul>
+    <li><strong>Regular cards:</strong> For most cards on mobile, you can swipe left if you don’t know the card, and right if you do. At that point, it will display the content. At that point, you can just swipe again in any direction and it will move on to the next card. You can also double-tap.</li>
+    <li><strong>MCQ:</strong> Since there are options presented, swiping left or right doesn’t work for MCQ questions. Instead, you have to select the response and then double-tap to go to the next card.</li>
+    </ul>
+    <p><strong>On desktop:</strong></p>
+    <p>The process is similar, except that you can’t swipe. Instead, you can select the appropriate option and either double-click (for MCQ) or you can also just click next (for regular cards).</p>
+    <p><strong>No more cards to study:</strong></p>
+    <p>If you reach the end of your deck, you will be informed that you have no cards left to study and asked if you want to study anyway. If so, you will enter a different mode (with a very, very ugly layout for now! It’s on my to-do list!). This will allow you to cycle through the cards, but none of the data will be retained or affect the spaced repetition system.</p>
+    </div>
+    
+      </div>
+    </div>
 
 
-</div>
-{% endblock %}
+
+
+  </div>
+  {% endblock %}
