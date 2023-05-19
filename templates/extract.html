@@ -49,6 +49,50 @@
 </script>
 {% endif %}
 <script>
+    $(document).ready(function(){
+        $('#file-input').change(function(){
+            var form_data = new FormData();
+            form_data.append('file', this.files[0]);
+    
+            calculateCredits(form_data);
+        });
+    
+        $('#text-input').on('input', function() {
+            var form_data = new FormData();
+            form_data.append('text_input', $(this).val());
+    
+            calculateCredits(form_data);
+        });
+    
+        $('#link-input').change(function(){
+            var form_data = new FormData();
+            form_data.append('link_input', $(this).val());
+    
+            calculateCredits(form_data);
+        });
+    
+        function calculateCredits(form_data) {
+            $.ajax({
+                url: '/call_credit_counter', // Flask route
+                data: form_data,
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                success: function(response){
+                    $("#credit-display").show();
+                    $("#credit-amount").text(response);
+                },
+                error: function(response){
+                    $("#credit-amount").text("n/a");
+                }
+            });
+        }
+    });
+    </script>
+
+
+
+<script>
     function showSpinner() {
         document.getElementById("extract-spinner").style.display = "inline-block";
         document.getElementById("extract-message").style.display = "inline-block";
@@ -79,7 +123,12 @@
                     style="font-size: 20px !important" title="Choose what type of material you want to create here">Customizations
                 </button>
             </li>
-
+        
+        <li class="nav-item ms-auto">
+                
+            <div id="credit-display" class="alert alert-info" style="margin: 8px; display: ;">
+                Cost: <span id="credit-amount">0</span> credits
+            </div></li>
 
 
 

@@ -15,33 +15,70 @@ import asyncio
 import aiohttp
 from aiohttp import ClientSession
 from sqlalchemy.orm import object_session
-
-
+import random
+from extractors import transcribe_whisper
+import os
 
 async def process_jobs():
     engine = create_engine(SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS)
     session_factory = scoped_session(sessionmaker(bind=engine))
     while True:
         with session_factory() as session:
-            slug = await find_pending_job(session)
+            functions = [find_pending_job, find_pending_audio_job]
+            selected_function = random.choice(functions)
+            slug = await selected_function(session)
+
             if slug:
-                retries = 0
-                while retries < 3:
-                    try:
-                        print(retries)
-                        await process_job(slug, session)
-                        break
-                    except Exception as e:
-                        retries += 1
-                        print(f"Error: {e}. Retrying ({retries}/3)")
-                        if retries == 3:
-                            print("Job failed, moving on.")
-                            slug.state = "completed"
-                            slug.error_type = "error"
-                            session.commit()
+                if slug.task_type == "audio" and slug.state == "processing":
+                    print("recognized job as audio and processing")
+                    retries = 0
+                    while retries < 3:
+                        try:
+                            print(retries)
+                            await process_audio_job(slug, session)
                             break
+                        except Exception as e:
+                            retries += 1
+                            print(f"Error: {e}. Retrying ({retries}/3)")
+                            if retries == 3:
+                                print("Job failed, moving on.")
+                                slug.state = "finished"
+                                slug.error_type = "error"
+                                session.commit()
+                                break
+                else:
+                    retries = 0
+                    while retries < 3:
+                        try:
+                            print(retries)
+                            await process_job(slug, session)
+                            break
+                        except Exception as e:
+                            retries += 1
+                            print(f"Error: {e}. Retrying ({retries}/3)")
+                            if retries == 3:
+                                print("Job failed, moving on.")
+                                slug.state = "completed"
+                                slug.error_type = "error"
+                                session.commit()
+                                break
             else:
                 await asyncio.sleep(1)
+
+async def find_pending_audio_job(session):
+    with current_app.app_context():
+        try:
+            queue = session.query(Job).filter_by(state="pending", task_type="audio")
+            if job := queue.first():
+                job.state = "processing"
+                print("found job", job)
+                session.commit()
+                merged_job = session.merge(job)  # Merge the job object back to the session
+                return merged_job
+        except Exception as e:
+            print(f"Error while finding pending job: {e}")
+            session.rollback()
+            return None
 
 async def find_pending_job(session):
     with current_app.app_context():
@@ -57,7 +94,58 @@ async def find_pending_job(session):
             print(f"Error while finding pending job: {e}")
             session.rollback()
             return None
-        
+async def process_audio_job(slug, session):
+    print("Processing audio job...")
+    retries = 3
+    retry_delay = 1  # Delay in seconds between retries
+    retry_counter = 0
+
+    while retry_counter < retries:
+        try:
+            with current_app.app_context():
+                slug = session.merge(slug)  # Merge the slug object back to the session
+                session = session.object_session(slug)
+                if session is None:
+                    print("Object is not bound to a session.2", slug)
+                elif session:
+                    print("Object is bound to a session.2", slug)
+                payload = json.loads(slug.payload)
+                prompt_options = payload["prompt_options"]
+                task_type = prompt_options['main_opt']
+                segment = payload["segment"]
+                user_id = payload["user_id"]
+                deck_id = slug.deck_id
+                
+                text = await transcribe_whisper(segment)
+                try:
+                    os.remove(segment)
+                    print(f"File '{segment}' has been successfully deleted.")
+                except OSError as e:
+                    print(f"Error occurred while deleting the file '{segment}': {str(e)}")
+                new_payload = {'deck': deck_id, 'text': text,
+                                'prompt_options': prompt_options}
+                new_job = Job(slug=slug.slug, user = user_id, task_type=task_type,
+                    payload = json.dumps(new_payload), state="queued",
+                    item_number = slug.item_number, item_quantity = slug.item_quantity,
+                    deck_id = deck_id, processed_content = text
+                )
+                slug.state = "completed"
+                slug.processed_content = text
+                slug.save_source = True
+                session.add(new_job)
+                session.commit()
+                break
+        except Exception as e:
+            print(" ERROR IN PROCESSING AUDIO JOB")
+            print(f"Error: {e}")
+            session.rollback()
+            retry_counter += 1
+            
+            if retry_counter < retries:
+                print("Retrying audio job after delay...")
+                await asyncio.sleep(retry_delay)  # Wait for the specified delay before retrying
+
+
 async def process_job(slug, session):
     retries = 3
     retry_delay = 1  # Delay in seconds between retries
@@ -186,7 +274,8 @@ def log_response_data(prompt, response, content, success, session=None):
     prompt_json = json.dumps(prompt)
     response_json = json.dumps(response)
     content_json = json.dumps(content)
-    response_log = ResponseData(prompt=prompt_json, response=response_json, content=content_json, success=success)
+    response_log = ResponseData(prompt=prompt_json,
+                            response=response_json, content=content_json, success=success)
     session.add(response_log)
     session.commit()
 
@@ -214,7 +303,11 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract", session=No
             for item in terms:
                 term = item[v].capitalize()
                 if check_card_exist(deck, term) == False:
-                    entry = Card(category = cat, term=term, content=(add_period(item[w].capitalize())), boc_2=(add_period(item[x].capitalize())), boc_3=(add_period(item[y].capitalize())), boc_4=(add_period(item[z].capitalize())), create_method = method)
+                    entry = Card(category = cat,
+                        term=term, content=(add_period(item[w].capitalize())),
+                        boc_2=(add_period(item[x].capitalize())), 
+                        boc_3=(add_period(item[y].capitalize())), 
+                        boc_4=(add_period(item[z].capitalize())), create_method = method)
                     session.add(entry)
                     deck.cards.append(entry)
                     session.commit()
@@ -224,7 +317,8 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract", session=No
                 print(item)
                 term=item[x].capitalize()
                 if check_card_exist(deck, term) == False:
-                    entry = Card(category = cat, term=term, content=add_period(item[y].capitalize()), create_method=method)
+                    entry = Card(category = cat, term=term,
+                        content=add_period(item[y].capitalize()), create_method=method)
                     session.add(entry)
                     deck.cards.append(entry)
             session.commit()
@@ -233,7 +327,8 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract", session=No
             for item in terms:
                 term=item[x].capitalize()
                 if check_card_exist(deck, term) == False:
-                    entry = Card(category = cat, term=term, formula="\["+(item[y])+"\]", content=add_period(item[z].capitalize()), create_method=method)
+                    entry = Card(category = cat, term=term, formula="\["+(item[y])+"\]",
+                        content=add_period(item[z].capitalize()), create_method=method)
                     session.add(entry)
                     deck.cards.append(entry)
             session.commit()
@@ -241,7 +336,9 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract", session=No
             if trans_opt != None:
                 name = deck.name + "_" + method + "_" + main_opt + trans_opt + "_" + str(datetime.utcnow())
                 create_type = trans_opt + " translation"
-                transcript_trans = DeckFiles(file_name = name, text_string = terms, time_created = datetime.utcnow(), create_type = create_type)
+                transcript_trans = DeckFiles(file_name = name, text_string = terms,
+                                    time_created = datetime.utcnow(),
+                                    create_type = create_type)
                 session.add(transcript_trans)
                 deck.deck_files.append(transcript_trans)
                 session.commit()
@@ -287,7 +384,7 @@ def check_subscription_plan(user_id):
 if __name__ == "__main__":
     with app.app_context():
         async def main():
-            num_workers = 20  # Number of concurrent workers to run
+            num_workers = 30  # Number of concurrent workers to run
             tasks = []
             for i in range(num_workers):
                 task = asyncio.create_task(process_jobs())

@@ -29,10 +29,15 @@ from aiohttp import ClientSession
 import asyncify
 import codecs
 import wikipediaapi
-
+import logging
+from models import Job
+from datetime import datetime
+import random
+from models import db
 
 encoding = tiktoken.get_encoding("cl100k_base")
-
+logger = logging.getLogger("extractors")
+logger.setLevel(logging.DEBUG)
 
 
 ## CALLS TO OPEN AI API
@@ -145,10 +150,10 @@ async def transcribe_and_translate(items, prompt_options):
     return response
 
 ## AUDIO TRANSCRIPTION
-def transcribe_whisper(audio_file):
+async def transcribe_whisper(audio_file):
     print("entered transcribe function")
     audio_file= open(audio_file, "rb")
-    transcript = openai.Audio.transcribe("whisper-1", audio_file)
+    transcript = await asyncify(openai.Audio.transcribe)("whisper-1", audio_file)
     transcript = transcript["text"]
     print(transcript)
     return transcript
@@ -291,10 +296,7 @@ def text_extractor(file):
         items = extract_from_docx(file)
     elif file.endswith('.doc'):
         items = extract_from_docx(file)
-    elif file.endswith('.wav'):
-        items = extract_audio(file)
-    elif file.endswith('.mp3'):
-        items = extract_audio(file)
+
     elif file.endswith('.txt'):
         with open(file) as file:
             items = file.read()
@@ -302,21 +304,84 @@ def text_extractor(file):
     print(count_tokens(items))
     return items
 
+
+
+def audio_processing(file, current_user, deck_id, prompt_options, slug):
+    print("entered audio processing function")
+    print(file)
+    if file.endswith('.wav'):
+        extract_audio(file, current_user, deck_id, prompt_options, slug, '.wav')
+    elif file.endswith('.mp3'):
+        extract_audio(file, current_user, deck_id, prompt_options, slug, 'mp3')
+
 ## AUDIO EXTRACTORS
-def extract_audio(file):
-    print("entered extract audio function")
-    text = []
+def extract_audio(file, current_user, deck_id, prompt_options, slug, extension):
+    print("Entered extract audio function")
+    print(file)
+    # Create the "audio_segments" folder if it doesn't exist
+    folder_path = "audio_segments"
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
     try:
         segments = divide_audio(file)
+        item_quantity = len(segments)
         for segment in segments:
-            transcript = transcribe_whisper(segment)
-            text.append(transcript)
-        concatenated_text = " ".join(text)
-        return concatenated_text
+            item_number = segments.index(segment) + 1
+            create_audio_job(segment, current_user, deck_id,
+                              prompt_options,slug, item_number, item_quantity)
+    except Exception as e:
+        # Handle any exceptions that may occur during audio extraction
+        print(f"Error occurred during audio extraction: {str(e)}")
+    except Exception as e:
+        raise e
+    
+def create_audio_job(segment, current_user, deck_id,
+                      prompt_options, slug, item_number, item_quantity):
+    payload = {"prompt_options": prompt_options,
+                "segment": segment, 'user_id': current_user.id}
+    payload_string = json.dumps(payload)
+    print("DEEEEECCCCKK")
+    print(deck_id)
+    audio_job = Job(task_type = "audio", state = "pending",
+                user = current_user.id, deck_id = deck_id,
+                payload = payload_string, slug = slug, 
+                item_number = item_number, item_quantity = item_quantity)
+    db.session.add(audio_job)
+    db.session.commit()
+
+## DIVIDE AUDIO
+def divide_audio(input_file, segment_length=25):
+    try:
+        # Open the audio file
+        random_string = ''.join(random.choices('0123456789', k=5))
+
+        audio = AudioSegment.from_file(input_file)
+        # Calculate the segment size in bytes
+        segment_size = segment_length * 1024 * 1024
+        # Calculate the total number of segments
+        num_segments = math.ceil(len(audio) / segment_size)
+        # Create a list to hold the file paths for the audio segments
+        segment_paths = []
+        # Split the audio file into segments and save each segment as an MP3 file
+        for i in range(num_segments):
+            start = i * segment_size
+            end = min((i + 1) * segment_size, len(audio))
+            segment = audio[start:end]
+            # Define the output file path for the segment
+            output_file = os.path.join(os.path.dirname(input_file), f"{random_string}segment_{i}.mp3")
+            # Export the segment as an MP3 file
+            segment.export(output_file, format="mp3")
+            print(output_file)
+            # Add the output file path to the list of segment paths
+            segment_paths.append(output_file)
+        return segment_paths
+
     except FileNotFoundError:
         print("File not found.")
     except Exception as e:
         print("An error occurred:", str(e))
+
     return None
 
 ## PDF
@@ -461,35 +526,7 @@ def extract_from_youtube(youtube_url):
     return None
 
 
-## DIVIDE AUDIO
-def divide_audio(input_file, segment_length=25):
-    try:
-        # Open the audio file
-        audio = AudioSegment.from_file(input_file)
-        # Calculate the segment size in bytes
-        segment_size = segment_length * 1024 * 1024
-        # Calculate the total number of segments
-        num_segments = math.ceil(len(audio) / segment_size)
-        print("number of segments:", num_segments)
-        # Create a list to hold the file paths for the audio segments
-        segments = []
-        # Split the audio file into segments and save each segment as an MP3 file
-        for i in range(num_segments):
-            start = i * segment_size
-            end = min((i + 1) * segment_size, len(audio))
-            segment = audio[start:end]
-            # Define the output file path for the segment
-            output_file = os.path.join(os.path.dirname(input_file), f"segment_{i}.mp3")
-            # Export the segment as an MP3 file
-            segment.export(output_file, format="mp3")
-            # Add the output file path to the list of segments
-            segments.append(output_file)
-        return segments
-    except FileNotFoundError:
-        print("File not found.")
-    except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+
 
 ## TOKEN HANDLERS
 def count_tokens(text):

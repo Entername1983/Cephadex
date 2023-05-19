@@ -1,6 +1,7 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
 main_0 %}
-<script>
+<script type="text/plain" data-cookie-consent="strictly-necessary">
+
 document.addEventListener("DOMContentLoaded", function () {
     const forms = document.querySelectorAll('.question-form');
     const csrfToken = document.getElementsByName("csrf_token")[0].value;
@@ -350,7 +351,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!------- ASSIGN TEST MODAL -------->
 
-<script>
+<script type="text/plain" data-cookie-consent="strictly-necessary">
+
     function assignDeck(testId) {
         console.log('assignDeck')
         var email = document.getElementById('assign-email').value;
@@ -391,7 +393,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-<script>
+<script type="text/plain" data-cookie-consent="strictly-necessary">
+
     $(document).ready(function() {
       $('.question-form input, .question-form textarea').on('change', function() {
         const form = $(this).closest('form');

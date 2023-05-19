@@ -1,6 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
-from extractors import regenerate_definition
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
 from flask_migrate import Migrate
@@ -19,6 +18,7 @@ source_files = db.Table("source_files",
                         db.Column("deck_file_id", db.Integer, db.ForeignKey("deck_files.id")), 
                         db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),  # 
                         )
+
 cards_shared = db.Table("cards_shared", 
                  db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
                  db.Column("shared_decks_id", db.Integer, db.ForeignKey("shared_decks.id")),
@@ -45,6 +45,8 @@ user_group_association = db.Table("user_group_association",
                                   db.Column("group_id", db.Integer, db.ForeignKey("group.id")),
                                   db.Column("role", db.String(255)),
                                   db.Column("permissions", db.String(255)),)
+
+
 
 ## external auth + external type + external
 class User(db.Model, UserMixin):
@@ -111,6 +113,22 @@ class User(db.Model, UserMixin):
                     counter += 1
         return counter
         
+    def remaining_credit(self):
+        usage_record = (
+            UsageRecord.query
+            .filter_by(user_id=self.id)
+            .order_by(UsageRecord.date.desc()).first()
+        )
+        remaining_credit = round(usage_record.remaining_count/682)
+        return remaining_credit
+    
+    def roll_over_date(self):
+        if self.latest_roll_over:
+            next_roll_over = self.latest_roll_over + timedelta(days=31)
+        else:
+            next_roll_over = self.subscription_start_date + timedelta(days=31)
+        return next_roll_over.strftime('%b %d, %Y')
+    
 class StripeEvents(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     stripe_event_id = db.Column(db.String(255), nullable=True)
@@ -131,16 +149,14 @@ class Group(db.Model):
     name = db.Column(db.String(255))
     description = db.Column(db.String(255))
     group_type = db.Column(db.String(255))
-
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
-
     creator_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     creator = db.relationship("User", foreign_keys=[creator_id])
-
     avatar = db.Column(db.String(255))
     is_private = db.Column(db.Boolean, default=False)
     decks = db.relationship("Deck", back_populates="group")
+
 
 class GroupInvite(db.Model):
     __tablename__ = "group_invite"
@@ -746,6 +762,8 @@ class Job(db.Model):
     item_number = db.Column(db.Integer, nullable=True)
     item_quantity = db.Column(db.Integer, nullable=True)
     processed_content = db.Column(db.Text, nullable=True)
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id', ondelete='SET NULL'), nullable=True)
+    save_source = db.Column(db.Boolean, default=False)
 
 
 class EventTracking(db.Model):
@@ -757,7 +775,7 @@ class EventTracking(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=True)
     
-    
+   
 ######### GAMIFICATION
 
 

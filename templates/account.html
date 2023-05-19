@@ -85,11 +85,11 @@ main_0 %}
                 </div>
               </div>
             </div>
-            <!-----
+          
                     <div class="form-check form-switch">
-                      <input class="form-check-input" type="checkbox" name="contacted_email" id="contacted" value="True" {{ 'checked' if form.contacted_email.data }}>
+                      <input class="form-check-input" type="checkbox" name="contacted_email" id="contacted" value="True"{{ 'checked' if form.contacted_email.data == 1 else '' }}>
                       <label class="form-check-label" for="contacted">{{ form.contacted_email.label.text }}</label>
-                  </div>---->
+                  </div>
             <div class="form-check form-switch mt-2">
               <input class="form-check-input" type="checkbox" name="subscribe" id="subscribe" value="True" {{ 'checked'
                 if subscriber }}>
@@ -104,9 +104,18 @@ main_0 %}
                   {% else %}Free
                   {% endif %}" disabled=True>
                 </div>
+                <!--- Box for remaining credit-->
+                <div class="form-group mt-1">
+                  <label for="remaining_credit">Credits</label>
+                  <input class="form-control form-control-lg" value="{{ user.remaining_credit() }}" disabled=True>
+              </div>
+              <div class="form-group mt-1">
+                <label for="remaining_credit">Roll-over date</label>
+                <input class="form-control form-control-lg" value="{{ user.roll_over_date() }}" disabled=True>
+            </div>
               </div>
               <div class="col-md-6 d-flex justify-content-center align-items-center">
-               <a href="/upgrade" class="btn btn-primary mx-1">upgrade your account</a>
+               <a href="/upgrade" class="btn btn-primary mx-1">upgrade your account </a>
               <a href='https://billing.stripe.com/p/login/dR66pKbnh8vn7qo9AA' class="btn btn-primary mx-1">payment settings</a>
                 </p>
               </div>

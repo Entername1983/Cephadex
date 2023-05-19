@@ -1,0 +1,117 @@
+{% extends "layout.html" %} {% block title %} Credit checker {% endblock %}
+{% block main_0 %}
+
+
+
+
+<script>
+    $(document).ready(function(){
+        $('#file-input').change(function(){
+            var form_data = new FormData();
+            form_data.append('file', this.files[0]);
+    
+            calculateCredits(form_data);
+        });
+    
+        $('#text-input').on('input', function() {
+            var form_data = new FormData();
+            form_data.append('text_input', $(this).val());
+    
+            calculateCredits(form_data);
+        });
+    
+        $('#link-input').change(function(){
+            var form_data = new FormData();
+            form_data.append('link_input', $(this).val());
+    
+            calculateCredits(form_data);
+        });
+    
+        function calculateCredits(form_data) {
+            $.ajax({
+                url: '/call_credit_counter', // Flask route
+                data: form_data,
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                success: function(response){
+                    $("#credit-display").show();
+                    $("#credit-amount").text(response);
+                },
+                error: function(response){
+                    $("#credit-amount").text("n/a");
+                }
+            });
+        }
+    });
+    </script>
+
+
+
+
+<div class = "container">
+<div class=" mt-1 mb-4 d-flex justify-content-center">
+<h2 style="color: #FF6700"><bold>Credit cost checker</bold></h2>
+</div>
+</div>
+<div class="container box_study">
+    <form id = "extract-form" method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data", onsubmit="showSpinner()">
+        {{form.hidden_tag()}}
+        {{ form.csrf_token }}
+        
+
+        <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active extract-boxes1  p-2" id="extract-input" role="tabpanel"
+                aria-labelledby="extract-input-tab">
+                <!---- SECTION ON WHAT--->
+                <div class = "box_study p-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Type of input</h5>
+                        <h6 class="mb-1"> Upload a file</h6>
+                        <div class="input-group">
+                            {{form.file(id="file-input", class="form-control")}}
+                            <label class="input-group-text" for="file-input">Upload</label>
+                            <div style="color:red" id="error-message"></div>
+
+                        </div>
+
+                        <h6 class="mb-1"> Paste some text</h6>
+                        <div class="form-floating">
+                            {{form.text_input(id="text-input", class="form-control form-control-lg", style="height:100%;
+                            width:100%; font-size:20px")}}
+                            <label for="text-input" class="form-label">Paste your text here</label>
+                        </div>
+                        <h6 class="mb-1"> Or insert a link </h6>
+                        
+                        <div class="form-floating">
+                            {{form.link_input(id="link-input", class="form-control form-control-lg")}}
+                            <label for="link-input" class="form-label">Insert your link(s) here</label>
+
+                        </div>
+  
+                    </div>
+                    <div class="col-md-6">
+                        <div id="credit-display" class="alert alert-info" style="margin: 8px; display: ;">
+                            Cost: <span id="credit-amount">0</span> credits
+                        </div>
+                        </div>
+                </div>
+                </div>
+            </div>
+          
+            <!---- SECTION ON HOW--->
+           
+            
+
+          
+</div>
+</div>
+</form>
+</div>
+
+
+
+
+
+{% endblock %}

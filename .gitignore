@@ -16,3 +16,4 @@ app.log
 test.py
 loggers.txt
 /Obsolete/*
+code_review.py
