@@ -24,7 +24,7 @@ main_0 %}
     <div class="accordion" id="accordionExample">
       <div class="accordion-item">
         <h2 class="accordion-header" id="headingOne">
-          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"
+          <button class="accordion-button account-header-style" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"
             aria-expanded="true" aria-controls="collapseOne" >
             Account information:
           </button>
@@ -72,7 +72,7 @@ main_0 %}
               <div class="col-6">
                 <div class="row justify-content-center" style="text-align:center">
                   {% if user.pic == None %}
-                  <img class="circle-img" src="static/cephadex-std-profile.png"
+                  <img class="circle-img" src="static/avatar-octopus.png"
                     style="max-height:fit-content; max-width:fit-content;" alt="logo">
                   {% else %}
                   <img class="circle-img" src="\{{user.pic}}" style="max-height:400px; max-width:400px;"
@@ -126,8 +126,8 @@ main_0 %}
       </div>
     </div>
     <div class="accordion-item">
-      <h2 class="accordion-header" id="headingTwo">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo"
+      <h2 class="accordion-header " id="headingTwo">
+        <button class="accordion-button account-header-style" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo"
           aria-expanded="true" aria-controls="collapseTwo">
           Study stats:
         </button>

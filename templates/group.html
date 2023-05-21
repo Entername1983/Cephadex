@@ -1,47 +1,37 @@
 {% extends "layout.html" %} {% block title %} Group {{group.name }}{% endblock
 %} {% block main_0 %}
-<div class="container">
+<div class="container box-manager" style="background-color:#efe8ff; padding-top: 2px!important; padding-bottom: 2px!important;">
+  <div class="row mt-2 d-flex justify-content-start">
+    <div class="d-flex">
+  
   {% if current_user.id == group.creator_id %}
-  <button
-    type="button"
-    class="btn btn-primary"
-    data-bs-toggle="modal"
-    data-bs-target="#permissionsModal"
-  >
-    Permissions
-  </button>
-  <button
-    type="button"
-    class="btn btn-primary"
-    onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/delete_group/{{group.id}}'; }"
-  >
-    Delete group
-  </button>
+  
+        <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#permissionsModal" style="cursor: pointer;">
+          <img src="/static/permissions-icon.png" style="width: 35px; height:35px" alt="Permissions" title="Permissions">
+      </a>
+
+      <a href="#" class="mx-2 img-grow"
+      onclick="if (confirm('Are you sure you want to delete this group?')) { window.location.href = '/delete_group/{{group.id}}'; }">
+      <img src="\static\delete-icon.png" alt="Delete" style="max-width:35px;max-height:35px;"
+          title="Delete test">
+  </a>
 
   {% endif %} {% for user_id, user_info in permissions.items() %} {% if
   user_info['permissions'] == 'write' %}
-  <button
-    type="button"
-    class="btn btn-primary"
-    data-bs-toggle="modal"
-    data-bs-target="#importModal"
-  >
-    Import decks
-  </button>
+  <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#importModal" style="cursor: pointer;">
+    <img src="/static/import-icon.png" style="width: 35px; height:35px" alt="Import deck" title="Import deck">
+</a>
+<a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#inviteModal" style="cursor: pointer;">
+  <img src="/static/add-user-icon.png" style="width: 35px; height:35px" alt="Invite user" title="Invite user">
+</a>
 
-  <button
-    type="button"
-    class="btn btn-primary"
-    data-bs-toggle="modal"
-    data-bs-target="#inviteModal"
-  >
-    Invite users
-  </button>
+
   {% endif %} {% endfor %}
-
+</div>
+</div>
   <div class="mt-2 p-1">
     <h3>{{group.name}}:</h3>
-    <div class="box_study mt-1 p-2">
+    <div class="box_study mt-1 p-2" style="max-height: 50vh; overflow-y:scroll">
       <div class="row">
         {% if invited_users %}
         <h3>Invited:</h3>
@@ -69,7 +59,7 @@
       </div>
 
       <h3>Members:</h3>
-      <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+      <div class="table-responsive" style = "max-height: 50vh; overflow-y:auto">
         <table class="table table-striped">
           <thead>
             <tr>
@@ -112,10 +102,10 @@
             <div class="card-body">
               <h5 class="card-title">{{deck.name}}</h5>
               <p class="card-text">{{deck.description}}</p>
-              <button class="btn btn-primary" onclick="saveDeckToMyDecks({{ deck.id }}, {{ group.id }})">Save to my decks</button>
+              <button class="btn btn-generate" onclick="saveDeckToMyDecks({{ deck.id }}, {{ group.id }})">Save to my decks</button>
 
               <button
-                class="btn btn-secondary"
+                class="btn btn-generate"
                 data-bs-toggle="modal"
                 data-bs-target="#cardsModal{{deck.id}}"
               >
@@ -201,8 +191,14 @@ function removeUser(group_id, user_id) {
 >
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header modal-header-style">
         <h5 class="modal-title" id="permissionsModalLabel">Edit permissions</h5>
+        <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="modal"
+        aria-label="Close"
+      ></button>
         <div
           id="successMessage"
           class="alert alert-success d-none"
@@ -246,10 +242,8 @@ function removeUser(group_id, user_id) {
 </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Close
-        </button>
-        <button type="button" class="btn btn-primary" id="permitSave">
+
+        <button type="button" class="btn btn-generate" id="permitSave">
           Save
         </button>
       </div>
@@ -269,37 +263,39 @@ function removeUser(group_id, user_id) {
 >
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header modal-header-style">
         <h5 class="modal-title" id="importModalLabel">Import decks</h5>
-        <div
-          id="successMessage"
+        <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="modal"
+        aria-label="Close"
+      ></button>
+        
+      </div>
+      <div class="modal-body"><div
+          id="successMessageImport"
           class="alert alert-success d-none"
           role="alert"
         ></div>
-      </div>
-      <div class="modal-body">
         <h4>Import from my decks</h4>
 
-        <select id="My decks">
+        <select class = "form-control"id="My decks">
           <option value="" selected disabled hidden>Choose deck</option>
           {% for deck in mydecks %}
           <option value="{{deck.id}}">{{deck.name}}</option>
           {% endfor %}
         </select>
-        <button type="button" class="btn btn-primary" id="importDeck">
+        <button type="button" class="btn btn-generate mt-1" id="importDeck">
           Import
         </button>
 
         <h4>Search public decks</h4>
-        <input type="text" id="search" name="search" placeholder="Search.." />
+        <input type="text" class = "form-control"  id="search" name="search" placeholder="Search.." />
         <div id="searchResults"></div>
       </div>
       <div id="admins"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Close
-        </button>
-      </div>
+      
     </div>
   </div>
 </div>
@@ -362,6 +358,7 @@ function removeUser(group_id, user_id) {
             let addButton = document.createElement("button");
             addButton.textContent = "Add";
             addButton.id = "add" + deck.id;
+            addButton.classList.add("btn-generate");
             addButton.addEventListener("click", () => {
               // Replace GROUP_ID with the actual group_id value or a variable that holds the group_id
               let requestData = {
@@ -416,6 +413,7 @@ function removeUser(group_id, user_id) {
 <script>
   const importDeckButton = document.getElementById("importDeck");
   const decksDropdown = document.getElementById("My decks");
+  const successMessageImport = document.getElementById("successMessageImport");
 
   importDeckButton.addEventListener("click", () => {
     const selectedDeckId = decksDropdown.value;
@@ -441,7 +439,8 @@ function removeUser(group_id, user_id) {
       .then((data) => {
         if (data.status === "success") {
           console.log("Deck added successfully");
-          // Perform any additional actions if needed, e.g., update the UI
+          successMessageImport.classList.remove("d-none");
+          successMessageImport.textContent = "Deck added successfully, please refresh the page.";
         } else {
           console.log(data);
           alert(data.message);
@@ -511,8 +510,8 @@ function removeUser(group_id, user_id) {
 >
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header p-4" style="background-color: #091954">
-        <h5 class="modal-title" id="inviteModalLabel" style="color: #fa9400">
+      <div class="modal-header modal-header-style ">
+        <h5 class="modal-title" id="inviteModalLabel">
           Add members
         </h5>
         <button
@@ -539,7 +538,7 @@ function removeUser(group_id, user_id) {
           </div>
           <button
             type="button"
-            class="btn btn-primary"
+            class="btn btn-generate"
             onclick="inviteGroup(event, '{{ group.id }}')"
           >
             Invite
@@ -589,11 +588,10 @@ function removeUser(group_id, user_id) {
 >
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
-      <div class="modal-header p-4" style="background-color: #091954">
+      <div class="modal-header modal-header-style">
         <h5
           class="modal-title"
           id="cardsModal{{deck.id}}Label"
-          style="color: #fa9400"
         >
           Cards for {{deck.name}}
         </h5>

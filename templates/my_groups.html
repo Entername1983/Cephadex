@@ -32,7 +32,7 @@
     <h1 class="my-3">My Groups</h1>
 
     <div style = "background-color:aliceblue; border-radius: 10px; padding: 10px; margin-bottom: 10px;">
-    <h4>My created groups</h4>
+    <h4>Owner</h4>
 
 
     <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
@@ -56,7 +56,7 @@
 </div>
 
 
-    <h4>My groups</h4>
+    <h4>Member</h4>
 
     <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
         <table class="table table-striped">
@@ -285,15 +285,15 @@
                                 <h5 class="card-title">{{group.name}}</h5>
                                 <p class="card-text">{{group.invited_by_email}}</p>
                                 <a id="approve{{group.id}}" onclick="approveSharedGroup(event, {{group.id}})"
-                                    class="mx-2" style="cursor: pointer; text-decoration: none;">
-                                    <img src="\static\approve-accept-icon.png" alt="See source docs"
-                                        style="max-width:30px;max-height:30px;" class="px-1" title="Approve">
+                                    class="img-grow mx-2" style="cursor: pointer; text-decoration: none;">
+                                    <img  class="img-grow" src="\static\approve-icon.png" alt="See source docs"
+                                        style="max-width:35px;max-height:35px;" class="px-1" title="Approve">
                                 </a>
 
-                                <a id="reject{{group.id}}" class="mx-2" onclick="rejectSharedGroup(event, {{group.id}})"
+                                <a id="reject{{group.id}}" class="img-grow mx-2" onclick="rejectSharedGroup(event, {{group.id}})"
                                     style="cursor: pointer; text-decoration: none;">
-                                    <img src="\static\remove-cross-icon.png" alt="Reject"
-                                        style="max-width:30px;max-height:30px;" class="px-1" title="Reject">
+                                    <img class="img-grow" src="\static\reject-icon.png" alt="Reject"
+                                        style="max-width:35px;max-height:35px;" class="px-1" title="Reject">
                                 </a>
 
                             </div>

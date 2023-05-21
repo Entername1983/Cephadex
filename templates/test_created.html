@@ -82,25 +82,25 @@
                     <input type="hidden" name="test-id" value="{{test.id}}">
                     <label for="test-name">Test name:</label>
                     <input name="test-name" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="text" id="test-name" placeholder="{{test.name}}" required>
+                        type="text" id="test-name" placeholder="{{test.name}}" value="{{test.name}}" required>
                     <label for="due-date">Due date:</label>
                     <input name="due-date" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="datetime-local" id="due-date" placeholder="{{test.due_date}}" value="">
+                        type="datetime-local" id="due-date" placeholder="{{test.due_date}}" value="{{test.due_date}}">
                     <label for="subject">Subject:</label>
                     <input name="subject" class=" card-title box_study input_0 form-control form-control-lg" type="text"
-                        id="subject" placeholder="{{test.subject}}" value="">
+                        id="subject" placeholder="{{test.subject}}" value="{{test.subject}}">
                     <label for="topic">Topic:</label>
                     <input name="topic" class=" card-title box_study input_0 form-control form-control-lg" type="text"
-                        id="topic" placeholder="{{test.topic}}" value="">
+                        id="topic" placeholder="{{test.topic}}" value="{{test.topic}}">
                     <label for="topic">Instructions:</label>
                     <input name="instructions" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="text" id="instructions" placeholder="{{test.instructions}}" value="">
+                        type="text" id="instructions" placeholder="{{test.instructions}}" value="{{test.instructions}}">
                     <label for="topic">Description:</label>
                     <input name="description" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="text" id="description" placeholder="{{test.description}}" value="">
+                        type="text" id="description" placeholder="{{test.description}}" value="{{test.description}}">
                     <label for="time-limit">Time limit (minutes, leave blank if no time limit):</label>
                     <input name="time-limit" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="number" id="time-limit" placeholder="{{test.time_limit}}" value="">
+                        type="number" id="time-limit" placeholder="{{test.time_limit}}" value="{{test.time_limit}}">
                     <label for="answer-reveal">Answer reveal</label>
                     <input name="answer-reveal" type="checkbox" id="answer-reveal" placeholder="answer reveal"
                         value="answer-reveal">
@@ -292,7 +292,7 @@
 <div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="#assignModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-gradient-primary-to-secondary p-4">
+            <div class="modal-header modal-header-style p-4">
                 <h5 class="modal-title" id="assignModalLabel">Assign test</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

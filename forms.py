@@ -57,6 +57,12 @@ from threading import Thread
 
 
 
+class Unsubscribe(FlaskForm):
+    email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Email"})
+    newsletter = BooleanField('Newsletter')
+    contacted = BooleanField('Contacted')
+    submit = SubmitField('Unsubscribe')
+
 
 class RegSub(FlaskForm):
     first_name = StringField('First Name', validators=[InputRequired()], render_kw={"placeholder": "First Name"})
@@ -190,7 +196,7 @@ class UploadFileForm(FlaskForm):
                                               ('Math', 'Math'), ('Music', 'Music'), ('Med', 'Medecine'), 
                                               ('Politics', 'Politics'), ('Physics', 'Physics'), ('Psych', 'Psychology'), ('Phil', 'Philosophy'), ('Phys', 'Physiology'),
                                               ('Science', 'Science'), ('Soc', 'Sociology'),], default = None, render_kw={"placeholder": "Select subject"})
-    length = SelectField('Length', choices=[('', ''), ('long', 'Long'), ('short', 'Short')], default = None,  render_kw={"placeholder": ""})
+    length = SelectField('Length', choices=[('', ''), ('long', 'Detailed'), ('short', 'Brief')], default = None,  render_kw={"placeholder": ""})
     main_lang = SelectField('Main Language', choices=[('', ''), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
                                                   ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),
@@ -303,13 +309,13 @@ class BuildTest(FlaskForm):
 
 
 class UpdateCardForm(FlaskForm):
-    question = StringField('Question', validators=[DataRequired()])
+    question = TextAreaField('Question', validators=[DataRequired()])
     points = IntegerField('Points', validators=[DataRequired()])
     category = SelectField('Category', choices=[('mcq', 'Multiple Choice'), ('saq', 'Short Answer')], validators=[DataRequired()])
-    answer = StringField('Answer', validators=[DataRequired()])
-    boc_2 = StringField('Option 2')
-    boc_3 = StringField('Option 3')
-    boc_4 = StringField('Option 4')
+    answer = TextAreaField('Answer', validators=[DataRequired()])
+    boc_2 = TextAreaField('Option 2')
+    boc_3 = TextAreaField('Option 3')
+    boc_4 = TextAreaField('Option 4')
 
 class GroupForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(min=1, max=100)])

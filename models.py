@@ -89,6 +89,23 @@ class User(db.Model, UserMixin):
     def quantity_cards(self):
         return sum([len(deck.cards) for deck in self.decks])
     
+    def quantity_tests(self):
+        total_tests = Test.query.filter_by(creator=self.id).count()
+        return total_tests
+
+    def quantity_files(self):
+        ## count files for user by looking at all decks and associated files
+        total_files = Deck.query.join(source_files).filter(source_files.c.deck_id == Deck.id).filter(Deck.user_id == self.id).count()
+        return total_files
+    
+    def quantity_groups(self):
+        total_groups = Group.query.filter_by(creator_id=self.id).count()
+        return total_groups
+    
+    def quantity_decks_public(self):
+        total_decks = Deck.query.filter_by(user_id=self.id, public=True).count()
+        return total_decks
+
     def quantity_cards_mastered(self):
         counter = 0
         for deck in self.decks:
@@ -119,7 +136,22 @@ class User(db.Model, UserMixin):
             .filter_by(user_id=self.id)
             .order_by(UsageRecord.date.desc()).first()
         )
-        remaining_credit = round(usage_record.remaining_count/682)
+        if usage_record:
+            remaining_credit = round(usage_record.remaining_count/682)
+        else:
+            subscription_plan = (
+            SubscriptionPlan.query
+            .filter_by(id=self.subscription_plan).first() 
+                ) 
+            new_record = UsageRecord(user_id=self.id, operation_type='initializing',
+                        time_period='month',
+                        limit_count=subscription_plan.limit_count,
+                        operation_count=0,
+                        remaining_count = subscription_plan.limit_count,)
+            
+            db.session.add(new_record)
+            db.session.commit()
+            remaining_credit = round(new_record.remaining_count/682)    
         return remaining_credit
     
     def roll_over_date(self):

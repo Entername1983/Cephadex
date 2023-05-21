@@ -129,7 +129,7 @@
 <div class="container mt-1">
     <div class="row">
         <div class="col-6 d-flex justify-content-start">
-            <a href="/viewdecks"><img src="/static/reply-arrow-outline-icon.png" style="width: 25px; height:25px"></a>
+            <a href="/deck_manager/{{deck.id}}"><img src="/static/reply-arrow-outline-icon.png" style="width: 25px; height:25px"></a>
 
         </div>
         <div class="col-6 d-flex justify-content-end">
@@ -185,8 +185,7 @@
 
                             </td>
                                 
-                            <td>{% if card.formula %}{{ form.formula(class="border-0", id=card.id, placeholder=card.formula,
-                                value=card.formula, overflow="auto", style="background-color: transparent;") }} {% endif%}</td>
+                            <td>{% if card.formula %}{{ card.formula}} {% endif%}</td>
                             <td>{% if card.boc_2 %} {{ form.boc_2(class="border-0", id=card.id, placeholder=card.boc_2,
                                 value=card.boc_2, overflow="auto", style="background-color: transparent;") }} {% endif %}</td>
                             <td>{% if card.boc_3 %} {{ form.boc_3(class="border-0", id=card.id, placeholder=card.boc_3,
@@ -315,7 +314,7 @@ $(document).ready(function() {
 
                             </div>
                             {% else %}
-                            {{ form.content(class="border-0", id="tableContent" ~ card.id, rows=8,placeholder=card.content, overflow="auto", style="background-color: transparent; min-width: 100%", **{'data-value': card.content}) }}
+                            {{ form.content(class="form-control card-text box_study input_0 form-control  flex-grow-1", id="tableContent" ~ card.id, rows=8,placeholder=card.content, overflow="auto", style="background-color: transparent; min-width: 100%", **{'data-value': card.content}) }}
 
                             {% endif %}
 

@@ -8,7 +8,7 @@
   <div class="fab-options">
 
     <button onclick="document.location='/extract'" class="btn btn-primary fab-option">Create</button>
-    <button onclick="document.location='/study_deck_all'" class="btn btn-primary fab-option">Study All Decks</button>
+    <!----<button onclick="document.location='/study_deck_all'" class="btn btn-primary fab-option">Study All Decks</button> --->
     <button onclick="document.location='/public_decks'" class="btn btn-primary fab-option">Public Decks</button>
     <button onclick="document.location='/import_deck'" class="btn btn-primary fab-option">Import from Anki</button>
 
@@ -99,34 +99,58 @@
 
 
 <div class="dashboard">
+  {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
+
   <div class="stats-container">
-<div class="stat">
-      <h6>{{user.quantity_decks()}} decks</h6>
+    <div class="text-center p-1">
+      <a href="/extract"><img class = "img-link" src="/static/new-deck-icon.png" style="width: 30px; height:30px" title="Create"></a>
+
     </div>
-  <div class="stat">
-      <h6>{{user.quantity_cards_new()}} new cards</h6>
-   </div>
     <div class="stat">
-      <h6>{{user.quantity_cards()}} cards</h6>
-   </div>
+          <h6>{{user.quantity_decks()}} decks</h6>
+        </div>
+      <div class="stat">
+          <h6>{{user.quantity_cards_new()}} new cards</h6>
+      </div>
+        <div class="stat">
+          <h6>{{user.quantity_cards()}} cards</h6>
+      </div>
+        <div class="stat">
+          <h6>{{user.quantity_cards_mastered()}} cards mastered</h6>
+      </div>
+
+        <div class="stat">
+          <h6>{{ ns.total }} cards practiced </h6>
+      </div>
+        <div class="stat">
+          <h6>{{ ns.total_correct }} correct answers</h6>
+      </div>
+</div>
+  {% else %}
+  <div class="stats-container">
     <div class="stat">
-      <h6>{{user.quantity_cards_mastered()}} cards mastered</h6>
+          <h6>{{user.quantity_decks()}} Decks</h6>
+        </div>
+      <div class="stat">
+          <h6>{{user.quantity_cards()}} Cards</h6>
+      </div>
+        <div class="stat">
+          <h6>{{user.quantity_tests()}} Assignments</h6>
+      </div>
+        <div class="stat">
+          <h6>{{user.quantity_files()}} Documents</h6>
+      </div>
+
+        <div class="stat">
+          <h6>{{ user.quantity_groups() }} Groups </h6>
+      </div>
+        <div class="stat">
+          <h6>{{ user.quantity_decks_public()}} Public decks</h6>
+      </div>
   </div>
 
-    <div class="stat">
-      <h6>{{ ns.total }} cards practiced </h6>
-  </div>
-    <div class="stat">
-      <h6>{{ ns.total_correct }} correct answers</h6>
-   </div>
 
-
-    
-
-  
-
- 
-  </div>
+  {% endif %}
 </div>
 
 
@@ -178,8 +202,13 @@
                 style="max-height:15px; max-width:15px"></th>
 
             <th>Description:</th>
+            {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
             <th data-sort="asc" onclick="sortTable(3)">Due/total <img src="/static/sort-arrows-outline-icon.png"
                 style="max-height:15px; max-width:15px"></th>
+{% else %}
+<th data-sort="asc" onclick="sortTable(3)">total <img src="/static/sort-arrows-outline-icon.png"
+  style="max-height:15px; max-width:15px"></th>
+  {% endif %}
             <th data-sort="asc" onclick="sortTable(4)">Created <img src="/static/sort-arrows-outline-icon.png"
                 style="max-height:15px; max-width:15px"></th>
             <th></th>
@@ -188,34 +217,40 @@
         <tbody>
           {% for deck in decks %}
           <tr id = "deck-{{deck.id}}" class="view-row"  onclick="window.location.href='/deck_manager/{{ deck.id }}';"
-            onmouseover="this.style.backgroundColor='#ebe6f7'; this.style.cursor='pointer';"
-            onmouseout="this.style.backgroundColor=''; " >
+            onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
+            onmouseout="this.style.backgroundColor='';;this.style.color= ''" >
             <td data-th="Name" >
               <h5 style = "padding-left: 15px !important;">{{ deck.name }}</h5>
             </td>
             <td data-th="Category">{{ deck.check_cat() }} {% if deck.deck_files|length > 0 %} + files {% endif %}</td>
 
             <td data-th="Description">{{ deck.description }}</td>
+            {% if user.role in ["student", "lifelong-learner", "part-time-student"] %}
             <td data-th="Due/total"> {{ deck.cards_due() }}/{{ deck.quantity_cards() }}</td>
+            {% else %}
+            <td data-th="Cards"> {{ deck.quantity_cards() }}</td>
+{% endif %}
             <td data-th="Created">{{ deck.time_created }}</td>
             <td>
               <div class="dropdown">
-                <img src="/static/more-options-icon.png" onclick="event.stopPropagation();" width="25px" height="25px"
-                  class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                <img src="/static/more-icon.png" onclick="event.stopPropagation();" width="32px" height="32px"
+                  class="dropdown-toggle img-more" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                   style="cursor: pointer;">
                 <!-- Dropdown menu containing the list of links -->
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/carousel/{{ deck.id }}">Edit deck</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/carousel/{{ deck.id }}">Edit</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/study_deck/{{ deck.id }}">Study</a>
+
                   <a class="dropdown-item" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
-                    style="cursor: pointer;">Share deck</a>
+                    style="cursor: pointer;">Share</a>
                   <a class="dropdown-item" onclick="event.stopPropagation();" href="/build_test/{{ deck.id }}">Build test</a>
                   <a class="dropdown-item" onclick="event.stopPropagation();" href="/sea_dox/{{ deck.id }}" data-bs-toggle="tooltip"
-                    data-bs-placement="bottom" title="See files associated with this deck">Deck files</a>
+                    data-bs-placement="bottom" title="See files associated with this deck">Files</a>
                   <a class="dropdown-item" onclick="event.stopPropagation();" onclick="exportDeckAnki('{{ deck.id }}');" style="cursor: pointer;">Export to
                     Anki</a>
                   <a class="dropdown-item" onclick="event.stopPropagation();" href="/downloadascsv/{{ deck.id }}">Download CSV</a>
                   <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" style="cursor: pointer;" onclick="event.stopPropagation(); { deleteDeck('{{ deck.id }}'); }">Delete deck</a>
+                  <a class="dropdown-item" style="cursor: pointer;" onclick="event.stopPropagation(); { deleteDeck('{{ deck.id }}'); }">Delete</a>
 
                 </div>
               </div>
@@ -340,13 +375,13 @@ function shareDeck(deckId) {
                 <p class="card-text">{{deck.sender}}</p>
                 <a id="approve{{deck.id}}" onclick="approveSharedDeck(event, {{deck.id}})" class="mx-2"
                   style="cursor: pointer; text-decoration: none;">
-                  <img src="\static\approve-accept-icon.png" alt="See source docs"
-                    style="max-width:30px;max-height:30px;" class="px-1" title="Approve">
+                  <img src="\static\approve-icon.png" alt="See source docs"
+                    style="max-width:35px;max-height:35px;" class="img-grow px-1" title="Approve">
                 </a>
                 <a id="reject{{deck.id}}" class="mx-2" onclick="rejectSharedDeck(event, {{deck.id}})"
                   style="cursor: pointer; text-decoration: none;">
-                  <img src="\static\remove-cross-icon.png" alt="Reject" style="max-width:30px;max-height:30px;"
-                    class="px-1" title="Reject">
+                  <img src="\static\reject-icon.png" alt="Reject" style="max-width:35px;max-height:35px;"
+                    class="img-grow px-1" title="Reject">
                 </a>
               </div>
             </div>
@@ -422,7 +457,7 @@ function shareDeck(deckId) {
                 <a href="/take_test/{{test.id}}/{{user.id}}" class="mx-2" style="cursor: pointer;">
                   Click here to take the test
                 </a>
-                <a href="#" class="mx-2" onclick="rejectTest('{{test.id}}', '{{user.id}}');">Delete Test</a> <!-- Added delete button -->
+                <a href="#" class="mx-2" onclick="rejectTest('{{test.id}}', '{{user.id}}');"><img src="/static/reject-icon.png" class ="img-grow" style="max-width:40px; max-height:40px;"></a> <!-- Added delete button -->
               </div>
             </div>
           </div>
@@ -689,5 +724,17 @@ function shareDeck(deckId) {
 
 
 </div>
-
+<script>
+$(document).ready(function(){
+  $("#extract-button").mousedown(function(){
+      $("#icon-img").attr("src","/static/new-deck-icon-active.png");
+  });
+  $("#extrat-button").mouseup(function(){
+      $("#icon-img").attr("src","/static/new-deck-icon.png");
+  });
+  $("#extract-button").mouseout(function(){
+      $("#icon-img").attr("src","/static/new-deck-icon.png");
+  });
+});
+</script>
 {% endblock %}

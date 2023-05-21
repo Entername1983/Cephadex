@@ -89,6 +89,27 @@
         }
     });
     </script>
+<script>
+    $(document).ready(function(){
+
+    // Get the input field and error message div
+    var inputField = document.getElementById("text-input");
+    var errorMessage = document.getElementById("error-message-text");
+
+    // Add an event listener to the input field that triggers whenever its content changes
+    inputField.addEventListener("change", function() {
+        // Check if the input field's content has less than 50 characters
+        if(inputField.value.length < 50) {
+            // If it has, display an error message
+            errorMessage.textContent = "Please enter at least 50 characters.";
+            errorMessage.style.color = "red";
+        } else {
+            // If it doesn't, clear the error message
+            errorMessage.textContent = "";
+        }
+    });
+});
+</script>
 
 
 
@@ -111,13 +132,13 @@
         {{form.hidden_tag()}}
         {{ form.csrf_token }}
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
-            <li class="nav-item " role="presentation">
+            <li class="nav-item" role="presentation">
                 <button class="nav-link active " id="extract-input-tab" data-bs-toggle="pill"
                     data-bs-target="#extract-input" type="button" role="tab" aria-controls="extract-input"
                     aria-selected="true" style="font-size: 20px !important;"
                     title="Enter the content you want processed here">Selection & output</button>
             </li>
-            <li class="nav-item " role="presentation">
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="extract-output-tab" data-bs-toggle="pill" data-bs-target="#extract-output"
                     type="button" role="tab" aria-controls="extract-output" aria-selected="false"
                     style="font-size: 20px !important" title="Choose what type of material you want to create here">Customizations
@@ -126,7 +147,7 @@
         
         <li class="nav-item ms-auto">
                 
-            <div id="credit-display" class="alert alert-info" style="margin: 8px; display: ;">
+            <div id="credit-display" class="alert credit-box" style="margin: 8px!important; padding: 8px!important;">
                 Cost: <span id="credit-amount">0</span> credits
             </div></li>
 
@@ -154,6 +175,8 @@
                             {{form.text_input(id="text-input", class="form-control form-control-lg", style="height:100%;
                             width:100%; font-size:20px")}}
                             <label for="text-input" class="form-label">Paste your text here</label>
+                            <div style="color:red" id="error-message-text"></div>
+
                         </div>
                         <h6 class="mb-1"> Or insert a link </h6>
                         

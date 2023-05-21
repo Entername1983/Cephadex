@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 
-<link rel="icon" href="/static/logo1_small.png">
+<link rel="icon" href="/static/Cephadex-logo-6.png">
 
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, width=device-width" />
@@ -37,7 +37,9 @@
     <div class = "p-4">
 {% set q_counter = 0 %}
 <div class="row">
+    {% if current_user.subscription_plan in ["1", "2", "3"] %}
             <h5 class=" fw-bold" href="/">www.Cephadex.com</h5>
+            {% endif %}
     </div>
 <div class="row">
         
@@ -47,9 +49,11 @@
     <div class="col-6 d-flex align-items-center">
         <h4>{{test.name}}</h4>
     </div>
+    {% if test.points %}
     <div class="col-2 d-flex align-items-center">
         <h5> Marks: {{test.points}}</h5>
     </div>
+    {% endif %}
 
 </div>
 <br>
@@ -64,6 +68,7 @@
                 <div class="col-10 ">
                     {{q_counter}} - {{question.question}}
                 </div>
+                
                 <div class=" col-2">
                    <small>Marks: </small> {{question.points}}
                 </div>
@@ -101,6 +106,32 @@
     </div>
 
 </div>
+{% elif question.q_type == "formulas" %}
+<div class = "row " style="page-break-inside: avoid;">
+    
+    <div class="card">
+        <div class="card-head">
+            <div class="row">
+                <div class="col-10 ">
+                    {{q_counter}} - {{question.question}}
+                </div>
+                
+                <div class=" col-2">
+                    Marks: {{question.points}}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <label for="answer{{question.id}}">Answer:</label>
+            <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                </textarea>
+        </div>
+    </div>
+
+</div>
+
+
 {% elif question.q_type == "mcq" %}
 <div class = "row " style="page-break-inside: avoid;">
     

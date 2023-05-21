@@ -70,6 +70,10 @@ from pydub import AudioSegment
 import subprocess
 from pydub.utils import mediainfo
 from extractors import audio_processing
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from send_email import send_email
+from forms import Unsubscribe
 
 
 dictConfig(LOGGING_CONFIG)
@@ -78,6 +82,9 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
 AUTH2_CLIENT_ID = os.environ.get("AUTH2_CLIENT_ID")
+
+SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
+
 os.environ["FLASK_DEBUG"] = FLASK_DEBUG
 # Configure application
 app = Flask(__name__)
@@ -318,6 +325,7 @@ def register():
                         contacted_email=True, username=username,
                         timezone = timezone,
                         subscription_start_date = datetime.utcnow(), role = role)
+            send_email(email, given_name, 'welcome')
             user_settings = UserSettings(user=user.id)
             if subscribe == "subscribe":
                 sub_exists = Subscriber.query.filter_by(email=email).first()
@@ -385,6 +393,31 @@ def logout():
     logout_user()
     flash('You have been logged out!')
     return redirect(url_for('index'))
+
+@app.route("/unsubscribe", methods=["GET", "POST"])
+def unsubscribe():
+    form = Unsubscribe()
+    if request.method == 'POST':
+        email = request.form['email']
+        newsletter = request.form.get('newsletter')
+        contacted = request.form.get('contacted')
+        subscriber = Subscriber.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email).first()
+        print(email, contacted, newsletter)
+        if contacted == 'y':
+            print("contacted yes")
+            user.contacted_email = False
+            flash("You will no longer receive emails from us regarding your account")
+        if subscriber:
+            if newsletter == 'y':
+                print("newsletter yes")
+                db.session.delete(subscriber)
+                flash("You will no longer receive our newsletter")
+        db.session.commit()
+        return redirect(url_for('unsubscribe'))
+    return render_template('unsubscribe.html', title='Unsubscribe', form = form)
+
+
 
 @app.route("/viewdecks", methods = ["GET", "POST"])
 @login_required
@@ -507,6 +540,7 @@ def account():
                             user = user, subscriber = subscriber, form2 = form2)
 
 @app.route('/update_profile_pic', methods=['POST'])
+@login_required
 def update_profile_pic():
     form = UpdateProfilePicForm()
     if form.validate_on_submit():
@@ -1041,8 +1075,7 @@ def extract():
                 send_audio_file(form.file.data, deck_id, prompt_options, slug)
                 
                 flash('Your cards are being created,' 
-                            'once finished they will appear in your decks.'
-                            ' In the meantime feel free to create more decks or start studying!')
+                            'once finished they will appear in your decks.')
                 return redirect('/viewdecks')
         else:
             try:
@@ -1089,8 +1122,7 @@ def extract():
                             db.session.add(data)
                             db.session.commit()
                         flash('Your cards are being created,' 
-                        'once finished they will appear in your decks.'
-                        'In the meantime feel free to create more decks or start studying!')
+                        'once finished they will appear in your decks.')
                 return redirect('/viewdecks')
             except Exception as e:
                 logger.error(e)
@@ -1127,7 +1159,11 @@ def credit_counter(form):
             tokens = count_tokens(text)
     elif form.link_input.data:
             print("Entered link")
-            text = get_text_from_link(form.link_input.data)
+            try:
+                text = get_text_from_link(form.link_input.data)
+            except Exception as e:
+                logger.info(e)
+                return "error"
             print(text)
             tokens = count_tokens(text)
     credit = round(tokens_to_credit(tokens), 1)
@@ -1204,11 +1240,21 @@ def get_or_create_deck(form, prompt_options):
 
 def get_text_from_form_input(form):
     if form.file.data:
-        text = get_text_from_file(form.file.data)
+        try:
+            text = get_text_from_file(form.file.data)
+        except Exception as e:
+            logger.warning("Unable to extract text from file: %s", e)
+            flash('We were unable to extract the text from the file. Please try again or use a different format.')
+            return redirect('/extract')
     elif form.text_input.data and form.text_input.data.strip():
         text = form.text_input.data
     elif form.link_input.data and form.link_input.data.strip():
-        text = get_text_from_link(form.link_input.data)
+        try:
+            text = get_text_from_link(form.link_input.data)
+        except Exception as e:
+            logger.warning("Unable to extract text from link: %s", e)
+            flash('We were unable to extract the text from the link. If you are submitting a youtube link it is likely that the video is not available for automatic transcription. Please try again or use a different link.')
+            return redirect('/extract')
     else:
         text = None
     return text
@@ -1533,6 +1579,14 @@ def build_test(deck_id):
             elif card.category == "Cloze":
                 question.question = card.term
                 question.q_type = "cloze"
+
+            elif card.category == "Formulas":
+                print("entered formulas")
+                question.question = card.term
+                question.term = card.formula
+                print(card.formula)
+                print(question.term)
+                question.q_type = "formulas"
             else:
 ## switching them around so that the test gives them a definition and they have to write the word
                 question.question = card.content
@@ -1582,6 +1636,7 @@ def assign_test(test_id):
         test.count_questions()
         test.sum_points()
         db.session.commit()
+        flash(f'Test: "{test.name}" has been updated!', 'success')
     return render_template('assign_test.html', title='Assign test',
                         test=test, form = form, update_card_form = update_card_form)
     
@@ -1603,9 +1658,13 @@ def update_card():
         if data['points'] != '':
             question.points = data['points']
         # Handle multiple choice options
-        if 'options' in data:
-            for i, option in enumerate(data['options']):
-                question.options[i].option = clean(option)
+        if question.q_type == 'mcq':
+            if data['boc_2'] != '':
+                question.boc_2 = clean(data['boc_2'])
+            if data['boc_3'] != '':
+                question.boc_3 = clean(data['boc_3'])
+            if data['boc_4'] != '':
+                question.boc_4 = clean(data['boc_4'])
         db.session.flush()
         db.session.commit()
         return jsonify(success=True)
@@ -1809,18 +1868,20 @@ def test_created(test_id):
     if request.method == 'POST' and 'test-name' in request.form:
         test.name= clean(request.form['test-name'])
         test.creator = current_user.id
-        due_date = clean(request.form.get('due-date'))
+        due_date = request.form.get('due-date')
         if due_date:
-            due_date = dt.datetime.strptime(clean(due_date),'%Y-%m-%dT%H:%M')
+            due_date = dt.datetime.strptime((due_date),'%Y-%m-%dT%H:%M')
             test.due_date = due_date
         test.subject = clean(request.form['subject'])
         test.topic = clean(request.form['topic'])
         test.instructions = clean(request.form['instructions'])
         test.description = clean(request.form['description'])
-        test.time_limit = clean(request.form['time-limit'])
-        answer_reveal = clean(request.form.get('answer-reveal', False))
-        result_reveal = clean(request.form.get('result-reveal', False))
-        shuffle = clean(request.form.get('shuffle', False))
+        time_limit = request.form.get('time-limit', False)
+        if time_limit:
+            test.time_limit = time_limit
+        answer_reveal = request.form.get('answer-reveal', False)
+        result_reveal = request.form.get('result-reveal', False)
+        shuffle = request.form.get('shuffle', False)
         if answer_reveal == 'answer-reveal':
             test.answer_reveal = True
         if result_reveal == 'result-reveal':
@@ -1868,23 +1929,35 @@ def test_answers(test_id, taker_id):#
                                 result=result,
                                 question_results=question_results, test=test)
     
-@app.route("/test_print/<int:test_id>/", methods=["GET", "POST"])
+@app.route("/answer_key/<int:test_id>/", methods=["GET", "POST"])
+@login_required
 def test_print(test_id):
+    c_test_id = test_id
+    test = Test.query.filter_by(id = c_test_id).first()
+    return render_template('answer_key.html', test=test)
+
+@app.route("/test_print/<int:test_id>/", methods=["GET", "POST"])
+@login_required
+def answer_key(test_id):
     c_test_id = test_id
     test = Test.query.filter_by(id = c_test_id).first()
     return render_template('test_print.html', test=test)
 
+
 @app.route("/sea_source/<int:file_id>/", methods=["GET", "POST"])
+@login_required
 def sea_source(file_id):
     c_file_id = file_id
     source = DeckFiles.query.filter_by(id = c_file_id).first()
     return render_template('sea_source.html',file=source)
 
 @app.route("/import_deck/", methods=["GET", "POST"])
+@login_required
 def import_deck():
     return render_template('import_deck.html')
 
 @app.route('/import_anki', methods=['POST'])
+
 @login_required
 def import_anki():
     logger.debug("entered import_anki")
@@ -2025,7 +2098,7 @@ def assemble_file(total_jobs, deck_id, task_type):
         for job in total_jobs:
             full_text += job.processed_content
             job.save_source = False
-        name = deck.name + task_type + datetime.utcnow().strftime("%Y-%m-%d-%H-%M")
+        name = task_type + datetime.utcnow().strftime("%Y-%m-%d-%H-%M")
         existing_file = DeckFiles.query.filter_by(file_name=name).first()
         print(existing_file)
         if not existing_file:
@@ -2053,6 +2126,8 @@ def notification_complete():
         job.result = 2
     db.session.commit()
     session.pop('slug', None)
+    if current_user.contacted_email == True:
+        send_email(current_user.email, current_user.first_name,'deck_ready')
     return jsonify("success")
  
 @app.route("/latest_deck", methods=["POST", "GET"])
@@ -2245,9 +2320,9 @@ def deck_manager(deck_id):
     return render_template('deck_manager.html', deck=deck, files=files,
                             share_form = share_form, tests = tests)
 
-@app.route("/team", methods=['GET', 'POST'])
-def team():
-    return render_template('team.html')
+##@app.route("/team", methods=['GET', 'POST'])
+##def team():
+    ##return render_template('team.html')
 
 ########################  STRIPE ###################################
 ##################################################################
@@ -2265,8 +2340,9 @@ def upgrade():
         return redirect(url_for('index'))
     return render_template('upgrade.html')
 
-counter = 0
 
+
+counter = 0
 
 @app.route("/stripe_webhook", methods=['POST'])
 def stripe_webhook():
@@ -2445,31 +2521,37 @@ def update_plan(user,plan):
             user.subscription_start_date = datetime.utcnow()
             user.subscription_latest_roll_over = datetime.utcnow()
             set_usage_limit(user, 682700)
+            send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'standard_monthly':
             user.subscription_plan = 4
             user.subscription_start_date = datetime.utcnow()
             user.subscription_latest_roll_over = datetime.utcnow()
             set_usage_limit(user, 682700)
+            send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'premium_yearly':
             user.subscription_plan = 7
             user.subscription_start_date = datetime.utcnow()
             user.subscription_latest_roll_over = datetime.utcnow()
             set_usage_limit(user, 2048000)
+            send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'premium_monthly':
             user.subscription_plan = 5
             user.subscription_start_date = datetime.utcnow()
             user.subscription_latest_roll_over = datetime.utcnow()
             set_usage_limit(user, 2048000)
+            send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'basic_monthly':
             user.subscription_plan = 2
             user.subscription_start_date = datetime.utcnow()
             user.subscription_latest_roll_over = datetime.utcnow()
             set_usage_limit(user, 204800)
+            send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'basic_yearly':
             user.subscription_plan = 3
             user.subscription_start_date = datetime.utcnow()
             user.subscription_latest_roll_over = datetime.utcnow()
             set_usage_limit(user, 204800)
+            send_email(user.email, user.first_name, 'upgrade')
         else:
             logger.debug("plan not found")
         logger.debug("%s, %s", user.id, user.subscription_plan)
@@ -2864,6 +2946,17 @@ def remove_user_group(group_id, user_id):
     else:
         return jsonify({"message": "You do not have permission"
                     "to remove users from this group", "status": "error"})
+    
+
+
+##################### EMAIL ###########################################################
+
+
+
+
+
+
+
 ###################### TO BE REORGANIZED ###############################################
 
 def split_string(string):
@@ -2874,6 +2967,7 @@ def split_string(string):
 
 if __name__ == "__main__":
     app.run(debug=DEBUG)
+    
 else:
     # For Alembic
     from models import db

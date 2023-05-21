@@ -12,24 +12,22 @@
             <h1 class="my-4 hcepha1">{{ deck.name }} </h1>
         </div>
         <div class="col-md-6">
-           <div class="card mt-4">
-                <div class="card-header card-header1">Actions</div>
-                <div class="card-body">
-                    {% if deck.cards|length > 0 %}
-                    <a href='/study_deck/{{ deck.id }}' class="btn btn-primary">Study</a>
+           <div class="card box-manager mt-4">
+            <div class="card-body d-flex justify-content-around">
+                {% if deck.cards|length > 0 %}
+                    <a href='/study_deck/{{ deck.id }}' class = "img-grow" title="Study"><img src="/static/study-deck-icon.png" style="width: 35px; height:35px"></a>
+                    <a href="/build_test/{{ deck.id }}" class = "img-grow" title="Create assignment"><img src="/static/create-worksheet-icon.png" style="width: 35px; height:35px"></a>
+                    <a href="/carousel/{{ deck.id }}" class = "img-grow" title="Edit"><img src="/static/edit-deck-icon.png" style="width: 35px; height:35px"></a>
+                    <a  data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
+                        style="cursor: pointer;" class = "img-grow" title="Share"><img src="/static/share-icon.png" style="width: 35px; height:35px"></a>
 
-                    <a href="/build_test/{{ deck.id }}" class="btn btn-primary">Create assignment</a>
-                    <a href="/carousel/{{ deck.id }}" class="btn btn-primary">Edit deck</a>
-
-                    <a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
-                        style="cursor: pointer;">Share deck</a>
                     {% else %}
                     <p>You don't seem to have any cards in this deck, click <a href="/extract"> here </a> to create
                         some.</p>
                     {% endif %}
-                    <a class="btn btn-primary" onclick="event.stopPropagation();" width="25px" height="25px"
-                        class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                        style="cursor: pointer;">...</a>
+                    <a onclick="event.stopPropagation();" width="35px" height="35px"
+                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                        style="cursor: pointer;" class = "img-grow" title="More actions"><img src="/static/more-icon.png" style="width: 35px; height:35px"></a>
 
 
                     <!-- Dropdown menu containing the list of links -->
@@ -50,22 +48,21 @@
     </div>
     <div class="row d-none d-md-block">
         <div class="col-md-12">
-            <div class="card mt-4">
-                <div class="card-header card-header1">About</div>
-                <div class="card-body">
+            <div class="card box-manager mt-1">
+                <div class="card-body"  style="padding:3px!important;">
                     <div class="row">
                         <div class="col-md-6">
-                            <p>Category: {{ deck.category }}</p>
-                            <p>Description: {{ deck.description }}</p>
+                            <p style="margin-bottom:8px!important">Category: {{ deck.category }}</p>
+                            <p style="margin-bottom:8px!important">Description: {{ deck.description }}</p>
                         </div>
                         <div class="col-md-6">
 
                             {% if deck.public == 1 %}
-                            <p>Public</p>
+                            <p style="margin-bottom:8px!important">Public</p>
                             {% else %}
-                            <p>Private</p>
+                            <p style="margin-bottom:8px!important">Private</p>
                             {% endif %}
-                            <p>Created on: {{ deck.time_created }}</p>
+                            <p style="margin-bottom:8px!important">Created on: {{ deck.time_created }}</p>
 
                         </div>
                     </div>
@@ -77,83 +74,93 @@
     <div class="row">
  
         <div class="col-md-6">
-            <div class="card mt-4">
-                <div class="card-header card-header1"> <a href = "/carousel/{{deck.id}}">Cards ({{ deck.quantity_cards() }}) </a></div>
-                <div class="card-body" style="height: 200px; overflow-y: scroll;">
+            <div class="card  box-manager mt-2">
+                <div class="card-header deck-manager-header"> <a href = "/carousel/{{deck.id}}">Cards ({{ deck.quantity_cards() }}) </a></div>
+                <div class="card-body" style="height: 60vh; overflow-y: scroll;">
                     <ul>
                         {% for card in deck.cards %}
-                        <li>{{ card.term }} - {{card.category}}</li>
+                        <li>{{ card.term }}</li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
         </div>
        <div class="col-md-6">
-            <div class="card mt-4">
-                <div class="card-header card-header1"><a href="/sea_dox/{{ deck.id }}">Files</a></div>
-                <div class="card-body " style="height: 200px; overflow-y: scroll;">
-                    <ul>
-                        {% if deck.deck_files  %}
+                <div class="card box-manager mt-2">
+                    <div class="card-header deck-manager-header"><a href="/sea_dox/{{ deck.id }}">Files</a></div>
+                    <div class="card-body " style="height: 10vh; overflow-y: scroll;">
+                        <ul>
+                            {% if deck.deck_files  %}
 
-                        {% for file in deck.deck_files %}
-                        <li><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
-                        {% endfor %}
-                        {% else %}
-                        <p>No files found</p>
-                        {% endif %}
-                    </ul>
+                            {% for file in deck.deck_files %}
+                            <li><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
+                            {% endfor %}
+                            {% else %}
+                            <li>No files found</li>
+                            {% endif %}
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </div>
+   
+                <div class="card box-manager mt-2">
+                    <div class="card-header deck-manager-header"><a href = "/test_results_overview/">Assignments</a></div>
+                    <div class="card-body" style="height: 10vh; overflow-y: scroll;">
+                        <ul>
+                            {% if tests %}
+                            {% for test in tests %}
+                            <li><a href="/test_created/{{test.id}}">{{ test.name }}</a></li>
+                            {% endfor %}
+                            {% else %}
+                            <li>No assignments found</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+        
+                <div class="card box-manager mt-2">
+                    <div class="card-header deck-manager-header">Child Decks</div>
+                    <div class="card-body" style="height: 10vh; overflow-y: scroll;">
+                        <ul>
+                            {% if deck.children.all()|length > 0 %}
+                            {% for child_deck in deck.children %}
+                            <li><a href="/deck_manager/{{child_deck.id}}">{{ child_deck.name }}</a></li>
+                            {% endfor %}
+                            {% else %}
+                            <li>No child decks found</li>
+                            {% endif %}
+       
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card box-manager mt-2">
+                    <div class="card-header deck-manager-header">Parent Decks</div>
+                    <div class="card-body" style="height: 10vh; overflow-y: scroll;">
+                        
+
+                        <ul>{% if deck.parents.all()|length > 0 %}
+                            {% for parent in deck.parents.all() %}
+                            <li><a href="/deck_manager/{{parent.id}}">{{ parent.name }}</a> </li>
+                            {% endfor %}
+                            {% else %}
+                            <li>No parent decks found</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+
 
 
 
     </div>
+
+
+
  
-    <div class="row">
-           {% if tests|length>0 %}
-        <div class="col-md-4">
-            <div class="card mt-4">
-                <div class="card-header card-header1"><a href = "/test_results_overview/">Assignments</a></div>
-                <div class="card-body" style="min-height: 100px; overflow-y: scroll;">
-                    <ul>
-                        {% for test in tests %}
-                        <li><a href="/test_created/{{test.id}}">{{ test.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        {% if deck.children.all()|length > 0 %}
-        <div class="col-md-4">
-            <div class="card mt-4">
-                <div class="card-header card-header1">Child Decks</div>
-                <div class="card-body" style="min-height: 100px; overflow-y: scroll;">
-                    <ul>
-                        {% for child_deck in deck.children %}
-                        <li><a href="/deck_manager/{{child_deck.id}}">{{ child_deck.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
 
-        {% endif %}
-        {% if deck.parents.all()|length > 0 %}
-        <div class="col-md-4">
-            <div class="card mt-4">
-                <div class="card-header card-header1">Parent Decks</div>
-                <div class="card-body" style="min-height: 100px; overflow-y: scroll;">
-                    <ul>
-                        {% for parent in deck.parents.all() %}
-                        <li><a href="/deck_manager/{{parent.id}}">{{ parent.name }}</a> </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>{% endif %}
-    </div>
+
+    
 </div>
 
 </div>
