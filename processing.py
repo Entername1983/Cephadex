@@ -6,8 +6,8 @@ import json
 from flask import current_app
 from random import randrange
 from time import sleep
-from cardcreator import creator, create_image, split_text
-from extractors import summarize, turn_to_notes, add_period, extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx, extract_audio, transcribe_and_translate
+from cardcreator import creator, split_text
+from extractors import create_image, summarize, turn_to_notes, add_period, extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx, extract_audio, transcribe_and_translate
 from app import app
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
@@ -156,17 +156,13 @@ async def process_job(slug, session):
             with current_app.app_context():
                 slug = session.merge(slug)  # Merge the slug object back to the session
                 session = session.object_session(slug)
-                if session is None:
-                    print("Object is not bound to a session.2", slug)
-                elif session:
-                    print("Object is bound to a session.2", slug)
-                
+
                 method = None
                 print(f"Processing job: {slug}...", end=" ", flush=True)
                 payload = json.loads(slug.payload)
                 deck_id = payload["deck"]
                 deck = Deck.query.filter_by(id=deck_id).first()
-                if deck == None:
+                if deck is None:
                     print("deck is none, deleting job")
                     session.delete(slug)
                     session.commit()
@@ -179,7 +175,6 @@ async def process_job(slug, session):
                 trans_opt = prompt_options['trans_opt']
                 long_form = ["Transcribe", "Turn2notes", "Summarize"]
                 if main_opt not in long_form:
-                    print("not in long form")
                     method = "extract"
                     try:
                         response = await extract_terms(text, prompt_options)
@@ -195,6 +190,8 @@ async def process_job(slug, session):
                         print(response[2])
                     except Exception as e:
                         print(f"Error: {e}.")
+                        slug.processed_content = "Error"
+                        session.commit()
                     try:
                         log_response_data(response[1], response[2], response[3], True, session)
                     except Exception as e:
@@ -224,7 +221,7 @@ async def process_job(slug, session):
 
                 if check_subscription_plan(slug.user) == CONST_PLAN:
                     if prompt_options['images_opt'] == True:
-                        generate_images(deck, session)
+                        await generate_images(deck, session)
 
                 print(" JUST BEFORE CHANGE OF STATE ")
                 with current_app.app_context():
@@ -301,13 +298,35 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract", session=No
         if main_opt == "Mcq":
             v, w, x, y, z = mapping.get(main_opt, ("A", "B", "C", "D", "E"))
             for item in terms:
-                term = item[v].capitalize()
-                if check_card_exist(deck, term) == False:
-                    entry = Card(category = cat,
-                        term=term, content=(add_period(item[w].capitalize())),
-                        boc_2=(add_period(item[x].capitalize())), 
-                        boc_3=(add_period(item[y].capitalize())), 
-                        boc_4=(add_period(item[z].capitalize())), create_method = method)
+                term = item.get(v)
+                term = ' '.join(term) if isinstance(term, list) else term
+                term = term.capitalize() if term else None
+
+                content = item.get(w)
+                content = ' '.join(content) if isinstance(content, list) else content
+                content = add_period(content.capitalize()) if content else None
+
+                boc_2 = item.get(x)
+                boc_2 = ' '.join(boc_2) if isinstance(boc_2, list) else boc_2
+                boc_2 = add_period(boc_2.capitalize()) if boc_2 else None
+
+                boc_3 = item.get(y)
+                boc_3 = ' '.join(boc_3) if isinstance(boc_3, list) else boc_3
+                boc_3 = add_period(boc_3.capitalize()) if boc_3 else None
+
+                boc_4 = item.get(z)
+                boc_4 = ' '.join(boc_4) if isinstance(boc_4, list) else boc_4
+                boc_4 = add_period(boc_4.capitalize()) if boc_4 else None
+
+                if term and not check_card_exist(deck, term):
+                    entry = Card(
+                        category=cat,
+                        term=term, 
+                        content=content, 
+                        boc_2=boc_2, 
+                        boc_3=boc_3, 
+                        boc_4=boc_4,
+                        create_method=method)
                     session.add(entry)
                     deck.cards.append(entry)
                     session.commit()
@@ -315,20 +334,36 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract", session=No
             x, y = mapping.get(main_opt, ("A", "B"))
             for item in terms:
                 print(item)
-                term=item[x].capitalize()
-                if check_card_exist(deck, term) == False:
-                    entry = Card(category = cat, term=term,
-                        content=add_period(item[y].capitalize()), create_method=method)
+                term = item.get(x)
+                term = ' '.join(term) if isinstance(term, list) else term
+                term = term.capitalize() if term else None
+
+                content = item.get(y)
+                content = ' '.join(content) if isinstance(content, list) else content
+                content = add_period(content.capitalize()) if content else None
+
+                if term and not check_card_exist(deck, term):
+                    entry = Card(category=cat, term=term, content=content, create_method=method)
                     session.add(entry)
                     deck.cards.append(entry)
-            session.commit()
+                    session.commit()
         elif main_opt == "Formulas":
             x, y, z = mapping.get(main_opt, ("A", "B", "C"))
             for item in terms:
-                term=item[x].capitalize()
-                if check_card_exist(deck, term) == False:
-                    entry = Card(category = cat, term=term, formula="\["+(item[y])+"\]",
-                        content=add_period(item[z].capitalize()), create_method=method)
+                term = item.get(x)
+                term = ' '.join(term) if isinstance(term, list) else term
+                term = term.capitalize() if term else None
+
+                formula = item.get(y)
+                formula = ' '.join(formula) if isinstance(formula, list) else formula
+                formula = "\[" + formula + "\]" if formula else None
+
+                content = item.get(z)
+                content = ' '.join(content) if isinstance(content, list) else content
+                content = add_period(content.capitalize()) if content else None
+
+                if term and not check_card_exist(deck, term):
+                    entry = Card(category=cat, term=term, formula=formula, content=content, create_method=method)
                     session.add(entry)
                     deck.cards.append(entry)
             session.commit()

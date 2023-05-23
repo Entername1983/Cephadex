@@ -901,3 +901,25 @@ def small_extract_terms(item, prompt_option: str, prompt_option2: str = None, la
     for dict in response:
         ls_terms.append(dict)
     return ls_terms
+
+
+
+async def create_image(term):
+    try:
+        response = await asyncify (openai.Image.create)(
+            prompt=term,
+            n=1,
+            response_format='url',
+            size="256x256"
+        )
+        image_url = response['data'][0]['url']
+        img_name = term.replace(' ', '_') + '.webp'
+        img_path = os.path.join('static\card_img', img_name)  # Create the full path to the image file
+        r = requests.get(image_url)
+        r.raise_for_status()  # Raises an exception if the request was unsuccessful
+        with open(img_path, 'wb') as f:
+            f.write(r.content)
+        return img_path
+    except (openai.error.InvalidRequestError, requests.exceptions.RequestException) as e:
+        print(f"Error creating image for term '{term}': {e}")
+        return None

@@ -1161,7 +1161,7 @@ def extract():
                             task_type = prompt_options['main_opt']
                             data = Job(slug=slug, user = current_user_id,
                                         task_type=task_type, payload=payload,
-                                        item_number = counter, item_quantity = total_len)
+                                        item_number = counter, deck_id=deck.id, item_quantity = total_len)
                             event_tracker(current_user.id, 'extract_start',
                                         'success', payload)
                             if counter == total_len:
@@ -2147,7 +2147,11 @@ def query():
     )
 
 def assemble_file(total_jobs, deck_id, task_type):
+    print("entered assemble file")
     try:
+        print(deck_id)
+        print(total_jobs)
+        print(task_type)
         deck = Deck.query.get_or_404(deck_id)
         full_text = ""
         print(total_jobs)
@@ -2156,7 +2160,8 @@ def assemble_file(total_jobs, deck_id, task_type):
         for job in total_jobs:
             full_text += job.processed_content
             job.save_source = False
-        name = task_type + dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d-%H-%M")
+        random_number = random.randint(1, 100000)
+        name = task_type + dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d-%H") + str(random_number)
         existing_file = DeckFiles.query.filter_by(file_name=name).first()
         print(existing_file)
         if not existing_file:
@@ -2170,6 +2175,7 @@ def assemble_file(total_jobs, deck_id, task_type):
             print(file_storage)
     except Exception as e:
         logger.debug("error assembling file %s", e)
+        raise e
 
 
 

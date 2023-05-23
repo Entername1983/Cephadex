@@ -104,45 +104,45 @@
       {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
 
     <div class="stat">
-          <h6>Decks{{user.quantity_decks()}} </h6>
+          <h6>Decks: {{user.quantity_decks()}} </h6>
         </div>
       <div class="stat">
-          <h6>New cards{{user.quantity_cards_new()}} </h6>
+          <h6>New cards: {{user.quantity_cards_new()}} </h6>
       </div>
         <div class="stat">
-          <h6>Cards:{{user.quantity_cards()}} </h6>
+          <h6>Cards: {{user.quantity_cards()}} </h6>
       </div>
         <div class="stat">
-          <h6>Cards mastered{{user.quantity_cards_mastered()}} </h6>
+          <h6>Cards mastered: {{user.quantity_cards_mastered()}} </h6>
       </div>
 
         <div class="stat">
-          <h6>Cards practiced:{{ ns.total }}  </h6>
+          <h6>Cards practiced: {{ ns.total }}  </h6>
       </div>
         <div class="stat">
-          <h6>Correct answers:{{ ns.total_correct }} </h6>
+          <h6>Correct answers: {{ ns.total_correct }} </h6>
       </div>
 
   {% else %}
   
     <div class="stat">
-          <h6>Decks:{{user.quantity_decks()}} </h6>
+          <h6>Decks: {{user.quantity_decks()}} </h6>
         </div>
       <div class="stat">
-          <h6>Cards:{{user.quantity_cards()}} </h6>
+          <h6>Cards: {{user.quantity_cards()}} </h6>
       </div>
         <div class="stat">
-          <h6>Assignments:{{user.quantity_tests()}} </h6>
+          <h6>Assignments: {{user.quantity_tests()}} </h6>
       </div>
         <div class="stat">
-          <h6>Documents:{{user.quantity_files()}} </h6>
+          <h6>Documents: {{user.quantity_files()}} </h6>
       </div>
 
         <div class="stat">
-          <h6>Groups:{{ user.quantity_groups() }}  </h6>
+          <h6>Groups: {{ user.quantity_groups() }}  </h6>
       </div>
         <div class="stat">
-          <h6>Public decks:{{ user.quantity_decks_public()}} </h6>
+          <h6>Public decks: {{ user.quantity_decks_public()}} </h6>
       </div>
   </div>
 </div>
