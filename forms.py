@@ -158,8 +158,23 @@ class DeckOrg(FlaskForm):
     new_boc_2 = StringField('new_boc_2')
     new_boc_3 = StringField('new_boc_3')
     new_boc_4 = StringField('new_boc_4')
-    new_category = StringField('new_category')
+    new_category = SelectField('Category', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+                                           ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
+                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
+                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
     edit_deck = SubmitField("Edit deck", render_kw={"id": "edit-deck"})
+
+class UpdateCardForm(FlaskForm):
+    question = TextAreaField('Question', validators=[DataRequired()])
+    points = IntegerField('Points', validators=[DataRequired()])
+    category = SelectField('Category', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+                                           ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
+                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
+                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
+    answer = TextAreaField('Answer', validators=[DataRequired()])
+    boc_2 = TextAreaField('Option 2')
+    boc_3 = TextAreaField('Option 3')
+    boc_4 = TextAreaField('Option 4')
 
         
 class UploadFileForm(FlaskForm):
@@ -168,7 +183,7 @@ class UploadFileForm(FlaskForm):
     description = StringField("Description", render_kw={"placeholder": "Describe your deck"})
     submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'MCQ'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
                                            ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
                                            ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
                                            ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
@@ -256,7 +271,7 @@ class AccountForm(FlaskForm):
     gender = SelectField("Gender:", choices=[('', 'Select your gender'), ('Female', 'Female'), ('Male', 'Male'), ('Other', 'Other'), ('Prefer not to say', 'Prefer not to say')])
     role = SelectField("Role:", choices=[('', 'Select your role'), ('school-administrator', 'School Administrator'), ('teacher', 'Teacher'), ('student', 'Student'), ('part-time-student', 'Part-Time Student'), ('lifelong-learner', 'Lifelong Learner'), ('parent-guardian', 'Parent/Guardian'), ('homeschooling-parent', 'Homeschooling Parent'), ('tutor', 'Tutor'), ('curriculum-developer', 'Curriculum Developer'), ('educational-researcher', 'Educational Researcher'), ('educational-consultant', 'Educational Consultant'), ('instructional-designer', 'Instructional Designer'), ('academic-advisor', 'Academic Advisor'), ('admissions-counselor', 'Admissions Counselor'), ('school-counselor', 'School Counselor'), ('librarian', 'Librarian'), ('it-administrator', 'IT Administrator'), ('education-technology-specialist', 'Education Technology Specialist'), ('education-policy-maker', 'Education Policy Maker'), ('education-advocate-activist', 'Education Advocate/Activist'), ('other', 'Other')])
     timezone = SelectField("Timezone:", choices=[(tz, tz) for tz in pytz.all_timezones]) # Don't forget to import pytz
-    contacted_email = BooleanField("Agree to be contacted by email")
+    contacted_email = BooleanField("Enable notifications")
     subscribe = BooleanField("Sign up to our mailing list")
 
 class DeleteAccountForm(FlaskForm):
@@ -308,14 +323,7 @@ class BuildTest(FlaskForm):
     reveal_results = BooleanField('Reveal Results')
 
 
-class UpdateCardForm(FlaskForm):
-    question = TextAreaField('Question', validators=[DataRequired()])
-    points = IntegerField('Points', validators=[DataRequired()])
-    category = SelectField('Category', choices=[('mcq', 'Multiple Choice'), ('saq', 'Short Answer')], validators=[DataRequired()])
-    answer = TextAreaField('Answer', validators=[DataRequired()])
-    boc_2 = TextAreaField('Option 2')
-    boc_3 = TextAreaField('Option 3')
-    boc_4 = TextAreaField('Option 4')
+
 
 class GroupForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(min=1, max=100)])

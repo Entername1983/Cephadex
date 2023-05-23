@@ -105,12 +105,16 @@
               <button class="btn btn-generate" onclick="saveDeckToMyDecks({{ deck.id }}, {{ group.id }})">Save to my decks</button>
 
               <button
-                class="btn btn-generate"
-                data-bs-toggle="modal"
-                data-bs-target="#cardsModal{{deck.id}}"
-              >
+                class="btn btn-generate" data-bs-toggle="modal" data-bs-target="#cardsModal{{deck.id}}">
                 See cards
               </button>
+            {% if current_user.id == group.creator_id %}
+              <a href="#" class="mx-2 img-grow"
+              onclick="if (confirm('Are you sure you want to delete this test?')) { window.location.href = '/remove_deck_from_group/{{group.id}}/{{deck.id}}'; }">
+              <img src="\static\delete-icon.png" alt="Delete" style="max-width:35px;max-height:35px;"
+                  title="Delete test">
+          </a>
+          {% endif %}
             </div>
           </div>
         </div>

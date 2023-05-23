@@ -13,11 +13,14 @@
         </div>
         <div class="col-md-6">
            <div class="card box-manager mt-4">
-            <div class="card-body d-flex justify-content-around">
+            <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
                 {% if deck.cards|length > 0 %}
                     <a href='/study_deck/{{ deck.id }}' class = "img-grow" title="Study"><img src="/static/study-deck-icon.png" style="width: 35px; height:35px"></a>
                     <a href="/build_test/{{ deck.id }}" class = "img-grow" title="Create assignment"><img src="/static/create-worksheet-icon.png" style="width: 35px; height:35px"></a>
-                    <a href="/carousel/{{ deck.id }}" class = "img-grow" title="Edit"><img src="/static/edit-deck-icon.png" style="width: 35px; height:35px"></a>
+                    <a href="/carousel/{{ deck.id }}" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="width: 35px; height:35px"></a>
+
+                    <a class="px-2" data-bs-toggle="modal" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
+                        <img src="/static/edit-deck-icon.png" class = "img-grow" style="width: 35px; height:35px"></a>
                     <a  data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
                         style="cursor: pointer;" class = "img-grow" title="Share"><img src="/static/share-icon.png" style="width: 35px; height:35px"></a>
 
@@ -108,7 +111,7 @@
                         <ul>
                             {% if tests %}
                             {% for test in tests %}
-                            <li><a href="/test_created/{{test.id}}">{{ test.name }}</a></li>
+                            <li><a href="/assign_test/{{test.id}}">{{ test.name }}</a></li>
                             {% endfor %}
                             {% else %}
                             <li>No assignments found</li>
@@ -331,7 +334,7 @@
                             <label for="email{{deck.id}}">Email</label>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="shareDeck('{{ deck.id }}')">Share</button>
+                    <button type="button" class="btn-generate" onclick="shareDeck('{{ deck.id }}')">Share</button>
                 </form>
             </div>
         </div>
@@ -341,6 +344,67 @@
 
 
 
+<!---- EDIT DECK ATTRIBUTES MODAL -->
+<div class="modal fade" id="editDeckModalLong" tabindex="-1" role="dialog" aria-labelledby="editDeckModalLongTitle"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="editDeckModalLongTitle">Edit Deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                </button>
 
+            </div>
+            <div class="m-2" id="addCardMessage"></div>
+            <div class="modal-body">
+                <form id="newCardForm" action="" method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_name(class="form-control", value=deck.name,
+                        placeholder=deck.name|default('Name')) }}
+                        <label for="new_deck_name">Name</label>
+                    </div>
+
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_description(class="form-control", value = deck.desccription,
+                        placeholder=deck.description|default("Description")) }}
+                        <label for="new_deck_description">Description</label>
+                    </div>
+
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_subject(class="form-control", value = deck.subject,
+                        placeholder=deck.subject|default("Subject")) }}
+                        <label for="new_deck_subject">Subject</label>
+                    </div>
+
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_topic(class="form-control", value = deck.topic,
+                        placeholder=deck.topic|default("Topic")) }}
+                        <label for="new_deck_topic">Topic</label>
+                    </div>
+
+                    <div class="form-floating my-2">
+                        {{ form.deck_list(id="existing-input", class="form-select full-w", placeholder="Select a deck")
+                        }}
+                        <label for="existing-input">Make child of:</label>
+                    </div>
+
+                    <div class="form-check form-switch mt-2">
+                     
+                            <input class="form-check-input" type="checkbox" name="public" id="public" value="True" {{ 'checked' if deck.public else '' }}>
+                            <label class="form-check-label" for="subscribe">Make deck public</label>
+                          </div>  
+
+
+
+                    </div>
+
+                    <div class="modal-footer">
+                        {{ form.edit_deck(class=" btn-generate") }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

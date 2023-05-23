@@ -22,13 +22,9 @@
 
 {% if settings.new_user_decks == True %}
 <div class="container box_study" id="new-user-decks-info">
-  <h5> Welcome to our decks page</h5>
-  <p> This is where you will find a list of all the decks and other content you have created (except for tests which can
-    be found under account > tests).</p>
-  <p> You can do a lot of different things with these decks, here is the functionality so far:</p>
-  <ul>
+  <h5> Welcome to your decks page</h5>
+  <p> This is where you will find a list of all the decks and other content you have created.</p>
 
-  </ul>
   <form id="new-user-study">
     <input type="checkbox" class="" id="new-user-decks-checkbox" value="checked">
     <label class="form-check-label" for="new-user-decks-checkbox">Do not show this message again</label>
@@ -61,7 +57,7 @@
       <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
     <div class="toast-body">
-      <button class="mx-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#SharedDecksModal" alt="shared decks"
+      <button class="mx-2 btn btn-generate" data-bs-toggle="modal" data-bs-target="#SharedDecksModal" alt="shared decks"
         style="cursor: pointer">
         Approve decks
       </button>
@@ -80,7 +76,7 @@
       <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
     <div class="toast-body">
-      <button class="mx-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#testModal" alt="shared decks"
+      <button class="mx-2 btn btn-generate" data-bs-toggle="modal" data-bs-target="#testModal" alt="shared decks"
         style="cursor: pointer">
         Take test
       </button>
@@ -99,56 +95,57 @@
 
 
 <div class="dashboard">
-  {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
 
   <div class="stats-container">
-    <div class="text-center p-1">
+    <div class="text-center p-1 d-md-block d-none">
       <a href="/extract"><img class = "img-link" src="/static/new-deck-icon.png" style="width: 30px; height:30px" title="Create"></a>
 
     </div>
+      {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
+
     <div class="stat">
-          <h6>{{user.quantity_decks()}} decks</h6>
+          <h6>Decks{{user.quantity_decks()}} </h6>
         </div>
       <div class="stat">
-          <h6>{{user.quantity_cards_new()}} new cards</h6>
+          <h6>New cards{{user.quantity_cards_new()}} </h6>
       </div>
         <div class="stat">
-          <h6>{{user.quantity_cards()}} cards</h6>
+          <h6>Cards:{{user.quantity_cards()}} </h6>
       </div>
         <div class="stat">
-          <h6>{{user.quantity_cards_mastered()}} cards mastered</h6>
+          <h6>Cards mastered{{user.quantity_cards_mastered()}} </h6>
       </div>
 
         <div class="stat">
-          <h6>{{ ns.total }} cards practiced </h6>
+          <h6>Cards practiced:{{ ns.total }}  </h6>
       </div>
         <div class="stat">
-          <h6>{{ ns.total_correct }} correct answers</h6>
+          <h6>Correct answers:{{ ns.total_correct }} </h6>
       </div>
-</div>
+
   {% else %}
-  <div class="stats-container">
+  
     <div class="stat">
-          <h6>{{user.quantity_decks()}} Decks</h6>
+          <h6>Decks:{{user.quantity_decks()}} </h6>
         </div>
       <div class="stat">
-          <h6>{{user.quantity_cards()}} Cards</h6>
+          <h6>Cards:{{user.quantity_cards()}} </h6>
       </div>
         <div class="stat">
-          <h6>{{user.quantity_tests()}} Assignments</h6>
+          <h6>Assignments:{{user.quantity_tests()}} </h6>
       </div>
         <div class="stat">
-          <h6>{{user.quantity_files()}} Documents</h6>
+          <h6>Documents:{{user.quantity_files()}} </h6>
       </div>
 
         <div class="stat">
-          <h6>{{ user.quantity_groups() }} Groups </h6>
+          <h6>Groups:{{ user.quantity_groups() }}  </h6>
       </div>
         <div class="stat">
-          <h6>{{ user.quantity_decks_public()}} Public decks</h6>
+          <h6>Public decks:{{ user.quantity_decks_public()}} </h6>
       </div>
   </div>
-
+</div>
 
   {% endif %}
 </div>
@@ -302,7 +299,7 @@ function shareDeck(deckId) {
                 <label for="email{{deck.id}}">Email</label>
               </div>
             </div>
-            <button type="button" class="btn btn-primary" onclick="shareDeck('{{ deck.id }}')">Share</button>
+            <button type="button" class="btn btn-generate" onclick="shareDeck('{{ deck.id }}')">Share</button>
           </form>
         </div>
       </div>

@@ -1,32 +1,41 @@
 {% extends "layout.html" %}
-{% block title %} Test Overview {% endblock %}
+
+{% block title %} Decks Dashboard {% endblock %}
+
+{% block head %}
+{% endblock %}
+
 {% block main_0 %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 d-flex justify-content-center align-items-center">
+            <h1 class="my-4 hcepha1"> Assignments </h1>
+        </div>
+        <div class="col-md-6">
+            <!---
+           <div class="card box-manager mt-4">
+            <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
+                   
 
+                
+            </div>
+        </div>--->
+    </div>
 
-
-<div class="container box_0 pt-2">
-    <div class="col" id="collap">
-        <p>
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
-                data-bs-target="#multiCollapseExample1" data-bs-parent="#collap">Tests taken</button>
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
-                data-bs-target="#multiCollapseExample2" data-bs-parent="#collap"> Tests
-                assigned(results)</button>
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
-                data-bs-target="#multiCollapseExample3" data-bs-parent="#collap">Tests
-                created</button>
-        </p>
-        <div class="row">
-
-
-            <div class="collapse show" id="multiCollapseExample1"  data-bs-parent="#collap">
-                <div class="card card-body">
+{% if current_user.role in ['student', 'lifelong-learner', 'part-time-student'] %}
+    
+        <div class="col-md-6">
+            <div class="card  box-manager mt-2">
+                <div class="card-header deck-manager-header">
+                    <h4>My results</h4>
+                </div>
+                <div class="card-body" style="height: 60vh; overflow-y: scroll;">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">name:</th>
-                                <th scope="col">score:</th>
-                                <th scope="col">result details:</th>
+                                <th scope="col">Name:</th>
+                                <th scope="col">Score:</th>
+                                <th scope="col">Result details:</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -50,8 +59,38 @@
                     </table>
                 </div>
             </div>
-            <div class="collapse" id="multiCollapseExample2"  data-bs-parent="#collap">
-                <div class="card card-body">
+        </div>
+        <div class="col-md-6">
+            <div class="card box-manager mt-2">
+                <div class="card-header deck-manager-header"><h4>Assignments</h4></div>
+                <div class="card-body " style="height: 25vh; overflow-y: scroll;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Name:</th>
+                                <th scope="col">Due date:</th>
+                                <th scope="col">Details:</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in created %}
+                            <tr>
+                                <td>{{ test.name }}</td>
+                                <td>{{test.due_date}}</td>
+                                <td> <a href=/assign_test/{{test.id}}> See test </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+   
+            <div class="card box-manager mt-2">
+                <div class="card-header deck-manager-header">
+                    <h4>My students' results</h4>
+                </div>
+                <div class="card-body" style="height: 25vh; overflow-y: scroll;">
                     <table class="table">
                         <thead>
                             <tr>
@@ -72,15 +111,31 @@
                     </table>
                 </div>
             </div>
+        
+            
+   
 
-            <div class="collapse" id="multiCollapseExample3"  data-bs-parent="#collap">
-                <div class="card card-body">
+
+
+
+    </div>
+
+
+{% else %}
+
+ 
+        <div class="col-md-6">
+            <div class="card  box-manager mt-2">
+                <div class="card-header deck-manager-header">
+                    <h4>My students' results</h4>
+                </div>
+                <div class="card-body" style="height: 60vh; overflow-y: scroll;">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">name:</th>
-                                <th scope="col">due date:</th>
-                                <th scope="col">details:</th>
+                                <th scope="col">Name:</th>
+                                <th scope="col">Due date:</th>
+                                <th scope="col">Details:</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,8 +143,7 @@
                             <tr>
                                 <td>{{ test.name }}</td>
                                 <td>{{test.due_date}}</td>
-                                <td> <a href=/assign_test/{{test.id}}> See test </a>
-                                </td>
+                                <td><a href=/test_result_details/{{test.id}}> See individual results </a></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -97,15 +151,90 @@
                 </div>
             </div>
         </div>
-    </div>
+        <div class="col-md-6">
+                <div class="card box-manager mt-2">
+                    <div class="card-header deck-manager-header">
+                        <h4>Created assignments</h4>
+                    </div>
+                    <div class="card-body " style="height: 37vh; overflow-y: scroll;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Name:</th>
+                                    <th scope="col">Created on:</th>
+                                    <th scope="col">Details:</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in created %}
+                                <tr>
+                                    <td>{{ test.name }}</td>
+                                    <td>{{test.time_created}}</td>
+                                    <td> <a href=/assign_test/{{test.id}}> See test </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+   
+                <div class="card box-manager mt-2">
+                    <div class="card-header deck-manager-header"><h4>My results</h4></div>
+                    <div class="card-body" style="height: 15vh; overflow-y: scroll;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Name:</th>
+                                    <th scope="col">Score:</th>
+                                    <th scope="col">Result details:</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in taken %}
+                                <tr>
+                                    <td>{% for test in tests %}
+                                    {% if result.test_id == test.id %}
+                                    {{ test.name }}
+                                   
+                                    {% endif %}
+                                    
+                                    {% endfor %}</td>
+                                    <td>{{ result.points}}/{% for test in tests %}
+                                        {% if result.test_id == test.id %}{{test.points}}{% endif %}
+                                    
+                                        {% endfor %} </td>
+                                    <td><a href=/test_result/{{result.id}}> See details </a> </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+        
+              
+
+
+            </div>
+
+
+{% endif %}
+
+
+
+
+ 
+
+
+    
+</div>
 
 </div>
 
 
+
+
 </div>
-
-
-
 
 
 

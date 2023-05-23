@@ -298,7 +298,7 @@ class Card(db.Model):
         db.session.delete(self)
         db.session.commit()
         
-    def regen_def(self):
+    def regen_def(self, prompt = None):
         term = self.term
         content = regenerate_definition(term)
         print("regen_def method")
@@ -341,12 +341,12 @@ class Card(db.Model):
         self.times_correct_row = 0
         if self.box_id == 1:
             self.srs_interval = self.srs_interval * 0.5
-        if self.box_id == 2:
+        elif self.box_id == 2:
             self.srs_interval - self.srs_interval * 0.8
-        if self.box_id == 3:
+        elif self.box_id == 3:
             self.srs_interval - self.srs_interval * 0.9
             
-        if not self.box_id == 1 and self.srs_interval < 5:
+        if self.box_id != 1 and self.srs_interval < 5:
             self.srs_interval = 5
             
         if self.box_id > 0:

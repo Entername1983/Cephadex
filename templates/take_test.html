@@ -9,55 +9,42 @@
 
 {% block main_0 %}
 
-{% if test.time_limit %}
-
-<div class="row fixed-top d-flex justify-content-center"
-    style="background-color: rgba(29, 113, 186); margin-top: 75px;">
-    <div class = "row">
-        <div class = "col-4">
-            <h5>Test name: {{ test.name }}</h5></div>
-            <div class = "col-4"> <h5>Time allowed: {{test.time_limit}}</h5></div>
-            <div class = "col-4">  <h5 class="d-flex justify-content-center" id="timer"></h5></div>
-    </div>
-</div>
-
-<script>
-    const timer = document.querySelector('#timer');
-    const duration = {{test.time_limit}}* 60;
-    console.log(duration);
-    function updateTimer() {
-        const remainingTime = Math.max(duration - Math.floor((new Date() - startTime) / 1000), 0);
-        console.log(remainingTime)
-        const minutes = Math.floor(remainingTime / 60);
-        console.log(minutes)
-        const seconds = Math.floor(remainingTime % 60).toString().padStart(2, '0');
-        console.log(seconds)
-        timer.textContent = `${minutes}:${seconds}`;
-        if (remainingTime <= 0) {
-            clearInterval(timerInterval);
-            timer.textContent = 'Time is up!';
-            document.querySelector('#my-form').submit(); // submit the form when the timer expires
-        }
-    }
-    const startTime = new Date();
-    updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
-</script>
-
-{% endif %}
 
 
 
 
 
-<div class="container">
+
+
+
+<div class="container box-manager" style="background-color:#efe8ff; padding-top: 4px!important; padding-bottom: 4px!important;">
     <div class="row mx-auto">
-        <h3>{{ test.name }} {{test.points}}</h3>
+        <div class="row d-flex justify-content-center">
+        <div class = "row">
+            {% if test.time_limit %}  
+            <div class = "col-3">
+
+                <h5>Test name: {{ test.name }} </h5></div>
+                
+                <div class = "col-3"> <h5>Time: {{test.time_limit}} min.</h5></div>
+                
+                <div class = "col-3">  <h5 class="d-flex justify-content-center" id="timer"></h5></div>
+<div class = "col-3"><h5>Marks: {{test.points}}</h5></div>
+
+                {% else %}
+                <h5>Test name: {{ test.name }} Points: {{test.points}}</h5>
+                {% endif %}
+        </div>
+    </div>
     </div>
     <form id="my-form" method="POST" onsubmit="captureEndTime()">
+        <div class="row d-flex justify-content-end m-2">
+            <input class="form-control justify-content-end" type="submit" value="Submit test">
+        </div>
         <input type="hidden" name="start-time" value="{{ start_time }}">
         <input type="hidden" name="end-time" va lue="">
-        <div class="container box_study">
+
+        <div class="box-manager p-2" style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
             {% for question in test.questions %}
 
             {% set q_counter = loop.index %}
@@ -66,7 +53,7 @@
             {% if question.q_type == "jeopardy" %}
 
             <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
-            <div class="card">
+            <div class="card mt-1">
                 <div class="card-head">
                     <div class="row p-1">
                         <div class="col-10 ">
@@ -86,7 +73,7 @@
             {% elif question.q_type == "cloze" %}
 
             <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
-            <div class="card">
+            <div class="card mt-1">
                 <div class="card-head">
                     <div class="row p-1">
                         <div class="col-10 ">
@@ -110,7 +97,7 @@
 
             {% elif question.q_type == "mcq" %}
             <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
-            <div class="card">
+            <div class="card mt-1">
                 <div class="card-head">
                     <div class="row p-1">
                         <div class="col-10">
@@ -189,6 +176,35 @@
                     });
             });
                 </script>
+                {% if test.time_limit %}
+
+<script>
+
+    const timer = document.querySelector('#timer');
+    const duration = {{test.time_limit}}* 60;
+    console.log(duration);
+    function updateTimer() {
+        const remainingTime = Math.max(duration - Math.floor((new Date() - startTime) / 1000), 0);
+        console.log(remainingTime)
+        const minutes = Math.floor(remainingTime / 60);
+        console.log(minutes)
+        const seconds = Math.floor(remainingTime % 60).toString().padStart(2, '0');
+        console.log(seconds)
+        timer.textContent = `${minutes}:${seconds}`;
+        if (remainingTime <= 0) {
+            clearInterval(timerInterval);
+            timer.textContent = 'Time is up!';
+            document.querySelector('#my-form').submit(); // submit the form when the timer expires
+        }
+    }
+    const startTime = new Date();
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+
+</script>
+
+{% endif %}
+
             </div>
 
 
@@ -196,11 +212,37 @@
             {% endif %}
             {% endfor %}
         </div>
-        <div class="row box_study d-flex justify-content-end m-2">
-            <input class="form-control justify-content-end" type="submit" value="Submit test">
-        </div>
-    </form>
 
+    </form>
+    {% if test.time_limit %}
+
+    <script>
+    
+        const timer = document.querySelector('#timer');
+        const duration = {{test.time_limit}}* 60;
+        console.log(duration);
+        function updateTimer() {
+            const remainingTime = Math.max(duration - Math.floor((new Date() - startTime) / 1000), 0);
+            console.log(remainingTime)
+            const minutes = Math.floor(remainingTime / 60);
+            console.log(minutes)
+            const seconds = Math.floor(remainingTime % 60).toString().padStart(2, '0');
+            console.log(seconds)
+            timer.textContent = `${minutes}:${seconds}`;
+            if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+                timer.textContent = 'Time is up!';
+                document.querySelector('#my-form').submit(); // submit the form when the timer expires
+            }
+        }
+        const startTime = new Date();
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
+    
+    </script>
+    
+    {% endif %}
+    
 </div>
 
 <script>

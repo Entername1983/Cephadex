@@ -38,8 +38,9 @@
     <div class = "p-4">
 {% set q_counter = 0 %}
 <div class="row">
-    {% if current_user.subscription_plan in ["1", "2", "3"] %}
-            <h5 class=" fw-bold" href="/">www.Cephadex.com</h5>
+    {% if current_user.subscription_plan in [1, 2, 3] %}
+        <img src="/static/Cepha-banner-1.png" style="max-width:200px">
+        <br>
             {% endif %}
     </div>
 <div class="row">
@@ -72,7 +73,7 @@
 
         <div class="card-body">
 
-            {{question.content}}
+            {{question.term}}
            
         </div>
     </div>

@@ -57,23 +57,7 @@
                 });
             });
             // Feedback form handler
-            $('#feedback-form').submit(function (event) {
-                event.preventDefault();
-                var form_data = $(this).serialize();
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ url_for("feedback") }}',
-                    data: form_data,
-                    success: function (response) {
-                        $('#feedbackModal').modal('hide');
-
-                    },
-                    error: function (error) {
-                        alert('An error occurred: ' + error.responseText);
-                    }
-                });
-            });
-
+    
 
         });
 
@@ -228,8 +212,8 @@
                     
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" href="/viewdecks">My decks</a>
-                        <a class="dropdown-item" href="/my_groups">My groups 🚧</a>
-                        <a class="dropdown-item" href="/test_results_overview">My tests 🚧</a>
+                        <a class="dropdown-item" href="/my_groups">My groups</a>
+                        <a class="dropdown-item" href="/test_results_overview">My tests</a>
                         <a class="dropdown-item" href="/account">Account</a>
                         <a class="dropdown-item" href="/upgrade">Upgrade </a>
                         <div class="dropdown-divider"></div>
@@ -438,15 +422,16 @@
 
 
     <footer class="text-center site-footer pt-2" >
-
+        <!----
         <a class="btn btn-outline-dark btn-floating m-1" href="https://www.facebook.com/Cephadex" role="button"
             target="_blank"><i class="fab fa-facebook-f"></i></a>
-
+--->
         <a class="btn btn-outline-dark btn-floating m-1" href="https://twitter.com/Cephadex" role="button"
             target="_blank"><i class="fab fa-twitter"></i></a>
+            <!---
         <a class="btn btn-outline-dark btn-floating m-1" href="https://discord.gg/QE3DqykrdD" role="button"
             target="_blank"><i class="fab fa-discord"></i></a>
-
+-->
         <a class="btn btn-outline-dark btn-floating m-1" href="https://www.instagram.com/CephadexSocial/" role="button"
             target="_blank"><i class="fab fa-instagram"></i></a>
 
@@ -459,7 +444,8 @@
         <p style=""><a class="" href="mailto:support@cephadex.com" target="blank">Contact</a>
         
         <a class="" href="/legal">Legal</a>
-        <a class="" href="/news">News</a>
+        <!---
+        <a class="" href="/news">News</a>--->
         <a class="" href="/about">About us</a>
         <a class="" href="/documentation">Documentation</a>
         <a class="" href="/pricing">Pricing</a>

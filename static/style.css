@@ -403,13 +403,18 @@ button:disabled {
   color: #ffffff !important;
 }
 
+.modal-header-style-2 {
+  background: linear-gradient(45deg, #6019FF, #a880fd) !important;
+  color: #ffffff !important;
+}
+
 .account-header-style {
   background: linear-gradient(45deg, #6019FF, #a880fd) !important;
   color: #ffffff !important;
 }
 
 .toast-header {
-  background: linear-gradient(45deg, #6019FF, #54FFF1) !important;
+  background: linear-gradient(45deg, #6019FF, #efe8ff) !important;
   color: #ffffff !important;
 }
 
@@ -1212,7 +1217,7 @@ button:disabled {
   border-width: 5px;
   border-radius: 15px;
   padding: 5px;
-  background-color: #6019FF;
+  background-color: #efe8ff;
 }
 
 .study-header {
@@ -1477,9 +1482,60 @@ td:empty {
 }
 
 .form-control:disabled {
-  background-color: #efe8ff !important;
+  background-color: #d7d5ec !important;
 }
 
 .img-grow:hover {
-  transform: scale(1.1) !important;
+  transform: scale(1.05) !important;
+}
+
+.card-body {
+  border-radius: 10px !important;
+}
+
+.carousel-item {
+  border-radius: 10px !important;
+}
+
+.card-header {
+  border-top-left-radius: 5px !important;
+  border-top-right-radius: 5px !important;
+}
+
+::-webkit-scrollbar {
+  color: #a880fd;
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #a880fd;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #efe8ff;
+  border-radius: 4px;
+}
+
+input[type=checkbox].form-check-input:checked::after {
+  content: none;
+}
+
+.spinner-border {
+  color: #6019FF !important; /* Replace with your desired color */
+}
+
+/* Customize the background color of Bootstrap spinners */
+.spinner-border::after {
+  border-color: #6019FF !important; /* Replace with your desired color */
+  border-right-color: transparent !important; /* Override default Bootstrap styles */
+}
+
+.spinner-grow {
+  color: #6019FF !important; /* Replace with your desired color */
+}
+
+.spinner-grow::before {
+  border-color: #6019FF !important; /* Replace with your desired color */
+  border-right-color: transparent !important; /* Override default Bootstrap styles */
 }/*# sourceMappingURL=style.css.map */

@@ -7,13 +7,12 @@
 
 <div class="container box_study" id="new-user-info">
     <h5> Welcome to our creation page</h5>
-    <p> This is where the magic happens! On this page you can create all sorts of study material. There are just a few
-        things to keep in mind.</p>
+    <p> This is where the magic happens! On this page you can create all sorts of study material.</p>
     <ul>
         <li> Feel free to try out different combinations</li>
         <li> For summaries, notes and transcriptions the results will be stored in the deck files associated with your deck</li>
-        <li> Big documents can take a few minutes to process</li>
-        <li> If you'd like more features let me know and I can add them</li>
+        <li> Big documents can take a few minutes to process, you will be notified through the app and by email when they are done</li>
+        <li> We are constantly looking to make improvements and add features, so if there is something you'd like that Cephadex can't do be sure to let us know</li>
     </ul>
     <form id="new-user-study">
         <input type="checkbox" class="" id="new-user-checkbox" value="checked">
@@ -325,7 +324,7 @@
         <button type="submit" id="hidden-submit-btn" style="display: none;"></button>
 
         <div class="row justify-content-end">
-    <div id = "extract-spinner" class="spinner-grow text-info m-3" role="status" color="#FF6700!important"style="display: none;" >
+    <div id = "extract-spinner" class="spinner-border m-3" role="status" color="#FF6700!important"style="display: none;" >
         </div>
             {{form.submit(id="generate-btn", class=" btn-generate form-control form-control-lg", style
             = "max-width: 200px", disabled="disabled")}}

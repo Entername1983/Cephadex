@@ -324,13 +324,14 @@ def register():
                         external_type='google', subscription_plan = subscription_plan,
                         contacted_email=True, username=username,
                         timezone = timezone,
-                        subscription_start_date = datetime.utcnow(), role = role)
+                        subscription_start_date = dt.datetime.now(dt.timezone.utc),
+                        role = role)
             send_email(email, given_name, 'welcome')
             user_settings = UserSettings(user=user.id)
             if subscribe == "subscribe":
                 sub_exists = Subscriber.query.filter_by(email=email).first()
                 if not sub_exists:
-                    timestamp = datetime.utcnow()
+                    timestamp = dt.datetime.now(dt.timezone.utc)
                     subscriber = Subscriber(email=email, first_name=given_name,
                                              last_name=family_name, timestamp = timestamp)
                     db.session.add(subscriber)
@@ -342,9 +343,11 @@ def register():
             flash("You have been registered and logged in!", "success")
             return redirect(url_for('viewdecks'))
         return render_template('register.html', title='Register', form = form)
+        
     except Exception as e:
         logger.debug(e)
         logger.debug("error registering user")
+
 
 @app.route('/subscribe', methods=['GET', 'POST'])
 def subscribe():
@@ -354,7 +357,7 @@ def subscribe():
             subscriber = Subscriber(email=subscribe_form.email.data,
                                     first_name=subscribe_form.first_name.data,
                                     last_name=subscribe_form.last_name.data,
-                                    timestamp = datetime.utcnow())
+                                    timestamp = dt.datetime.now(dt.timezone.utc))
             db.session.add(subscriber)
             db.session.commit()
             flash('You are now subscribed to our newsletter!')
@@ -379,7 +382,7 @@ def subscribe2():
             logger.debug(email)
             logger.debug("not subscribed, subscribing")
             subscriber = Subscriber(email=email, first_name=first_name,
-                                     last_name=last_name, timestamp = datetime.utcnow())
+                                     last_name=last_name, timestamp = dt.datetime.now(dt.timezone.utc))
             db.session.add(subscriber)
             db.session.commit()
             flash("Thanks for subscribing!")
@@ -508,36 +511,41 @@ def account():
     subscriber = Subscriber.query.filter_by(email=user.email).first()
     form_del = DeleteAccountForm()
     form2 = UpdateProfilePicForm()
-    if form.validate_on_submit():
-        user.first_name = form.first_name.data
-        user.last_name = form.last_name.data
-        user.username = form.username.data
-        user.gender = form.gender.data
-        user.role = form.role.data
-        user.timezone = form.timezone.data
-        user.contacted_email = form.contacted_email.data
-        ###logger.debug("contacted", form.contacted_email.data)
-        db.session.commit()
-        if form.subscribe.data:
-            if not subscriber:
-                subscriber = Subscriber(email=user.email, first_name=user.first_name,
-                                         last_name=user.last_name,
-                                           timestamp=datetime.utcnow())
-                db.session.add(subscriber)
-                db.session.commit()
-                flash("You have been subscribed to our mailing list")
-        else:
-            if subscriber:
-                db.session.delete(subscriber)
-                db.session.commit()
-                subscriber = Subscriber.query.filter_by(email=user.email).first()
-                flash("You have been unsubscribed from our mailing list")
+    try:
+        if form.validate_on_submit():
+            user.first_name = form.first_name.data
+            user.last_name = form.last_name.data
+            user.username = form.username.data
+            user.gender = form.gender.data
+            user.role = form.role.data
+            user.timezone = form.timezone.data
+            user.contacted_email = form.contacted_email.data
+            ###logger.debug("contacted", form.contacted_email.data)
+            db.session.commit()
+            if form.subscribe.data:
+                if not subscriber:
+                    subscriber = Subscriber(email=user.email, first_name=user.first_name,
+                                            last_name=user.last_name,
+                                            timestamp=dt.datetime.now(dt.timezone.utc))
+                    db.session.add(subscriber)
+                    db.session.commit()
+                    flash("You have been subscribed to our mailing list")
+            else:
+                if subscriber:
+                    db.session.delete(subscriber)
+                    db.session.commit()
+                    subscriber = Subscriber.query.filter_by(email=user.email).first()
+                    flash("You have been unsubscribed from our mailing list")
 
-        db.session.commit
-        flash("Your account has been updated")
-    return render_template("account.html", title="Account",
-                            form_del = form_del, form = form,
-                            user = user, subscriber = subscriber, form2 = form2)
+            db.session.commit
+            flash("Your account has been updated")
+        return render_template("account.html", title="Account",
+                                form_del = form_del, form = form,
+                                user = user, subscriber = subscriber, form2 = form2)
+    except Exception as e:
+        logger.debug(e)
+        flash("There was an error updating your account")
+        return redirect(url_for('account'))
 
 @app.route('/update_profile_pic', methods=['POST'])
 @login_required
@@ -818,6 +826,58 @@ def create_parent_child_relationship(parent_deck_id, child_deck_id):
     session.execute(new_relationship)
     session.commit()
 
+@app.route("/add_card/<int:deck_id>", methods=["POST"])
+@login_required
+def add_card(deck_id):
+    form = DeckOrg(request.form)
+    print("entered add new card")
+    if form.validate_on_submit():
+        entry = Card(
+            term=form.new_term.data,
+            content=form.new_content.data,
+            boc_2=form.new_boc_2.data,
+            boc_3=form.new_boc_3.data,
+            boc_4=form.new_boc_4.data,
+            category=form.new_category.data,
+            time_created=dt.datetime.now(dt.timezone.utc),
+        )
+        deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
+        if deck:
+            deck.cards.append(entry)
+            db.session.commit()
+            return jsonify(success=True)
+    return jsonify(success=False)
+
+@app.route("/edit_card_new", methods=["POST"])
+@login_required
+def edit_card_new():
+    print("entered edit card")
+    data = request.get_json()
+    print(data)
+    if data:
+        card_id = data["id"]
+        card = Card.query.filter_by(id=card_id).first()
+        if 'term' in data:
+            term = data["term"]
+            card.term = term
+        if 'content' in data:
+            if data["content"] != "":
+                content = data["content"]
+                card.content = content
+        if 'boc_2' in data:
+            boc_2 = data["boc_2"]
+            card.boc_2 = boc_2
+        if 'boc_3' in data:
+            boc_3 = data["boc_3"]
+            card.boc_3 = boc_3
+        if 'boc_4' in data:
+            boc_4 = data["boc_4"]
+            card.boc_4 = boc_4
+        db.session.commit()
+        return jsonify(success=True)
+    return jsonify(success=False)
+
+
 @app.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
 @login_required
 def carousel(deck_id):
@@ -831,9 +891,13 @@ def carousel(deck_id):
     )
     if(current_user.id != deck.user_id):
          return apology('Deck not assigned to user', 403)
+         """
     if form.validate_on_submit():
+        print("entered validate on submit")
         if form.term.data:
+            print("form term data")
             term = form.term.data
+            print(term)
             content = form.content.data
             boc_2 = form.boc_2.data
             boc_3 = form.boc_3.data
@@ -860,30 +924,7 @@ def carousel(deck_id):
                 if formula != None:
                     card.formula = formula.strip()
             db.session.commit()
-        elif form.new_term.data:
-            entry = Card(term=form.new_term.data, content=form.new_content.data,
-                        boc_2=form.new_boc_2.data, boc_3=form.new_boc_3.data,
-                        boc_4=form.new_boc_4.data, category=form.new_category.data,
-                time_created=datetime.utcnow())
-            deck.cards.append(entry)
-            db.session.commit()
-        elif form.new_deck_name.data:
-            deck.name = form.new_deck_name.data
-            deck.description = form.new_deck_description.data
-            deck.subject = form.new_deck_subject.data
-            deck.topic = form.new_deck_topic.data
-            parent = form.deck_list.data
-            public = form.is_public.data
-            if public:
-                deck.public = True
-            else:
-                deck.public = False
-
-            if parent:
-                db.session.execute(deck_relationships.insert().values(parent_deck=parent.id,
-                                    child_deck=deck.id))
-
-            db.session.commit()
+"""
     return render_template("carousel.html", title="Carousel",
                             deck=deck, cards=cards, form=form)
 
@@ -929,7 +970,7 @@ def delete_account():
         user = User.query.filter_by(id=current_user.id).first()
         if user.email == form.del_email.data:
             user.account_status = 'inactive'
-            user.expiration = datetime.utcnow()
+            user.expiration = dt.datetime.now(dt.timezone.utc)
             user.account_expiration_reason = "Deleted"
             db.session.commit()
             flash('We are sorry to see you go. Your account is now inactive and will be'
@@ -949,7 +990,7 @@ def import_public_deck(deck_id):
     else:
         shared_deck = SharedDecks(name="Copy of " + deck.name,
                                 description=deck.description,
-                                time_created=datetime.utcnow(),
+                                time_created=dt.datetime.now(dt.timezone.utc),
                                 receiver=current_user.id)
         db.session.add(shared_deck)
         for card in deck.cards:
@@ -1069,7 +1110,7 @@ def extract():
                 logger.info("form file data %s", form.file.data)
                 form.file.data.seek(0)
                 deck_id = deck.id
-                now = datetime.utcnow().isoformat()
+                now = dt.datetime.now(dt.timezone.utc).isoformat()
                 slug = str(current_user.id) + now
                 session['slug'] = slug
                 send_audio_file(form.file.data, deck_id, prompt_options, slug)
@@ -1079,7 +1120,7 @@ def extract():
                 return redirect('/viewdecks')
         else:
             try:
-                now = datetime.utcnow().isoformat()
+                now = dt.datetime.now(dt.timezone.utc).isoformat()
                 deck, text, prompt_options = handle_form_submission(form)
                 logger.debug(text)
                 tokens = count_tokens(text)
@@ -1229,7 +1270,7 @@ def get_or_create_deck(form, prompt_options):
     if form.deck_list.data:
         deck = form.deck_list.data
     else:
-        time = datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ")
+        time = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
         deck_name = form.name.data or "".join(main_opt + " "+ "deck" +" "+ time)
         deck_description = form.description.data or "".join(main_opt + " " + "deck")
         deck = Deck(name=deck_name, description=deck_description)
@@ -1266,7 +1307,7 @@ def save_source_text_to_deck(name, deck, text, prompt_options, method="extract")
         f_name = name
         file_storage = DeckFiles(file_name=f_name,
                                   text_string=text, create_type = "source",
-                                    time_created = datetime.utcnow())
+                                    time_created = dt.datetime.now(dt.timezone.utc))
         db.session.add(file_storage)
         deck.deck_files.append(file_storage)
         db.session.commit()
@@ -1280,7 +1321,7 @@ def get_text_from_file(file_data):
     try:
         file = file_data
         current_user_id = current_user.id
-        now = datetime.utcnow()
+        now = dt.datetime.now(dt.timezone.utc)
         filename = file.filename
         extension = os.path.splitext(filename)[1].lower()
         file.filename = "file" + str(current_user_id) + str(now) + extension
@@ -1462,7 +1503,7 @@ def share_deck(deck_id):
                 shared_deck = SharedDecks(name="Copy of " + deck_to_copy.name,
                                            description=deck_to_copy.description,
                                             sender=sender_id,
-                                            time_created=datetime.utcnow(),
+                                            time_created=dt.datetime.now(dt.timezone.utc),
                                             receiver=user.id)
                 db.session.add(shared_deck)
 
@@ -1495,7 +1536,7 @@ def approve_shared(deck_id):
                     name=shared_deck.name,
                     description=shared_deck.description,
                     shared=True, sharer=shared_deck.sender,
-                    time_created=datetime.utcnow())
+                    time_created=dt.datetime.now(dt.timezone.utc))
     db.session.add(new_deck)
     for card in shared_deck.cards:
         new_card = Card(term=card.term,
@@ -1621,6 +1662,8 @@ def assign_test(test_id):
         test.description = form.description.data
         time_limit = form.time_limit.data
         if time_limit != '' and time_limit != None:
+            print("entered time limit")
+            print(time_limit)
             time_limit = int(time_limit)
             test.time_limit = time_limit
         
@@ -1640,10 +1683,14 @@ def assign_test(test_id):
     return render_template('assign_test.html', title='Assign test',
                         test=test, form = form, update_card_form = update_card_form)
     
+
+
 @app.route('/update_card', methods=['POST'])
 @login_required
 def update_card():
+    print("entered update card")
     data = request.get_json()
+    print(data)
     form = UpdateCardForm(data=data)
     question_id = data['question-id']
     question = Question.query.filter_by(id=question_id).first_or_404()
@@ -1739,14 +1786,7 @@ def take_test(test_id, user_id):
     event_tracker(current_user.id, "take_test", c_test_id)
     test_result = TestResult.query.filter_by(test_id = test_id, taker = c_user_id).first()
     test = Test.query.get_or_404(test_id)
-    if test_result is None:
-        start_time = datetime.utcnow()
-        test_result = TestResult(test_id = test_id,
-                                taker = c_user_id, start_time = start_time,
-                                creator=test.creator)
-        taker = User.query.get_or_404(user_id)
-        db.session.add(test_result)
-        if request.method == 'POST':
+    if request.method == 'POST':
             for question in test.questions:
                 question_id = question.id
                 to_call = "answer"+str(question_id)
@@ -1763,13 +1803,23 @@ def take_test(test_id, user_id):
             db.session.commit()
             return redirect('/test_results/{test_id}/{user_id}'.format
                             (test_id = c_test_id, user_id = c_user_id))
-        return render_template('take_test.html',
-                            test=test, taker=taker, start_time = start_time)
+       
     else:
-        test.taker.remove(current_user)
-        db.session.commit()
-        flash('you have already taken this test', 'danger')
-        return redirect('/test_results_overview/')
+        if test_result is None:
+            start_time = dt.datetime.now(dt.timezone.utc)
+            test_result = TestResult(test_id = test_id,
+                                    taker = c_user_id, start_time = start_time,
+                                    creator=test.creator)
+            taker = User.query.get_or_404(user_id)
+            db.session.add(test_result)
+            db.session.commit()
+            return render_template('take_test.html',
+                            test=test, taker=taker, start_time = start_time)
+        else:
+            test.taker.remove(current_user)
+            db.session.commit()
+            flash('you have already taken this test', 'danger')
+            return redirect('/test_results_overview/')
 
 @app.route('/reject_test/<int:test_id>/<int:user_id>', methods=['DELETE'])
 def reject_test(test_id, user_id):
@@ -1857,6 +1907,7 @@ def test_result_details(test_id):
     # Get the list of taker ids from the TestResult objects
     taker_ids = [result.taker for result in results]
     # Filter the User objects by the taker ids
+    
     takers = User.query.filter(User.id.in_(taker_ids)).all()
     return render_template('test_result_details.html',
                         results = results, test = test, takers = takers)
@@ -1911,6 +1962,7 @@ def test_answers(test_id, taker_id):#
                 .filter_by(test_id = test.id, taker=c_taker_id).all()
     )
     result.sum_points()   
+    taker = User.query.filter_by(id = c_taker_id).first()
     if result.creator != current_user.id:
         flash('you are not allowed to view this page', 'danger')
         return redirect('/test_results_overview/')
@@ -1927,7 +1979,7 @@ def test_answers(test_id, taker_id):#
             db.session.commit()
         return render_template('test_answers.html',
                                 result=result,
-                                question_results=question_results, test=test)
+                                question_results=question_results, test=test, taker=taker)
     
 @app.route("/answer_key/<int:test_id>/", methods=["GET", "POST"])
 @login_required
@@ -2098,14 +2150,14 @@ def assemble_file(total_jobs, deck_id, task_type):
         for job in total_jobs:
             full_text += job.processed_content
             job.save_source = False
-        name = task_type + datetime.utcnow().strftime("%Y-%m-%d-%H-%M")
+        name = task_type + dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d-%H-%M")
         existing_file = DeckFiles.query.filter_by(file_name=name).first()
         print(existing_file)
         if not existing_file:
             print("no existing file, creating one")
             file_storage = DeckFiles(file_name=name, text_string=full_text,
                                     create_type = task_type,
-                                    time_created = datetime.utcnow())
+                                    time_created = dt.datetime.now(dt.timezone.utc))
             db.session.add(file_storage)
             deck.deck_files.append(file_storage)
             db.session.commit()
@@ -2185,11 +2237,11 @@ def perform_operation(user_id, operation_type, n):
     new_record = UsageRecord(user_id=user.id, operation_type=operation_type,
                               time_period='month',
                                 limit_count=subscription_plan.limit_count)
+    new_record.operation_count = n
     if usage_record is None:
-        new_record.operation_count = n
+
         new_record.remaining_count = subscription_plan.limit_count - n
     else:
-        new_record.operation_count =  n
         new_record.remaining_count = usage_record.remaining_count - n
     db.session.add(new_record)
 
@@ -2311,14 +2363,35 @@ def public_decks():
 @app.route("/deck_manager/<int:deck_id>", methods=['GET', 'POST'])
 @login_required
 def deck_manager(deck_id):
+    form = DeckOrg()
     share_form = Share()
     deck = Deck.query.filter_by(id=deck_id).first()
     tests = Test.query.filter_by(deck_id=deck_id).all()
     if current_user.id != deck.user_id:
         return apology("Sorry, this is not your deck")
     files = deck.deck_files
+    if form.validate_on_submit():
+        if form.new_deck_name.data:
+            deck.name = form.new_deck_name.data
+            deck.description = form.new_deck_description.data
+            deck.subject = form.new_deck_subject.data
+            deck.topic = form.new_deck_topic.data
+            parent = form.deck_list.data
+            public = bool(request.form.get('public'))
+            if public:
+                deck.public = True
+            else:
+                deck.public = False
+
+            if parent:
+                db.session.execute(deck_relationships.insert().values(parent_deck=parent.id,
+                                    child_deck=deck.id))
+
+            db.session.commit()
+
+
     return render_template('deck_manager.html', deck=deck, files=files,
-                            share_form = share_form, tests = tests)
+                            share_form = share_form, tests = tests, form=form)
 
 ##@app.route("/team", methods=['GET', 'POST'])
 ##def team():
@@ -2385,7 +2458,7 @@ def process_event_in_background(event):
         stripe_event_id = event['id']
         event_type = event['type']
         event_data = json.dumps(event)
-        created_at = datetime.utcnow()
+        created_at = dt.datetime.now(dt.timezone.utc)
         if event['type'] == 'checkout.session.completed':
             user_id = event['data']['object']['client_reference_id']
         else:
@@ -2417,7 +2490,7 @@ def process_event_in_background(event):
         stripe_event_id = event['id']
         event_type = event['type']
         event_data = json.dumps(event)
-        created_at = datetime.utcnow()
+        created_at = dt.datetime.now(dt.timezone.utc)
         user_id = event['data']['object']['client_reference_id']
         stripe_customer_id = event['data']['object']['customer']
         logger.debug("CLIENT REF ID %s", event['data']['object']['client_reference_id'])
@@ -2437,7 +2510,7 @@ def process_event_in_background(event):
             handle_checkout_session(event)
             # Update the event as processed in the StripeEvents table
             stripe_event.processed = True
-            stripe_event.processed_at = datetime.utcnow()
+            stripe_event.processed_at = dt.datetime.now(dt.timezone.utc)
 
         except Exception as e:
             # Update the StripeEvents table with the error message if processing fails
@@ -2474,12 +2547,12 @@ def associate_stripe_customer_with_user(event):
 def handle_checkout_session(event):
     logger.debug('entered handle_checkout_session')
     plans_dict = {
-    'price_1N8LZfGXWJkeH44yIj9OVi0N':'premium_yearly',
-    'price_1N8LZ3GXWJkeH44yA1bxkLNY': 'premium_monthly', 
+    'price_1NAp58GXWJkeH44y1XCry43l':'premium_yearly',
+    'price_1NAp4FGXWJkeH44yaeBrflCN': 'premium_monthly', 
     'price_1N8LUuGXWJkeH44yZcPvdyIk': 'standard_yearly', 
     'price_1N8LSNGXWJkeH44yRgflWxVx': 'standard_monthly',
-    '': 'basic_yearly',
-    '': 'basic_monthly',
+    'price_1NAp2WGXWJkeH44yPZ7Lfh2I': 'basic_yearly',
+    'price_1NAoyjGXWJkeH44y6apbQdjH': 'basic_monthly',
     }
     # Extract customer ID and subscription ID from the invoice object
     customer_id = event['data']['object']['customer']
@@ -2518,40 +2591,46 @@ def update_plan(user,plan):
     try:
         if plan == 'standard_yearly':
             user.subscription_plan = 6
-            user.subscription_start_date = datetime.utcnow()
-            user.subscription_latest_roll_over = datetime.utcnow()
+            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
             set_usage_limit(user, 682700)
-            send_email(user.email, user.first_name, 'upgrade')
+            if user.contacted_email == True:
+                send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'standard_monthly':
             user.subscription_plan = 4
-            user.subscription_start_date = datetime.utcnow()
-            user.subscription_latest_roll_over = datetime.utcnow()
+            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
             set_usage_limit(user, 682700)
-            send_email(user.email, user.first_name, 'upgrade')
+            if user.contacted_email == True:
+                send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'premium_yearly':
             user.subscription_plan = 7
-            user.subscription_start_date = datetime.utcnow()
-            user.subscription_latest_roll_over = datetime.utcnow()
+            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
             set_usage_limit(user, 2048000)
-            send_email(user.email, user.first_name, 'upgrade')
+            if user.contacted_email == True:
+                send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'premium_monthly':
             user.subscription_plan = 5
-            user.subscription_start_date = datetime.utcnow()
-            user.subscription_latest_roll_over = datetime.utcnow()
+            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
             set_usage_limit(user, 2048000)
-            send_email(user.email, user.first_name, 'upgrade')
+            if user.contacted_email == True:
+                send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'basic_monthly':
             user.subscription_plan = 2
-            user.subscription_start_date = datetime.utcnow()
-            user.subscription_latest_roll_over = datetime.utcnow()
+            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
             set_usage_limit(user, 204800)
-            send_email(user.email, user.first_name, 'upgrade')
+            if user.contacted_email == True:
+                send_email(user.email, user.first_name, 'upgrade')
         elif plan == 'basic_yearly':
             user.subscription_plan = 3
-            user.subscription_start_date = datetime.utcnow()
-            user.subscription_latest_roll_over = datetime.utcnow()
+            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
             set_usage_limit(user, 204800)
-            send_email(user.email, user.first_name, 'upgrade')
+            if user.contacted_email == True:
+                send_email(user.email, user.first_name, 'upgrade')
         else:
             logger.debug("plan not found")
         logger.debug("%s, %s", user.id, user.subscription_plan)
@@ -2568,7 +2647,7 @@ def set_usage_limit(user, n):
         limit_count=n,
         operation_count=0,
         remaining_count=n,
-        date=datetime.utcnow(),
+        date=dt.datetime.now(dt.timezone.utc),
         time_period = "month",
     )
     db.session.add(new_record)
@@ -2577,6 +2656,16 @@ def set_usage_limit(user, n):
 ####################### GROUPS #####################################################
 ####################################################################################
 ####################################################################################
+@app.route('/remove_deck_from_group/<group_id>/<deck_id>', methods=['GET','POST'])
+@login_required
+def remove_deck_from_group(group_id, deck_id):
+    logger.debug("remove deck from group")
+    group = Group.query.filter_by(id=group_id).first()
+    deck = Deck.query.filter_by(id=deck_id).first()
+    group.decks.remove(deck)
+    db.session.commit()
+    return redirect(("/group/{group}").format(group=group.id)) 
+
 
 @app.route('/my_groups')
 @login_required
@@ -2646,7 +2735,7 @@ def invite_group():
                     new_invite = GroupInvite(name = group.name,
                         invited_by_email=current_user.email,
                         invited_by_id=current_user.id, user_id=user.id,
-                        group_id=group_id, created_at = datetime.utcnow())
+                        group_id=group_id, created_at = dt.datetime.now(dt.timezone.utc))
                     db.session.add(new_invite)
                     db.session.commit()
                 if len(not_users) > 0:
@@ -2661,7 +2750,7 @@ def invite_group():
             new_invite = GroupInvite(name = group.name,
                         invited_by_email=current_user.email,
                         invited_by_id=current_user.id, user_id=user.id,
-                        group_id=group_id, created_at = datetime.utcnow())
+                        group_id=group_id, created_at = dt.datetime.now(dt.timezone.utc))
             db.session.add(new_invite)
             db.session.commit()
         if len(not_users) > 0:
@@ -2853,7 +2942,7 @@ def add_deck_to_group():
         existing_deck = Deck.query.get(deck_id)
         new_deck = Deck(user_id = current_user.id,
                 name=existing_deck.name, description=existing_deck.description,
-                group_id = group_id, time_created=datetime.utcnow())
+                group_id = group_id, time_created=dt.datetime.now(dt.timezone.utc))
         db.session.add(new_deck)
         for card in existing_deck.cards:
             new_card = Card(term=card.term,
@@ -2906,7 +2995,7 @@ def import_from_group(deck_id, group_id):
     if current_user.id in user_ids:
         new_deck = Deck(user_id = current_user.id,
                 name=existing_deck.name, description=existing_deck.description,
-                group_id = group_id, time_created=datetime.utcnow())
+                group_id = group_id, time_created=dt.datetime.now(dt.timezone.utc))
         for card in existing_deck.cards:
             new_card = Card(term=card.term, content=card.content,
                 boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4, img=card.img,
