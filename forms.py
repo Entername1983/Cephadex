@@ -270,7 +270,10 @@ class AccountForm(FlaskForm):
     email = StringField("Email:")
     gender = SelectField("Gender:", choices=[('', 'Select your gender'), ('Female', 'Female'), ('Male', 'Male'), ('Other', 'Other'), ('Prefer not to say', 'Prefer not to say')])
     role = SelectField("Role:", choices=[('', 'Select your role'), ('school-administrator', 'School Administrator'), ('teacher', 'Teacher'), ('student', 'Student'), ('part-time-student', 'Part-Time Student'), ('lifelong-learner', 'Lifelong Learner'), ('parent-guardian', 'Parent/Guardian'), ('homeschooling-parent', 'Homeschooling Parent'), ('tutor', 'Tutor'), ('curriculum-developer', 'Curriculum Developer'), ('educational-researcher', 'Educational Researcher'), ('educational-consultant', 'Educational Consultant'), ('instructional-designer', 'Instructional Designer'), ('academic-advisor', 'Academic Advisor'), ('admissions-counselor', 'Admissions Counselor'), ('school-counselor', 'School Counselor'), ('librarian', 'Librarian'), ('it-administrator', 'IT Administrator'), ('education-technology-specialist', 'Education Technology Specialist'), ('education-policy-maker', 'Education Policy Maker'), ('education-advocate-activist', 'Education Advocate/Activist'), ('other', 'Other')])
-    timezone = SelectField("Timezone:", choices=[(tz, tz) for tz in pytz.all_timezones]) # Don't forget to import pytz
+    timezone = SelectField(
+    "Timezone:",
+    choices=[('', 'Select a timezone')] + [(tz, tz) for tz in pytz.all_timezones],
+    validate_choice=False)
     contacted_email = BooleanField("Enable notifications")
     subscribe = BooleanField("Sign up to our mailing list")
 

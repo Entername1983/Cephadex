@@ -276,11 +276,16 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        <div class = "alert" id="adblocker2" style="display:none">
+                            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                            Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
 
+                        </div>
                         <div style="text-align:center">
                             <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
                             class="w3-circle w3-margin-top">
                         </div>
+
                         <div>
 
                             <div id="g_id_onload"
@@ -293,6 +298,7 @@
                                 data-logo_alignment="left">
                             </div>
                         </div>
+                     
                         <!--------
                     
                     ---->
@@ -368,8 +374,12 @@
                         <h5 class="modal-title" id="loginModalLabel">Log in</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body"><div class = "alert" id="adblocker1" style="display:none">
+                                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                               Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
+                            </div>
                         <div style="text-align:center">
+                            
                             <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
                                 class="w3-circle w3-margin-top">
 
@@ -386,6 +396,7 @@
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
 
 
@@ -505,9 +516,18 @@
         </script>
 
 
-
-
     </body>
+    <script>
 
+        window.onload = function() {
+            if (document.getElementsByClassName('google-signin-btn').length > 0) {
+              // Google scripts have loaded
+            } else {
+              // Google scripts have not loaded, possible ad-blocker
+              document.getElementById('adblocker2').style.display = 'block';
+              document.getElementById('adblocker1').style.display = 'block';
+            }
+         };
+        </script>
 </html>
 

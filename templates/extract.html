@@ -50,26 +50,49 @@
 <script>
     $(document).ready(function(){
         $('#file-input').change(function(){
+            //if file-input is not empty
+            if ($(this).val() != "") {
+            
             var form_data = new FormData();
             form_data.append('file', this.files[0]);
-    
             calculateCredits(form_data);
+            $('#credit-content').hide();
+            $('#credit-spinner').show();
+        }
+        else {
+                $("#credit-amount").text("0");
+                
+            }
         });
     
         $('#text-input').on('input', function() {
+            if ($(this).val() != "") {
             var form_data = new FormData();
             form_data.append('text_input', $(this).val());
-    
+            $('#credit-content').hide();
+            $('#credit-spinner').show();
             calculateCredits(form_data);
+            }
+            else {
+                $("#credit-amount").text("0");
+                
+            }
         });
     
         $('#link-input').change(function(){
+            if ($(this).val() != "") {
             var form_data = new FormData();
             form_data.append('link_input', $(this).val());
-    
+            $('#credit-content').hide();
+            $('#credit-spinner').show();
             calculateCredits(form_data);
+            }
+            else {
+                $("#credit-amount").text("0");
+                
+            }
         });
-    
+
         function calculateCredits(form_data) {
             $.ajax({
                 url: '/call_credit_counter', // Flask route
@@ -79,10 +102,14 @@
                 processData: false,
                 success: function(response){
                     $("#credit-display").show();
+                    $("#credit-content").show();
                     $("#credit-amount").text(response);
+                    $('#credit-spinner').hide();
                 },
                 error: function(response){
                     $("#credit-amount").text("n/a");
+                    $("#credit-display").show();
+
                 }
             });
         }
@@ -119,7 +146,7 @@
     }
 </script>
 <div class = "container">
-<div class=" mt-1 mb-4 d-flex justify-content-center">
+<div class="d-md-block d-none mt-1 mb-4 d-flex justify-content-center">
     <div class="scrolling-header">
         Turn <span class="scrolling-header-words" id="from">youtube video</span> into <span
             class="scrolling-header-words" id="to">flashcards</span>
@@ -147,9 +174,10 @@
         <li class="nav-item ms-auto">
                 
             <div id="credit-display" class="alert credit-box" style="margin: 8px!important; padding: 8px!important;">
-                Cost: <span id="credit-amount">0</span> credits
-            </div></li>
+                <div id = "credit-spinner" class="spinner-border" role="status" style="display: none;"></div>
+             <div id ="credit-content"><span id="credit-amount"> 0</span> credits</div>
 
+            </div></li>
 
 
         </ul>
@@ -181,10 +209,10 @@
                         
                         <div class="form-floating">
                             {{form.link_input(id="link-input", class="form-control form-control-lg")}}
-                            <label for="link-input" class="form-label">Insert your link(s) here</label>
+                            <label for="link-input" class="form-label">Insert wikipedia or youtube link</label>
 
                         </div>
-                        <div id="fileinputhelp" class="form-text" style = "font-size: 12px">
+                        <div id="fileinputhelp" class="form-text d-md-block d-none" style = "font-size: 12px">
                             Wikipedia and YouTube links are accepted. If you would like to insert more than one link,
                             separate them
                             semi-colon ";".
@@ -197,7 +225,7 @@
                             {{form.name(id="name-input", class="form-control form-control-lg")}}
                             <label for="name-input">Name of the deck</label>
                         </div>
-                        <div class="form-floating mb-3">
+                        <div class="form-floating mb-3 d-md-block d-none">
                             {{form.description(id="description-input", class="form-control form-control-lg")}}
                             <label for="description-input">Description of the deck</label>
                         </div>

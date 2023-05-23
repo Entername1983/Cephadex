@@ -516,9 +516,15 @@ def account():
             user.first_name = form.first_name.data
             user.last_name = form.last_name.data
             user.username = form.username.data
-            user.gender = form.gender.data
-            user.role = form.role.data
+            if form.gender.data != "":
+                user.gender = form.gender.data
+            if form.role.data != "":
+                user.role = form.role.data
+            print(form.timezone.data)
+            if form.timezone.data != "":
+                user.timezone = form.timezone.data
             user.timezone = form.timezone.data
+            
             user.contacted_email = form.contacted_email.data
             ###logger.debug("contacted", form.contacted_email.data)
             db.session.commit()
