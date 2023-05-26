@@ -199,12 +199,12 @@
             <th data-sort="asc" onclick="sortTable(2)">Category <img src="/static/sort-arrows-outline-icon.png"
                 style="max-height:15px; max-width:15px"></th>
 
-            <th>Description:</th>
+          
             {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
             <th data-sort="asc" onclick="sortTable(3)">Due/total <img src="/static/sort-arrows-outline-icon.png"
                 style="max-height:15px; max-width:15px"></th>
 {% else %}
-<th data-sort="asc" onclick="sortTable(3)">total <img src="/static/sort-arrows-outline-icon.png"
+<th data-sort="asc" onclick="sortTable(3)">Cards <img src="/static/sort-arrows-outline-icon.png"
   style="max-height:15px; max-width:15px"></th>
   {% endif %}
             <th data-sort="asc" onclick="sortTable(4)">Created <img src="/static/sort-arrows-outline-icon.png"
@@ -222,7 +222,6 @@
             </td>
             <td data-th="Category">{{ deck.check_cat() }} {% if deck.deck_files|length > 0 %} + files {% endif %}</td>
 
-            <td data-th="Description">{{ deck.description }}</td>
             {% if user.role in ["student", "lifelong-learner", "part-time-student"] %}
             <td data-th="Due/total"> {{ deck.cards_due() }}/{{ deck.quantity_cards() }}</td>
             {% else %}
