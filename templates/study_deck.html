@@ -308,8 +308,8 @@
     }
     // change 
     function mcqCorrectAnswerChecker() {
-      cardStack.push(currentCard)
-      var card_id = currentCard.id;
+      var cardId = jq('#card-id').text();
+
       var csrf_token = jq("input[name='csrf_token']").val();
       var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
       for (var i = 0; i < answerButtons.length; i++) {
@@ -395,9 +395,7 @@
 
       isOpen = !isOpen;
       if (isOpen) {
-        jq("#chat-card-id").text(currentCard.id);
-        var cardId = jq('#chat-card-id').text();
-        updateChatCardId()
+        var cardId = jq('#card-id').text();
       } else {
         // Perform any action you want when the FAB is closed
       }
@@ -405,6 +403,7 @@
     fab.addEventListener('click', toggleFAB);
     fab.addEventListener('mouseover', toggleFAB);
     function explainFurther(cardId) {
+      console.log(cardId)
       var spinner = document.querySelector('#ai-spinner');
       spinner.style.display = 'block';
       jq.ajax({
@@ -441,11 +440,11 @@
       });
     }
     jq('#explain-further').on('click', function () {
-      var cardId = jq('#chat-card-id').text();
+      var cardId = jq('#card-id').text();
       explainFurther(cardId);
     });
     jq('#why-wrong').on('click', function () {
-      var cardId = jq('#chat-card-id').text();
+      var cardId = jq('#card-id').text();
       whyWrong(cardId);
     });
     function displayResponse(data) {
@@ -461,7 +460,7 @@
 
     }
     jQuery(chatBtn).on('click', function () {
-      var cardId = jq('#chat-card-id').text();
+      var cardId = jq('#card-id').text();
       var question = jq('#chat-input').val();
 
       if (question.trim() !== '') {
@@ -531,10 +530,7 @@
       chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    function updateChatCardId() {
-      var cardId = currentCard.id;
-      jq("#chat-card-id").text(cardId);
-    }
+
 
     function updateValues() {
       console.log("updateValues called")

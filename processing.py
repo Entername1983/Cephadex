@@ -114,7 +114,6 @@ async def process_audio_job(slug, session):
                 await asyncio.sleep(retry_delay) 
 
 
-
 async def process_single_job(slug, session):
     with current_app.app_context():
         merged_slug, deck, payload, main_opt, trans_opt = setup_job(slug, session)
@@ -195,6 +194,10 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract", session=No
     trans_opt = prompt_options['trans_opt']
     cat = main_opt
     try:
+        print(f"Saving terms to deck: {terms}")
+    except Exception:
+        pass
+    try:
         if isinstance(terms, dict):
             terms = [terms]
         if main_opt == "Mcq":
@@ -262,7 +265,8 @@ def process_default_terms(session, deck, terms, cat, method, main_opt):
             session.rollback()
 
 def process_discuss_terms(session, deck, terms, cat, method, main_opt):
-    x, y, z = mapping.get(main_opt, ("A", "B", "C"))
+    x, y, z = mapping.get(main_opt, ("A", "B", "C")) + (None,) * (3 - len(mapping.get(main_opt, ("A", "B", "C"))))
+
     for item in terms:
         try:
             term = item.get(x)
@@ -272,8 +276,11 @@ def process_discuss_terms(session, deck, terms, cat, method, main_opt):
             side_1 = ' '.join(side_1) if isinstance(side_1, list) else side_1
             side_1 = side_1.capitalize() if side_1 else None
             side_2 = item.get(z)
-            side_2 = ' '.join(side_2) if isinstance(side_2, list) else side_2
-            side_2 = side_2.capitalize() if side_2 else None
+            if z is None:
+                side_2 = None
+            else:
+                side_2 = ' '.join(side_2) if isinstance(side_2, list) else side_2
+                side_2 = side_2.capitalize() if side_2 else None
             if term and not check_card_exist(deck, term):
                 entry = Card(category=cat, term=term, content = side_1, boc_2=side_2, create_method=method)
                 session.add(entry)
@@ -284,7 +291,8 @@ def process_discuss_terms(session, deck, terms, cat, method, main_opt):
             session.rollback()
 
 def process_formula_terms(session, deck, terms, cat, method, main_opt):
-    x, y, z = mapping.get(main_opt, ("A", "B", "C"))
+    x, y, z = mapping.get(main_opt, ("A", "B", "C")) + (None,) * (3 - len(mapping.get(main_opt, ("A", "B", "C"))))
+
     for item in terms:
         term = item.get(x)
         term = ' '.join(term) if isinstance(term, list) else term

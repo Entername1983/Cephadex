@@ -554,8 +554,8 @@ button:disabled {
 .circle-img {
     border-radius: 50%;
     object-fit: cover;
-    width: 100%; /* replace with your desired width */
-    height: 100%; /* replace with your desired height */
+    width: 300px; /* replace with your desired width */
+    height: 300px; /* replace with your desired height */
 
   }
 
@@ -994,11 +994,12 @@ button:disabled {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .chat-field:hover {
   border-color: $cepha_4;
-  background-color: $cepha_5;
+  background-color: $cepha_101;
 }
 .chat-field-send {
   width: 19%;
@@ -1013,13 +1014,14 @@ button:disabled {
   align-items: center;
   overflow: hidden;
   margin-left: 1%;
+  cursor: pointer;
 }
 
 
 
 
 .chat-field-send:hover {
-  background-color: $cepha_5;
+  background-color: $cepha_101;
   border-color: $cepha_4;
 
 }
@@ -1041,7 +1043,8 @@ button:disabled {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  margin: 1px
+  margin: 1px;
+  cursor: pointer;
 }
 
 .btn-chat:hover {
@@ -1061,9 +1064,9 @@ button:disabled {
   max-width: 80%;
   min-width: 100px;
   max-height: 400px;
-  border-radius: 15px;
+  border-radius: 10px;
   background-color: $cepha_6 !important;
-  border: 3px solid $cepha_1;
+  border: 3px solid $cepha_505;
   padding: 5px;
   transition: all 0.3s ease;
   overflow: auto;
@@ -1075,10 +1078,10 @@ button:disabled {
   min-width: 100px;
   max-width: 80%;
   max-height: 450px;
-  border-radius: 15px;
+  border-radius: 10px;
   margin-bottom: 0rem !important;
   background-color: $cepha_6!important;
-  border: 3px solid $cepha_2;
+  border: 3px solid $cepha_105;
   padding: 5px;
   transition: all 0.3s ease;
   overflow: hidden;
@@ -1737,4 +1740,8 @@ input[type="checkbox"].form-check-input:checked::after {
 .spinner-grow::before {
   border-color: $cepha_1!important; /* Replace with your desired color */
   border-right-color: transparent !important; /* Override default Bootstrap styles */
+}
+
+a {
+  cursor: pointer!important;
 }

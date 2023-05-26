@@ -240,7 +240,7 @@ class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     term = db.Column(db.String(1000), nullable=False) 
     # content == Back of card 1
-    content = db.Column(db.String(1000), nullable=False)
+    content = db.Column(db.String(5000), nullable=False)
     ## used for MCQ wrong answers
     boc_2 = db.Column(db.String(1000), nullable=True) 
     boc_3 = db.Column(db.String(1000), nullable=True) 
