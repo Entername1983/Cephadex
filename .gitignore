@@ -20,3 +20,4 @@ code_review.py
 code_review_*.*
 app.log.*
 app.log
+/static/profile_pictures/*
