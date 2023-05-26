@@ -66,22 +66,22 @@
             <td data-th="Cards"> <p >{{ deck.quantity_cards() }}</p> </td>
             <td class = " justify-content-center">
 
-              <a onclick="importPublicDeck('{{deck.id}}')" class="mx-2"
-                style="cursor: pointer; text-decoration: none;"><img src="\static\save-icon.png"
+              <a onclick="importPublicDeck('{{deck.id}}'), event.stopPropagation();" class="mx-2"
+                style="cursor: pointer; text-decoration: none"><img src="\static\save-icon.png"
                   alt="Save to my decks" style="max-width:40px;max-height:40px; text-decoration: none;" class="px-1 img-grow"
-                  title="Save to my decks">
+                  title="Save to my decks" >
               </a>
 
               <!-------- SEE SOURCE DOCS ---->
 
               <!----- DECK DETAILS ------>
               <a data-bs-toggle="modal" data-bs-target="#infoDecksModal{{deck.id}}" class="mx-2"
-                style="cursor: pointer; text-decoration: none;">
+                style="cursor: pointer; text-decoration: none;" onclick="event.stopPropagation();">
                 <img src="\static\info-icon.png" alt="Info"
                   style="max-width:40px;max-height:40px; text-decoration: none;" class="px-1 img-grow" title="Info">
               </a>
               <a target="_blank" href="public_cards/{{deck.id}}"> <img src="\static\cards-icon.png" alt="Info"
-                  style="max-width:40px;max-height:40px; text-decoration: none;" class="px-1 img-grow" title="Info"></a>
+                  style="max-width:40px;max-height:40px; text-decoration: none;" class="px-1 img-grow" title="Info" onclick="event.stopPropagation();"></a>
 
             </td>
   </div>

@@ -79,7 +79,7 @@ main_0 %}
                         <img src="\static\collapse-icon.png" alt="Collapse" style="max-width:35px;max-height:35px; cursor: pointer;"
                             title="Collapse test">
                             </a>
-     <input class="mx-2 img-grow" type="image" src="/static/save-icon.png"
+                    <input class="mx-2 img-grow" type="image" src="/static/save-icon.png"
                         style="padding: 0px!important; width: 35px; height:35px" alt="Save changes" title="Save">
 
                     <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#assignModal" style="cursor: pointer;">
@@ -239,7 +239,7 @@ main_0 %}
 </div>
 
 
-        <div class="container box-manager mt-2" style="background-color:#efe8ff; padding: 1px!important;max-height:80vh; overflow-y: scroll;">
+        <div class="container box-manager mt-2" id="question-box" style="background-color:#efe8ff; padding: 1px!important;max-height:80vh; overflow-y: scroll;">
             {% for question in test.questions %}
             {% if question.q_type == "mcq" %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">
@@ -251,12 +251,12 @@ main_0 %}
                                 <div class="col-10">
                                     Question:
                                     {{ update_card_form.question(class="form-control",
-                                    placeholder=question.question, value=question.question) }}
+                                    placeholder=question.question, value=question.question, **{'data-value': question.question}) }}
                                 </div>
                                 <div class="col-2 d-flex flex-column">
                                     Marks:
                                     {{ update_card_form.points(class="form-control",
-                                    placeholder=question.points, value=question.points) }}
+                                    placeholder=question.points, value=question.points, **{'data-value': question.points}) }}
                                 </div>
                             </div>
                             <div class="row mt-1">
@@ -264,19 +264,19 @@ main_0 %}
                                     Answers:
                                         <li class="list-group-item border-0 mt-1" style="padding:0px!important">
                                             {{ update_card_form.answer(class="form-control",
-                                            placeholder=question.content, value=question.content) }}
+                                            placeholder=question.content, value=question.content, **{'data-value': question.content}) }}
                                         </li>
                                         <li class="list-group-item border-0 mt-1" style="padding:0px!important">
                                             {{ update_card_form.boc_2(class="form-control",
-                                            placeholder=question.boc_2, value=question.boc_2) }}
+                                            placeholder=question.boc_2, value=question.boc_2, **{'data-value': question.boc_2}) }}
                                         </li>
                                         <li class="list-group-item border-0 mt-1" style="padding:0px!important">
                                             {{ update_card_form.boc_3(class="form-control",
-                                            placeholder=question.boc_3, value=question.boc_3) }}
+                                            placeholder=question.boc_3, value=question.boc_3, **{'data-value': question.boc_3}) }}
                                         </li>
                                         <li class="list-group-item border-0 mt-1" style="padding:0px!important">
                                             {{ update_card_form.boc_4(class="form-control",
-                                            placeholder=question.boc_4, value=question.boc_4) }}
+                                            placeholder=question.boc_4, value=question.boc_4, **{'data-value': question.boc_4}) }}
                                         </li>
                                     </div>
                                 <div class="col-2 d-flex align-items-center justify-content-center">
@@ -304,12 +304,12 @@ main_0 %}
                                 <div class="col-10 ">
                                         Question:
                                         {{ update_card_form.question(class="form-control",
-                                        placeholder=question.question, value=question.question) }}
+                                        placeholder=question.question, value=question.question, **{'data-value': question.question}) }}
                                 </div>
                                 <div class="col-2">
                                     Marks:
                                     {{ update_card_form.points(class="form-control",
-                                    placeholder=question.points, value=question.points) }}
+                                    placeholder=question.points, value=question.points, **{'data-value': question.points}) }}
 
                                 </div>
                             </div>
@@ -318,7 +318,7 @@ main_0 %}
 
                                     Answer:
                                     {{ update_card_form.answer(class="form-control",
-                                    placeholder=question.content, value=question.content) }}
+                                    placeholder=question.content, value=question.content, **{'data-value': question.content}) }}
                                     </div>
                                     <div class="col-2 d-flex align-items-center justify-content-center">
                                         <a href="#" class="mx-2"
@@ -347,12 +347,12 @@ main_0 %}
                                     
                                         Question:
                                         {{ update_card_form.question(class="form-control",
-                                        placeholder=question.question, value=question.question) }}
+                                        placeholder=question.question, value=question.question, **{'data-value': question.question}) }}
                                 </div>
                                 <div class="col-2 d-flex flex-column">
                                         Marks:
                                         {{ update_card_form.points(class="form-control",
-                                        placeholder=question.points, value=question.points) }}
+                                        placeholder=question.points, value=question.points, **{'data-value': question.points}) }}
 
                                 </div>
                             </div>
@@ -361,7 +361,7 @@ main_0 %}
 
                                 Answer:
                                 {{ update_card_form.answer(class="form-control",
-                                placeholder=question.term, value=question.term) }}
+                                placeholder=question.term, value=question.term, **{'data-value': question.term}) }}
                                 </div>
                                 <div class="col-2 d-flex align-items-center justify-content-center">
                                     <a href="#" class="m-4"
@@ -391,12 +391,12 @@ main_0 %}
                                     
                                         Question:
                                         {{ update_card_form.question(class="form-control",
-                                        placeholder=question.question, value=question.question) }}
+                                        placeholder=question.question, value=question.question, **{'data-value': question.question}) }}
                                 </div>
                                 <div class="col-2 d-flex flex-column">
                                         Marks:
                                         {{ update_card_form.points(class="form-control",
-                                        placeholder=question.points, value=question.points) }}
+                                        placeholder=question.points, value=question.points, **{'data-value': question.points}) }}
 
                                 </div>
                             </div>
@@ -405,7 +405,7 @@ main_0 %}
 
                                 Answer:
                                 {{ update_card_form.answer(class="form-control",
-                                placeholder=question.content, value=question.content) }}
+                                placeholder=question.content, value=question.content, **{'data-value': question.content}) }}
                                 </div>
                                 <div class="col-2 d-flex align-items-center justify-content-center">
                                     <a href="#" class="m-4"
@@ -435,12 +435,12 @@ main_0 %}
                             
                                         Question:
                                         {{ update_card_form.question(class="form-control",
-                                        placeholder=question.question, value=question.question) }}
+                                        placeholder=question.question, value=question.question, **{'data-value': question.question}) }}
                                 </div>
                                 <div class="col-2 d-flex flex-column">
                                     Marks:
                                     {{ update_card_form.points(class="form-control",
-                                    placeholder=question.points, value=question.points) }}
+                                    placeholder=question.points, value=question.points, **{'data-value': question.points}) }}
                                 </div>
                             </div>
                             <div class="row mt-1">
@@ -571,5 +571,13 @@ main_0 %}
 
 
     </script>
-
+<script>
+    $(document).ready(function () {
+        $('input[data-value], textarea[data-value]').each(function () {
+            var $this = $(this); // caching $(this)
+            var value = $this.attr('data-value');
+            $this.val(value);
+        });
+    });
+</script>
 {% endblock %}

@@ -141,11 +141,11 @@ class TryOut(FlaskForm):
     
 class DeckOrg(FlaskForm):    
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    term = StringField('Term', render_kw={"placeholder": "Term"})
+    term = TextAreaField('Term', render_kw={"placeholder": "Term"})
     content = TextAreaField('Content', render_kw={"placeholder": "Content"})
-    boc_2 = StringField('boc_2')
-    boc_3 = StringField('boc_3')
-    boc_4 = StringField('boc_4')
+    boc_2 = TextAreaField('boc_2')
+    boc_3 = TextAreaField('boc_3')
+    boc_4 = TextAreaField('boc_4')
     id = StringField('id')
     formula = StringField('formula')
     new_deck_name = StringField('deck_name')
