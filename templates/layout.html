@@ -17,7 +17,7 @@
 
 
 
-    <link rel="icon" href="/static/cephadex-logo-6.png">
+    <link rel="icon" href="\static\cephadex-logo-6.png">
 
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, width=device-width" />
@@ -116,21 +116,26 @@
                         // We're setting the timeout for 5 seconds
                         // so the page will update itself
                         // every 5 seconds until we get a non-zero result
-                        setTimeout(doPoll, 5000);
+                        
                     } else if (data.result == 1) {
+                        $.post(
+                '/file_assembler',
+            );
                         // When we finally get the result we update it on the page
                         console.log("just before notification complete"),
                             console.log(slug_id)
-                        $.post(
-                            '/notification_complete',
-                            { id: slug_id },
-                            function (response) {
-                                console.log(response);
-                            });
-                        $('#slugModal').modal('show');
+                            $.post('/notification_complete', { id: slug_id }, function (response) {
+                                if(response === 'success') {
+                                    $('#slugModal').modal('show');
+                                } else if(response === 'error') {
+                                    $('#errorModal1').modal('show');
+                                }
+                        });
                     }
                 }
             );
+           
+            setTimeout(doPoll, 10000);
         }
         // Here we actually instruct the browser to call the function for the effect:
         $(document).ready(function () {
@@ -426,7 +431,25 @@
             </div>
         </div>
         {% endif %}
+        {% if current_user.is_authenticated %}
 
+        <div class="modal fade" id="errorModal1" tabindex="-1" aria-labelledby="errorModal1Label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header modal-header-style p-4">
+                        <h5 class="modal-title font-alt" id="slugModalLabel">Uh oh!</h5>
+                        <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body border-0 p-4">
+                        <h4>We had an issue processing your content</h4>
+                        <p>We have returned the credits to your account and given you an additional 10 credits for the inconvenience.  Please try again.  If the issue persists, please<a href="mailto:support@cephadex.com"> contact us </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </main>
 
 
@@ -439,10 +462,10 @@
 --->
         <a class="btn btn-outline-dark btn-floating m-1" href="https://twitter.com/Cephadex" role="button"
             target="_blank"><i class="fab fa-twitter"></i></a>
-            <!---
+           
         <a class="btn btn-outline-dark btn-floating m-1" href="https://discord.gg/QE3DqykrdD" role="button"
             target="_blank"><i class="fab fa-discord"></i></a>
--->
+
         <a class="btn btn-outline-dark btn-floating m-1" href="https://www.instagram.com/CephadexSocial/" role="button"
             target="_blank"><i class="fab fa-instagram"></i></a>
 

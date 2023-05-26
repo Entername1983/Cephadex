@@ -372,7 +372,7 @@
             fileInput.setCustomValidity('');
     
             var file = fileInput.files[0];
-    
+            const generateBtn = document.getElementById('generate-btn');
             // check file size
             var maxSize = 80 * 1024 * 1024;  // 80MB in bytes
             if (file.size > maxSize) {
@@ -399,6 +399,7 @@
             if (message !== '') {
             // clear the input field if there is an error
             fileInput.value = '';
+            document.getElementById('generate-btn').disabled = true;
         }
         }
     });
@@ -439,7 +440,7 @@
             const textInput = document.getElementById('text-input');
             const linkInput = document.getElementById('link-input');
             const generateBtn = document.getElementById('generate-btn');
-            if (((fileInput && fileInput.value !== '') || (textInput && textInput.value !== '') || (linkInput && linkInput.value !== ''))) {
+            if (((fileInput && fileInput.value !== '') || (textInput.value.length >= 50) || (linkInput && linkInput.value !== ''))) {
                 generateBtn.disabled = false;
                 generateBtn.removeAttribute('disabled');
                 generateBtn.removeClass('btn-outline-secondary');
@@ -479,6 +480,8 @@
         'Turn2notes': 'Turns a document into notes',
         'Summarize': 'Summarizes a document',
         'Custom': 'Enter what you want to extract and what you want to do with it',
+        'Explain': 'Explain questions and answers',
+        'Discuss': 'Discussion questions and sample answers',
         // Add more tooltip texts as needed
       };
   

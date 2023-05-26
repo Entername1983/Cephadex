@@ -431,8 +431,8 @@ button:disabled {
   border-radius: 50%;
   -o-object-fit: cover;
      object-fit: cover;
-  width: 300px; /* replace with your desired width */
-  height: 300px; /* replace with your desired height */
+  width: 100%; /* replace with your desired width */
+  height: 100%; /* replace with your desired height */
 }
 
 .flash-message {
@@ -1278,8 +1278,7 @@ button:disabled {
 .mcq-button:hover {
   transform: scale(1.02);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: #FF6700;
-  color: #ffffff;
+  background-color: #efe8ff;
   border-color: #6019FF;
 }
 
@@ -1298,11 +1297,6 @@ button:disabled {
   font-size: large;
   flex: 0 0 48%;
   box-sizing: border-box;
-}
-
-.n-mcq-btn.selected {
-  border-width: 3px !important;
-  border-color: #FF6700;
 }
 
 #forgot-btn {
@@ -1354,6 +1348,7 @@ button:disabled {
   transform: scale(1.02);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   translate: 0.5s;
+  background-color: #efe8ff !important;
 }
 
 .content-to-display {
@@ -1475,6 +1470,7 @@ td:empty {
   border: solid !important;
   border-width: 2px !important;
   border-color: #6019FF !important;
+  padding: 10px !important;
 }
 
 .box-manager.card-body {

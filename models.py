@@ -775,6 +775,17 @@ class UserSettings(db.Model):
     srs_setting_4 = db.Column(db.Integer)        
         
 ###################### JOB QUEUE TABLE ####################################
+class JobNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    slug = db.Column(db.String(128), nullable=False)
+    complete = db.Column(db.Boolean, default=False)
+    notified = db.Column(db.Boolean, default=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    cost = db.Column(db.Integer, default=0)
+
+
+
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)

@@ -47,7 +47,7 @@ import schedule
 from beta import BetaKeys
 from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS, FLASK_DEBUG
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
-from models import StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
+from models import JobNotification, StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
 import configparser
 import logging.config
 from events import event_tracker
@@ -1096,6 +1096,9 @@ def extract():
     ## plan level requried for genereting images
     form = UploadFileForm()
     if form.validate_on_submit():
+        now = dt.datetime.now(dt.timezone.utc).isoformat()
+        slug = str(current_user.id) + now
+        session['slug'] = slug
         audio_extensions = None
         valid_extensions = [".mp3", ".wav"]
         if form.file.data:
@@ -1106,31 +1109,34 @@ def extract():
             duration = check_audio_file(form)
             form.file.data.seek(0)
             if duration:
+                prompt_options = process_prompt_options(form)
+                if prompt_options['main_opt'] == 'Mix':
+                    prompt_options['main_opt'] = 'Definitions'
                 logging.info("audio file detected")
                 logger.info(f"durationDDDDDDDDDDD: {duration}")
                 tokens = convert_time_to_tokens(duration)
                 logger.info(f"tokens: {tokens}")
                 perform_operation(current_user.id, "extract", tokens)
-                prompt_options = process_prompt_options(form)
+                if prompt_options['main_opt'] == 'Mix':
+                    prompt_options['main_opt'] = 'Definitions'
                 deck = get_or_create_deck(form, prompt_options)
                 logger.info("form file data %s", form.file.data)
                 form.file.data.seek(0)
                 deck_id = deck.id
-                now = dt.datetime.now(dt.timezone.utc).isoformat()
-                slug = str(current_user.id) + now
-                session['slug'] = slug
                 send_audio_file(form.file.data, deck_id, prompt_options, slug)
-                
-                flash('Your cards are being created,' 
-                            'once finished they will appear in your decks.')
+                job_notification = JobNotification(user_id=current_user.id,
+                 slug = slug, date_created = now, cost = tokens)
+                db.session.add(job_notification)
+                db.session.commit()
                 return redirect('/viewdecks')
         else:
             try:
                 now = dt.datetime.now(dt.timezone.utc).isoformat()
                 deck, text, prompt_options = handle_form_submission(form)
-                logger.debug(text)
+                logger.debug(text[:100])
                 tokens = count_tokens(text)
                 texts = None
+            
                 if text != None and len(text) > 0:      
                     if perform_operation(current_user.id,
                                         prompt_options['main_opt'], tokens) == False:
@@ -1149,28 +1155,26 @@ def extract():
                         texts= split_text(text)
                         if not isinstance(texts, list):
                             texts = [texts]
-                        counter = 0
-                        for text in texts:
-                            total_len = len(texts)
-                            counter = counter + 1
-                            payload_dict = {'deck': deck.id, 'text': text,
-                                            'prompt_options': prompt_options}
-                            payload = json.dumps(payload_dict)
-                            current_user_id = current_user.id
-                            slug = str(current_user_id) + now
-                            task_type = prompt_options['main_opt']
-                            data = Job(slug=slug, user = current_user_id,
-                                        task_type=task_type, payload=payload,
-                                        item_number = counter, deck_id=deck.id, item_quantity = total_len)
-                            event_tracker(current_user.id, 'extract_start',
-                                        'success', payload)
-                            if counter == total_len:
-                                session['slug'] = slug
-                            db.session.add(data)
-                            db.session.commit()
-                        flash('Your cards are being created,' 
-                        'once finished they will appear in your decks.')
+                        if prompt_options['main_opt'] == 'Mix':
+                            prompt_options['main_opt'] = 'Definitions'
+                            job_creator(texts, deck, prompt_options, slug)
+                            prompt_options['main_opt'] = 'Mcq'
+                            job_creator(texts, deck, prompt_options, slug)
+                            prompt_options['main_opt'] = 'Cloze'
+                            job_creator(texts, deck, prompt_options, slug)
+                        else:
+                            job_creator(texts, deck, prompt_options, slug)
+
+                        
+                        job_notification = JobNotification(user_id=current_user.id,
+                            slug = slug, date_created = now, cost = tokens)
+                db.session.add(job_notification)
+                db.session.commit()
                 return redirect('/viewdecks')
+            except FileNotFoundError as e:
+                flash("File not found. Please try again.")
+                logger.error(f"File not found {e}")
+                return redirect(url_for('extract'))
             except Exception as e:
                 logger.error(e)
                 flash('Something went wrong. Please try again.')
@@ -1179,18 +1183,42 @@ def extract():
                             settings = user_settings)
 
 
+def job_creator(texts, deck, prompt_options, slug):
+    for text in texts:
+        counter = 0
+        total_len = len(texts)
+        counter = counter + 1
+        payload_dict = {'deck': deck.id, 'text': text,
+                        'prompt_options': prompt_options}
+        payload = json.dumps(payload_dict)
+        current_user_id = current_user.id     
+        task_type = prompt_options['main_opt']
+        data = Job(slug=slug, user = current_user_id,
+                    task_type=task_type, payload=payload,
+                    item_number = counter, deck_id=deck.id, item_quantity = total_len)
+        event_tracker(current_user.id, 'extract_start',
+                    'success', payload)
+        if counter == total_len:
+            session['slug'] = slug
+        db.session.add(data)
+        db.session.commit()
+
 
 @app.route("/call_credit_counter", methods = ["POST"])
 def call_credit_counter():
     form = UploadFileForm()  # you might need to adjust this part to fit your project
-    credit = credit_counter(form)
+    try:
+        credit = credit_counter(form)
+    except FileNotFoundError as e:
+        flash("File not found. Please try again.")
+        logger.error(f"File not found {e}")
+        redirect(url_for('extract'))
     return jsonify(credit)
 
 
 
 def credit_counter(form):
     print("Entered credit counter")
-    print(form.text_input.data)
     if form.file.data:
         print("Entered data")
         if form.file.data.filename.endswith(".mp3") or form.file.data.filename.endswith(".wav"):
@@ -1202,7 +1230,7 @@ def credit_counter(form):
     elif form.text_input.data: 
             print("Entered text")   
             text = form.text_input.data
-            print(text)
+            print(text[:50])
             tokens = count_tokens(text)
     elif form.link_input.data:
             print("Entered link")
@@ -1211,10 +1239,9 @@ def credit_counter(form):
             except Exception as e:
                 logger.info(e)
                 return "error"
-            print(text)
+            print(text[:50])
             tokens = count_tokens(text)
-    credit = round(tokens_to_credit(tokens), 1)
-    return credit
+    return round(tokens_to_credit(tokens), 1)
 
 
 def tokens_to_credit(tokens):
@@ -1601,11 +1628,15 @@ def build_test(deck_id):
     deck = Deck.query.get_or_404(c_deck_id)
     creator = current_user
     if request.method == "POST":
+        form_data = request.form.to_dict()
+        print(request.form.to_dict())
         test_questions = request.form.getlist('selected_cards[]')
         name = deck.name + " Test" + " " + datetime.now().strftime("%Y-%m-%d %H:%M")
         new_test = Test(creator=current_user.id, deck_id = deck.id)
         db.session.add(new_test)
         new_test.name = name
+        jeopardyMode = form_data.get('jeopardyMode')
+        print("jeopardyMode: ", jeopardyMode)
         logger.debug(new_test.name)
         for question in test_questions:
             logger.debug("Entering question in test questions")
@@ -1626,6 +1657,8 @@ def build_test(deck_id):
             elif card.category == "Cloze":
                 question.question = card.term
                 question.q_type = "cloze"
+            elif card.category == "Explain":
+                question.question = card.term
 
             elif card.category == "Formulas":
                 print("entered formulas")
@@ -1634,10 +1667,22 @@ def build_test(deck_id):
                 print(card.formula)
                 print(question.term)
                 question.q_type = "formulas"
-            else:
+            elif card.category == "Discuss":
+                question.question = card.term
+                question.q_type = "discuss"
+                question.boc_2 = card.boc_2
+            elif card.category == "Definitions":
 ## switching them around so that the test gives them a definition and they have to write the word
-                question.question = card.content
-                question.q_type = "jeopardy"
+                if jeopardyMode == "on":
+                    question.question = card.content
+                    question.term = card.term
+                    question.q_type = "jeopardy"
+                else:
+                    question.question = card.term
+                    question.q_type = "definitions"
+            else:
+                question.question = card.term
+                question.q_type = "Other"
             db.session.add(question)
             new_test.questions.append(question)
   
@@ -2103,39 +2148,154 @@ def about():
     return render_template('about.html')
 
 
+def job_finisher(user_id):
+    if not (incomplete_jobs_notifs := find_non_complete_job_notifs(user_id)):
+        return
+    print("incomplete jobs notifs", incomplete_jobs_notifs)
+    for incomplete_job_notif in incomplete_jobs_notifs:
+        jobs = find_jobs_by_slug(incomplete_job_notif.slug)
+        print(jobs)
+        if check_jobs_complete(jobs):
+            print("jobs complete")
+            assembly_jobs = []
+            audio_transcript = []
+            for job in jobs:
+                print(job)
+                if job.task_type == "audio" and job.save_source is True:
+                    audio_transcript.append(job)
+                if job.task_type in ["Turn2notes", "Transcribe", "Summarize"]:
+                    assembly_jobs.append(job)
+                job.result = 1
+            if assembly_jobs:
+                assemble_file(assembly_jobs)
+            if audio_transcript:
+                assemble_file(audio_transcript)
+            db.session.commit()
+            incomplete_job_notif.complete = True
+            db.session.commit()
+
+def notify(user_id):
+## find unnotified jobs    
+    if jobs := find_unnotified_jobs(user_id):
+        print("unnotified jobs", jobs)
+## send notification
+        for job in jobs:
+            if current_user.contacted_email is True:
+                send_email(current_user.email, current_user.first_name,'deck_ready')
+          ## mark job as notified
+            job.notified = True
+            db.session.commit()
+    return True
+
+
+
+
+def find_unnotified_jobs(user_id):
+    return JobNotification.query.filter_by(user_id=user_id,complete=True, notified=False).all()
+
+## Look through Job Notification, find items that are not completed for each user
+def find_non_complete_job_notifs(user_id):
+    return JobNotification.query.filter_by(user_id=user_id, complete=False).all()
+## If not complete 
+
+## Look through jobs for that notification and check if jobs are completed
+def find_jobs_by_slug(slug):
+    return Job.query.filter_by(slug=slug).order_by(Job.id.asc()).all()
+
+def check_jobs_complete(jobs):
+    counter = 0
+    for job in jobs:
+        if job.state == "completed":
+            counter = counter + 1
+    return counter == len(jobs)
+
+def assemble_file(total_jobs):
+    print("entered assemble file route")
+    try:
+        deck = Deck.query.get_or_404(total_jobs[0].deck_id)
+        task_type = total_jobs[0].task_type
+        full_text = ""
+        for job in total_jobs:
+            full_text += job.processed_content
+        rand_num = random.randint(1, 1000)
+        name = task_type + dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d-%H") + str(rand_num)
+        existing_file = DeckFiles.query.filter_by(file_name=name).first()
+        print(f"File already exists {existing_file}")
+        if not existing_file:
+            print("no existing file, creating one")
+            file_storage = DeckFiles(file_name=name, text_string=full_text,
+                                    create_type = task_type,
+                                    time_created = dt.datetime.now(dt.timezone.utc))
+            db.session.add(file_storage)
+            deck.deck_files.append(file_storage)
+            db.session.commit()
+    except Exception as e:
+        logger.debug("error assembling file %s", e)
+        raise e
+
+def job_error_checker(slug):
+    print(slug)
+    error_ratio = check_for_errors(slug)
+    print("error ratio", error_ratio)
+    if error_ratio > 0:
+        print("Recognized error")
+        job_notification = JobNotification.query.filter_by(slug=slug).first()
+        credit = current_user.remaining_credit() * 682 + job_notification.cost + 6820
+        new_usage_record = UsageRecord(user_id=job_notification.user_id,
+            date=dt.datetime.now(dt.timezone.utc), operation_type="credit",
+            operation_details="credit for job error", operation_count=0,
+            remaining_count = credit, status="active", time_period="month",
+            limit_count = credit)
+        db.session.add(new_usage_record)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+def check_for_errors(slug):
+    jobs = find_jobs_by_slug(slug)
+    print(f"jobs {jobs}, slug {slug}")
+    error_count = 0
+    for job in jobs:
+        if job.error_type == "error":
+            error_count = error_count + 1
+            job.error_type = "error_returned"
+            
+            print("error found")
+        db.session.commit()
+    return error_count / len(jobs)
+
+## if not wait
+## if they are completed check if need to be reassembled and turned into a file
+## if not change each jobs result to 1
+## if so reassemble and turn into file
+## after assembling into a file change job result to 1
+## if all jobs are complete and have result of 1, then change notification to complete
+
+def file_assembler(user_id):
+    print("entered file assembler route")
+    job_finisher(user_id)
+    notify(user_id)
+    return jsonify({"success": True})
+
 @app.route("/query", methods=["POST"])
 @login_required
 def query():
     progress = 0
-    print("querying")
-    # The id of the queried request comes in with a new request
-    # sent from the frontend JS code
     job_id = request.form["id"]
     print(job_id)
     # Now we can ask database about the state of that request
     data = Job.query.filter_by(slug=job_id).first()
-    if data:
-        task_type = data.task_type 
-        deck_id = data.deck_id
-        # And return a response containing the state and the result
     num_completed = Job.query.filter_by(slug=job_id, state="completed").count()
-    total_jobs = Job.query.filter_by(slug=job_id).order_by(Job.id.asc()).all()
     num_total = Job.query.filter_by(slug=job_id).count()
+    slug = JobNotification.query.filter_by(slug=job_id).first()
+
     if num_total != 0:
         progress = int(num_completed/num_total*100)
-        print(progress)
         if progress == 100:
-            if task_type in ["Turn2notes", "Transcribe", "Summarize"]:
-                assemble_file(total_jobs, deck_id, task_type)
-            if data.save_source == True:
-                total_jobs = Job.query.filter_by(slug=job_id, save_source=True).order_by(Job.id.asc()).all()
-
-                print("save source recognized as true")
-                print(total_jobs)
-                assemble_file(total_jobs, deck_id, "Source")
-            data.result = 1
-            db.session.commit()
-            
+            file_assembler(current_user.id)    
+           
     if data is None:
         return jsonify({"state": None, "progress": None, "result": None})
     return jsonify(
@@ -2146,53 +2306,23 @@ def query():
         }
     )
 
-def assemble_file(total_jobs, deck_id, task_type):
-    print("entered assemble file")
-    try:
-        print(deck_id)
-        print(total_jobs)
-        print(task_type)
-        deck = Deck.query.get_or_404(deck_id)
-        full_text = ""
-        print(total_jobs)
-        print(deck_id)
-        print(full_text)
-        for job in total_jobs:
-            full_text += job.processed_content
-            job.save_source = False
-        random_number = random.randint(1, 100000)
-        name = task_type + dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d-%H") + str(random_number)
-        existing_file = DeckFiles.query.filter_by(file_name=name).first()
-        print(existing_file)
-        if not existing_file:
-            print("no existing file, creating one")
-            file_storage = DeckFiles(file_name=name, text_string=full_text,
-                                    create_type = task_type,
-                                    time_created = dt.datetime.now(dt.timezone.utc))
-            db.session.add(file_storage)
-            deck.deck_files.append(file_storage)
-            db.session.commit()
-            print(file_storage)
-    except Exception as e:
-        logger.debug("error assembling file %s", e)
-        raise e
-
-
 
 @app.route("/notification_complete", methods=["POST"])
 @login_required
 def notification_complete():
     logger.debug("entered notification")
-    slug_id= clean(request.form["id"])
-    slug = Job.query.filter_by(slug=slug_id).first()
-    jobs = Job.query.filter_by(slug=slug.slug).all()
-    for job in jobs:
-        job.result = 2
-    db.session.commit()
-    session.pop('slug', None)
-    if current_user.contacted_email == True:
-        send_email(current_user.email, current_user.first_name,'deck_ready')
-    return jsonify("success")
+    slug_id= request.form["id"]
+    slug = JobNotification.query.filter_by(slug=slug_id).first()
+    if job_error_checker(slug.slug):
+            print("entered error checker")
+            session.pop('slug', None)
+            db.session.commit()
+            return jsonify("error")
+    if slug.complete is True:
+        print("job notification complete is true")
+        session.pop('slug', None)
+        db.session.commit()
+        return jsonify("success")
  
 @app.route("/latest_deck", methods=["POST", "GET"])
 @login_required
@@ -2208,7 +2338,7 @@ def latest_deck():
         else:
             # Handle the case when the user has no decks, e.g.,
             #  show an error message or redirect to a create deck page
-            return "No decks found for this user. Please create a deck."
+            return redirect('/viewdecks')
     else:
         # Handle the case when the user is not authenticated, e.g., 
         # redirect to login page or show an error message

@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 
-<link rel="icon" href="/static/Cephadex-logo-6.png">
+    <link rel="icon" href="\static\cephadex-logo-6.png">
 
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, width=device-width" />
@@ -57,6 +57,12 @@
     {% endif %}
 
 </div>
+{% if test.instructions %}
+<div class ="row mt-2">
+    <h5>Instructions:</h5>
+<p> {{test.instructions}} </p>
+</div>
+{% endif %}
 <br>
 {% for question in test.questions %}
 {% set q_counter = loop.index %}
@@ -84,6 +90,32 @@
     </div>
 
 </div>
+{% elif question.q_type == "definitions" %}
+<div class = "row " style="page-break-inside: avoid;">
+    
+    <div class="card">
+        <div class="card-head">
+            <div class="row">
+                <div class="col-10 ">
+                    {{q_counter}} - {{question.question}}
+                </div>
+                
+                <div class=" col-2">
+                   <small>Marks: </small> {{question.points}}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <label for="answer{{question.id}}">Answer:</label>
+            <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                </textarea>
+        </div>
+    </div>
+
+</div>
+
+
 {% elif question.q_type == "cloze" %}
 <div class = "row " style="page-break-inside: avoid;">
     

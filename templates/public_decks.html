@@ -43,32 +43,30 @@
       <table class="table table_0 mobile-optimised">
 
         <thead>
-          <tr>
-            <th>Deck Name: </th>
-            <th>Description: </th>
-            <th>Category: </th>
-            <th>Number of cards: </th>
-            <th>Actions:</th>
+          <tr >
+            <th >Name</th>
+            <th>Description</th>
+            <th>Cards</th>
+            <th> </th>
           </tr>
         </thead>
         <tbody>
           {% for deck in decks%}
 
           <tr>
-            <td class="ml-2" data-th="Deck Name:">
+            <td class="ml-2" data-th="Name">
               <form action="" method="post">
                 <input type="hidden" name="deck_id" value="{{ deck.id }}">
-                <h6>{{ deck.name }}</h6>
+                <h6 style="color: #6019FF">{{ deck.name }}</h6>
               </form>
             </td>
-            <td data-th="Description:">{{ deck.description }}</td>
-            <td data-th="Category:"> {{ deck.check_cat() }} </td>
-            <td data-th="Number of Cards (cards due):"> {{ deck.quantity_cards() }} </td>
-            <td>
+            <td data-th="Description" ><p style="color: #6019FF">{{ deck.description }}</p></td>
+            <td data-th="Cards"> <p style="color: #6019FF">{{ deck.quantity_cards() }}</p> </td>
+            <td class = "d-flex justify-content-center">
 
               <a onclick="importPublicDeck('{{deck.id}}')" class="mx-2"
-                style="cursor: pointer; text-decoration: none;"><img src="\static\save-outline-icon.png"
-                  alt="Save to my decks" style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1"
+                style="cursor: pointer; text-decoration: none;"><img src="\static\save-icon.png"
+                  alt="Save to my decks" style="max-width:40px;max-height:40px; text-decoration: none;" class="px-1 img-grow"
                   title="Save to my decks">
               </a>
 
@@ -77,11 +75,11 @@
               <!----- DECK DETAILS ------>
               <a data-bs-toggle="modal" data-bs-target="#infoDecksModal{{deck.id}}" class="mx-2"
                 style="cursor: pointer; text-decoration: none;">
-                <img src="\static\information-mark-circle-outline-icon.png" alt="Info"
-                  style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1" title="Info">
+                <img src="\static\info-icon.png" alt="Info"
+                  style="max-width:40px;max-height:40px; text-decoration: none;" class="px-1 img-grow" title="Info">
               </a>
-              <a target="_blank" href="public_cards/{{deck.id}}"> <img src="\static\view-show-all-icon.png" alt="Info"
-                  style="max-width:30px;max-height:30px; text-decoration: none;" class="px-1" title="Info"></a>
+              <a target="_blank" href="public_cards/{{deck.id}}"> <img src="\static\cards-icon.png" alt="Info"
+                  style="max-width:40px;max-height:40px; text-decoration: none;" class="px-1 img-grow" title="Info"></a>
 
             </td>
   </div>

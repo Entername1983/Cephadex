@@ -16,18 +16,19 @@
             <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
                 {% if deck.cards|length > 0 %}
                     <a href='/study_deck/{{ deck.id }}' class = "img-grow" title="Study"><img src="/static/study-deck-icon.png" style="width: 35px; height:35px"></a>
-                    <a href="/build_test/{{ deck.id }}" class = "img-grow" title="Create assignment"><img src="/static/create-worksheet-icon.png" style="width: 35px; height:35px"></a>
+                    <a href="/build_test/{{ deck.id }}" class = "img-grow" title="Create quiz"><img src="/static/create-worksheet-icon.png" style="width: 35px; height:35px"></a>
                     <a href="/carousel/{{ deck.id }}" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="width: 35px; height:35px"></a>
 
                     <a class="px-2" data-bs-toggle="modal" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
-                        <img src="/static/edit-deck-icon.png" class = "img-grow" style="width: 35px; height:35px"></a>
+                        <img src="/static/edit-deck-icon.png" class = "img-grow" style="width: 35px; height:35px" title="Edit"></a>
                     <a  data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
                         style="cursor: pointer;" class = "img-grow" title="Share"><img src="/static/share-icon.png" style="width: 35px; height:35px"></a>
-
+                        
                     {% else %}
                     <p>You don't seem to have any cards in this deck, click <a href="/extract"> here </a> to create
                         some.</p>
                     {% endif %}
+                    <a href="/extract"><img class = "img-link" src="/static/new-deck-icon.png" style="width: 35px; height:35px" title="Create"></a>
                     <a onclick="event.stopPropagation();" width="35px" height="35px"
                          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                         style="cursor: pointer;" class = "img-grow" title="More actions"><img src="/static/more-icon.png" style="width: 35px; height:35px"></a>
@@ -35,8 +36,8 @@
 
                     <!-- Dropdown menu containing the list of links -->
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" onclick="event.stopPropagation();"
-                            onclick="exportDeckAnki('{{ deck.id }}');" style="cursor: pointer;">Export to
+                        <a class="dropdown-item" onclick="exportDeckAnki('{{ deck.id }}'); event.stopPropagation();"
+                             style="cursor: pointer;">Export to
                             Anki</a>
                         <a class="dropdown-item" onclick="event.stopPropagation();"
                             href="/downloadascsv/{{ deck.id }}">Download CSV</a>
@@ -76,7 +77,7 @@
 
     <div class="row">
  
-        <div class="col-md-6">
+        <div class="col-md-6" >
             <div class="card  box-manager mt-2">
                 <div class="card-header deck-manager-header"> <a href = "/carousel/{{deck.id}}">Cards ({{ deck.quantity_cards() }}) </a></div>
                 <div class="card-body" style="height: 60vh; overflow-y: scroll;">
@@ -88,26 +89,10 @@
                 </div>
             </div>
         </div>
-       <div class="col-md-6">
-                <div class="card box-manager mt-2">
-                    <div class="card-header deck-manager-header"><a href="/sea_dox/{{ deck.id }}">Files</a></div>
-                    <div class="card-body " style="height: 10vh; overflow-y: scroll;">
-                        <ul>
-                            {% if deck.deck_files  %}
-
-                            {% for file in deck.deck_files %}
-                            <li><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
-                            {% endfor %}
-                            {% else %}
-                            <li>No files found</li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </div>
-   
-                <div class="card box-manager mt-2">
+       <div class="col-md-6">  
+        <div class="card box-manager mt-2">
                     <div class="card-header deck-manager-header"><a href = "/test_results_overview/">Assignments</a></div>
-                    <div class="card-body" style="height: 10vh; overflow-y: scroll;">
+                    <div class="card-body" style="height: 11.5vh; overflow-y: scroll;">
                         <ul>
                             {% if tests %}
                             {% for test in tests %}
@@ -119,8 +104,25 @@
                         </ul>
                     </div>
                 </div>
-        
                 <div class="card box-manager mt-2">
+                    <div class="card-header deck-manager-header"><a href="/sea_dox/{{ deck.id }}">Files</a></div>
+                    <div class="card-body " style="height: 10vh; overflow-y: scroll;">
+                        <ul>
+                            {% if deck.deck_files  %}
+
+                            {% for file in deck.deck_files %}
+                            <li><a href="/sea_source/{{file.id}}" target="_blank">{{ file.file_name }}</a></li>
+                            {% endfor %}
+                            {% else %}
+                            <li>No files found</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+   
+              
+        
+                <div class="card box-manager mt-3">
                     <div class="card-header deck-manager-header">Child Decks</div>
                     <div class="card-body" style="height: 10vh; overflow-y: scroll;">
                         <ul>
@@ -168,6 +170,7 @@
 
 </div>
 <br>
+
 
 <script>
     function shareDeck(deckId) {
@@ -225,9 +228,16 @@
 
 <script>
     async function exportDeckAnki(deckId) {
-        await requestAnkiConnectPermission();
-        exportDeckToAnki(deckId);
+
+    console.log("export deck to anki")
+    try {
+    await requestAnkiConnectPermission();
+    exportDeckToAnki(deckId);
+    } catch (error) {
+      console.log(error);
+      alert("AnkiConnect is not running. Please make sure you are on a desktop with anki connect running.")
     }
+  }
     async function requestAnkiConnectPermission() {
         const url = 'http://127.0.0.1:8765/';
         const request = {

@@ -98,50 +98,51 @@
 
   <div class="stats-container">
     <div class="text-center p-1 ">
-      <a href="/extract"><img class = "img-link" src="/static/new-deck-icon.png" style="width: 30px; height:30px" title="Create"></a>
+      <a href="/extract"><img class = "img-link" src="/static/new-deck-icon.png" style="width: 35px; height:35px" title="Create"></a>
 
     </div>
       {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
 
-    <div class="stat">
-          <h6>Decks: {{user.quantity_decks()}} </h6>
-        </div>
-      <div class="stat">
+      <div class="stat pt-2">          
+        <h6>Decks: {{user.quantity_decks()}} </h6>
+      </div>
+    <div class="stat pt-2">
           <h6>New cards: {{user.quantity_cards_new()}} </h6>
       </div>
-        <div class="stat">
+      <div class="stat pt-2">
           <h6>Cards: {{user.quantity_cards()}} </h6>
       </div>
-        <div class="stat">
+      <div class="stat pt-2">
           <h6>Cards mastered: {{user.quantity_cards_mastered()}} </h6>
       </div>
 
-        <div class="stat">
+      <div class="stat pt-2">
           <h6>Cards practiced: {{ ns.total }}  </h6>
       </div>
-        <div class="stat">
+      <div class="stat pt-2">
           <h6>Correct answers: {{ ns.total_correct }} </h6>
       </div>
 
   {% else %}
   
-    <div class="stat">
+        <div class="stat pt-2">
+
           <h6>Decks: {{user.quantity_decks()}} </h6>
         </div>
-      <div class="stat">
+    <div class="stat pt-2">
           <h6>Cards: {{user.quantity_cards()}} </h6>
       </div>
-        <div class="stat">
+      <div class="stat pt-2">
           <h6>Assignments: {{user.quantity_tests()}} </h6>
       </div>
-        <div class="stat">
+      <div class="stat pt-2">
           <h6>Documents: {{user.quantity_files()}} </h6>
       </div>
 
-        <div class="stat">
+      <div class="stat pt-2">
           <h6>Groups: {{ user.quantity_groups() }}  </h6>
       </div>
-        <div class="stat">
+      <div class="stat pt-2">
           <h6>Public decks: {{ user.quantity_decks_public()}} </h6>
       </div>
   </div>
@@ -227,7 +228,7 @@
             {% else %}
             <td data-th="Cards"> {{ deck.quantity_cards() }}</td>
 {% endif %}
-            <td data-th="Created">{{ deck.time_created }}</td>
+<td data-th="Created">{{ deck.time_created.strftime("%Y-%m-%d") }}</td>
             <td>
               <div class="dropdown">
                 <img src="/static/more-icon.png" onclick="event.stopPropagation();" width="32px" height="32px"
@@ -236,14 +237,16 @@
                 <!-- Dropdown menu containing the list of links -->
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                   <a class="dropdown-item" onclick="event.stopPropagation();" href="/carousel/{{ deck.id }}">Edit</a>
-                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/study_deck/{{ deck.id }}">Study</a>
-
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/build_test/{{ deck.id }}">Create quiz</a>
                   <a class="dropdown-item" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
                     style="cursor: pointer;">Share</a>
-                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/build_test/{{ deck.id }}">Build test</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/study_deck/{{ deck.id }}">Study</a>
+
+                  
+                  
                   <a class="dropdown-item" onclick="event.stopPropagation();" href="/sea_dox/{{ deck.id }}" data-bs-toggle="tooltip"
                     data-bs-placement="bottom" title="See files associated with this deck">Files</a>
-                  <a class="dropdown-item" onclick="event.stopPropagation();" onclick="exportDeckAnki('{{ deck.id }}');" style="cursor: pointer;">Export to
+                  <a class="dropdown-item" onclick="exportDeckAnki('{{ deck.id }}'); event.stopPropagation();" style="cursor: pointer;">Export to
                     Anki</a>
                   <a class="dropdown-item" onclick="event.stopPropagation();" href="/downloadascsv/{{ deck.id }}">Download CSV</a>
                   <div class="dropdown-divider"></div>
@@ -466,8 +469,14 @@ function shareDeck(deckId) {
 </div>
 <script>
   async function exportDeckAnki(deckId) {
+    console.log("export deck to anki")
+    try {
     await requestAnkiConnectPermission();
     exportDeckToAnki(deckId);
+    } catch (error) {
+      console.log(error);
+      alert("AnkiConnect is not running. Please make sure you are on a desktop with anki connect running.")
+    }
   }
   async function requestAnkiConnectPermission() {
     const url = 'http://127.0.0.1:8765/';
@@ -610,13 +619,11 @@ function shareDeck(deckId) {
 </script>
 <script>
   function updateProgress() {
-    console.log("checking progress");
-    console.log("slug_id: " + slug_id);
+
     $.post("/query",
       { id: slug_id },
       function (data) {
         var progress = data.progress;
-        console.log(progress)
         if (progress !== null) {
           $("#progress-bar").css("width", progress + "%").text(progress + "%");
           $("#progress-container").show();
@@ -627,7 +634,7 @@ function shareDeck(deckId) {
         } else {
 
           // Job is not done yet, schedule another update
-          setTimeout(updateProgress, 1000);
+          setTimeout(updateProgress, 5000);
         }
       });
   }

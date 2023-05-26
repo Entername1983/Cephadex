@@ -72,15 +72,17 @@ main_0 %}
           {{ form.gender(class="form-control", id="gender", placeholder=user.gender, value=user.gender) }}
         </div>
       </div>
-      <div class="col-md-6">
-        <div class="row justify-content-center" style="text-align:center">
+      <div class="col-md-6 d-flex justify-content-center" >
+        <div style="max-height: 300px; max-width:300px;">
+        <div class="row d-flex justify-content-center" style="text-align:center">
           {% if user.pic == None %}
-          <img class="circle-img" src="static/avatar-octopus.png" style="max-height:fit-content; max-width:fit-content;"
+          <img class="circle-img" src="static/avatar-octopus.png" style="max-height:100%; max-width:100%;"
             alt="logo">
           {% else %}
-          <img class="circle-img" src="\{{user.pic}}" style="max-height:400px; max-width:400px;" alt="profile pic">
+          <img class="circle-img" src="\{{user.pic}}" style="max-height:100%; max-width:100%;" alt="profile pic">
           {% endif %}
         </div>
+        </div>  
       </div>
     </div>
     <div class="row">

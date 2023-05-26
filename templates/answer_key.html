@@ -126,6 +126,29 @@
     </div>
 
 </div>
+{% elif question.q_type == "definitions" %}
+<div class = "row " style="page-break-inside: avoid;">
+    
+    <div class="card">
+        <div class="card-head">
+            <div class="row my-2">
+                <div class="col-10 ">
+                    {{q_counter}} - {{question.question}}
+                </div>
+                <div class=" col-2">
+                    Marks: {{question.points}}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            {{question.content}}
+           
+        </div>
+    </div>
+    
+</div>
 
 
 {% elif question.q_type == "mcq" %}

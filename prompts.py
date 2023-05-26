@@ -10,7 +10,19 @@ prompt_choices = {
     "Vocab_builder": 'Given the passage below, extract all unique words and provide a definition for each.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the words extracted and have a property named "A", for the word, as well as one named "B", for the definition. \n The resulting JSON object should be in this format: [{"A":"string","B":"string"}] \n The passage: \n',
     "Formulas": 'Given the passage below, extract all mentions of math or scientic formulas or terms, and provide the name of the formula (or term), the formula itself (or formula associated with the term) in LaTeX format, and an explanation of the formula.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of the formulas extracted and have a property named "A", for the name of the formula, "B" for the formula itself in latex format, and "C" for the explanation of the formula.  \n The resulting JSON object should be in this format: [{"A":"name of formula","B":"LaTeX formula","C":"explanation of formula"}] \n The passage: \n',
     "Custom": 'Given the passage below, extract {qmin} {qmax} {custom_term}, and provide a {length} {custom_content} for each. {subject} Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the {custom_term} extracted and have a property named "A" as well as one named "B" for the {custom_content} provided. \n The resulting JSON object should be in this format: [{"A":"{custom_term}","B":"{custom_content}"}] \n The passage: \n',
+    "Explain": 'Given the passage below, create a series of question meant to test students ability to understand concepts in the passage as defined in Blooms taxonomy.  Questions should start with with explain.  Additionally provide a sample answer to each question.  Create a JSON object which enumerates a set of child objects.  Each of the child objects should correspond to one of hte questions and have a property named "A" as well as one named "B" corresponding to the sample answer. \n The resulting JSON object should be in this format: "[{"A":"Question","B":"Sample answer"] \n The passage: \n',
+    "Discuss": 'Given the passage below, create debate topics related to the content of the text as well as arguments for and against each side.  Each debate topic should start with the word "Discuss.. Create a JSON object which enumerates a set of child objects. Each of the child objects should correspond to one of the debate topics extracted and have a property named "A" for the question, one named "B" for the arguments for one side, and one named "C" for the arguments for the other side. \n The resulting JSON object should be in this format: "[{"A":"Discuss question","B":"Arguments for the first side", "C": "Arguments for the other side"] \n The passage: \n',
     } 
+
+bloom_choices = {
+    "Remember": "Remembering",
+    "Understand": "Understanding",
+    "Apply": "Applying",
+    "Analyze": "Analyzing",
+    "Evaluate": "Evaluating",
+    "Create": "Creating",
+    }
+
 
 prompt_choices2 =  {
     "Econ": "Economics",
@@ -76,7 +88,6 @@ lang_choices = {
     "Indonesian": "The language used should be Indonesian",
     "Vietnamese": "The language used should be Vietnamese",
     "Urdu": "The language used should be Urdu",
-    "Hebrew": "The language used should be Hebrew",
     "Persian": "The language used should be Persian",
     "Thai": "The language used should be Thai",
     "Malay": "The language used should be Malay",

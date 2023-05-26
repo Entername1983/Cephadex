@@ -158,10 +158,10 @@ class DeckOrg(FlaskForm):
     new_boc_2 = StringField('new_boc_2')
     new_boc_3 = StringField('new_boc_3')
     new_boc_4 = StringField('new_boc_4')
-    new_category = SelectField('Category', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+    new_category = SelectField('Category', choices=[('Mix', 'Mix'), ('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
                                            ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
                                            ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
-                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
+                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Mix')
     edit_deck = SubmitField("Edit deck", render_kw={"id": "edit-deck"})
 
 class UpdateCardForm(FlaskForm):
@@ -183,10 +183,10 @@ class UploadFileForm(FlaskForm):
     description = StringField("Description", render_kw={"placeholder": "Describe your deck"})
     submit = SubmitField("Generate", render_kw={"id": "extract-submit"})
     deck_list = QuerySelectField("Choose a deck", query_factory=lambda: Deck.query.filter(Deck.user_id == current_user.id), allow_blank=True, get_label='name', render_kw={"placeholder": "Choose an existing deck"})
-    prompt = RadioField('Prompt', choices=[('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Translate', 'Translate'), ('Cloze', 'Fill in the blank'),
+    prompt = RadioField('Prompt', choices=[('Mix', 'Mix'), ('Definitions', 'Definitions'), ('Mcq', 'Multiple choice'), ('Cloze', 'Fill in the blank'), ('Translate', 'Translate'), 
                                            ('Formulas', 'Formulas'), ('Theories', 'Theories'), ('Rhyme', 'Rhyme'), ('Comprehension', 'Comprehension'),
-                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
-                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Definitions')
+                                           ('People', 'People'), ('Vocab_builder', 'Vocabulary builder'), ('Explain', 'Explain'), ('Discuss', 'Discuss'), ('Transcribe', 'Transcribe'),  ('Summarize', 'Summarize'),
+                                           ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Mix')
     generate_images = BooleanField('Generate_images')
     save_text = BooleanField('Save_text')
     languages = SelectField('Languages', choices=[("", "Choose a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 

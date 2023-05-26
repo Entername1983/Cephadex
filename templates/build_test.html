@@ -1,53 +1,49 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
 main_0 %}
-<div class="container" style="border: 3px solid #6019FF;background-color:#efe8ff; border-radius: 5px;">
-    <div class = "row d-flex text-center my-2">
-
-        <h3>Test/Worksheet Builder</h3>
-    </div>
+<div class="container box-manager" style="background-color:#efe8ff; padding-top: 4px!important; padding-bottom: 4px!important;">
+  
 
 
-    <div class="row " style="background-color: #6019FF;">
         <form action="" method="POST" class="" id="selection-form">
 
 
 
-            <div class="row mt-1">
-                <div class="col-0 d-flex justify-content-center"></div>
-                <div class="col-2 d-flex justify-content-center">
-<!---
-                    <h6 class="text-white">Select questions:</h6>
 
-                </div>
-                <div class="col-9 d-flex justify-content-center">
-                    <h6 class="text-white">Question details:</h6>
-                
-
-                <div class="col-1 d-flex justify-content-center"></div>
-    ---->        
-    </div>
-</div>
-</div>
     <div class=" m-1">
         <div class="row">
-            <div class="col-3 d-flex justify-content-center align-items-center">
+            <div class="col-2 d-flex justify-content-center align-items-center">
                 <div class="p-2">
                     <input type="checkbox" class="" id="check-all" />
                     <label class="form-label" for="check-all">Select All</label>
                 </div>
             </div>
-            <div class="col-9 d-flex justify-content-end p-4">
-                <input class=" p-2  btn-generate " type="submit" value="Done selecting questions"
+            <div class="col-6 d-flex justify-content-center align-items-center">
+                <h2 style="color:#6019FF;">Quiz Maker</h2>
+
+</div>
+           
+                  <div class="col-4">
+                <div class = "row d-flex justify-content-end">
+                <input class=" p-2  btn-generate " type="submit" value="Next"
                     onclick="return validateForm()">
+                    </div>
+                    <div class = "row d-flex justify-content-end">
+                <div class="form-check form-switch" title ="Turns definitions into jeapordy style questions">
+                    <input class="form-check-input" type="checkbox" role="switch" name = "jeopardyMode" id="jeopardyMode" >
+                    <label class="form-check-label" for="jeopardyMode">Jeopardy</label>
+                  </div>
+
+
+                    </div>
             </div>
         </div>
     </div>
-
-    <div class="box-build" style="max-height: 70vh; overflow-y: scroll;">
+</div>
+    <div class="container box-manager mt-2" style="background-color:#efe8ff; padding: 1px!important;max-height:80vh; overflow-y: scroll;">
         {% for card in deck.cards %}
         {% if card.category in ["Mcq"] %}
 
-        <div class="card mt=1" style="">
+        <div class="card box-build m-1" >
             <div class="card-body w-100">
                 <div class="row">
                     <div class="col-1 ">
@@ -86,7 +82,7 @@ main_0 %}
 
 
         {% elif card.category == "Formulas" %}
-        <div class="card mt-1" style="">
+        <div class="card box-build m-1" >
             <div class="card-body  w-100">
                 <div class="row">
                     <div class="col-1 ">
@@ -111,9 +107,9 @@ main_0 %}
 </div>
             </div>
         </div>
-        {% elif card.category == "Cloze" %}
+        {% elif card.category == "Cloze", "Explain" %}
 
-        <div class="card mt-1" style="">
+        <div class="card box-build m-1">
             <div class="card-body  w-100" style="margin:0px !important;">
                 <div class="row">
                     <div class="col-1 ">
@@ -143,9 +139,42 @@ main_0 %}
                 </div>
             </div>
         </div>
+        {% elif card.category in ["Discuss"] %}
+
+        <div class="card box-build m-1" style="">
+            <div class="card-body w-100">
+                <div class="row">
+                    <div class="col-1 ">
+
+                        <input type="checkbox" class="" name="selected_cards[]" value="{{card.id}}">
+                    </div>
+                    <div class="col-11">
+                        <div class="row ">
+                            <div class="col-8  p-1">
+                                <p class="card-title border-0 w-100 " id="term{{card.id}}" rows="2"
+                                    value="{{card.term}}">{{card.term}}</p>
+                            </div>
+                       
+                                <input type="hidden" name="id{{card.id}}" value="{{card.id}}">
+                            
+                        </div>
+                        <div class="row mt-1">
+                            <li class="list-group-item  mt-1 border-0">A - {{card.content}}
+                            </li>
+                            <li class="list-group-item  mt-1 border-0">B - {{card.boc_2}}
+
+                            </li>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         {% else %}
 
-        <div class="card mt-1" style="">
+        <div class="card box-build m-1" style="">
             <div class="card-body  w-100" style="margin:0px !important;">
                 <div class="row">
                     <div class="col-1 ">
@@ -155,14 +184,14 @@ main_0 %}
                     <div class="col-11">
                         <div class="row ">
                             <h6>Question:</h6>
-                            <p class=" border-0 w-100 " id="content{{card.id}}" rows="2" value="{{card.content}}">
-                                {{card.content}}</p>
+                            <p class=" border-0 w-100 " id="content{{card.id}}" rows="2" value="{{card.term}}">
+                                {{card.term}}</p>
 
                         </div>
                         <div class="row mt-1 ">
                             <h6>Answer:</h6>
 
-                            <input class="border-0 w-100" name="term{{card.id}}" value="{{card.term}}">
+                            <p class="border-0 w-100" name="term{{card.id}}" value="{{card.content}}">{{card.content}}</p>
 
                         </div>
                     </div>

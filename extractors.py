@@ -1,5 +1,7 @@
 from reportlab.pdfgen import canvas
 import openai 
+from pdfminer.high_level import extract_text as fallback_text_extraction
+
 import PyPDF2
 from PyPDF2 import PdfWriter, PdfReader
 from dotenv import load_dotenv, find_dotenv
@@ -52,8 +54,10 @@ async def call_ai_terms(sys_instruct, user_prompt):
     return response
 
 async def extract_terms(text: str, prompt_options: dict):
+    text = remove_html_tags(text)
     print("entered extract term function")
     main_opt = prompt_options['main_opt']
+    print(main_opt)
     prompt = build_prompt(prompt_options)
     try:
         sys_instruct = f"You are a helpful teacher who wants to help students learn {prompt_options['subject_opt']}."
@@ -108,24 +112,22 @@ def build_prompt(prompt_options: dict):
         else:
             custom_content = ""
         prompt = prompt.replace('{qmin}', qmin).replace('{subject}', subject).replace('{qmax}', qmax).replace('{length}', detail).replace('{lang}', lang).replace('{trans}', trans_opt).replace('{custom_term}', custom_term).replace('{custom_content}', custom_content)
-        print("prompt built")
-        print(prompt)
+        print(prompt[:50])
     return prompt
 
 async def summarize(items, prompt_options):
+    items = remove_html_tags(items)
     print("entered summarize function")
-    print(items, prompt_options)
     option_1 = "You are an expert and summarizing key points in a passage" 
     option_2 = f"Summarize the following passage and return it with HTML formatting, using header tags, paragraph tags and list tags where appropriate {items}"
     response = await call_ai_terms(option_1, option_2)
     response = response['choices'][0]['message']['content']
     byte_string = response.encode('utf-8')
     response = byte_string.decode('utf-8') 
-    print(response)
-    print("summary completed")
     return response
 
 async def turn_to_notes(items, prompt_options):
+    items = remove_html_tags(items)
     print("entered text_to_notes function")
     option_1 = "You are an expert at turning text into study notes" 
     option_2 = f"Turn the following passage into study notes and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate, ignore table of contents and indexes {items}"
@@ -133,12 +135,12 @@ async def turn_to_notes(items, prompt_options):
     response = response['choices'][0]['message']['content']
     byte_string = response.encode('utf-8')
     response = byte_string.decode('utf-8')   
-    print(response)
     return response
 
 ## TAKES TEXT OR LIST OF TEXT AND TRANSLATES IT TO THE LANGUAGE CHOSEN
 ## ISSUE IS HOW TO HAVE PARAGRAPH BREAKS
 async def transcribe_and_translate(items, prompt_options):
+    items = remove_html_tags(items)
     language = prompt_options['trans_opt']
     print(language)
     option_1 = f"You are a helpful {language} translator"
@@ -155,7 +157,6 @@ async def transcribe_whisper(audio_file):
     audio_file= open(audio_file, "rb")
     transcript = await asyncify(openai.Audio.transcribe)("whisper-1", audio_file)
     transcript = transcript["text"]
-    print(transcript)
     return transcript
     
 def call_ai_terms_non_async(sys_instruct, user_prompt):
@@ -180,7 +181,7 @@ def regenerate_definition(term, prompt_options):
             user_prompt = prompt
             response = call_ai_terms_non_async(sys_instruct, user_prompt)
             x = response['choices'][0]['message']['content'].strip()
-            print(x)
+            print(x[:50])
             z = [term, ":"]
             y = "".join(z)
             if x.startswith(term):
@@ -222,7 +223,7 @@ def build_prompt_regen(term, prompt_options: dict):
 
         prompt = prompt.replace('{length}', detail).replace('{lang}', lang).replace('{trans}', trans_opt).replace('{term}', term)
         print("prompt built")
-        print(prompt)
+   
     return prompt
 
 
@@ -244,7 +245,6 @@ async def insert_paragraph(text):
                 ],
             )
     x = response['choices'][0]['message']['content']
-    print(x)
     return x
 
 def render_latex(latex_code):
@@ -308,7 +308,6 @@ def text_extractor(file):
 
 def audio_processing(file, current_user, deck_id, prompt_options, slug):
     print("entered audio processing function")
-    print(file)
     if file.endswith('.wav'):
         extract_audio(file, current_user, deck_id, prompt_options, slug, '.wav')
     elif file.endswith('.mp3'):
@@ -398,12 +397,12 @@ def extract_from_pdf(pdf_file):
                 text.append(page_content)
             concatenated_text = " ".join(text)
         return concatenated_text
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         print("File not found.")
-    except PyPDF2.utils.PdfReadError:
-        print("Error reading PDF.")
+        raise e
     except Exception as e:
-        print("An error occurred:", str(e))
+        print(f"An error occurred: {e}, attempting fallback method")
+        text = fallback_text_extraction(pdf_file)
     return None
 
 def clean_text(text):
@@ -652,9 +651,8 @@ def explain_more(term, subject = None, content = None):
         try:
             sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
             response = call_ai_terms_non_async(sys_instruct, prompt)
-            print(response)
             response_ = response['choices'][0]['message']['content'].strip()
-            print(response_)
+            print(response_[:50])
             return response_
         
         except Exception as e:
@@ -679,9 +677,8 @@ def why_wrong_generator(ww_prompt):
         try:
             sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
             response = call_ai_terms_non_async(sys_instruct, prompt)
-            print(response)
             response_ = response['choices'][0]['message']['content'].strip()
-            print(response_)
+            print(response_[:30])
             return response_
         
         except Exception as e:
@@ -728,7 +725,7 @@ def send_question_generator(term, content, latest_paragraph, question):
             sys_instruct = f"You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
             response = call_ai_terms_non_async(sys_instruct, prompt)
             response_ = response['choices'][0]['message']['content'].strip()
-            print(response_)
+            print(response_[:50])
             return response_
         
         except Exception as e:
@@ -802,7 +799,7 @@ def extract_terms_obs(text: str, prompt_option: str, prompt_option2: str = None,
     prompt = prompt.replace('{lang}', lang)
 
     if trans_option != None:
-        print(prompt)
+        print(prompt[:50])
         prompt = prompt.replace('{}', trans_option)
     prompt = (prompt + text + 'The JSON object: \n')
     response = openai.Completion.create(
@@ -832,14 +829,12 @@ def small_extract_terms_obs(item, prompt_option: str, prompt_option2: str = None
 def large_extract_terms_obs(items, prompt_option: str, prompt_option2: str = None, lang_option: str = None, trans_option: str = None,
                         len_option: str = None, qmin_option: int = None, qmax_option: int = None):
     print("entered large extract term function")
-    print(items)
     ls_terms = []
     for item in items:
         print(item)
         response = extract_terms(item, prompt_option, prompt_option2, lang_option, trans_option, len_option, qmin_option, qmax_option)
         for dict in response:
             ls_terms.append(dict)
-    print(ls_terms)
     return ls_terms
 
 
@@ -867,7 +862,6 @@ def large_extract_terms(items, prompt_options):
     ls_terms = []
     if isinstance(items, str):
         response = extract_terms(items, prompt_options)
-        print(prompt_options, items, response)
         return response[0], response[1], response[2], response[3]
             
     else:
@@ -878,7 +872,6 @@ def large_extract_terms(items, prompt_options):
             api_counter = api_counter + 1
             print("api call number: " + str(api_counter))
             response = extract_terms(item, prompt_options)
-            print(prompt_options, item, response)
 
             if response[0] != None:
                 for dict in response[0]:
@@ -886,10 +879,9 @@ def large_extract_terms(items, prompt_options):
                 prompt.append(response[1])
                 response_.append(response[2]) 
                 content.append(response[3])
-            print(prompt, response_, content)
             print("finished large extract term function")
             print("API calls: " + str(api_counter))
-        print(ls_terms)
+        
         return ls_terms, prompt, response_, content
     
 
@@ -923,3 +915,9 @@ async def create_image(term):
     except (openai.error.InvalidRequestError, requests.exceptions.RequestException) as e:
         print(f"Error creating image for term '{term}': {e}")
         return None
+    
+
+
+def remove_html_tags(text):
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', text)
