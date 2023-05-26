@@ -53,16 +53,18 @@
         <tbody>
           {% for deck in decks%}
 
-          <tr>
+          <tr id = "deck-{{deck.id}}" class="view-row"  onclick="window.location.href='public_cards/{{deck.id}}';"
+          onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
+          onmouseout="this.style.backgroundColor='';;this.style.color= ''" >
             <td class="ml-2" data-th="Name">
               <form action="" method="post">
                 <input type="hidden" name="deck_id" value="{{ deck.id }}">
-                <h6 style="color: #6019FF">{{ deck.name }}</h6>
+                <h6 >{{ deck.name }}</h6>
               </form>
             </td>
-            <td data-th="Description" ><p style="color: #6019FF">{{ deck.description }}</p></td>
-            <td data-th="Cards"> <p style="color: #6019FF">{{ deck.quantity_cards() }}</p> </td>
-            <td class = "d-flex justify-content-center">
+            <td data-th="Description" ><p >{{ deck.description }}</p></td>
+            <td data-th="Cards"> <p >{{ deck.quantity_cards() }}</p> </td>
+            <td class = " justify-content-center">
 
               <a onclick="importPublicDeck('{{deck.id}}')" class="mx-2"
                 style="cursor: pointer; text-decoration: none;"><img src="\static\save-icon.png"
