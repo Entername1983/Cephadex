@@ -1658,8 +1658,9 @@ def build_test(deck_id):
                 question.question = card.term
                 question.q_type = "cloze"
             elif card.category == "Explain":
+                print("card is explain")
                 question.question = card.term
-
+                question.q_type = "explain"
             elif card.category == "Formulas":
                 print("entered formulas")
                 question.question = card.term
@@ -1682,7 +1683,7 @@ def build_test(deck_id):
                     question.q_type = "definitions"
             else:
                 question.question = card.term
-                question.q_type = "Other"
+                question.q_type = "other"
             db.session.add(question)
             new_test.questions.append(question)
   

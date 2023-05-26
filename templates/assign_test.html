@@ -379,7 +379,7 @@ main_0 %}
                     </div>
                 </div>
             </form>
-            {% elif question.q_type in ["definitions"] %}
+            {% elif question.q_type in ["definitions", "explain"] %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">
                 {{ update_card_form.hidden_tag() }}
                 <div class="card box-build m-1">
