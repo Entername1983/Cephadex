@@ -222,7 +222,7 @@ def process_mcq_terms(session, deck, terms, cat, method, main_opt):
         try:
             term = item.get(v)
             term = ' '.join(term) if isinstance(term, list) else term
-            term = term.capitalize() if term else None
+            term = term or None
             content = item.get(w)
             content = ' '.join(content) if isinstance(content, list) else content
             content = add_period(content.capitalize()) if content else None
@@ -251,7 +251,7 @@ def process_default_terms(session, deck, terms, cat, method, main_opt):
         try:
             term = item.get(x)
             term = ' '.join(term) if isinstance(term, list) else term
-            term = term.capitalize() if term else None
+            term = term or None
             content = item.get(y)
             content = ' '.join(content) if isinstance(content, list) else content
             content = add_period(content.capitalize()) if content else None
@@ -271,16 +271,16 @@ def process_discuss_terms(session, deck, terms, cat, method, main_opt):
         try:
             term = item.get(x)
             term = ' '.join(term) if isinstance(term, list) else term
-            term = term.capitalize() if term else None
+            term = term or None
             side_1 = item.get(y)
             side_1 = ' '.join(side_1) if isinstance(side_1, list) else side_1
-            side_1 = side_1.capitalize() if side_1 else None
+            side_1 = side_1 or None
             side_2 = item.get(z)
             if z is None:
                 side_2 = None
             else:
                 side_2 = ' '.join(side_2) if isinstance(side_2, list) else side_2
-                side_2 = side_2.capitalize() if side_2 else None
+                side_2 = side_2 or None
             if term and not check_card_exist(deck, term):
                 entry = Card(category=cat, term=term, content = side_1, boc_2=side_2, create_method=method)
                 session.add(entry)
@@ -296,7 +296,7 @@ def process_formula_terms(session, deck, terms, cat, method, main_opt):
     for item in terms:
         term = item.get(x)
         term = ' '.join(term) if isinstance(term, list) else term
-        term = term.capitalize() if term else None
+        term = term or None
         formula = item.get(y)
         formula = ' '.join(formula) if isinstance(formula, list) else formula
         formula = "\[" + formula + "\]" if formula else None
