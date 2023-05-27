@@ -40,3 +40,18 @@ def send_email( recipients, first_name, template_name,
     except Exception as e:
         logging.error("Error sending email %s", e)
         print(e.message)
+
+
+def send_email_report(recipient, body):
+    message = Mail(
+        from_email='cephadex@cephadex.com',
+        to_emails=recipient,
+        subject = 'Cephadex daily report',
+        plain_text_content = body)
+    try: 
+        sg = SendGridAPIClient(SEND_GRID_KEY)
+        response = sg.send(message)
+        print(response.status_code)
+    except Exception as e:
+        logging.error("Error sending email %s", e)
+        print(e.message)

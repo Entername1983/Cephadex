@@ -51,7 +51,7 @@
         <div class="row align-items-center">
             <div class="col-lg-6">
                 <div class="mb-3 mb-lg-0 text-center text-lg-start">
-                    <h1 class="display-1 lh-1">Create and Learn at the Speed of Thought!</h1>
+                    <h1 class="display-1 lh-1">Accelerate Your Creativity</h1>
                     <p class="lead fw-normal mb-5" style="color:#a880fd;">We're saving you time by creating
                         educational material customized to <strong>your</strong> needs.</p>
                     <div class="d-flex flex-column flex-lg-row align-items-center">
@@ -63,11 +63,7 @@
             <div class=col-lg-6>
                 <div class="d-flex justify-content-center">
 
-
-                    <iframe class="hero-video" src="https://www.youtube.com/embed/E88BywtHkLg"
-                        title="YouTube video player" frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen></iframe>
+<img src = "/static/cepha-illu-01.jpg" alt = "Cephadex Illustration" style = "border-color:#a880fd!important; border-width: 3px;border:solid; border-radius:15px; height: 400px; width: 400px;">
 
                 </div>
             </div>
@@ -78,7 +74,7 @@
         <div class="row mt-5">
             <div class="col-10">
                 <div class="row align-items-center text-center">
-                    <h1 class="hero-text">Discover the Cephadex Advantage: Transform Your Learning Experience Today!
+                    <h1 class="hero-text">Discover the Cephadex Advantage: Transform Your Educational Experience Today!
                     </h1>
                 </div>
             </div>
@@ -95,6 +91,12 @@
 </header>
 <br>
 <main class="main-content">
+    <div class="container">
+        <div style="position: relative; padding-bottom: calc(51.05208333333333% + 44px); height: 0;"><iframe src="https://app.supademo.com/embed/ftovF5AMvfA_J5nvjdAzE" frameborder="0" webkitallowfullscreen="true" mozallowfullscreen="true" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
+</div>
+</div>
+        <main class="main-content">
     <div class="container">
         <h2 class="text-center mb-5">How It Works</h2>
         <div class="row mb-5">
@@ -139,8 +141,7 @@
                         <h2 class="h2 fs-1 mb-4" style="color: #FF6700">Ready to take the plunge? 🌊</h2>
                         <div class="d-md-block d-none">
                             <p class=" h4 fs-4 mb-4">
-                                Enroll with Cephadex today and redefine your educational experience. With our innovative web application,
-                                you can tailor your learning materials using AI. Transform your documents into dynamic flashcards,
+                                Transform your documents into dynamic flashcards,
                                  engaging quizzes, and comprehensive worksheets. Discover how Cephadex makes education personalized,
                                   efficient, and endlessly interesting.
 
@@ -710,7 +711,8 @@
 
 
 <script>
-    window.onload = function () {
+    $(document).ready(function() {
+
         const fromWords = [
 
             "youtube video",
@@ -757,22 +759,14 @@
             toElement.textContent = getRandomElement(toWords);
         }
 
-        setInterval(updateWords, 2000);
+        setInterval(updateWords, 4000);
 
 
-    }
+    });
+
 
 </script>
-<script>
-    window.onload = function() {
-        if (window.google && google.gapi) {
-          // Google scripts have loaded
-        } else {
-          // Google scripts have not loaded, possible ad-blocker
-          $('#adblocker').show();
-        }
-     };
-    </script>
+
 
 {% endif %}
 {% endblock %}

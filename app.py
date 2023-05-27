@@ -47,7 +47,7 @@ import schedule
 from beta import BetaKeys
 from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS, FLASK_DEBUG
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
-from models import JobNotification, StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
+from models import JobNotification, DeletedAccounts, StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
 import configparser
 import logging.config
 from events import event_tracker
@@ -89,7 +89,6 @@ os.environ["FLASK_DEBUG"] = FLASK_DEBUG
 # Configure application
 app = Flask(__name__)
 app.config.from_object('config')
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
 
 """""
 ### AUTO ESCAPE"
@@ -979,7 +978,24 @@ def delete_account():
             user.account_status = 'inactive'
             user.expiration = dt.datetime.now(dt.timezone.utc)
             user.account_expiration_reason = "Deleted"
+            if form.reason.data == 'other':
+                reason = form.other_reason.data
+            else:
+                reason = form.reason.data
+
+            if form.more.data:
+                details = form.more.data
+            else:
+                details = None
+
+            deleted_entry = DeletedAccounts(user_id=current_user.id,
+                    email = current_user.email, date_created = current_user.time_created,
+                    date_deleted = dt.datetime.now(dt.timezone.utc), reason=reason,
+                    reason_details = details)
+            db.session.add(deleted_entry)
             db.session.commit()
+            
+
             flash('We are sorry to see you go. Your account is now inactive and will be'
                   'permanently deleted within 48 hours.')
             return redirect(url_for('logout'))

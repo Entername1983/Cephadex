@@ -380,11 +380,29 @@ main_0 %}
           <p> Deleting your account is permanent. You will lose all cards and decks as well any progress! If you are
             sure you want to delete your account enter your email.</p>
 
-          <div class="form-floating">
-            {{ render_field(form_del.del_email, class="form-control form-control-lg") }}
-          </div>
-
-          {{ form_del.del_submit(class="btn btn-danger m-1") }}
+            <div class="form-floating">
+              {{ render_field(form_del.del_email, class="form-control form-control-lg") }}
+            </div>
+            
+            <!-- Reason for deleting account -->
+            <div class="form-group">
+              {{ form_del.reason.label(class="form-label") }}
+              {{ form_del.reason(class="form-control") }}
+            </div>
+            
+            <!-- Text box for 'Other' reason -->
+            <div class="form-group" id="other-reason-box" style="display: none;">
+              {{ form_del.other_reason.label(class="form-label") }}
+              {{ form_del.other_reason(class="form-control") }}
+            </div>
+            
+            <!-- Text area for more details -->
+            <div class="form-group" id="more-details-box" style="display: none;">
+              {{ form_del.more.label(class="form-label") }}
+              {{ form_del.more(class="form-control") }}
+            </div>
+            
+            {{ form_del.del_submit(class="btn btn-danger m-1", disabled="disabled", id="delete-btn") }}
         </form>
       </div>
 
@@ -392,8 +410,53 @@ main_0 %}
   </div>
 </div>
 </div>
+<script>
+  document.getElementById('delForm').addEventListener('change', (e) => {
+    let reasonBox = document.getElementById('other-reason-box');
+    let moreDetailsBox = document.getElementById('more-details-box');
+    let deleteBtn = document.getElementById('delete-btn');
+    let emailInput = document.querySelector('input[name="del_email"]');
+    let reasonInput = document.querySelector('select[name="reason"]');
 
+    if (e.target.name === 'reason') {
+      if (e.target.value === 'other') {
+        reasonBox.style.display = 'block';
+        moreDetailsBox.style.display = 'none';
+      } else if (e.target.value !== '') {
+        reasonBox.style.display = 'none';
+        moreDetailsBox.style.display = 'block';
+      } else {
+        reasonBox.style.display = 'none';
+        moreDetailsBox.style.display = 'none';
+      }
+    }
 
+    if (emailInput.value !== '' && reasonInput.value !== '') {
+      deleteBtn.disabled = false;
+    } else {
+      deleteBtn.disabled = true;
+    }
+  });
+</script>
+<script>
+  document.getElementById('delForm').addEventListener('change', (e) => {
+    let reasonBox = document.getElementById('other-reason-box');
+    let moreDetailsBox = document.getElementById('more-details-box');
+
+    if (e.target.name === 'reason') {
+      if (e.target.value === 'other') {
+        reasonBox.style.display = 'block';
+        moreDetailsBox.style.display = 'none';
+      } else if (e.target.value !== '') {
+        reasonBox.style.display = 'none';
+        moreDetailsBox.style.display = 'block';
+      } else {
+        reasonBox.style.display = 'none';
+        moreDetailsBox.style.display = 'none';
+      }
+    }
+  });
+</script>
 
 <script>
   $(document).ready(function () {

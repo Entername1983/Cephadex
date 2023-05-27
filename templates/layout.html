@@ -542,7 +542,7 @@
     </body>
     <script>
 
-        window.onload = function() {
+$(document).ready(function() {
             if (document.getElementsByClassName('google-signin-btn').length > 0) {
               // Google scripts have loaded
             } else {
@@ -550,7 +550,8 @@
               document.getElementById('adblocker2').style.display = 'block';
               document.getElementById('adblocker1').style.display = 'block';
             }
-         };
+        });
+         
         </script>
 </html>
 

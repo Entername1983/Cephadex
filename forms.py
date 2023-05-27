@@ -279,6 +279,14 @@ class AccountForm(FlaskForm):
 
 class DeleteAccountForm(FlaskForm):
     del_email = StringField('Email')
+    reason = SelectField('Reason for leaving', choices=[('', ''),
+     ('too-expensive', 'Too expensive'), ('not-enough-features', 'Not enough features'),
+       ('too-complicated', 'Too complicated'),
+         ('not-enough-content', 'Not enough content'), 
+         ('bad-content', "The content didn't suit my needs"),
+            ('other', 'Other')])
+    other_reason = StringField('Reason:') # Shown if 'other' is selected
+    more = StringField('Can you tell us more?')
     del_submit = SubmitField('Delete account')
 
 class UpdateProfilePicForm(FlaskForm):
