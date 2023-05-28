@@ -200,10 +200,9 @@ $(document).ready(function () {
                         
                         <th style="width: auto; height: auto;">2</th>
                         <th style="width: auto; height: auto;">3</th>
-                        <th style="width: auto; height: auto;">4</th>
+                        <th style="width: auto; height: auto;">5</th>
                         <th style="width: auto; height: auto;">Formula</th>
-                        <th style="width: auto; height: auto;">Image</th>
-                        <th style="width: auto; height: auto;">Actions</th>
+                        <th style="width: auto; height: auto;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -214,29 +213,24 @@ $(document).ready(function () {
 
                         <input name="id" type="hidden" id="id{{card.id}}" value="{{ card.id }}" placeholder="{{ card.id }}" />
                         
-                            <td style = "width: 15vw"> {{ form.term(class="border-0", id=("input"+card.id|string), placeholder=card.term,
-                                value=card.term, overflow="auto", style="background-color: transparent; min-width: 100%; min-height: 100%", **{'data-value': card.term}) }}</td>
+                            <td style = "width: 15vw; height:100%"> {{ form.term(class="border-0", id=("input"+card.id|string), placeholder=card.term,
+                                value=card.term, overflow="auto", rows=5, style="background-color: transparent; min-width: 100%", **{'data-value': card.term}) }}</td>
                   
                             <td>
-                                {{ form.content(class="border-0", id=("tableContent" + card.id|string), placeholder=card.content, rows=4, style="background-color: transparent; min-width: 100%", **{'data-value': card.content}) }}
+                                {{ form.content(class="border-0", id=("tableContent" + card.id|string), placeholder=card.content, rows=5, style="background-color: transparent; min-width: 100%", **{'data-value': card.content}) }}
 
 
                             </td>
                                 
                            
                             <td>{% if card.boc_2 %} {{ form.boc_2(class="border-0", id=("boc_2"+card.id|string), placeholder=card.boc_2,
-                                value=card.boc_2, overflow="auto", style="background-color: transparent;", **{'data-value': card.boc_2}) }} {% endif %}</td>
+                                value=card.boc_2, overflow="auto", rows=5, style="background-color: transparent; min-width: 100%", **{'data-value': card.boc_2}) }} {% endif %}</td>
                             <td>{% if card.boc_3 %} {{ form.boc_3(class="border-0", id=("boc_3"+card.id|string), placeholder=card.boc_3,
-                                value=card.boc_3, overflow="auto", style="background-color: transparent;", **{'data-value': card.boc_3}) }} {% endif %}</td>
+                                value=card.boc_3, overflow="auto", rows=5, style="background-color: transparent; min-width: 100%", **{'data-value': card.boc_3}) }} {% endif %}</td>
                             <td>{% if card.boc_4 %} {{ form.boc_4(class="border-0", id=("boc_4"+card.id|string), placeholder=card.boc_4,
-                                value=card.boc_4, overflow="auto", style="background-color: transparent;", **{'data-value': card.boc_4}) }} {% endif %}</td>
+                                value=card.boc_4, overflow="auto", rows=5, style="background-color: transparent; min-width: 100%", **{'data-value': card.boc_4}) }} {% endif %}</td>
                                 <td>{% if card.formula %}{{ card.formula}} {% endif%}</td>
-                                <td style = "width: 10vw">
-                                    {% if card.img is not none %}
-                                    <img src="{{ card.img }}" alt="Card image cap"
-                                        style="max-width: 50px; max-height: 50px;">
-                                    {% endif %}
-                                    </td>
+                   
                             
                                     <td style = "width: 15vw">
                      
@@ -302,7 +296,7 @@ $(document).ready(function() {
     var cardTerm = $termField.attr('data-value');
     var cardBoc_2 = $boc_2Field.attr('data-value');
     var cardBoc_3 = $boc_3Field.attr('data-value');
-    var cardBoc_4 = $boc_4Field.attr('data-value');
+    var cardBoc_5 = $boc_4Field.attr('data-value');
     var cardFormula = $formulaField.attr('data-value');
 
 
@@ -311,7 +305,7 @@ $(document).ready(function() {
     $termField.val(cardTerm);
     $boc_2Field.val(cardBoc_2);
     $boc_3Field.val(cardBoc_3);
-    $boc_4Field.val(cardBoc_4);
+    $boc_4Field.val(cardBoc_5);
     $formulaField.val(cardFormula);
 
   });
@@ -442,195 +436,195 @@ $(document).ready(function() {
         <div class="carousel-inner">
             {% for card in cards %}
             {% if loop.index0 == 0 %}
+            <form action="" method="post">
+                        {{ form.csrf_token }}
+                        <input type="hidden" name="id" id="card.id" value="{{ card.id }}"
+                            placeholder="{{ card.id }}" />
             <div class="carousel-item active">
-                <div class="card m-2 bg-light" style="min-height:70vh">
-                    <div class="card-body box-manager d-flex flex-column" style="background-color: #efe8ff !important;">
-                                                {% if card.img is not none %}
-                        <div class="row align-items-center justify-content-center">
-                            <img class="card-img-top pb-3" src="\{{card.img}}" alt="Card image cap"
-                                style="max-width: fit-content; max-height: fit-content;">
+               
+                <div class="card box-manager" style="height: 70vh;">
+                    <div class="card-header d-flex justify-content-center" style="background-color:  #efe8ff;">
+                        {{ form.term(class="border-0 text-center",id=("c-term" + card.id|string), placeholder=card.term,
+                           value=card.term, style="background-color: transparent; height:100%; width:100%", overflow="auto") }}
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        {% if card.category == "Formulas" %}
+                        <div class="row" style="height: 100%;">
+                            <div class="col" style="height: 100%;">
+                                <h3>{{ card.formula}}</h3>
+                            </div>
                         </div>
                         {% endif %}
-
-                        <form action="" method="post">
-                          
-                            {{ form.csrf_token }}
-                            <input type="hidden" name="id" id="card.id" value="{{ card.id }}"
-                                placeholder="{{ card.id }}" />
-                            {{ form.term(class="card-title box-manager input_0 form-control flex-grow-1 d-flex
-                            align-items-center justify-content-center text-center", id=("c-term" + card.id|string), placeholder=card.term,
-                            value=card.term, style="min-height:50px; border-width: 2px!important;", overflow="auto") }}
-
-                            {% if card.category == "Formulas" %}
-                            <div>
-                                \[{{ card.formula}}\]
+                       
+                        {% if card.category == "Mcq" %}
+                        <div class="row" style="height: 100%; border: solid; border-width:2px; border-color: #a880fd; border-radius: 10px; background-color: #efe8ff;">
+                            <div class="col" style="height: 100%; background-color: transparent">
+                                {{ form.content(class ="border-0 text-center", style=" height:100%; width:100%; background-color: transparent", id=("c-content" + card.id|string), placeholder=card.content )}}
                             </div>
-
-                            <div class="row mt-1">
-                                {{ form.formula(class="form-control card-text box_study input_0 form-control",
-                                id="card.id", rows="1", placeholder=card.formula) }}
-
+                        </div>
+                        {% else %}
+                        <div class="row" style="height: 100%;">
+                            <div class="col" style="height: 100%;">
+                                {{ form.content(class ="border-0 text-center", style="height:100%; width:100%", id=("c-content" + card.id|string), placeholder=card.content )}}
                             </div>
+                        </div>
+                        {% endif %}
+                        {% if card.category == "Formulas" %}
 
-                            {% endif %}
-                            {% if card.category == 'Mcq' %}
-                            <div class="row mt-1">
-                                {{ form.content(class="form-control card-text box_study input_0 form-control
-                                flex-grow-1", id=("c-tern" + card.id|string), rows="3", style="border-width:
-                                5px!important; border-color: #37D6A4!important;", placeholder=card.content) }}
-
+                        <div class="row" style="height: 100%;">
+                            <div class="col" style="height: 100%;">
+                                {{ form.formula(style="height:100%; width:100%",class="border-0 form-control text-center card-text input_0 form-control",
+                                id="card.id", placeholder=card.formula) }}
                             </div>
-                            {% else %}
-                            {{ form.content(class="form-control card-text box_study input_0 form-control
-                            flex-grow-1", id=("c-content" + card.id|string), rows="10", placeholder=card.content) }}
-                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% if card.boc_2 is not none %}
+                        <div class="row" style="height: 100%;">
+                            <div class="col" style="height: 100%;">
+                                {{ form.boc_2(class = "border-0  text-center", style="height:100%; width:100%", id=("c-boc_2"+card.id|string), rows="1", placeholder=card.boc_2) }}
 
-
-                            {% if card.boc_2 is not none %}
-                            <div class="row mt-1">
-                                {{ form.boc_2(class="form-control card-text box_study input_0 form-control flex-grow-1",
-                                id=("c-boc_2"+card.id|string), rows="1", placeholder=card.boc_2) }}
-                            </div>
-
-                            {% if card.category != "Formulas" %}
-                            <div class="row mt-1">
-                                {{ form.boc_3(class="form-control card-text box_study input_0 form-control flex-grow-1",
+                        </div>
+                      </div>
+                      {% if card.category != "Formulas" %}
+                      <div class="row" style="height: 100%;">
+                        <div class="col" style="height: 100%;">
+                            {{ form.boc_3(class = "border-0  text-center",style="height:100%; width:100%", 
                                 id=("c-boc_3"+card.id|string), rows="1", placeholder=card.boc_3) }}
-                            </div>
-                            <div class="row mt-1">
-                                {{ form.boc_4(class="form-control card-text box_study input_0 form-control flex-grow-1",
+                        </div>
+                      </div>
+                      <div class="row" style="height: 100%;">
+                        <div class="col" style="height: 100%;">
+                            {{ form.boc_4(class = "border-0  text-center",style="height:100%; width:100%", 
                                 id=("c-boc_4"+card.id|string), rows="1", placeholder=card.boc_4) }}
-                            </div>
-                            {% endif %}
-                            {% endif %}
-
-                            <div class="row mt-3 align-item-end align-bottom align-self-end"
-                                style="position:absolute; bottom:10px; left:0; right:0;">
-                           
-                                <div
-                                    class=" col-6 text-center align-items-center justify-content-center align-self-end">
-                                    <div class="spinner-border" id="c-spinner{{card.id}}" style="display: none;"></div>
-
-                                    <button class="regenerate-button" id="c-regen{{card.id}}" data-card-id="{{card.id}}"
-                                        style="border: none; background: none;">
-                                        <img src="\static\recycle-icon.png" class="img-grow" alt="Regenerate"
-                                            style="max-width:40px;max-height:40px;" class="img-grow "
-                                            title="Regenerate content">
-                                    </button>
-                                </div>
-                                <div
-                                    class=" col-6 text-center align-items-center justify-content-center align-self-end">
-                                    <button class="delete-button" data-card-id="{{deck.id}}/{{card.id}}"
-                                        style="border: none; background: none;">
-                                        <img src="\static\delete-icon.png" alt="Delete"
-                                            style="max-width:40px;max-height:40px;" class="img-grow " title="Delete">
-                                    </button>
-                                </div>
-                            </div>
-
+                        </div>
+                      </div>
+                      {% endif %}
+                      {% endif %}
                     </div>
+                    <div class="card-footer"style="background-color:  #efe8ff;">
+                        <div class="row mt-3 align-item-end align-bottom align-self-end">
+                    
+                            <div
+                                class=" col-6 text-center align-items-center justify-content-center align-self-end">
+                                <div class="spinner-border" id="c-spinner{{card.id}}" style="display: none;"></div>
 
-
-                    </form>
-                </div>
+                                <button class="regenerate-button" id="c-regen{{card.id}}" data-card-id="{{card.id}}"
+                                    style="border: none; background: none;">
+                                    <img src="\static\recycle-icon.png" class="img-grow" alt="Regenerate"
+                                        style="max-width:50px;max-height:50px;" class="img-grow "
+                                        title="Regenerate content">
+                                </button>
+                            </div>
+                            <div
+                                class=" col-6 text-center align-items-center justify-content-center align-self-end">
+                                <button class="delete-button" data-card-id="{{deck.id}}/{{card.id}}"
+                                    style="border: none; background: none;">
+                                    <img src="\static\delete-icon.png" alt="Delete"
+                                        style="max-width:50px;max-height:50px;" class="img-grow " title="Delete">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
 
             </div>
             {% else %}
-            <div class="carousel-item">
+            <form action="" method="post">
+                {{ form.csrf_token }}
+                <input type="hidden" name="id" id="card.id" value="{{ card.id }}"
+                    placeholder="{{ card.id }}" />
+                    <div class="carousel-item">
 
-                <div class="card m-2 bg-light" style="min-height:70vh">
-                    <div class="card-body box-manager d-flex flex-column" style="background-color: #efe8ff !important;">
-                        {% if card.img is not none %}
-                        <div class="row align-items-center justify-content-center">
-                            <img class="card-img-top pb-3" src="\{{card.img}}" alt="Card image cap"
-                                style="max-width: fit-content; max-height: fit-content;">
-                        </div>
-
-                        {% endif %}
-
-                        <form action="" method="post">
-                          
-                            {{ form.csrf_token }}
-                            <input type="hidden" name="id" id="card.id" value="{{ card.id }}"
-                                placeholder="{{ card.id }}" />
-                            {{ form.term(class="card-title box-manager input_0 form-control flex-grow-1 d-flex
-                            align-items-center justify-content-center text-center", id=("c-term" + card.id|string), placeholder=card.term,
-                            value=card.term, style="min-height:50px; border-width: 2px!important;", overflow="auto") }}
-
-                            {% if card.category == "Formulas" %}
-                            <div>
-                                \[{{ card.formula}}\]
-                            </div>
-
-                            <div class="row mt-1">
-                                {{ form.formula(class="form-control card-text box_study input_0 form-control",
-                                id="card.id", rows="1", placeholder=card.formula) }}
-
-                            </div>
-
-                            {% endif %}
-                            {% if card.category == 'Mcq' %}
-                            <div class="row mt-1">
-                                {{ form.content(class="form-control card-text box_study input_0 form-control
-                                flex-grow-1", id=("c-tern" + card.id|string), rows="3", style="border-width:
-                                5px!important; border-color: #37D6A4!important;", placeholder=card.content) }}
-
-                            </div>
-                            {% else %}
-                            {{ form.content(class="form-control card-text box_study input_0 form-control
-                            flex-grow-1", id=("c-content" + card.id|string), rows="10", placeholder=card.content) }}
-                            {% endif %}
-
-
-                            {% if card.boc_2 is not none %}
-                            <div class="row mt-1">
-                                {{ form.boc_2(class="form-control card-text box_study input_0 form-control flex-grow-1",
-                                id=("c-boc_2"+card.id|string), rows="1", placeholder=card.boc_2) }}
-                            </div>
-
-                            {% if card.category != "Formulas" %}
-                            <div class="row mt-1">
-                                {{ form.boc_3(class="form-control card-text box_study input_0 form-control flex-grow-1",
-                                id=("c-boc_3"+card.id|string), rows="1", placeholder=card.boc_3) }}
-                            </div>
-                            <div class="row mt-1">
-                                {{ form.boc_4(class="form-control card-text box_study input_0 form-control flex-grow-1",
-                                id=("c-boc_4"+card.id|string), rows="1", placeholder=card.boc_4) }}
-                            </div>
-                            {% endif %}
-                            {% endif %}
-
-                            <div class="row mt-3 align-item-end align-bottom align-self-end"
-                                style="position:absolute; bottom:10px; left:0; right:0;">
-                           
-                                <div
-                                    class=" col-6 text-center align-items-center justify-content-center align-self-end">
-                                    <div class="spinner-border" id="c-spinner{{card.id}}" style="display: none;"></div>
-
-                                    <button class="regenerate-button" id="c-regen{{card.id}}" data-card-id="{{card.id}}"
-                                        style="border: none; background: none;">
-                                        <img src="\static\recycle-icon.png" class="img-grow" alt="Regenerate"
-                                            style="max-width:40px;max-height:40px;" class="img-grow "
-                                            title="Regenerate content">
-                                    </button>
+                            <div class="card box-manager" style="height: 70vh;">
+                                <div class="card-header d-flex justify-content-center" style="background-color:  #efe8ff;">
+                                    {{ form.term(class="border-0 text-center",id=("c-term" + card.id|string), placeholder=card.term,
+                                    value=card.term, style="background-color: transparent; height:100%; width:100%", overflow="auto") }}
                                 </div>
-                                <div
-                                    class=" col-6 text-center align-items-center justify-content-center align-self-end">
-                                    <button class="delete-button" data-card-id="{{deck.id}}/{{card.id}}"
-                                        style="border: none; background: none;">
-                                        <img src="\static\delete-icon.png" alt="Delete"
-                                            style="max-width:40px;max-height:40px;" class="img-grow " title="Delete">
-                                    </button>
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    {% if card.category == "Formulas" %}
+                                    <div class="row" style="height: 100%;">
+                                        <div class="col" style="height: 100%;">
+                                            <h3>{{ card.formula}}</h3>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                
+                                    {% if card.category == "Mcq" %}
+                                    <div class="row" style="height: 100%; border: solid; border-width:2px; border-color: #a880fd; border-radius: 10px; background-color: #efe8ff;">
+                                        <div class="col" style="height: 100%; background-color: transparent">
+                                            {{ form.content(class ="border-0 text-center", style=" height:100%; width:100%; background-color: transparent", id=("c-content" + card.id|string), placeholder=card.content )}}
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="row" style="height: 100%;">
+                                        <div class="col" style="height: 100%;">
+                                            {{ form.content(class ="border-0 text-center", style="height:100%; width:100%", id=("c-content" + card.id|string), placeholder=card.content )}}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% if card.category == "Formulas" %}
+
+                                    <div class="row" style="height: 100%;">
+                                        <div class="col" style="height: 100%;">
+                                            {{ form.formula(style="height:100%; width:100%",class="border-0 form-control text-center card-text input_0 form-control",
+                                            id="card.id", placeholder=card.formula) }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% if card.boc_2 is not none %}
+                                    <div class="row" style="height: 100%;">
+                                        <div class="col" style="height: 100%;">
+                                            {{ form.boc_2(class = "border-0  text-center", style="height:100%; width:100%", id=("c-boc_2"+card.id|string), rows="1", placeholder=card.boc_2) }}
+
+                                    </div>
+                                </div>
+                                {% if card.category != "Formulas" %}
+                                <div class="row" style="height: 100%;">
+                                    <div class="col" style="height: 100%;">
+                                        {{ form.boc_3(class = "border-0  text-center",style="height:100%; width:100%", 
+                                            id=("c-boc_3"+card.id|string), rows="1", placeholder=card.boc_3) }}
+                                    </div>
+                                </div>
+                                <div class="row" style="height: 100%;">
+                                    <div class="col" style="height: 100%;">
+                                        {{ form.boc_4(class = "border-0  text-center",style="height:100%; width:100%", 
+                                            id=("c-boc_4"+card.id|string), rows="1", placeholder=card.boc_4) }}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endif %}
+                                </div>
+                                <div class="card-footer"style="background-color:  #efe8ff;">
+                                    <div class="row mt-3 align-item-end align-bottom align-self-end">
+                                
+                                        <div
+                                            class=" col-6 text-center align-items-center justify-content-center align-self-end">
+                                            <div class="spinner-border" id="c-spinner{{card.id}}" style="display: none;"></div>
+
+                                            <button class="regenerate-button" id="c-regen{{card.id}}" data-card-id="{{card.id}}"
+                                                style="border: none; background: none;">
+                                                <img src="\static\recycle-icon.png" class="img-grow" alt="Regenerate"
+                                                    style="max-width:50px;max-height:50px;" class="img-grow "
+                                                    title="Regenerate content">
+                                            </button>
+                                        </div>
+                                        <div
+                                            class=" col-6 text-center align-items-center justify-content-center align-self-end">
+                                            <button class="delete-button" data-card-id="{{deck.id}}/{{card.id}}"
+                                                style="border: none; background: none;">
+                                                <img src="\static\delete-icon.png" alt="Delete"
+                                                    style="max-width:50px;max-height:50px;" class="img-grow " title="Delete">
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
+
+                            </form>
                     </div>
 
-
-                    </form>
-                </div>
-
-            </div>
+          
 
             {% endif %}
             {% endfor %}
@@ -652,7 +646,7 @@ $(document).ready(function() {
     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header modal-header-style p-4">
+            <div class="modal-header modal-header-style p-5">
                 <h5 class="modal-title" id="exampleModalLongTitle">Add card</h5>
                 <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close">
                 </button>

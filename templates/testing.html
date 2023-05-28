@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+
+    <link rel="icon"  href="{{ url_for('static', filename='Cephadex-logo-6.ico') }}" >
+
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<link href="\static\style.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+
+
+
+    <div class="card m-2 bg-light" style="min-height:70vh">
+        <div class = "card-header">
+            <img src = "/static/ceph-socrates.png" alt = "Cephadex" style = "max-width:100%;max-height:100%;">
+        Title
+    </div>
+    <div class="card-body box-manager d-flex flex-column" style="background-color: #efe8ff !important;">
+        <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1"> 
+            Content
+        </div>
+        <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1">
+            Boc_2
+        </div>
+        <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1">
+            Boc_3
+        </div>
+        <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1">
+            Boc_4
+        </div>
+        </div>
+
+
+    <div class = "card-footer">
+                <div class="row mt-3 align-item-end align-bottom align-self-end"
+                >
+                <div
+                class=" col-6 text-center align-items-center justify-content-center align-self-end">
+                <div class="spinner-border" id="c-spinner{{card.id}}" style="display: none;"></div>
+
+                <button class="regenerate-button" id="c-regen{{card.id}}" data-card-id="{{card.id}}"
+                    style="border: none; background: none;">
+                    <img src="\static\recycle-icon.png" class="img-grow" alt="Regenerate"
+                        style="max-width:40px;max-height:40px;" class="img-grow "
+                        title="Regenerate content">
+                </button>
+            </div>
+            <div
+                class=" col-6 text-center align-items-center justify-content-center align-self-end">
+                <button class="delete-button" data-card-id="{{deck.id}}/{{card.id}}"
+                    style="border: none; background: none;">
+                    <img src="\static\delete-icon.png" alt="Delete"
+                        style="max-width:40px;max-height:40px;" class="img-grow " title="Delete">
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" rel="stylesheet" />
+<script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"></script>
+
+
+
+
+</body>
+</html>
