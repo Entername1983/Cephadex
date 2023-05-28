@@ -14,7 +14,7 @@ Session = sessionmaker(bind=engine)
 
 
 def write_csv(data, filename):
-    with open(filename, 'w', newline='') as file:
+    with open(filename, 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(["email", "first_name", "last_name"])
         for row in data:
