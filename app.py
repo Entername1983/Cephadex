@@ -90,7 +90,6 @@ os.environ["FLASK_DEBUG"] = FLASK_DEBUG
 app = Flask(__name__)
 app.config.from_object('config')
 
-"""""
 ### AUTO ESCAPE"
 jinja_options = ImmutableDict(
  extensions=[
@@ -98,7 +97,6 @@ jinja_options = ImmutableDict(
  ])
 
 app.jinja_env.autoescape = True
-"""""
 ### BLEACH ALLOWED TAGS
 ALLOWED_TAGS = [    'a', 'abbr', 'acronym', 'b', 'br', 'code', 'em', 'i', 'li',    'ol', 'strong', 'ul', 'p', 'pre', 'blockquote', 'hr', 'img',    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'div',    'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 ALLOWED_ATTRIBUTES = {
@@ -994,8 +992,7 @@ def delete_account():
                     reason_details = details)
             db.session.add(deleted_entry)
             db.session.commit()
-            
-
+        
             flash('We are sorry to see you go. Your account is now inactive and will be'
                   'permanently deleted within 48 hours.')
             return redirect(url_for('logout'))
@@ -1714,44 +1711,50 @@ def assign_test(test_id):
     c_test_id = test_id
     update_card_form = UpdateCardForm(request.form)
     form = BuildTest()
-    event_tracker(current_user.id, "assign_test", c_test_id)
-    test = Test.query.get_or_404(c_test_id)
-    logger.debug(request.form)
-    if request.method == 'POST' and 'name' in request.form:
-        logger.debug("entered post request3")
-        test.name = form.name.data
-        test.creator = current_user.id
-        due_date = request.form['due_date']
-        if due_date:
-            due_date = dt.datetime.strptime(due_date[:16],'%Y-%m-%dT%H:%M')
-            test.due_date = due_date
-        test.subject = form.subject.data
-        test.topic = form.topic.data
-        test.instructions = form.instructions.data
-        test.description = form.description.data
-        time_limit = form.time_limit.data
-        if time_limit != '' and time_limit != None:
-            print("entered time limit")
-            print(time_limit)
-            time_limit = int(time_limit)
-            test.time_limit = time_limit
+    try:
+        event_tracker(current_user.id, "assign_test", c_test_id)
         
-        answer_reveal = form.reveal_answers.data
-        result_reveal = form.reveal_results.data
-        shuffle = form.shuffle.data
-        if answer_reveal == 'answer-reveal':
-            test.answer_reveal = True
-        if result_reveal == 'result-reveal':
-            test.result_reveal = True
-        if shuffle == 'shuffle':
-            test.shuffle = True
-        test.count_questions()
-        test.sum_points()
-        db.session.commit()
-        flash(f'Test: "{test.name}" has been updated!', 'success')
-    return render_template('assign_test.html', title='Assign test',
-                        test=test, form = form, update_card_form = update_card_form)
-    
+        test = Test.query.get_or_404(c_test_id)
+        logger.debug(request.form)
+        if request.method == 'POST' and 'name' in request.form:
+            logger.debug("entered post request3")
+            test.name = form.name.data
+            test.creator = current_user.id
+            due_date = request.form['due_date']
+            if due_date:
+                due_date = dt.datetime.strptime(due_date[:16],'%Y-%m-%dT%H:%M')
+                test.due_date = due_date
+            test.subject = form.subject.data
+            test.topic = form.topic.data
+            test.instructions = form.instructions.data
+            test.description = form.description.data
+            time_limit = form.time_limit.data
+            if time_limit != '' and time_limit != None:
+                print("entered time limit")
+                print(time_limit)
+                time_limit = int(time_limit)
+                test.time_limit = time_limit
+            
+            answer_reveal = form.reveal_answers.data
+            result_reveal = form.reveal_results.data
+            shuffle = form.shuffle.data
+            if answer_reveal == 'answer-reveal':
+                test.answer_reveal = True
+            if result_reveal == 'result-reveal':
+                test.result_reveal = True
+            if shuffle == 'shuffle':
+                test.shuffle = True
+            test.count_questions()
+            test.sum_points()
+            db.session.commit()
+            flash(f'Test: "{test.name}" has been updated!', 'success')
+        return render_template('assign_test.html', title='Assign test',
+                            test=test, form = form, update_card_form = update_card_form)
+    except Exception as e:
+        logger.info(e)
+        flash("At this moment you can only assign tests to other users.  We are working on allowing you to assign tests to non-users")
+        return render_template('assign_test.html', title='Assign test',
+                            test=test, form = form, update_card_form = update_card_form)
 
 
 @app.route('/update_card', methods=['POST'])
