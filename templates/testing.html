@@ -22,28 +22,33 @@
 
 
 
-    <div class="card m-2 bg-light" style="min-height:70vh">
-        <div class = "card-header">
-            <img src = "/static/ceph-socrates.png" alt = "Cephadex" style = "max-width:100%;max-height:100%;">
-        Title
-    </div>
-    <div class="card-body box-manager d-flex flex-column" style="background-color: #efe8ff !important;">
-        <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1"> 
-            Content
+    <div class="card" style="height: 70vh;">
+        <div class="card-header">
+          Header
         </div>
-        <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1">
-            Boc_2
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div class="row">
+            <div class="col">
+              Content for row 1
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              Content for row 2
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              Content for row 3
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+            </div>
+          </div>
         </div>
-        <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1">
-            Boc_3
-        </div>
-        <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1">
-            Boc_4
-        </div>
-        </div>
-
-
-    <div class = "card-footer">
+        <div class="card-footer">
+  
                 <div class="row mt-3 align-item-end align-bottom align-self-end"
                 >
                 <div
@@ -81,3 +86,72 @@ integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+
 
 </body>
 </html>
+
+
+<div class="carousel-item active">
+    <div class="card m-2 bg-light" style="min-height:70vh">
+        <div class = "card-header box-manager">
+            {% if card.img is not none %}
+            <div class="row align-items-center justify-content-center">
+                <img class="card-img-top pb-3" src="\{{card.img}}" alt="Card image cap"
+                    style="max-width: fit-content; max-height: fit-content;">
+            </div>
+            {% endif %}
+             {{ form.term(class="box-manager input_0 form-control flex-grow-1 d-flex
+                align-items-center justify-content-center text-center", id=("c-term" + card.id|string), placeholder=card.term,
+                value=card.term, style="min-height:50px; border-width: 2px!important;", overflow="auto") }}
+            
+    </div>
+            <div class="card-body box-manager d-flex flex-column" style="background-color: #efe8ff !important;">
+            
+
+            
+                {% if card.category == "Formulas" %}
+                <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1"> 
+                    \[{{ card.formula}}\]
+                </div>
+                <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1"> 
+                    {{ form.formula(class="form-control card-text box_study input_0 form-control",
+                    id="card.id", rows="1", placeholder=card.formula) }}
+                </div>
+                {% endif %}
+
+                <div class="row mt-1 form-control card-text box_study input_0 form-control " style="height:100%"> 
+    {% if card.category == 'Mcq' %}
+                    {{ form.content(class="box-manager input_0 form-control flex-grow-1 d-flex
+                    align-items-center justify-content-center text-center", id=("c-content" + card.id|string), rows="3", style="border-width:
+                    5px!important; border-color: #a880fd!important;", placeholder=card.content) }}
+                {% else %}
+                {{ form.content(class="box-manager input_0 form-control
+                align-items-center justify-content-center text-center", id=("c-content" + card.id|string), placeholder=card.content, style="height: 100%!important;" )}}
+                {% endif %}            
+                </div>
+
+                {% if card.boc_2 is not none %}
+                <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1"> 
+                    {{ form.boc_2(id=("c-boc_2"+card.id|string), rows="1", placeholder=card.boc_2) }}
+                </div>
+
+                {% if card.category != "Formulas" %}
+                <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1"> 
+                    {{ form.boc_3(
+                    id=("c-boc_3"+card.id|string), rows="1", placeholder=card.boc_3) }}
+                </div>
+                <div class="row mt-1 form-control card-text box_study input_0 form-control flex-grow-1"> 
+                    {{ form.boc_4(
+                    id=("c-boc_4"+card.id|string), rows="1", placeholder=card.boc_4) }}
+                </div>
+                {% endif %}
+                {% endif %}
+                </div>
+                <div class = "card-footer box-manager">
+
+                        
+                </div>
+        </div>
+
+
+        </form>
+    </div>
+
+</div>

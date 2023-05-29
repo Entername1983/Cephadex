@@ -1,7 +1,7 @@
 from reportlab.pdfgen import canvas
 import openai 
 from pdfminer.high_level import extract_text as fallback_text_extraction
-
+from error_handlers import YoutubeError
 import PyPDF2
 from PyPDF2 import PdfWriter, PdfReader
 from dotenv import load_dotenv, find_dotenv
@@ -518,11 +518,10 @@ def extract_from_youtube(youtube_url):
             else:
                 full_text += x
         return full_text
-    except YouTubeTranscriptApi.CouldNotRetrieveTranscript:
-        print("Could not retrieve transcript for the YouTube video.")
+        
     except Exception as e:
-        print("An error occurred:", str(e))
-    return None
+        print("An error occurred:", e)
+        raise YoutubeError("a message")
 
 
 

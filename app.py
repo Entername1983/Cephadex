@@ -74,7 +74,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from send_email import send_email
 from forms import Unsubscribe
-
+from error_handlers import YoutubeError
 
 dictConfig(LOGGING_CONFIG)
 
@@ -1185,6 +1185,10 @@ def extract():
                 db.session.add(job_notification)
                 db.session.commit()
                 return redirect('/viewdecks')
+            except YoutubeError as e:
+                flash('We were unable to extract the text from the link. A small minority of youtube videos do not allow text extraction. Please try another link or contact us for assistance.')
+                logger.error(f"Youtube error {e}")
+                return redirect(url_for('extract'))
             except FileNotFoundError as e:
                 flash("File not found. Please try again.")
                 logger.error(f"File not found {e}")
@@ -1223,11 +1227,17 @@ def call_credit_counter():
     form = UploadFileForm()  # you might need to adjust this part to fit your project
     try:
         credit = credit_counter(form)
+        return jsonify(credit)
+    except YoutubeError:
+        raise YoutubeError
     except FileNotFoundError as e:
         flash("File not found. Please try again.")
         logger.error(f"File not found {e}")
         redirect(url_for('extract'))
-    return jsonify(credit)
+
+    except Exception as e:
+        logger.error(e)
+    
 
 
 
@@ -1250,6 +1260,8 @@ def credit_counter(form):
             print("Entered link")
             try:
                 text = get_text_from_link(form.link_input.data)
+            except YoutubeError:
+                raise YoutubeError
             except Exception as e:
                 logger.info(e)
                 return "error"
@@ -1291,9 +1303,12 @@ def check_audio_file(form):
         return False
 ## Functions for extract:
 def handle_form_submission(form):
-    prompt_options = process_prompt_options(form)
-    deck = get_or_create_deck(form, prompt_options)
-    text = get_text_from_form_input(form)
+    try:
+        prompt_options = process_prompt_options(form)
+        deck = get_or_create_deck(form, prompt_options)
+        text = get_text_from_form_input(form)
+    except YoutubeError:
+        raise YoutubeError
     return deck, text, prompt_options
 
 def process_prompt_options(form):
@@ -1339,10 +1354,11 @@ def get_text_from_form_input(form):
     elif form.link_input.data and form.link_input.data.strip():
         try:
             text = get_text_from_link(form.link_input.data)
+        except YoutubeError:
+            raise YoutubeError
         except Exception as e:
             logger.warning("Unable to extract text from link: %s", e)
-            flash('We were unable to extract the text from the link. If you are submitting a youtube link it is likely that the video is not available for automatic transcription. Please try again or use a different link.')
-            return redirect('/extract')
+           
     else:
         text = None
     return text
@@ -1414,10 +1430,21 @@ def get_text_from_link(link_input):
                     else:
                         text = text + part
             else:
+                print("single link")
                 link_input = get_video_id(link_input)
+                print(link_input)
+               
                 text = extract_from_youtube(link_input)
+          
+
         return text
+    except YoutubeError as e:
+        print("1")
+        print("Caught exception type:", type(e))
+        raise YoutubeError
     except Exception as e:
+        print("Caught exception type:", type(e))
+        print("2")
         logger.debug(f"Error occurred while processing link: {e}")
         return None
 
