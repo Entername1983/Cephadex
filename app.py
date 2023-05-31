@@ -167,7 +167,13 @@ def after_request(response):
 
 @app.before_request
 def before_request():
-    g.feedback_form = FeedbackForm()
+    print("before request")
+    if request.path == '/import_anki':
+        print("anki import")
+        g.feedback_form = None
+    else:
+        print("feedback")
+        g.feedback_form = FeedbackForm()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -265,10 +271,14 @@ def googleSignIn():
             logger.debug(session['family_name'])
             return redirect(url_for('register'))
     
-    except ValueError:
-        logger.debug("google sign in value error")
+    except ValueError as ve:
+        logger.debug(f"google sign in value error: {str(ve)}")
         pass
     return render_template('index.html', title='Index', form = form)
+
+@app.route('/testing1', methods = ['GET', 'POST'])
+def testing1():
+    return render_template('testing1.html')
 
 @app.route('/check_username/<username>', methods=["GET", "POST"])
 def check_username(username):
@@ -283,7 +293,14 @@ def check_username(username):
         response = jsonify({'username_taken': False})
         response.status_code = 200
         return response
-    
+        
+@app.route('/update_sidebar_state', methods=['POST'])
+def update_sidebar_state():
+    is_collapsed = request.form.get('sidebar-collapsed') == 'true'
+    session['sidebar-collapsed'] = is_collapsed
+    return '', 204  # return 204 No Content response
+
+ 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     try:
@@ -2107,8 +2124,9 @@ def sea_source(file_id):
 def import_deck():
     return render_template('import_deck.html')
 
-@app.route('/import_anki', methods=['POST'])
 
+
+@app.route('/import_anki', methods=['POST'])
 @login_required
 def import_anki():
     logger.debug("entered import_anki")

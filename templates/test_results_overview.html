@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block main_0 %}
-<div class="container">
+<div class="container-fluid">
     <div class="row">
         <div class="col-md-12 d-flex justify-content-center align-items-center">
             <h1 class="my-4 hcepha1"> Assignments </h1>
@@ -20,7 +20,7 @@
             </div>
         </div>--->
 
-{% if current_user.role in ['student', 'lifelong-learner', 'part-time-student'] %}
+    {% if current_user.role in ['student', 'lifelong-learner', 'part-time-student'] %}
 
         <div class="col-md-6">
             <div class="card  box-manager mt-2">
@@ -70,6 +70,11 @@
                         </thead>
                         <tbody>
                             {% for test in created %}
+                            {% if created.length() == 0 %}
+                            <p>You don't have any quizzes or worksheets.  To create some first create a deck and then build a quiz based on that deck</p>
+                           {% endif %}
+                           
+                           
                             <a href=/assign_test/{{test.id}}>
                             <tr>
                                 <td>{{ test.name }}</td>
@@ -122,27 +127,27 @@
 
  
         <div class="col-md-6">
-            <div class="card  box-manager mt-2">
+            <div class="card box-manager mt-2">
                 <div class="card-header deck-manager-header">
-                    <h4>My students' results</h4>
+                    <h4>Created assignments</h4>
                 </div>
                 <div class="card-body" style="height: 60vh; overflow-y: scroll;">
+
                     <table class="table">
                         <thead>
-                            <tr>
+                           <tr>
                                 <th scope="col">Name:</th>
-                                <th scope="col">Due date:</th>
+                                <th scope="col">Created on:</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for test in created %}
-                                <tr id = "test-{{test.id}}" class="view-row"  onclick="window.location.href='/test_result_details/{{test.id}}';"
-                                onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
-                                onmouseout="this.style.backgroundColor='';;this.style.color= ''" >             
+                            <tr id = "assign-{{test.id}}" class="view-row"  onclick="window.location.href='/assign_test/{{test.id}}';"
+                            onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
+                            onmouseout="this.style.backgroundColor='';;this.style.color= ''" >   
                                 <td>{{ test.name }}</td>
-                                <td>{{test.due_date}}</td>
-                                </tr>
-                            </a>
+                                <td>{{test.time_created}}</td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -150,32 +155,34 @@
             </div>
         </div>
         <div class="col-md-6">
-                <div class="card box-manager mt-2">
+
+                <div class="card  box-manager mt-2">
                     <div class="card-header deck-manager-header">
-                        <h4>Created assignments</h4>
+                        <h4>My students' results</h4>
                     </div>
-                    <div class="card-body " style="height: 37vh; overflow-y: scroll;">
+                        <div class="card-body " style="height: 37vh; overflow-y: scroll;">
+
                         <table class="table">
                             <thead>
-                               <tr>
+                                <tr>
                                     <th scope="col">Name:</th>
-                                    <th scope="col">Created on:</th>
+                                    <th scope="col">Due date:</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for test in created %}
-                                <tr id = "assign-{{test.id}}" class="view-row"  onclick="window.location.href='/assign_test/{{test.id}}';"
-                                onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
-                                onmouseout="this.style.backgroundColor='';;this.style.color= ''" >   
+                                    <tr id = "test-{{test.id}}" class="view-row"  onclick="window.location.href='/test_result_details/{{test.id}}';"
+                                    onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
+                                    onmouseout="this.style.backgroundColor='';;this.style.color= ''" >             
                                     <td>{{ test.name }}</td>
-                                    <td>{{test.time_created}}</td>
-                                </tr>
+                                    <td>{{test.due_date}}</td>
+                                    </tr>
+                                </a>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
-   
                 <div class="card box-manager mt-2">
                     <div class="card-header deck-manager-header"><h4>My results</h4></div>
                     <div class="card-body" style="height: 15vh; overflow-y: scroll;">

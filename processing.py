@@ -225,16 +225,16 @@ def process_mcq_terms(session, deck, terms, cat, method, main_opt):
             term = term or None
             content = item.get(w)
             content = ' '.join(content) if isinstance(content, list) else content
-            content = add_period(content.capitalize()) if content else None
+            content = add_period(content) if content else None
             boc_2 = item.get(x)
             boc_2 = ' '.join(boc_2) if isinstance(boc_2, list) else boc_2
-            boc_2 = add_period(boc_2.capitalize()) if boc_2 else None
+            boc_2 = add_period(boc_2) if boc_2 else None
             boc_3 = item.get(y)
             boc_3 = ' '.join(boc_3) if isinstance(boc_3, list) else boc_3
-            boc_3 = add_period(boc_3.capitalize()) if boc_3 else None
+            boc_3 = add_period(boc_3) if boc_3 else None
             boc_4 = item.get(z)
             boc_4 = ' '.join(boc_4) if isinstance(boc_4, list) else boc_4
-            boc_4 = add_period(boc_4.capitalize()) if boc_4 else None
+            boc_4 = add_period(boc_4) if boc_4 else None
             if term and not check_card_exist(deck, term):
                 entry = Card(
                     category=cat, term=term, content=content, boc_2=boc_2, 
@@ -254,7 +254,7 @@ def process_default_terms(session, deck, terms, cat, method, main_opt):
             term = term or None
             content = item.get(y)
             content = ' '.join(content) if isinstance(content, list) else content
-            content = add_period(content.capitalize()) if content else None
+            content = add_period(content) if content else None
             if term and not check_card_exist(deck, term):
                 entry = Card(category=cat, term=term, content=content, create_method=method)
                 session.add(entry)
@@ -302,7 +302,7 @@ def process_formula_terms(session, deck, terms, cat, method, main_opt):
         formula = "\[" + formula + "\]" if formula else None
         content = item.get(z)
         content = ' '.join(content) if isinstance(content, list) else content
-        content = add_period(content.capitalize()) if content else None
+        content = add_period(content) if content else None
         if term and not check_card_exist(deck, term):
             try:
                 entry = Card(category=cat, term=term, formula=formula, content=content, create_method=method)

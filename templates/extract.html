@@ -5,7 +5,7 @@
 
 {% if settings.new_user == True %}
 
-<div class="container box_study" id="new-user-info">
+<div class="container-fluid box_study" id="new-user-info">
     <h5> Welcome to our creation page</h5>
     <p> This is where the magic happens! On this page you can create all sorts of study material.</p>
     <ul>
@@ -145,7 +145,7 @@
         document.getElementById("extract-message").style.display = "inline-block";
     }
 </script>
-<div class = "container">
+<div class = "container-fluid">
 <div class="d-md-block d-none mt-1 mb-4 d-flex justify-content-center">
     <div class="scrolling-header">
         Turn <span class="scrolling-header-words" id="from">youtube video</span> into <span
@@ -153,7 +153,7 @@
     </div>
 </div>
 </div>
-<div class="container box_study">
+<div class="container-fluid" style="max-width:1200px;">
     <form id = "extract-form" method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data", onsubmit="showSpinner()">
         {{form.hidden_tag()}}
         {{ form.csrf_token }}

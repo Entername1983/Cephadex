@@ -1,6 +1,6 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
 main_0 %}
-<div class="container box-manager" style="background-color:#efe8ff; padding-top: 4px!important; padding-bottom: 4px!important;">
+<div class="container-fluid " style="padding-top: 4px!important; padding-bottom: 4px!important;">
   
 
 
@@ -39,7 +39,7 @@ main_0 %}
         </div>
     </div>
 </div>
-    <div class="container box-manager mt-2" style="background-color:#efe8ff; padding: 1px!important;max-height:80vh; overflow-y: scroll;">
+    <div class="container-fluid mt-2" style="padding: 1px!important;max-height:80vh; overflow-y: scroll;">
         {% for card in deck.cards %}
         {% if card.category in ["Mcq"] %}
 

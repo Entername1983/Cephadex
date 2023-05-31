@@ -1,42 +1,44 @@
 {% extends "layout.html" %} {% block title %} Group {{group.name }}{% endblock
 %} {% block main_0 %}
-<div class="container box-manager" style="background-color:#efe8ff; padding-top: 2px!important; padding-bottom: 2px!important;">
+<div class="container-fluid" style=" padding-top: 2px!important; padding-bottom: 2px!important;">
   <div class="row mt-2 d-flex justify-content-start">
     <div class="d-flex">
-  
-  {% if current_user.id == group.creator_id %}
-  
-        <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#permissionsModal" style="cursor: pointer;">
-          <img src="/static/permissions-icon.png" style="width: 35px; height:35px" alt="Permissions" title="Permissions">
+
+      {% if current_user.id == group.creator_id %}
+
+      <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#permissionsModal" style="cursor: pointer;">
+        <img src="/static/permissions-icon.png" style="width: 35px; height:35px" alt="Permissions" title="Permissions">
       </a>
 
       <a href="#" class="mx-2 img-grow"
-      onclick="if (confirm('Are you sure you want to delete this group?')) { window.location.href = '/delete_group/{{group.id}}'; }">
-      <img src="\static\delete-icon.png" alt="Delete" style="max-width:35px;max-height:35px;"
-          title="Delete test">
-  </a>
+        onclick="if (confirm('Are you sure you want to delete this group?')) { window.location.href = '/delete_group/{{group.id}}'; }">
+        <img src="\static\delete-icon.png" alt="Delete" style="max-width:35px;max-height:35px;" title="Delete test">
+      </a>
 
-  {% endif %} {% for user_id, user_info in permissions.items() %} {% if
-  user_info['permissions'] == 'write' %}
-  <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#importModal" style="cursor: pointer;">
-    <img src="/static/import-icon.png" style="width: 35px; height:35px" alt="Import deck" title="Import deck">
-</a>
-<a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#inviteModal" style="cursor: pointer;">
-  <img src="/static/add-user-icon.png" style="width: 35px; height:35px" alt="Invite user" title="Invite user">
-</a>
+      {% endif %} 
+      {% for user_id, user_info in permissions.items() %} 
+      {% if
+      user_info['permissions'] == 'write' %}
+      <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#importModal" style="cursor: pointer;">
+        <img src="/static/import-icon.png" style="width: 35px; height:35px" alt="Import deck" title="Import deck">
+      </a>
+      <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#inviteModal" style="cursor: pointer;">
+        <img src="/static/add-user-icon.png" style="width: 35px; height:35px" alt="Invite user" title="Invite user">
+      </a>
 
 
-  {% endif %} {% endfor %}
-</div>
-</div>
+      {% endif %}
+       {% endfor %}
+    </div>
+  </div>
   <div class="mt-2 p-1">
     <h3>{{group.name}}:</h3>
-    <div class="box_study mt-1 p-2" style="max-height: 50vh; overflow-y:scroll">
+    <div class="box_study mt-1 p-2" style="max-height: 50vh; overflow-y:scroll;">
       <div class="row">
         {% if invited_users %}
         <h3>Invited:</h3>
 
-        <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+        <div class="table-responsive" style="max-height: 40vh" overflow="auto">
           <table class="table table-striped">
             <thead>
               <tr>
@@ -59,7 +61,7 @@
       </div>
 
       <h3>Members:</h3>
-      <div class="table-responsive" style = "max-height: 50vh; overflow-y:auto">
+      <div class="table-responsive" style="max-height: 50vh; overflow-y:auto">
         <table class="table table-striped">
           <thead>
             <tr>
@@ -79,10 +81,7 @@
               <td>{{ user_info['role'] }}</td>
               {% if current_user.id == group.creator_id %}
               <td>
-                <button
-                  class="btn btn-sm"
-                  onclick="removeUser({{ group.id }}, {{ user_id }})"
-                >
+                <button class="btn btn-sm" onclick="removeUser({{ group.id }}, {{ user_id }})">
                   Remove
                 </button>
               </td>
@@ -93,7 +92,7 @@
         </table>
       </div>
     </div>
-    <div class="box_study mt-1 p-2">
+    <div class="box_study mt-1 p-2" style="background-color:#efe8ff!important">
       <h3>Decks:</h3>
       <div class="row">
         {% for deck in decks %}
@@ -102,19 +101,19 @@
             <div class="card-body">
               <h5 class="card-title">{{deck.name}}</h5>
               <p class="card-text">{{deck.description}}</p>
-              <button class="btn btn-generate" onclick="saveDeckToMyDecks({{ deck.id }}, {{ group.id }})">Save to my decks</button>
+              <button class="btn btn-generate" onclick="saveDeckToMyDecks({{ deck.id }}, {{ group.id }})">Save to my
+                decks</button>
 
-              <button
-                class="btn btn-generate" data-bs-toggle="modal" data-bs-target="#cardsModal{{deck.id}}">
+              <button class="btn btn-generate" data-bs-toggle="modal" data-bs-target="#cardsModal{{deck.id}}">
                 See cards
               </button>
-            {% if current_user.id == group.creator_id %}
+              {% if current_user.id == group.creator_id %}
               <a href="#" class="mx-2 img-grow"
-              onclick="if (confirm('Are you sure you want to delete this test?')) { window.location.href = '/remove_deck_from_group/{{group.id}}/{{deck.id}}'; }">
-              <img src="\static\delete-icon.png" alt="Delete" style="max-width:35px;max-height:35px;"
+                onclick="if (confirm('Are you sure you want to delete this test?')) { window.location.href = '/remove_deck_from_group/{{group.id}}/{{deck.id}}'; }">
+                <img src="\static\delete-icon.png" alt="Delete" style="max-width:35px;max-height:35px;"
                   title="Delete test">
-          </a>
-          {% endif %}
+              </a>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -125,19 +124,19 @@
 </div>
 
 <script>
-function removeUser(group_id, user_id) {
-  const csrfToken = getCsrfToken();
-  console.log(csrfToken)
-  fetch(`/remove_user_group/${group_id}/${user_id}`, {
-  method: "POST",
-  mode: "no-cors",
-  headers: {
-    "Content-Type": "application/json",
-    "X-CSRFToken": csrfToken,
-  },
-  credentials: "same-origin",
-})
-        .then((response) => {
+  function removeUser(group_id, user_id) {
+    const csrfToken = getCsrfToken();
+    console.log(csrfToken)
+    fetch(`/remove_user_group/${group_id}/${user_id}`, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      credentials: "same-origin",
+    })
+      .then((response) => {
         console.log("Response:", response);
         return response.json();
       })
@@ -154,96 +153,81 @@ function removeUser(group_id, user_id) {
   }
 
   function getCsrfToken() {
-  const meta = document.querySelector('meta[name="csrf-token"]');
-  if (meta) {
-    return meta.getAttribute("content");
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) {
+      return meta.getAttribute("content");
+    }
+    return null;
   }
-  return null;
-}
 
 
 </script>
 
 <script>
-    function saveDeckToMyDecks(deck_id, group_id) {
-      fetch(`/import_from_group/${deck_id}/${group_id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin"
+  function saveDeckToMyDecks(deck_id, group_id) {
+    fetch(`/import_from_group/${deck_id}/${group_id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "same-origin"
+    })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
       })
-        .then(response => response.json())
-        .then(data => {
-          alert(data.message);
-        })
-        .catch(error => {
-          console.error("Error:", error);
-        });
-    }
-  </script>
+      .catch(error => {
+        console.error("Error:", error);
+      });
+  }
+</script>
 
 
 <!------- PERMISSIONS MODAL ------>
-<div
-  class="modal fade"
-  id="permissionsModal"
-  tabindex="-1"
-  role="dialog"
-  aria-labelledby="permissionsModalLabel"
-  aria-hidden="true"
->
+<div class="modal fade" id="permissionsModal" tabindex="-1" role="dialog" aria-labelledby="permissionsModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header modal-header-style">
         <h5 class="modal-title" id="permissionsModalLabel">Edit permissions</h5>
-        <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="modal"
-        aria-label="Close"
-      ></button>
-        <div
-          id="successMessage"
-          class="alert alert-success d-none"
-          role="alert"
-        ></div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div id="successMessage" class="alert alert-success d-none" role="alert"></div>
       </div>
       <div class="modal-body">
-        <select id="target-user-id" class = "form-control">
+        <select id="target-user-id" class="form-control">
           {% for user_id, user_info in group_member_roles.items() %}
           <option value="{{user_id}}">
-            {{ user_info['username'] }} 
+            {{ user_info['username'] }}
           </option>
           {% endfor %}
         </select>
-        <select id="new-permissions" class = "form-control">
+        <select id="new-permissions" class="form-control">
           <option value="write">Edit</option>
           <option value="read">View</option>
         </select>
       </div>
-      <div id="admins" class = "p-2">
+      <div id="admins" class="p-2">
         <h4>Edit permissions:</h4>
 
 
-        <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th scope="col">Name</th>
-                </tr>
+        <div class="table-responsive" style="max-height: 40vh" overflow="auto">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+              </tr>
             </thead>
             <tbody>
-        {% for user_id, user_info in permissions.items() %} {% if
-        user_info['permissions'] == 'write' %}
-        <tr>
-            <td>{{user_info['username']}} </td>
-        </tr>
-    </tr>
-        {% endif %} {% endfor %}
-    </tbody>
-</table>
-</div>
+              {% for user_id, user_info in permissions.items() %} {% if
+              user_info['permissions'] == 'write' %}
+              <tr>
+                <td>{{user_info['username']}} </td>
+              </tr>
+              </tr>
+              {% endif %} {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="modal-footer">
 
@@ -257,34 +241,20 @@ function removeUser(group_id, user_id) {
 
 <!----- IMPORT DECK MODAL ----->
 
-<div
-  class="modal fade"
-  id="importModal"
-  tabindex="-1"
-  role="dialog"
-  aria-labelledby="importModalLabel"
-  aria-hidden="true"
->
+<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header modal-header-style">
         <h5 class="modal-title" id="importModalLabel">Import decks</h5>
-        <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="modal"
-        aria-label="Close"
-      ></button>
-        
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
       </div>
-      <div class="modal-body"><div
-          id="successMessageImport"
-          class="alert alert-success d-none"
-          role="alert"
-        ></div>
+      <div class="modal-body">
+        <div id="successMessageImport" class="alert alert-success d-none" role="alert"></div>
         <h4>Import from my decks</h4>
 
-        <select class = "form-control"id="My decks">
+        <select class="form-control" id="My decks">
           <option value="" selected disabled hidden>Choose deck</option>
           {% for deck in mydecks %}
           <option value="{{deck.id}}">{{deck.name}}</option>
@@ -295,11 +265,11 @@ function removeUser(group_id, user_id) {
         </button>
 
         <h4>Search public decks</h4>
-        <input type="text" class = "form-control"  id="search" name="search" placeholder="Search.." />
+        <input type="text" class="form-control" id="search" name="search" placeholder="Search.." />
         <div id="searchResults"></div>
       </div>
       <div id="admins"></div>
-      
+
     </div>
   </div>
 </div>
@@ -505,46 +475,25 @@ function removeUser(group_id, user_id) {
   });
 </script>
 
-<div
-  class="modal fade"
-  id="inviteModal"
-  tabindex="-1"
-  aria-labelledby="#inviteModalLabel"
-  aria-hidden="true"
->
+<div class="modal fade" id="inviteModal" tabindex="-1" aria-labelledby="#inviteModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modal-header-style ">
         <h5 class="modal-title" id="inviteModalLabel">
           Add members
         </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="share-form" method="POST">
           <div class="form-group my-2">
             <div class="form-floating">
-              <input
-                type="email"
-                class="form-control"
-                id="email"
-                name="email"
-                required
-                placeholder="Type receiver's email here"
-              />
+              <input type="email" class="form-control" id="email" name="email" required
+                placeholder="Type receiver's email here" />
               <label for="email">Email</label>
             </div>
           </div>
-          <button
-            type="button"
-            class="btn btn-generate"
-            onclick="inviteGroup(event, '{{ group.id }}')"
-          >
+          <button type="button" class="btn btn-generate" onclick="inviteGroup(event, '{{ group.id }}')">
             Invite
           </button>
         </form>
@@ -583,37 +532,19 @@ function removeUser(group_id, user_id) {
 
 <!-------- SEE CARDS MODAL ------->
 {% for deck in decks %}
-<div
-  class="modal fade"
-  id="cardsModal{{deck.id}}"
-  tabindex="-1"
-  aria-labelledby="#cardsModal{{deck.id}}Label"
-  aria-hidden="true"
->
+<div class="modal fade" id="cardsModal{{deck.id}}" tabindex="-1" aria-labelledby="#cardsModal{{deck.id}}Label"
+  aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header modal-header-style">
-        <h5
-          class="modal-title"
-          id="cardsModal{{deck.id}}Label"
-        >
+        <h5 class="modal-title" id="cardsModal{{deck.id}}Label">
           Cards for {{deck.name}}
         </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="container mt-5">
-          <div
-            class="table-responsive"
-            style="background-color: aliceblue"
-            style="max-height: 80vh"
-            overflow="auto"
-          >
+          <div class="table-responsive" style="background-color: aliceblue" style="max-height: 80vh" overflow="auto">
             <table class="table table-bordered table-striped table-hover">
               <thead>
                 <tr>
@@ -632,11 +563,7 @@ function removeUser(group_id, user_id) {
                   <td>{{ card.term }}</td>
                   <td>
                     {% if card.img is not none %}
-                    <img
-                      src="{{ card.img }}"
-                      alt="Card image cap"
-                      style="max-width: 100px; max-height: 100px"
-                    />
+                    <img src="{{ card.img }}" alt="Card image cap" style="max-width: 100px; max-height: 100px" />
                     {% endif %}
                   </td>
                   <td id="tableContent{{ card.id }}">{{ card.content }}</td>

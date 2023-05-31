@@ -49,6 +49,7 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <!-- SUBMIT FORMS JAVASCRIPT-->
@@ -93,7 +94,6 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
 
     </script>
 
-
     <link href="\static\style.css" rel="stylesheet" />
     {% block head %} {% endblock %}
     <title>Cephadex {% block title %}{% endblock %}</title>
@@ -102,6 +102,52 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
 
 
 </head>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+<!-- MDB -- this is causing an issue with jquery -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.css" rel="stylesheet" />
+<meta name="description"
+content="Cephadex is an AI-powered educational platform for creating custom flashcards, worksheets, and tests. Study and share your educational material with ease.">
+
+
+<script type="text/javascript" charset="UTF-8">
+    document.addEventListener('DOMContentLoaded', function () {
+        cookieconsent.run({ "notice_banner_type": "interstitial", "consent_type": "express", "palette": "light", "language": "en", "page_load_consent_levels": ["strictly-necessary"], "notice_banner_reject_button_hide": false, "preferences_center_close_button_hide": false, "page_refresh_confirmation_buttons": false, "website_name": "www.cephadex.com", "website_privacy_policy_url": "www.cephadex.com/privacy_policy" });
+    });
+</script>
+<meta name="robots" content="noindex">
+</div>
+<!-- Google Analytics -->
+<script  type="text/plain" data-cookie-consent="tracking" async
+src="https://www.googletagmanager.com/gtag/js?id=G-6NB4ZPCNB0"></script>
+<script type="text/plain" data-cookie-consent="tracking">
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag('js', new Date());
+
+gtag('config', 'G-6NB4ZPCNB0');
+</script>
+<!-- end of Google Analytics-->
+
+
+
+
+
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+<!-- MDB -- this is causing an issue with jquery -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.css" rel="stylesheet" />
+
+
+
+
+
 <!-- Google tag (gtag.js) -->
 <script data-cookie-consent="tracking" async
     src="https://www.googletagmanager.com/gtag/js?id=G-6NB4ZPCNB0"></script>
@@ -113,7 +159,11 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
     gtag('config', 'G-6NB4ZPCNB0');
 </script>
 
-<body class = "custom-body-class">
+
+
+
+<body>
+    <!---  Polling for notification if user is authentificated ----->
     {% if current_user.is_authenticated %}
 
     <input type="hidden" id="slug_id" value="{{ session['slug'] }}">
@@ -160,408 +210,515 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
 
     </script>
     {% endif %}
-    <meta name="description"
-        content="Cephadex is an AI-powered educational platform for creating custom flashcards, worksheets, and tests. Study and share your educational material with ease.">
 
 
-        <script type="text/javascript" charset="UTF-8">
-            document.addEventListener('DOMContentLoaded', function () {
-                cookieconsent.run({ "notice_banner_type": "interstitial", "consent_type": "express", "palette": "light", "language": "en", "page_load_consent_levels": ["strictly-necessary"], "notice_banner_reject_button_hide": false, "preferences_center_close_button_hide": false, "page_refresh_confirmation_buttons": false, "website_name": "www.cephadex.com", "website_privacy_policy_url": "www.cephadex.com/privacy_policy" });
-            });
-        </script>
-        <meta name="robots" content="noindex">
-    </div>
-    <!-- Google Analytics -->
-    <script  type="text/plain" data-cookie-consent="tracking" async
-        src="https://www.googletagmanager.com/gtag/js?id=G-6NB4ZPCNB0"></script>
-    <script type="text/plain" data-cookie-consent="tracking">
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
+<script>
+$(document).ready(function () {
+    // Check the initial state of the navbar and set it
+    var isCollapsed = localStorage.getItem('navbar-collapsed');
+    if (isCollapsed === 'true') {
+        $('.navbar-collapse').collapse('hide');
+    } else {
+        $('.navbar-collapse').collapse('show');
+    }
 
-    gtag('config', 'G-6NB4ZPCNB0');
-</script>
-    <!-- end of Google Analytics-->
+    // Update the navbar state on toggle
+    $('.navbar-toggler').on('click', function () {
+        var isCollapsed = $('.navbar-collapse').is(':visible');
+        localStorage.setItem('navbar-collapsed', isCollapsed);
+    });
+});</script>
+{% if current_user.is_authenticated %}
+    <div class="d-flex" id="wrapper">
+    <div id = "sidebar-wrapper" class="d-flex flex-column flex-shrink-0 {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}" style="width: 240px; height:100vh;">
 
-
-
-
-
-    <!-- Below is the link that users can use to open Preferences Center to change their preferences. Do not modify the ID parameter. Place it where appropriate, style it as needed. -->
-
-
-
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-    <!-- MDB -- this is causing an issue with jquery -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.css" rel="stylesheet" />
-
-
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
-        <div class="container px-5 d-flex justify-content-between align-items-center">
-            <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/viewdecks{% else %}/{% endif %}">
-                <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
+        <a href="/" class="d-flex align-items-center">
+          <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+          <span class="fs-4">Sidebar</span>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto mt-3">
+            <li class=" text-center">
+                <a href="/extract" class=" text-center ">
+                    <span class="menu-text"><img src="\static\Cepha-banner-2.png" max-width="50" height="50"/></span>
+                </a>
+          <li class="nav-item text-center mt-4">
+            <a href="/extract" class="nav-link text-center">
+                <span class="menu-icon " style="display:none"><img src="/static/create-svg-icon.svg" max-width="40" height="40"/></span>
+                <span class="menu-text">Create</span>
             </a>
-    
-            {% if current_user.is_authenticated %}
-            
-            <div class="d-flex">
-                <button class="btn-feedback rounded-pill px-3 mb-2 mb-lg-0 me-3 d-none d-md-block" data-bs-toggle="modal" data-bs-target="#feedbackModal">
-                    <span class="d-flex align-items-center">
-                        <span class="small">Send Feedback</span>
-                    </span>
-                </button>
-    
-                <div class="dropdown">
-                    <button
-                        class="button-initals"
-                        href="#"
-                        id="navbarDropdown"
-                        role="button"
-                        data-bs-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false">
-                        {{ current_user.first_name[0] | upper }}{% if current_user.last_name %}{{ current_user.last_name[0] | upper }}{% endif %}
-                    </button>
-                    
-                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="/viewdecks">My decks</a>
-                        <a class="dropdown-item" href="/my_groups">My groups</a>
-                        <a class="dropdown-item" href="/test_results_overview">My tests</a>
-                        <a class="dropdown-item" href="/account">Account</a>
-                        <a class="dropdown-item" href="/upgrade">Upgrade </a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="/logout">Sign out</a>
-                        <a class="dropdown-item d-md-none" data-bs-toggle="modal" data-bs-target="#feedbackModal">Send feedback</a>
+          </li>
+          <li>
+            <a href="/viewdecks" class="nav-link text-center">
+                <span class="menu-icon" style="display:none"><img src="/static/deck-svg-icon.svg" max-width="40" height="40"/></span>
+                <span class="menu-text">Decks</span>
+            </a>
+          </li>
+          <li>
+            <a href="/test_results_overview" class="nav-link text-center">
+                <span class="menu-icon" style="display:none"><img src="/static/quiz-2-svg-icon.svg" max-width="40" height="40"/></span>
+                <span class="menu-text">Assignments</span>
+            </a>
+          </li>
+          <li>
+            <a href="/my_groups" class="nav-link text-center">
 
-              
-                    </div>
-                </div>
-            </div>
-            {% else %}
-             
-            <div class="d-flex">
-                <button class="btn btn-primary btn-feedback rounded-pill px-3 mb-2 mb-lg-0 me-3" data-bs-toggle="modal" data-bs-target="#loginModal">Sign in</button>
-                <!---- NOT NECESSARY ? 
-                <a class="nav-link" href="/about">Find out more</a>
-                --->
-            </div>
-            {% endif %}
-        </div>
-    </nav>
+                <span class="menu-icon" style="display:none"><img src="/static/group-svg-icon.svg" max-width="40" height="40"/></span>
+            <span class="menu-text">Groups</span>
+            </a>
+          </li>
+          <li>
+            <a href="/public_decks" class="nav-link text-center">
+                <span class="menu-icon" style="display:none"><img src="/static/public-svg-icon.svg" max-width="40" height="40"/></span>
+                <span class="menu-text">Public decks</span>
+            </a>
+          </li>
+          <li>
+            <a href="/import_deck" class="nav-link text-center">
+                <span class="menu-icon" style="display:none"><img src="/static/import-svg-icon.svg" max-width="40" height="40"/></span>
+                <span class="menu-text">Import</span>
+            </a>
+          </li>
+          <li>
+            <a href="/upgrade" class="nav-link text-center">
+                <span class="menu-icon" style="display:none"><img src="/static/upgrade-svg-icon.svg" max-width="40" height="40"/></span>
+                <span class="menu-text">Upgrade</span>
+            </a>
+          </li>
+        </ul>
+        <hr>
+        
+      </div>
 
-
+        <!-- Page ontent -->
+<!------ NAVBAR -->
+        <div id="page-content-wrapper" class = " {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}">
+  
 
 
 
 
-    <main class="main-class">
+            <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
+                <div class="container-fluid">
+                      <a class =" navbar-brand" id="menu-toggle">
+                                <img class="menu-icon"src="\static\arrow-left-svg-icon.svg" max-width="40" height="40"/>
+                                <img class="menu-text" src="\static\arrow-right-svg-icon.svg" max-width="40" height="40"/>
 
+                                    </a>
 
-        <div class="container-md px-2 flex">
-            <div class="row">
-                {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                {% for msg in messages %}
-                <div class="container align-self-center alert alert-dismissible fade show" role="alert">
-                    <h5 class="flash-message d-flex justify-content-center m-1">{{msg}}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-            </div>
-        </div>
-        {% block main_0 %}
-
-        {% endblock %}
-
-
-
-
-
-        <!-- Modal Register -->
-        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header modal-header-style p-4">
-                        <h5 class="modal-title" id="exampleModalLabel" >Register</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class = "alert" id="adblocker2" style="display:none">
-                            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                            Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
-
-                        </div>
-                        <div style="text-align:center">
-                            <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
-                            class="w3-circle w3-margin-top">
-                        </div>
-
-                     
-
-                            <div id="g_id_onload" class = "google-signin-btn"
-                                data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
-                                data-context="signin" data-ux_mode="popup" data-login_uri="/googleSignIn" data-nonce=""
-                                data-auto_prompt="false">
-                            </div>
-                            <div class="g_id_signin d-flex justify-content-center" data-type="standard"
-                                data-shape="pill" data-theme="filled_blue" data-text="signup_with" data-size="large"
-                                data-logo_alignment="left" data-width="300">
-                            </div>
-                       
-                     
-    
+                    <div >
+                  
+                        <!---
+                        <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/viewdecks{% else %}/{% endif %}">
+                            <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
+                        </a>
+-->
+                        <div class="d-flex ms-auto">
+                            <button class="btn-feedback rounded-pill px-3 mb-2 mb-lg-0 me-3 d-none d-md-block" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                                <span class="d-flex align-items-center">
+                                    <span class="small">Send Feedback</span>
+                                </span>
+                            </button>
                 
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- END OF REGISTER MODAL-->
-
-        <!-- Feedback Modal-->
-        <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header modal-header-style p-4">
-                        <h5 class="modal-title font-alt" id="feedbackModalLabel">Send feedback
-                        </h5>
-                        <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body border-0 p-4">
-
-                        <form id="feedback-form" method="POST" action="{{ url_for('feedback') }}">
-                            {{ g.feedback_form.hidden_tag() }}
-                        
-                            <!-- Name input-->
-                            <div class="form-floating mb-3">
-                                {{ g.feedback_form.name(class_="form-control", placeholder=g.feedback_form.name.label.text, required="required") }}
-                                <label for="{{ g.feedback_form.name.id }}">{{ g.feedback_form.name.label.text }}</label>
-                                {% for error in g.feedback_form.name.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <!-- Email address input-->
-                            <div class="form-floating mb-3">
-                                {{ g.feedback_form.email(class_="form-control", placeholder=g.feedback_form.email.label.text, required="required") }}
-                                <label for="{{ g.feedback_form.email.id }}">{{ g.feedback_form.email.label.text }}</label>
-                                {% for error in g.feedback_form.email.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <!-- Feedback type input-->
-                            <div class="form-floating mb-3">
-                                {{ g.feedback_form.type_feedback(class_="form-control", required="required") }}
-                                <label for="{{ g.feedback_form.type_feedback.id }}">{{ g.feedback_form.type_feedback.label.text }}</label>
-                                {% for error in g.feedback_form.type_feedback.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <!-- Message input-->
-                            <div class="form-floating mb-3">
-                                {{ g.feedback_form.message(class_="form-control", placeholder=g.feedback_form.message.label.text, style="height: 10rem", required="required") }}
-                                <label for="{{ g.feedback_form.message.id }}">{{ g.feedback_form.message.label.text }}</label>
-                                {% for error in g.feedback_form.message.errors %}
-                                    <div class="invalid-feedback">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <!-- Submit button-->
-                            <div class="d-grid"><button class="btn btn-primary rounded-pill btn-lg" id="submitButton"
-                                    type="submit">Submit</button></div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- Modal sign in -->
-        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header modal-header-style p-4">
-                        <h5 class="modal-title" id="loginModalLabel">Log in</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body"><div class = "alert" id="adblocker1" style="display:none">
-                                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                               Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
-                            </div>
-                        <div style="text-align:center">
-                            
-                            <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
-                                class="w3-circle w3-margin-top">
-
-                        </div>
-                        <div class="row d-flex justify-content-center">
-                           
-
-                                <div id="g_id_onload" class = "google-signin-btn"
-                                    data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
-                                    data-context="signin"  data-ux_mode="popup" data-login_uri="/googleSignIn" data-nonce=""
-                                    data-auto_prompt="false">
+                            <div class="dropdown">
+                                <button
+                                    class="button-initals"
+                                    href="#"
+                                    id="navbarDropdown"
+                                    role="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                    {{ current_user.first_name[0] | upper }}{% if current_user.last_name %}{{ current_user.last_name[0] | upper }}{% endif %}
+                                </button>
+                                
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+     
+                                    <a class="dropdown-item" href="/account">Account</a>
+                                    <a class="dropdown-item" href="/upgrade">Upgrade </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="/logout">Sign out</a>
+                                    <a class="dropdown-item d-md-none" data-bs-toggle="modal" data-bs-target="#feedbackModal">Send feedback</a>
+            
+                          
                                 </div>
-                                <div class="g_id_signin d-flex justify-content-center" data-type="standard"
-                                    data-shape="pill" data-theme="filled_blue" data-text="signin_with" data-size="large"
-                                    data-logo_alignment="left" data-width="300">
-                                </div>
+                            </div>
                         </div>
-                        
+
+
+
+
                     </div>
 
 
                 </div>
 
+
+            </nav>
+
+            {% else %}
+            <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
+                <div class="container px-5 d-flex justify-content-between align-items-center">
+                    <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/viewdecks{% else %}/{% endif %}">
+                        <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
+                    </a>
+                    <div class="d-flex">
+                        <button class="btn btn-primary btn-feedback rounded-pill px-3 mb-2 mb-lg-0 me-3" data-bs-toggle="modal" data-bs-target="#loginModal">Sign in</button>
+                        <!---- NOT NECESSARY ? 
+                        <a class="nav-link" href="/about">Find out more</a>
+                        --->
+                    </div>
+                </div>
+            </nav>
+          
+
+            {% endif %}
+
+<!----  MAIN PAGE CONTENT -------->
+
+
+            <div class="container-fluid main-class" style="width:100%">
+                    <div class=" px-2 flex">
+                        <div class="row">
+                            {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                            {% for msg in messages %}
+                            <div class="container align-self-center alert alert-dismissible fade show" role="alert">
+                                <h5 class="flash-message d-flex justify-content-center m-1">{{msg}}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    {% block main_0 %}
+            
+                    {% endblock %}
+            
+
+
+
+
+
+
+
+
+
             </div>
-
         </div>
-        <!------ MODAL CARD COMPLETE NOTIFICATION ------- -->
+        <!-- /#page-content-wrapper -->
+    </div>
+</div>
+    <!-- /#wrapper -->
 
-        {% if current_user.is_authenticated %}
 
-        <div class="modal fade" id="slugModal" tabindex="-1" aria-labelledby="slugModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header modal-header-style p-4">
-                        <h5 class="modal-title font-alt" id="slugModalLabel">Deck ready</h5>
-                        <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+    
+
+
+
+
+
+   
+
+    <!-- Feedback Modal-->
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title font-alt" id="feedbackModalLabel">Send feedback
+                </h5>
+                <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body border-0 p-4">
+
+                <form id="feedback-form" method="POST" action="{{ url_for('feedback') }}">
+                    {{ g.feedback_form.hidden_tag() }}
+                
+                    <!-- Name input-->
+                    <div class="form-floating mb-3">
+                        {{ g.feedback_form.name(class_="form-control", placeholder=g.feedback_form.name.label.text, required="required") }}
+                        <label for="{{ g.feedback_form.name.id }}">{{ g.feedback_form.name.label.text }}</label>
+                        {% for error in g.feedback_form.name.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
                     </div>
-                    <div class="modal-body border-0 p-4">
-                        <h4>Your deck is now ready!</h4>
-                        <p> Click <a href="/latest_deck"> here</a> to view it.
-                        </p>
+                    <!-- Email address input-->
+                    <div class="form-floating mb-3">
+                        {{ g.feedback_form.email(class_="form-control", placeholder=g.feedback_form.email.label.text, required="required") }}
+                        <label for="{{ g.feedback_form.email.id }}">{{ g.feedback_form.email.label.text }}</label>
+                        {% for error in g.feedback_form.email.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
                     </div>
+                    <!-- Feedback type input-->
+                    <div class="form-floating mb-3">
+                        {{ g.feedback_form.type_feedback(class_="form-control", required="required") }}
+                        <label for="{{ g.feedback_form.type_feedback.id }}">{{ g.feedback_form.type_feedback.label.text }}</label>
+                        {% for error in g.feedback_form.type_feedback.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <!-- Message input-->
+                    <div class="form-floating mb-3">
+                        {{ g.feedback_form.message(class_="form-control", placeholder=g.feedback_form.message.label.text, style="height: 10rem", required="required") }}
+                        <label for="{{ g.feedback_form.message.id }}">{{ g.feedback_form.message.label.text }}</label>
+                        {% for error in g.feedback_form.message.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <!-- Submit button-->
+                    <div class="d-grid"><button class="btn btn-primary rounded-pill btn-lg" id="submitButton"
+                            type="submit">Submit</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+ <!-- Modal Register -->
+ <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
+ aria-hidden="true">
+ <div class="modal-dialog">
+     <div class="modal-content">
+         <div class="modal-header modal-header-style p-4">
+             <h5 class="modal-title" id="exampleModalLabel" >Register</h5>
+             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <div class="modal-body">
+             <div class = "alert" id="adblocker2" style="display:none">
+                 <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                 Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
+
+             </div>
+             <div style="text-align:center">
+                 <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
+                 class="w3-circle w3-margin-top">
+             </div>
+
+          
+
+                 <div id="g_id_onload" class = "google-signin-btn"
+                     data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
+                     data-context="signin" data-ux_mode="popup" data-login_uri="/googleSignIn" data-nonce=""
+                     data-auto_prompt="false">
+                 </div>
+                 <div class="g_id_signin d-flex justify-content-center" data-type="standard"
+                     data-shape="pill" data-theme="filled_blue" data-text="signup_with" data-size="large"
+                     data-logo_alignment="left" data-width="300">
+                 </div>
+            
+          
+
+     
+         </div>
+     </div>
+ </div>
+</div>
+<!-- END OF REGISTER MODAL-->
+
+ <!-- Modal sign in -->
+ <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="loginModalLabel">Log in</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body"><div class = "alert" id="adblocker1" style="display:none">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                       Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
+                    </div>
+                <div style="text-align:center">
+                    <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
+                        class="w3-circle w3-margin-top">
+                </div>
+                <div class="row d-flex justify-content-center">
+                        <div id="g_id_onload" class = "google-signin-btn"
+                            data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
+                            data-context="signin"  data-ux_mode="popup" data-login_uri="/googleSignIn" data-nonce=""
+                            data-auto_prompt="false">
+                        </div>
+                        <div class="g_id_signin d-flex justify-content-center" data-type="standard"
+                            data-shape="pill" data-theme="filled_blue" data-text="signin_with" data-size="large"
+                            data-logo_alignment="left" data-width="300">
+                        </div>
                 </div>
             </div>
         </div>
-        {% endif %}
-        {% if current_user.is_authenticated %}
+    </div>
+</div>
+ <!------ MODAL CARD COMPLETE NOTIFICATION ------- -->
 
-        <div class="modal fade" id="errorModal1" tabindex="-1" aria-labelledby="errorModal1Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header modal-header-style p-4">
-                        <h5 class="modal-title font-alt" id="slugModalLabel">Uh oh!</h5>
-                        <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body border-0 p-4">
-                        <h4>We had an issue processing your content</h4>
-                        <p>We have returned the credits to your account and given you an additional 10 credits for the inconvenience.  Please try again.  If the issue persists, please<a href="mailto:support@cephadex.com"> contact us </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </main>
+ {% if current_user.is_authenticated %}
+
+ <div class="modal fade" id="slugModal" tabindex="-1" aria-labelledby="slugModalLabel" aria-hidden="true">
+     <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content">
+             <div class="modal-header modal-header-style p-4">
+                 <h5 class="modal-title font-alt" id="slugModalLabel">Deck ready</h5>
+                 <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
+                     aria-label="Close"></button>
+             </div>
+             <div class="modal-body border-0 p-4">
+                 <h4>Your deck is now ready!</h4>
+                 <p> Click <a href="/latest_deck"> here</a> to view it.
+                 </p>
+             </div>
+         </div>
+     </div>
+ </div>
+ {% endif %}
+ {% if current_user.is_authenticated %}
+
+ <div class="modal fade" id="errorModal1" tabindex="-1" aria-labelledby="errorModal1Label" aria-hidden="true">
+     <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content">
+             <div class="modal-header modal-header-style p-4">
+                 <h5 class="modal-title font-alt" id="slugModalLabel">Uh oh!</h5>
+                 <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
+                     aria-label="Close"></button>
+             </div>
+             <div class="modal-body border-0 p-4">
+                 <h4>We had an issue processing your content</h4>
+                 <p>We have returned the credits to your account and given you an additional 10 credits for the inconvenience.  Please try again.  If the issue persists, please<a href="mailto:support@cephadex.com"> contact us </a>
+                 </p>
+             </div>
+         </div>
+     </div>
+ </div>
+ {% endif %}
 
 
 
 
-    <footer class="text-center site-footer pt-2" >
-        <!----
-        <a class="btn btn-outline-dark btn-floating m-1" href="https://www.facebook.com/Cephadex" role="button"
-            target="_blank"><i class="fab fa-facebook-f"></i></a>
+<footer class="text-center site-footer pt-2" >
+    <!----
+    <a class="btn btn-outline-dark btn-floating m-1" href="https://www.facebook.com/Cephadex" role="button"
+        target="_blank"><i class="fab fa-facebook-f"></i></a>
 --->
-        <a class="btn btn-outline-dark btn-floating m-1" href="https://twitter.com/Cephadex" role="button"
-            target="_blank"><i class="fab fa-twitter"></i></a>
-           
-        <a class="btn btn-outline-dark btn-floating m-1" href="https://discord.gg/QE3DqykrdD" role="button"
-            target="_blank"><i class="fab fa-discord"></i></a>
+    <a class="btn btn-outline-dark btn-floating m-1" href="https://twitter.com/Cephadex" role="button"
+        target="_blank"><i class="fab fa-twitter"></i></a>
+       
+    <a class="btn btn-outline-dark btn-floating m-1" href="https://discord.gg/QE3DqykrdD" role="button"
+        target="_blank"><i class="fab fa-discord"></i></a>
 
-        <a class="btn btn-outline-dark btn-floating m-1" href="https://www.instagram.com/CephadexSocial/" role="button"
-            target="_blank"><i class="fab fa-instagram"></i></a>
+    <a class="btn btn-outline-dark btn-floating m-1" href="https://www.instagram.com/CephadexSocial/" role="button"
+        target="_blank"><i class="fab fa-instagram"></i></a>
 
-        <a class="btn btn-outline-dark btn-floating m-1" href="https://www.linkedin.com/company/Cephadex/"
-            role="button" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+    <a class="btn btn-outline-dark btn-floating m-1" href="https://www.linkedin.com/company/Cephadex/"
+        role="button" target="_blank"><i class="fab fa-linkedin-in"></i></a>
 
-        <!---<a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i class="fab fa-github"></i></a>--->
+    <!---<a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i class="fab fa-github"></i></a>--->
 
 
-        <p style=""><a class="" href="mailto:support@cephadex.com" target="blank">Contact</a>
+    <p style=""><a class="" href="mailto:support@cephadex.com" target="blank">Contact</a>
+    
+    <a class="" href="/legal">Legal</a>
+    <!---
+    <a class="" href="/news">News</a>--->
+    <a class="" href="/about">About us</a>
+    <a class="" href="/documentation">Documentation</a>
+    <a class="" href="/pricing">Pricing</a>
+    
+    © 2023 Copyright:
+    <a class="text-dark" href="/">Cephadex</a></p>
+    
+</footer>
+<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" rel="stylesheet" />
+<script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"></script>
+    <script>
+        function addFeedbackFormEventListener() {
+            const feedbackForm = document.getElementById('feedback-form');
+            const feedbackModal = new bootstrap.Modal(document.getElementById("feedbackModal"));
+
         
-        <a class="" href="/legal">Legal</a>
-        <!---
-        <a class="" href="/news">News</a>--->
-        <a class="" href="/about">About us</a>
-        <a class="" href="/documentation">Documentation</a>
-        <a class="" href="/pricing">Pricing</a>
-        
-        © 2023 Copyright:
-        <a class="text-dark" href="/">Cephadex</a></p>
-        
-    </footer>
-    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" rel="stylesheet" />
-    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                const feedbackForm = document.getElementById("feedback-form");
-                const feedbackModal = new bootstrap.Modal(document.getElementById("feedbackModal"));
-        
-                feedbackForm.addEventListener("submit", function(event) {
-                    event.preventDefault(); // prevent form from submitting with a page refresh
-        
-                    fetch("{{ url_for('feedback') }}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded",
-                        },
-                        body: new URLSearchParams(new FormData(feedbackForm)),
-                    })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.status === "success") {
-                            feedbackModal.hide(); // hide the modal
-                            alert("Thank you for your feedback!"); // display a success message
-        
-                        } else {
-                            // Display form errors
-                            let errorHtml = "<div class='alert alert-danger' role='alert'><ul>";
-                            data.errors.forEach(function (error) {
-                                errorHtml += "<li>" + error + "</li>";
-                            });
-                            errorHtml += "</ul></div>";
-                            document.querySelectorAll(".alert").forEach((alert) => alert.remove());
-                            feedbackForm.insertAdjacentHTML("beforebegin", errorHtml);
-                        }
-                    })
-                    .catch((error) => {
-                        // Remove existing alerts
+
+    
+            feedbackForm.addEventListener("submit", function(event) {
+                event.preventDefault(); // prevent form from submitting with a page refresh
+    
+                fetch("{{ url_for('feedback') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams(new FormData(feedbackForm)),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.status === "success") {
+                        feedbackModal.hide(); // hide the modal
+                        alert("Thank you for your feedback!"); // display a success message
+    
+                    } else {
+                        // Display form errors
+                        let errorHtml = "<div class='alert alert-danger' role='alert'><ul>";
+                        data.errors.forEach(function (error) {
+                            errorHtml += "<li>" + error + "</li>";
+                        });
+                        errorHtml += "</ul></div>";
                         document.querySelectorAll(".alert").forEach((alert) => alert.remove());
-        
-                        const alert = document.createElement("div");
-                        alert.className = "alert alert-danger";
-                        alert.role = "alert";
-                        alert.textContent = "An error occurred. Please try again.";
-                        feedbackForm.insertAdjacentElement("beforebegin", alert);
-                    });
+                        feedbackForm.insertAdjacentHTML("beforebegin", errorHtml);
+                    }
+                })
+                .catch((error) => {
+                    // Remove existing alerts
+                    document.querySelectorAll(".alert").forEach((alert) => alert.remove());
+    
+                    const alert = document.createElement("div");
+                    alert.className = "alert alert-danger";
+                    alert.role = "alert";
+                    alert.textContent = "An error occurred. Please try again.";
+                    feedbackForm.insertAdjacentElement("beforebegin", alert);
                 });
             });
-        </script>
+        }
+        addFeedbackFormEventListener();
+
+    </script>
 
 
-    </body>
-    <script>
+
+
+
+</body>
+<script>
 
 $(window).on('load', function() {
-            if (document.getElementsByClassName('google-signin-btn').length > 0) {
-              // Google scripts have loaded
-            } else {
-              // Google scripts have not loaded, possible ad-blocker
-              document.getElementById('adblocker2').style.display = 'block';
-              document.getElementById('adblocker1').style.display = 'block';
-            }
-        });
-         
-        </script>
-</html>
+        if (document.getElementsByClassName('google-signin-btn').length > 0) {
+          // Google scripts have loaded
+        } else {
+          // Google scripts have not loaded, possible ad-blocker
+          document.getElementById('adblocker2').style.display = 'block';
+          document.getElementById('adblocker1').style.display = 'block';
+        }
+    });
+     
+    </script>
+        <script>
 
+            $("#menu-toggle").click(function(e) {
+                e.preventDefault();
+                console.log("clicked toggle");
+                $("#sidebar-wrapper").toggleClass("toggled");
+                $("#page-content-wrapper").toggleClass("toggled");
+                $("#menu-toggle").toggleClass("toggled");
+            
+                // Update the sidebar state on toggle
+                var isCollapsed = $("#sidebar-wrapper").hasClass("toggled");
+                
+                // Make an AJAX call to update the session variable
+                $.ajax({
+                    url: '/update_sidebar_state',
+                    type: 'POST',
+                    data: {
+                        'sidebar-collapsed': isCollapsed
+                    }
+                });
+            });
+                    </script>
+</html>

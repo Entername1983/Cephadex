@@ -2,11 +2,13 @@
 
 {% block title %} View Decks {% endblock %}
 {% block main_0 %}
-<!----
+
+
 <div class="fab-container">
   <div class="fab-options">
 
     <button onclick="document.location='/extract'" class="btn btn-primary fab-option">Create</button>
+    <!----<button onclick="document.location='/study_deck_all'" class="btn btn-primary fab-option">Study All Decks</button> --->
     <button onclick="document.location='/public_decks'" class="btn btn-primary fab-option">Public Decks</button>
     <button onclick="document.location='/import_deck'" class="btn btn-primary fab-option">Import from Anki</button>
 
@@ -16,11 +18,25 @@
   <button class=" fab-main">+</button>
 
 </div>
---->
 
 
+{% if settings.new_user_decks == True %}
+<div class="container-fluid box_study" id="new-user-decks-info">
+  <h5> Welcome to your decks page</h5>
+  <p> This is where you will find a list of all the decks and other content you have created.</p>
 
+  <form id="new-user-study">
+    <input type="checkbox" class="" id="new-user-decks-checkbox" value="checked">
+    <label class="form-check-label" for="new-user-decks-checkbox">Do not show this message again</label>
+  </form>
+</div>
 
+{% endif %}
+<!----<div class="row m-2" style="text-align: end">
+    <a href="/test_results_overview" class="mx-2 ">
+      <img src="\static\tester-icon.png" alt="Tests" style="max-width:30px;max-height:30px;" class="px-1" title="Tests">
+    </a>
+ </div> ---->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     var toastElements = document.querySelectorAll('.toast');
@@ -81,7 +97,10 @@
 <div class="dashboard d-md-block d-none">
 
   <div class="stats-container">
+    <div class="text-center p-1 ">
+      <a href="/extract"><img class = "img-link" src="/static/new-deck-icon.png" style="width: 35px; height:35px" title="Create"></a>
 
+    </div>
       {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
 
       <div class="stat pt-2">          
@@ -138,7 +157,7 @@
 
 <div class="m-3">
 
-  <div class=" m-2 p-2">
+  <div class="box_0 m-2 p-2">
 
     <div class="m-1" id="progress-container" style="display: none;">
       <h6 style = "color: #6019FF">
@@ -150,7 +169,8 @@
     </div>
     {% if not decks %}
 
-    <div><h5>You currently don't have any decks, click on "create" in the side bar</h5></div>
+    <div><h5>You currently don't have any decks, click <a href = "/extract">here</a> to create some.</h5></div>
+    <p>You can also import some from Anki or get some from public decks, just click on the button on the bottom right of this page.</p>
 
     {% endif %}
     <div id="result-container" style="display: none;"></div>
@@ -604,7 +624,6 @@ function shareDeck(deckId) {
       function (data) {
         var progress = data.progress;
         if (progress !== null) {
-          console.log("progress not null for " + slug_id + " is " + progress + "%")
           $("#progress-bar").css("width", progress + "%").text(progress + "%");
           $("#progress-container").show();
         }

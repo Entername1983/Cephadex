@@ -8,9 +8,9 @@
 {% block main_0 %}
 
 <div>
-    <div class = "container box_study p-2 ">
+    <div class = "container p-2 ">
 
-      <h2 class ="d-flex justify-content-center">Import from Anki</h2>
+      <h2 class ="d-flex justify-content-center mt-5">Import from Anki</h2>
 <br>
         <h5 class ="d-flex justify-content-center"> Import all decks: </h5>
 <form id="import-all-form" class ="d-flex justify-content-center" method = "POST">
@@ -36,16 +36,25 @@
 
 
 <script>
-    document.getElementById('import-all-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        importDecks();
+  function addImportFormEventListeners() {
+    document.getElementById('import-all-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      try {
+        await importDecks();
+      } catch (error) {
+        // Handle any errors
+      }
     });
-    
-    document.getElementById('import-by-name-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const deckNames = document.getElementById('deck-name').value.split(',').map(name => name.trim());
-        importDecks(deckNames);
-    });
+      document.getElementById('import-by-name-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    try {
+      const deckNames = document.getElementById('deck-name').value.split(',').map(name => name.trim());
+      await importDecks(deckNames);
+    } catch (error) {
+      // Handle any errors
+    }
+  });
+
     
     async function importDecks(deckNames = []) {
         await requestAnkiConnectPermission();
@@ -53,6 +62,7 @@
         const cardsByDeck = await getCardsByDeck(decks);
         const data = formatDataForBackend(cardsByDeck);
         sendDataToBackend(data);
+        console.log(data)
         // Send the data to the backend here
       }
       
@@ -70,6 +80,7 @@
             };
           });
         }
+        console.log(cardsByDeck)
         return cardsByDeck;
       }
       
@@ -110,12 +121,14 @@
     async function sendDataToBackend(data) {
         console.log("entered send data to backend")
         const url = '/import_anki';
+        console.log(data);
         const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(data)
+          
         });
         const responseData = await response.json();
         if (response.ok && responseData.success) {
@@ -167,6 +180,8 @@
         const data = await response.json();
         return data;
       }
+  }
+  addImportFormEventListeners();
 </script>
 
 {% endblock %}

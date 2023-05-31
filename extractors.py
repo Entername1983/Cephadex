@@ -521,8 +521,7 @@ def extract_from_youtube(youtube_url):
         
     except Exception as e:
         print("An error occurred:", e)
-        raise YoutubeError("a message")
-
+        raise YoutubeError
 
 
 

@@ -17,7 +17,7 @@ def exception(logger):
                 return func(*args, **kwargs)
               
             except Exception:
-                issue = "exception in "+func.__name__+"\n"
+                issue = f"exception in {func.__name__}" + "\n"
                 issue = issue+"-------------------------\
                 ------------------------------------------------\n"
                 logger.exception(issue)

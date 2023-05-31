@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block main_0 %}
-<div class="container">
+<div class="container-fluid">
     <div class="row">
         <div class="col-md-6 d-flex justify-content-center align-items-center">
             <h1 class="my-4 hcepha1">{{ deck.name }} </h1>
@@ -15,8 +15,8 @@
            <div class="card box-manager mt-4">
             <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
                 {% if deck.cards|length > 0 %}
-                    <a href='/study_deck/{{ deck.id }}' class = "img-grow" title="Study"><img src="/static/study-deck-icon.png" style="width: 35px; height:35px"></a>
-                    <a href="/build_test/{{ deck.id }}" class = "img-grow" title="Create quiz"><img src="/static/create-worksheet-icon.png" style="width: 35px; height:35px"></a>
+                    <a href='/study_deck/{{ deck.id }}' class = "img-grow" title="Study"><img src="/static/master-icon.png" style="width: 35px; height:35px"></a>
+                    <a href="/build_test/{{ deck.id }}" class = "img-grow" title="Create quiz"><img src="/static/quiz-2-svg-icon.svg" style="width: 35px; height:35px"></a>
                     <a href="/carousel/{{ deck.id }}" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="width: 35px; height:35px"></a>
 
                     <a class="px-2" data-bs-toggle="modal" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
@@ -111,7 +111,7 @@
                             {% if deck.deck_files  %}
 
                             {% for file in deck.deck_files %}
-                            <li><a href="/sea_source/{{file.id}}" target="_blank">{{ file.file_name }}</a></li>
+                            <li><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
                             {% endfor %}
                             {% else %}
                             <li>No files found</li>

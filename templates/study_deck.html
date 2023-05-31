@@ -556,7 +556,7 @@
 
 {% endblock %} {% block main_0 %}
 
-<div class="container study-dash" style="background-color: #efe8ff;">
+<div class="container-fluid study-dash" style="background-color: #efe8ff;">
   <div class="row">
     <div class="col-2 d-flex align-items-center">
       <a href="/deck_manager/{{deck0.id}}">
@@ -592,7 +592,7 @@
 </div>
 
 
-<div class="container study-container mb-2" id = "contain-main">
+<div class="container-fluid study-container mb-2" id = "contain-main">
   <div class="study-header"  id="cardHeader">
     <h3 id="card-term"></h3>
       <div id="card-id" style="display: none">
@@ -646,21 +646,18 @@
   </div>
 </div>
 
-
+<!---
 <div class="row d-flex align-items-center justify-content-center">
-  <div class="col-3"></div>
-  <div class="col-6">
+
     <div class="row d-flex align-items-center text-center justify-content-center" style="display:none" id="no-cards">
     </div>
     <div class="row d-flex align-items-center justify-content-center">
       <a class="btn box_warning eq_buttons ml-5" style="max-width: 300px; display:none" href="/casualmode/{{deck}}"
         id="force-study" style="display: none">Study anyway</a>
     </div>
-  </div>
-  <div class="col-3"></div>
-</div>
 
-</div>
+
+</div>--->
 <!----  MODAL ------>
 
 <div class="fab-chat-container">

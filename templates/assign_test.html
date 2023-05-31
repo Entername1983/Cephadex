@@ -68,7 +68,7 @@ main_0 %}
 
 
 <div class="" id="collap">
-    <div class="container box-manager" style="background-color:#efe8ff; padding-top: 4px!important; padding-bottom: 4px!important;">
+    <div class="container-fluid box-manager" style="background-color:#efe8ff; padding-top: 4px!important; padding-bottom: 4px!important;">
         <form action="" method="POST">
             {{ form.hidden_tag() }}
             <div class="row d-flex justify-content-start">
@@ -90,13 +90,13 @@ main_0 %}
 
                     <!-- PRINT -->
                     <a href="/test_print/{{test.id}}" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
-                        alt="Print" title="Print" target="_blank">
+                        alt="Print" title="Print">
                         <img src="\static\print-icon.png" alt="Print" style="max-width:35px;max-height:35px;"
                             title="Print">
                     </a>
                     {% if current_user.subscription_plan in [1, 2, 3, 4, 5, 6, 7] %}
                     <a href="/answer_key/{{test.id}}" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
-                    alt="Print" title="Print" target="_blank">
+                    alt="Print" title="Answer key">
                     <img src="\static\answer-key-icon.png" alt="Print" style="max-width:35px;max-height:35px;"
                         title="Print answer key">
                 </a>
@@ -239,7 +239,7 @@ main_0 %}
 </div>
 
 
-        <div class="container box-manager mt-2" id="question-box" style="background-color:#efe8ff; padding: 1px!important;max-height:80vh; overflow-y: scroll;">
+        <div class="container-fluid box-manager mt-2" id="question-box" style="background-color:#efe8ff; padding: 1px!important;max-height:80vh; overflow-y: scroll;">
             {% for question in test.questions %}
             {% if question.q_type == "mcq" %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">
