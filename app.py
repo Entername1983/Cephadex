@@ -167,12 +167,9 @@ def after_request(response):
 
 @app.before_request
 def before_request():
-    print("before request")
     if request.path == '/import_anki':
-        print("anki import")
         g.feedback_form = None
     else:
-        print("feedback")
         g.feedback_form = FeedbackForm()
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -1118,6 +1115,7 @@ def check_credit():
 @app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract():
+    logger.debug("entered extract")
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings == None:
         logger.debug("user settings not found")
@@ -1127,6 +1125,8 @@ def extract():
     ## plan level requried for genereting images
     form = UploadFileForm()
     if form.validate_on_submit():
+        logger.debug("entered validate on submit")
+
         now = dt.datetime.now(dt.timezone.utc).isoformat()
         slug = str(current_user.id) + now
         session['slug'] = slug
@@ -1163,7 +1163,7 @@ def extract():
         else:
             try:
                 now = dt.datetime.now(dt.timezone.utc).isoformat()
-                deck, text, prompt_options = handle_form_submission(form)
+                deck, text, prompt_options, input_type = handle_form_submission(form)
                 logger.debug(text[:100])
                 tokens = count_tokens(text)
                 texts = None
@@ -1188,13 +1188,13 @@ def extract():
                             texts = [texts]
                         if prompt_options['main_opt'] == 'Mix':
                             prompt_options['main_opt'] = 'Definitions'
-                            job_creator(texts, deck, prompt_options, slug)
+                            job_creator(texts, deck, prompt_options, slug, input_type)
                             prompt_options['main_opt'] = 'Mcq'
-                            job_creator(texts, deck, prompt_options, slug)
+                            job_creator(texts, deck, prompt_options, slug, input_type)
                             prompt_options['main_opt'] = 'Cloze'
-                            job_creator(texts, deck, prompt_options, slug)
+                            job_creator(texts, deck, prompt_options, slug, input_type)
                         else:
-                            job_creator(texts, deck, prompt_options, slug)
+                            job_creator(texts, deck, prompt_options, slug, input_type)
 
                         
                         job_notification = JobNotification(user_id=current_user.id,
@@ -1203,22 +1203,25 @@ def extract():
                 db.session.commit()
                 return redirect('/viewdecks')
             except YoutubeError as e:
+                event_tracker(current_user.id, 'extract_start', 'fail', 'youtubeerror')
                 flash('We were unable to extract the text from the link. A small minority of youtube videos do not allow text extraction. Please try another link or contact us for assistance.')
                 logger.error(f"Youtube error {e}")
                 return redirect(url_for('extract'))
             except FileNotFoundError as e:
                 flash("File not found. Please try again.")
+                event_tracker(current_user.id, 'extract_start', 'fail', 'filenotfound')
                 logger.error(f"File not found {e}")
                 return redirect(url_for('extract'))
             except Exception as e:
                 logger.error(e)
-                flash('Something went wrong. Please try again.')
+                event_tracker(current_user.id, 'extract_start', 'fail', 'unknown')
+                flash('Something went wrong. Please try again.  If you are using a pdf please ensure it contains actual text.  Support for images only pdfs is coming soon.')
                 return redirect('/extract')
     return render_template("extract.html", title="Extract", form=form,
                             settings = user_settings)
 
 
-def job_creator(texts, deck, prompt_options, slug):
+def job_creator(texts, deck, prompt_options, slug, input_type):
     for text in texts:
         counter = 0
         total_len = len(texts)
@@ -1231,7 +1234,7 @@ def job_creator(texts, deck, prompt_options, slug):
         data = Job(slug=slug, user = current_user_id,
                     task_type=task_type, payload=payload,
                     item_number = counter, deck_id=deck.id, item_quantity = total_len)
-        event_tracker(current_user.id, 'extract_start',
+        event_tracker(current_user.id, 'start_' + input_type,
                     'success', payload)
         if counter == total_len:
             session['slug'] = slug
@@ -1323,10 +1326,10 @@ def handle_form_submission(form):
     try:
         prompt_options = process_prompt_options(form)
         deck = get_or_create_deck(form, prompt_options)
-        text = get_text_from_form_input(form)
+        text, input_type = get_text_from_form_input(form)
     except YoutubeError:
         raise YoutubeError
-    return deck, text, prompt_options
+    return deck, text, prompt_options, input_type
 
 def process_prompt_options(form):
     prompt_options = {
@@ -1361,16 +1364,19 @@ def get_or_create_deck(form, prompt_options):
 def get_text_from_form_input(form):
     if form.file.data:
         try:
-            text = get_text_from_file(form.file.data)
+            text, filename = get_text_from_file(form.file.data)
+            input_type = filename
         except Exception as e:
             logger.warning("Unable to extract text from file: %s", e)
             flash('We were unable to extract the text from the file. Please try again or use a different format.')
             return redirect('/extract')
     elif form.text_input.data and form.text_input.data.strip():
         text = form.text_input.data
+        input_type = "text"
     elif form.link_input.data and form.link_input.data.strip():
         try:
             text = get_text_from_link(form.link_input.data)
+            input_type = form.link_input.data
         except YoutubeError:
             raise YoutubeError
         except Exception as e:
@@ -1378,7 +1384,8 @@ def get_text_from_form_input(form):
            
     else:
         text = None
-    return text
+
+    return text, input_type
 
 def save_source_text_to_deck(name, deck, text, prompt_options, method="extract"):
     logger.debug("entered save_source_text_to_deck %s", deck)
@@ -1413,7 +1420,7 @@ def get_text_from_file(file_data):
         file.save(file_loc)
         text = text_extractor(file_loc)
         print(len(text))
-        return text
+        return text, filename
     except Exception as e:
         logger.debug(f"Error occurred while processing file: {e}")
         return None
