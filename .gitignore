@@ -21,3 +21,10 @@ code_review_*.*
 app.log.*
 app.log
 /static/profile_pictures/*
+all_mail.csv
+code_review_*.txt
+code_review.py
+contacted.csv
+loggers.txt
+mydatabase.db
+subscibers.csv
