@@ -22,7 +22,7 @@ from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import ImmutableDict
 from cardcreator import create_image, creator
-from extractors import send_question_generator, why_wrong_generator, explain_more, regenerate_definition, add_period, extract_from_wiki, extract_from_youtube, text_extractor, create_pdf, check_comma_list, get_video_id, text_extractor
+from extractors import send_question_generator, why_wrong_generator, explain_more, regenerate_definition, add_period, extract_from_wiki, extract_from_youtube, create_pdf, check_comma_list, get_video_id, text_extractor
 from helpers import split_text, count_tokens
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -124,10 +124,11 @@ app.config['SECRET_KEY'] = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(logging.DEBUG)
+werkzeug_logger.setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+logging.getLogger('pdfminer').setLevel(logging.ERROR)
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
 ALLOWED_IMAGES = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
@@ -1170,7 +1171,7 @@ def extract():
             
                 if text != None and len(text) > 0:      
                     if perform_operation(current_user.id,
-                                        prompt_options['main_opt'], tokens) == False:
+                                        prompt_options['main_opt'], tokens, input_type) == False:
                         flash('You have reached your monthly usage limit.'
                             'Please upgrade your account to continue.')
                         event_tracker(current_user.id, 'extract_start',
@@ -1247,6 +1248,7 @@ def call_credit_counter():
     form = UploadFileForm()  # you might need to adjust this part to fit your project
     try:
         credit = credit_counter(form)
+        print("credit: ", credit)
         return jsonify(credit)
     except YoutubeError:
         raise YoutubeError
@@ -1269,8 +1271,7 @@ def credit_counter(form):
             duration = check_audio_file(form)
             tokens = convert_time_to_tokens(duration)
         else:
-            text = get_text_from_file(form.file.data)
-            tokens = count_tokens(text)
+            text, filename, tokens = get_text_from_file(form.file.data)
     elif form.text_input.data: 
             print("Entered text")   
             text = form.text_input.data
@@ -1364,7 +1365,7 @@ def get_or_create_deck(form, prompt_options):
 def get_text_from_form_input(form):
     if form.file.data:
         try:
-            text, filename = get_text_from_file(form.file.data)
+            text, filename, tokens = get_text_from_file(form.file.data)
             input_type = filename
         except Exception as e:
             logger.warning("Unable to extract text from file: %s", e)
@@ -1418,9 +1419,11 @@ def get_text_from_file(file_data):
             os.makedirs(folder_path)
         file_loc = os.path.join(folder_path, secure_filename(file.filename))
         file.save(file_loc)
-        text = text_extractor(file_loc)
-        print(len(text))
-        return text, filename
+        text, tokens = text_extractor(file_loc)
+        print(text)
+        print(filename)
+        print(tokens)
+        return text, filename, tokens
     except Exception as e:
         logger.debug(f"Error occurred while processing file: {e}")
         return None
@@ -2428,7 +2431,7 @@ def convert_time_to_tokens(time):
     logger.info("tokens %s", tokens)
     return tokens
 
-def perform_operation(user_id, operation_type, n):
+def perform_operation(user_id, operation_type, n, operation_details=None):
     # Check the user's remaining count for this time period
     user = User.query.filter_by(id=user_id).first()
     logger.debug("checking operation %s, %s", operation_type, n)

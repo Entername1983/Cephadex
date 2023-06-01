@@ -1,41 +1,34 @@
+
+from pdf2image import convert_from_path
+from pdfminer.high_level import extract_pages
 from reportlab.pdfgen import canvas
 import openai 
-from pdfminer.high_level import extract_text as fallback_text_extraction
 from error_handlers import YoutubeError
-import PyPDF2
-from PyPDF2 import PdfWriter, PdfReader
-from dotenv import load_dotenv, find_dotenv
 from pptx import Presentation
-import numpy as np
 import docx2txt
 import json
-import sys
 from pydub import AudioSegment
 import os
 from io import BytesIO
 import math
 from youtube_transcript_api import YouTubeTranscriptApi
 import tiktoken
-import io
 import textwrap
 from reportlab.lib.pagesizes import letter
-from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices, new_prompt_choices, regen_choices
+from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
+from prompts import new_prompt_choices, regen_choices
 from bs4 import BeautifulSoup
 import requests
 from pylatexenc.latex2text import LatexNodes2Text
 import re
-from helpers import split_text
-import aiohttp
-import asyncio
-from aiohttp import ClientSession
 import asyncify
 import codecs
-import wikipediaapi
 import logging
 from models import Job
 from datetime import datetime
 import random
 from models import db
+from pytesseract import image_to_string
 
 encoding = tiktoken.get_encoding("cl100k_base")
 logger = logging.getLogger("extractors")
@@ -300,9 +293,13 @@ def text_extractor(file):
     elif file.endswith('.txt'):
         with open(file) as file:
             items = file.read()
+    print("yeaaa")
     items = clean_text(items)
-    print(count_tokens(items))
-    return items
+    print("what")
+    tokens = count_tokens(items)
+    print(items)
+    print(tokens)
+    return items, tokens
 
 
 
@@ -383,8 +380,8 @@ def divide_audio(input_file, segment_length=25):
 
     return None
 
-## PDF
-def extract_from_pdf(pdf_file):
+"""
+def extract_from_pdf_1(pdf_file):
     try:
         with open(pdf_file, 'rb') as f:
             reader = PyPDF2.PdfReader(f)
@@ -404,7 +401,69 @@ def extract_from_pdf(pdf_file):
         print(f"An error occurred: {e}, attempting fallback method")
         text = fallback_text_extraction(pdf_file)
     return None
+"""
 
+
+def extract_from_pdf(pdf_file, n=1):
+    try:
+        text = []
+        # Using pdfminer.six to extract pages from PDF
+        for i, page_layout in enumerate(extract_pages(pdf_file), start=1):
+            current_page_text = ''
+            for element in page_layout:
+                if hasattr(element, "get_text"):
+                    current_page_text += element.get_text()
+            if len(current_page_text.strip()) < n: # Threshold check
+                # If the text is less than n, then use OCR
+                try:
+                    # Convert page to image
+                    images = convert_from_path(pdf_file, first_page=i, last_page=i)
+                    for image in images:
+                        # Perform OCR on the image
+                        current_page_text = image_to_string(image)
+                except Exception as e:
+                    print(f"Error occurred during OCR: {str(e)}")
+            text.append(current_page_text)
+        # Join all the text together
+        full_text = "\n".join(text)
+        return full_text
+    except FileNotFoundError as e:
+        print("File not found.")
+        raise e
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+"""
+
+## try using OCR
+def extract_from_pdf(pdf_path):
+    # Convert the PDF to images
+    print("entered extract from pdf function")
+    print(pdf_path)
+    try:
+        images = convert_from_path(pdf_path)
+
+    except Exception as e:
+        print(f"Error occurred during PDF conversion: {str(e)}")
+        return None
+    print(images)
+    # Process each image with OCR
+    text = []
+    for i, image in enumerate(images):
+        print(f"Processing page {i + 1}")
+        try:
+            page_text = image_to_string(image)
+        except Exception as e:
+            print(e)
+        text.append(page_text)
+    
+    # Join all the text together
+    full_text = "\n".join(text)
+    print(full_text)
+
+    return full_text
+    """
 def clean_text(text):
     # Decode Unicode escape sequences into actual characters
     text = codecs.decode(text, 'unicode_escape')
