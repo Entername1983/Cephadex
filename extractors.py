@@ -404,7 +404,7 @@ def extract_from_pdf_1(pdf_file):
 """
 
 
-def extract_from_pdf(pdf_file, n=1):
+def extract_from_pdf(pdf_file, n=50):
     try:
         text = []
         # Using pdfminer.six to extract pages from PDF
@@ -415,6 +415,7 @@ def extract_from_pdf(pdf_file, n=1):
                     current_page_text += element.get_text()
             if len(current_page_text.strip()) < n: # Threshold check
                 # If the text is less than n, then use OCR
+                print(f"Using OCR for page {i}")
                 try:
                     # Convert page to image
                     images = convert_from_path(pdf_file, first_page=i, last_page=i)
@@ -423,6 +424,8 @@ def extract_from_pdf(pdf_file, n=1):
                         current_page_text = image_to_string(image)
                 except Exception as e:
                     print(f"Error occurred during OCR: {str(e)}")
+            else:
+                print(f"Using PDFMiner for page {i}")
             text.append(current_page_text)
         # Join all the text together
         full_text = "\n".join(text)
