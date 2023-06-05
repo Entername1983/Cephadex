@@ -9,7 +9,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12 d-flex justify-content-center align-items-center">
-            <h1 class="my-4 hcepha1"> Assignments </h1>
+            <h1 class="my-4 hcepha1"> Quizzes </h1>
         </div>
             <!---
            <div class="card box-manager mt-4">
@@ -28,6 +28,9 @@
                     <h4>My results</h4>
                 </div>
                 <div class="card-body" style="height: 60vh; overflow-y: scroll;">
+                    {% if taken|length == 0 %}
+                    <p>You haven't take any quizzes yet.  Check the "DECKS" page to see if any have been assigned to you.</p>
+                    {% else %}
                     <table class="table">
                         <thead>
                             <tr>
@@ -36,6 +39,7 @@
                             </tr>
                         </thead>
                         <tbody>
+
                             {% for result in taken %}
        <a href=/test_result/{{result.id}}>                    <tr>
                             <td>{% for test in tests %}
@@ -54,6 +58,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -61,7 +66,10 @@
             <div class="card box-manager mt-2">
                 <div class="card-header deck-manager-header"><h4>Assignments</h4></div>
                 <div class="card-body " style="height: 25vh; overflow-y: scroll;">
-                    <table class="table">
+       
+                                                        {% if created|length == 0 %}
+                            <p>You don't have any quizzes or worksheets.  To create some first create a deck and then build a quiz based on that deck.</p>
+                            {% else %}             <table class="table">
                         <thead>
                             <tr>
                                 <th scope="col">Name:</th>
@@ -70,21 +78,21 @@
                         </thead>
                         <tbody>
                             {% for test in created %}
-                            {% if created.length() == 0 %}
-                            <p>You don't have any quizzes or worksheets.  To create some first create a deck and then build a quiz based on that deck</p>
-                           {% endif %}
+                         
                            
                            
                             <a href=/assign_test/{{test.id}}>
                             <tr>
                                 <td>{{ test.name }}</td>
-                                <td>{{test.due_date}}</td>
+                                <td>{{test.due_date.strftime('%Y-%m-%d')}}</td>
                                 </td>
                             </tr>
                         </a>
                             {% endfor %}
-                        </tbody>
-                    </table>
+                            </tbody>
+                    </table>        
+                            {% endif %}
+                
                 </div>
             </div>
    
@@ -93,6 +101,10 @@
                     <h4>My students' results</h4>
                 </div>
                 <div class="card-body" style="height: 25vh; overflow-y: scroll;">
+
+                    {% if created|length == 0 %}
+                    <p>No results yet, assign some quizzes to your students.</p>
+                    {% else %}
                     <table class="table">
                         <thead>
                             <tr>
@@ -105,12 +117,13 @@
                             {% for test in created %}
                             <tr>
                                 <td>{{ test.name }}</td>
-                                <td>{{test.due_date}}</td>
+                                <td>{{test.due_date.strftime('%Y-%m-%d')}}</td>
                                 <td><a href=/test_result_details/{{test.id}}> See individual results </a></td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% endif %}
                 </div>
             </div>
         
@@ -132,7 +145,9 @@
                     <h4>Created assignments</h4>
                 </div>
                 <div class="card-body" style="height: 60vh; overflow-y: scroll;">
-
+{% if created|length == 0 %}
+<p>It seems that you haven't created any quizzes yet.  Use an existing deck to create one.</p>
+{% else %}
                     <table class="table">
                         <thead>
                            <tr>
@@ -146,7 +161,7 @@
                             onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                             onmouseout="this.style.backgroundColor='';;this.style.color= ''" >   
                                 <td>{{ test.name }}</td>
-                                <td>{{test.time_created}}</td>
+                                <td>{{ test.time_created.strftime('%Y-%m-%d') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -154,6 +169,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
         <div class="col-md-6">
 
                 <div class="card  box-manager mt-2">
@@ -161,7 +177,9 @@
                         <h4>My students' results</h4>
                     </div>
                         <div class="card-body " style="height: 37vh; overflow-y: scroll;">
-
+{% if created|length == 0 %}
+<p>No results yet, assign some quizzes to your students.</p>
+{% else %}
                         <table class="table">
                             <thead>
                                 <tr>
@@ -175,17 +193,20 @@
                                     onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                     onmouseout="this.style.backgroundColor='';;this.style.color= ''" >             
                                     <td>{{ test.name }}</td>
-                                    <td>{{test.due_date}}</td>
+                                    <td>{{test.due_date.strftime('%Y-%m-%d')}}</td>
                                     </tr>
                                 </a>
                                 {% endfor %}
                             </tbody>
-                        </table>
+                        </table>{% endif %}
                     </div>
                 </div>
                 <div class="card box-manager mt-2">
                     <div class="card-header deck-manager-header"><h4>My results</h4></div>
                     <div class="card-body" style="height: 15vh; overflow-y: scroll;">
+                        {% if taken|length == 0 %}
+                        <p>No results to report</p>
+                        {% else %}
                         <table class="table">
                             <thead>
                                 <tr>
@@ -213,6 +234,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        {% endif %}
                     </div>
                 </div>
         

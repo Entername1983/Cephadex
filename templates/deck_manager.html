@@ -3,33 +3,118 @@
 {% block title %} Decks Dashboard {% endblock %}
 
 {% block head %}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/introjs.min.css" rel="stylesheet" />
+
+
+
+
+
 {% endblock %}
 
 {% block main_0 %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/intro.min.js"></script>
+
+<script>
+
+    {% if settings.new_user_cards == 1 %}
+    console.log("new user")
+        viewDecksTour()
+    {% endif %}
+    
+  function viewDecksTour() {
+      document.addEventListener('DOMContentLoaded', function () {
+        introJs().setOptions({
+          showProgress: true,
+      steps: [{
+        title: 'Deck manager',
+        intro: "This is where you'll manage the content stored in your decks such as cards, files and quizzes.  As well as related decks. "
+      },
+      {
+        Title:'Input your content',
+        element: document.querySelector('#tour-cards'),
+        intro: "All the cards in your deck will be displayed here",
+        position: "center"
+      },
+
+    {
+      element: document.querySelector('#tour-collapse'),
+      intro: "Here you can access quizzes created from the deck, files (such as summaries, notes or transcriptions as well as the source file) as well as parent or child decks."
+    },
+    {
+      element: document.querySelector('#tour-study'),
+      intro: "You can start a study session here"
+    },
+    {
+      element: document.querySelector('#tour-quiz'),
+      intro: "Click here to enter the quiz/assignment builder.  In Cephadex you build quizzes by selecting cards from your deck."
+    },
+    {
+      element: document.querySelector('#tour-card-viewer'),
+      intro: "You can edit (desktop mode only) cards, regenerate them, delete them or add new ones here"
+    },
+    {
+      element: document.querySelector('#tour-edit'),
+      intro: "Edit your deck attributes here"
+    },
+    {
+      element: document.querySelector('#tour-share'),
+      intro: "Share your deck with other users here"
+    },
+    {
+      element: document.querySelector('#tour-more'),
+      intro: "Export to anki, as a CSV or delete the deck in the dropdown menu here"
+    },
+
+
+{
+    title: "That's it!",
+  intro: "You should now have the basics.  There are a lot more features and we encourage you to explore the quiz maker!  If you have any feedback or questions please contact us.  We're always looking to improve!"
+      }],
+      scrollToElement: false,
+
+    }).start();
+      });
+
+      fetch('/new_user_settings_cards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ checked: true })
+      })
+
+
+    }
+
+</script>
+
+
+
+
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-6 d-flex justify-content-center align-items-center">
-            <h1 class="my-4 hcepha1">{{ deck.name }} </h1>
+        <div class="col-md-6 d-none d-sm-block text-center d-flex justify-content-center align-items-center ">
+            <h1 class="my-2 hcepha1">{{ deck.name }} </h1>
         </div>
         <div class="col-md-6">
-           <div class="card box-manager mt-4">
+           <div class="card box-manager mt-2">
             <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
                 {% if deck.cards|length > 0 %}
-                    <a href='/study_deck/{{ deck.id }}' class = "img-grow" title="Study"><img src="/static/master-icon.png" style="width: 35px; height:35px"></a>
-                    <a href="/build_test/{{ deck.id }}" class = "img-grow" title="Create quiz"><img src="/static/quiz-2-svg-icon.svg" style="width: 35px; height:35px"></a>
-                    <a href="/carousel/{{ deck.id }}" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="width: 35px; height:35px"></a>
+                    <a href='/study_deck/{{ deck.id }}' id = "tour-study" class = "img-grow" title="Study"><img src="/static/master-icon.png" style="width: 35px; height:35px"></a>
+                    <a href="/build_test/{{ deck.id }}" id = "tour-quiz" class = "img-grow" title="Create quiz"><img src="/static/quiz-2-svg-icon.svg" style="width: 35px; height:35px"></a>
+                    <a href="/carousel/{{ deck.id }}" id = "tour-card-viewer" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="width: 35px; height:35px"></a>
 
-                    <a class="px-2" data-bs-toggle="modal" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
+                    <a class="px-2" data-bs-toggle="modal" id = "tour-edit" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
                         <img src="/static/edit-deck-icon.png" class = "img-grow" style="width: 35px; height:35px" title="Edit"></a>
-                    <a  data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
+                    <a  data-bs-toggle="modal" id = "tour-share" data-bs-target="#Modal{{ deck.id }}"
                         style="cursor: pointer;" class = "img-grow" title="Share"><img src="/static/share-icon.png" style="width: 35px; height:35px"></a>
                         
                     {% else %}
                     <p>You don't seem to have any cards in this deck, click <a href="/extract"> here </a> to create
                         some.</p>
                     {% endif %}
-                    <a href="/extract"><img class = "img-link" src="/static/new-deck-icon.png" style="width: 35px; height:35px" title="Create"></a>
-                    <a onclick="event.stopPropagation();" width="35px" height="35px"
+                    <a onclick="event.stopPropagation();" id = "tour-more" width="35px" height="35px"
                          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                         style="cursor: pointer;" class = "img-grow" title="More actions"><img src="/static/more-icon.png" style="width: 35px; height:35px"></a>
 
@@ -50,126 +135,158 @@
             </div>
         </div>
     </div>
-    <div class="row d-none d-md-block">
-        <div class="col-md-12">
-            <div class="card box-manager mt-1">
-                <div class="card-body"  style="padding:3px!important;">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p style="margin-bottom:8px!important">Category: {{ deck.category }}</p>
-                            <p style="margin-bottom:8px!important">Description: {{ deck.description }}</p>
-                        </div>
-                        <div class="col-md-6">
+    <div >
+        <div id = "tour-collapse" class = "row mt-2 ">
 
-                            {% if deck.public == 1 %}
-                            <p style="margin-bottom:8px!important">Public</p>
-                            {% else %}
-                            <p style="margin-bottom:8px!important">Private</p>
-                            {% endif %}
-                            <p style="margin-bottom:8px!important">Created on: {{ deck.time_created }}</p>
+            <div class = "col-sm-4 px-2 mt-2 d-none d-sm-block">
+            <button class="btn-small btn btn-deck-manager w-100" type="button" data-bs-toggle="collapse" data-bs-target="#quizCollapse" aria-expanded="false" aria-controls="quizCollapse">Quizzes</button>
+            </div>
 
-                        </div>
-                    </div>
-                </div>
+
+            <div class = "col-sm-4 px-2 mt-2 d-none d-sm-block">
+            <button class="btn-small btn btn-deck-manager w-100" type="button" data-bs-toggle="collapse" data-bs-target="#fileCollapse" aria-expanded="false" aria-controls="fileCollapse">Files</button>
+            </div>
+
+            <div class = "col-sm-4 px-2 mt-2 d-none d-sm-block">
+            <button class="btn-small btn btn-deck-manager w-100" type="button" data-bs-toggle="collapse" data-bs-target="#relatedCollapse" aria-expanded="false" aria-controls="relatedCollapse">Related decks</button>
             </div>
         </div>
-    </div>
+        <div class = "row mt-2 d-block d-sm-none">
 
-    <div class="row">
- 
-        <div class="col-md-6" >
-            <div class="card  box-manager mt-2">
-                <div class="card-header deck-manager-header"> <a href = "/carousel/{{deck.id}}">Cards ({{ deck.quantity_cards() }}) </a></div>
-                <div class="card-body" style="height: 60vh; overflow-y: scroll;">
-                    <ul>
-                        {% for card in deck.cards %}
-                        <li>{{ card.term }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
+            <p class = "d-flex justify-content-evenly">
+            <a class="" data-bs-toggle="collapse" data-bs-target="#quizCollapse" aria-expanded="false" aria-controls="quizCollapse">Quizzes</a>
+
+
+                <a class="" data-bs-toggle="collapse" data-bs-target="#fileCollapse" aria-expanded="false" aria-controls="fileCollapse">Files</a>
+
+                <a class=""data-bs-toggle="collapse" data-bs-target="#relatedCollapse" aria-expanded="false" aria-controls="relatedCollapse">Related decks</a></p>
         </div>
-       <div class="col-md-6">  
-        <div class="card box-manager mt-2">
-                    <div class="card-header deck-manager-header"><a href = "/test_results_overview/">Assignments</a></div>
-                    <div class="card-body" style="height: 11.5vh; overflow-y: scroll;">
-                        <ul>
-                            {% if tests %}
+          <div class="row mt-2">
+            <div class="col">
+              <div class="collapse" id="quizCollapse">
+                <div class="card card-body mt-2">
+                    <ul class="list-group list-group-flush">
+                        {% if tests %}
                             {% for test in tests %}
-                            <li><a href="/assign_test/{{test.id}}">{{ test.name }}</a></li>
-                            {% endfor %}
-                            {% else %}
-                            <li>No assignments found</li>
-                            {% endif %}
-                        </ul>
-                    </div>
+                        <li class="list-group-item"><a href="/assign_test/{{test.id}}">{{ test.name }}</a></li>                            
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item" style="color: red;">No quizzes found.  Create one using your deck.</li>
+                        {% endif %}
+                    </ul>                
                 </div>
-                <div class="card box-manager mt-2">
-                    <div class="card-header deck-manager-header"><a href="/sea_dox/{{ deck.id }}">Files</a></div>
-                    <div class="card-body " style="height: 10vh; overflow-y: scroll;">
-                        <ul>
-                            {% if deck.deck_files  %}
+              </div>
+              <div class="collapse show" id="fileCollapse">
+                <div class="card card-body mt-2">
+                    <ul class="list-group list-group-flush">
+                        {% if deck.deck_files  %}
 
-                            {% for file in deck.deck_files %}
-                            <li><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
-                            {% endfor %}
-                            {% else %}
-                            <li>No files found</li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </div>
-   
-              
-        
-                <div class="card box-manager mt-3">
-                    <div class="card-header deck-manager-header">Child Decks</div>
-                    <div class="card-body" style="height: 10vh; overflow-y: scroll;">
-                        <ul>
-                            {% if deck.children.all()|length > 0 %}
-                            {% for child_deck in deck.children %}
-                            <li><a href="/deck_manager/{{child_deck.id}}">{{ child_deck.name }}</a></li>
-                            {% endfor %}
-                            {% else %}
-                            <li>No child decks found</li>
-                            {% endif %}
-       
-                        </ul>
-                    </div>
-                </div>
+                        {% for file in deck.deck_files %}
+                        <li class="list-group-item"><a href="/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item"  style="color: red;">No files found</li>
+                        {% endif %}
 
-                <div class="card box-manager mt-2">
-                    <div class="card-header deck-manager-header">Parent Decks</div>
-                    <div class="card-body" style="height: 10vh; overflow-y: scroll;">
+                        </ul>
+                    </div>
+            </div>
+                <div class="collapse" id="relatedCollapse">
+                  <div class="card card-body mt-2">
+                    <ul class="list-group list-group-flush">
+
+                        {% if deck.children.all()|length > 0 %}
+                        {% for child_deck in deck.children %}
+                        <li class="list-group-item"><a href="/deck_manager/{{child_deck.id}}">Child - {{ child_deck.name }}</a></li>
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item"  style="color: red;">No child decks found</li>
+                        {% endif %}   
                         
+                        {% if deck.parents.all()|length > 0 %}
+                        {% for parent in deck.parents.all() %}
+                        <li class="list-group-item"><a href="/deck_manager/{{parent.id}}">Parent - {{ parent.name }}</a> </li>
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item"  style="color: red;">No parent decks found</li>
+                        {% endif %}
+                    </ul>               
+                </ul>
 
-                        <ul>{% if deck.parents.all()|length > 0 %}
-                            {% for parent in deck.parents.all() %}
-                            <li><a href="/deck_manager/{{parent.id}}">{{ parent.name }}</a> </li>
-                            {% endfor %}
-                            {% else %}
-                            <li>No parent decks found</li>
-                            {% endif %}
-                        </ul>
-                    </div>
                 </div>
+              </div>
+          </div>
 
-
-
+</div>  
 
 
     </div>
+    <!--
+    <h4 class = "text-center my-1">{{ deck.quantity_cards() }} cards</h4>-->
+    <div  id = "tour-cards"class = "row">
+       
+            {% for card in deck.cards %}
+            {% if card.category == "Mcq" %}
+            <div class = "col-md-6 p-2">
+                <div class = "card">
+                    <div class = "card-body">
+                        <h5 class = "card-title">{{ card.term }}</h5>
+                        <ul class="list-group list-group-flush" id="list{{ loop.index }}">
+                            <li class="list-group-item" style="color: green;">{{card.content}}</li>                            
+                            <li class="list-group-item" style="color: red;">{{card.boc_2}}</li>
+                            <li class="list-group-item" style="color: red;">{{card.boc_3}}</li>
+                            <li class="list-group-item"style="color: red" >{{card.boc_4}}</li>
+                          </ul>
+                    </div>
+                </div>
+            </div>
+            {% elif card.category == "Formulas" %}
+            <div class = "col-md-6 p-2">
+                <div class = "card">
+                    <div class = "card-body">
+                        <h5 class = "card-title">{{ card.term }}</h5>
+                        {{card.formula|safe}}
+                        <p>{{card.content}}</p>
+                    </div>
+                </div>
+            </div>
+            {% elif card.category == "Discussion" %}
+            <div class = "col-md-6 p-2">
+                <div class = "card">
+                    <div class = "card-body">
+                        <h5 class = "card-title">{{ card.term }}</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">{{card.content}}</li>
+                            <li class="list-group-item">{{card.boc_2}}</li>
+                          </ul>
+                    </div>
+                </div>
+            </div>
+            {% else %} 
+            <div class = "col-md-6 p-2">
+                <div class = "card">
+                    <div class = "card-body">
+                        <h5 class = "card-title">{{ card.term }}</h5>
+                        <p>{{card.content}}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+
+        </div>
+        
+
+
+  
+
+</div>
 
 
 
  
 
-
-    
-</div>
-
-</div>
-<br>
 
 
 <script>
@@ -416,5 +533,17 @@
         </div>
     </div>
 </div>
+<script>
+    window.onload = function() {
+        {% for card in deck.cards %}
+            if ("{{ card.category }}" == "Mcq") {
+                var ul = document.getElementById('list{{ loop.index }}');
+                for (var i = ul.children.length; i >= 0; i--) {
+                    ul.appendChild(ul.children[Math.random() * i | 0]);
+                }
+            }
+        {% endfor %}
+    }
 
+</script>
 {% endblock %}

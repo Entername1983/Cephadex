@@ -1,252 +1,355 @@
-{% extends "layout.html" %} {% block title %} Test Builder {% endblock %} 
-{% block head %} 
+{% extends "layout.html" %} {% block title %} Test Builder {% endblock %}
+{% block head %}
+<script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta name="robots" content="noindex">
 
 
 <style type="text/css" media="print">
-    @page 
-    {
-        size:  auto;   /* auto is the initial value */
-        margin: 0mm;  /* this affects the margin in the printer settings */
+    @page {
+        size: auto;
+        /* auto is the initial value */
+        margin: 0mm;
+        /* this affects the margin in the printer settings */
     }
 
-    html
-    {
-        background-color: #FFFFFF; 
-        margin: 10px;  /* this affects the margin on the html before sending to printer */
+    html {
+        background-color: #FFFFFF;
+        margin: 10px;
+        /* this affects the margin on the html before sending to printer */
     }
 
-    body
-    {
-        margin: 10mm 15mm 10mm 15mm; /* margin you want for the content */
+    body {
+        margin: 10mm 15mm 10mm 15mm;
+        /* margin you want for the content */
     }
+</style>
+<style type="text/css" media="print">
     @media print {
-        .navbar { /* Assuming .navbar is the class of your navigation bar */
-            display: none!important;
+        body * {
+            visibility: hidden;
+        }
+        #printable, #printable * {
+            visibility: visible;
+        }
+        #printable-container {
+            /* Adjust margins and other styles for the printable content */
+            margin: 0;
+            padding: 0;
         }
     }
-    </style>
+</style>
 
 {% endblock %}
 {% block
-    main_0 %}
-    <div class = "p-4">
-{% set q_counter = 0 %}
-<div class="row">
-    {% if current_user.subscription_plan in [1, 2, 3] %}
-        <img src="/static/Cepha-banner-1.png" style="max-width:200px">
-        <br>
+main_0 %}
+
+<div id="print-options" class="box-manager my-5 no-print d-flex justify-content-around align-items-center flex-wrap py-3">
+    <div class="print-option-item">
+        <label class="form-check-label">
+            <input type="checkbox" class="print-toggle form-check-input" data-target=".print-marks" checked> Print Marks
+        </label>
+    </div>
+    <div class="print-option-item">
+        <label class="form-check-label">
+            <input type="checkbox" class="print-toggle form-check-input" data-target=".print-test-name" checked> Print Test Name
+        </label>
+    </div>
+    <div class="print-option-item">
+        <label class="form-check-label">
+            <input type="checkbox" class="print-toggle form-check-input" data-target=".print-student-name" checked> Print Student Name
+        </label>
+    </div>
+    <div class="print-option-item">
+        <label class="form-check-label">
+            <input type="checkbox" class="print-toggle form-check-input" data-target=".print-instructions" checked> Print Instructions
+        </label>
+    </div>
+    <div class="print-option-item">
+        <a  id="print-button"  title="Print"><img class = "img-grow" src="/static/print-icon.png" style="width: 35px; height:35px"></a>
+    </div>
+</div>
+
+
+
+
+
+    <div id = "printable" class ="printable printable-container">
+
+<div class="px-1">
+    {% set q_counter = 0 %}
+    <div class="row">
+        {% if current_user.subscription_plan in [1, 2, 3] %}
+        <img src="/static/Cepha-banner-1.png" class = "mb-4"style="max-width:200px">
+       
+        {% endif %}
+    </div>
+        <div class="row">
+
+            <div class="col-4 d-flex align-items-center">
+                <h5 class = "print-student-name" >Name:__________________</h5>
+            </div>
+            <div class="col-6 d-flex align-items-center ">
+                <h4 class ="print-test-name">{{test.name}}</h4>
+            </div>
+            {% if test.points %}
+            <div class="col-2 d-flex align-items-center print-marks">
+                <h5 class = "print-marks"> Marks: {{test.points}}</h5>
+            </div>
             {% endif %}
-    </div>
-<div class="row">
-        
-    <div class="col-4 d-flex align-items-center">
-        <h5>Name:____________________</h5>
-    </div>
-    <div class="col-6 d-flex align-items-center">
-        <h4>{{test.name}}</h4>
-    </div>
-    {% if test.points %}
-    <div class="col-2 d-flex align-items-center">
-        <h5> Marks: {{test.points}}</h5>
+
+        </div>
+    {% if test.instructions %}
+    <div class="row my-4 print-instructions">
+        <h5>Instructions:</h5>
+        <p><i> {{test.instructions}}</i> </p>
     </div>
     {% endif %}
+    <br>
+    <div id = "questions-parent">
+    {% for question in test.questions %}
+    {% set q_counter = loop.index %}
+    {% if question.q_type == "jeopardy" %}
+    <div class="row mt-1" style="page-break-inside: avoid;">
 
-</div>
-{% if test.instructions %}
-<div class ="row mt-2">
-    <h5>Instructions:</h5>
-<p> {{test.instructions}} </p>
-</div>
-{% endif %}
-<br>
-{% for question in test.questions %}
-{% set q_counter = loop.index %}
-{% if question.q_type == "jeopardy" %}
-<div class = "row " style="page-break-inside: avoid;">
-    
-    <div class="card">
-        <div class="card-head">
-            <div class="row">
-                <div class="col-10 ">
-                    {{q_counter}} - {{question.question}}
-                </div>
-                
-                <div class=" col-2">
-                   <small>Marks: </small> {{question.points}}
+        <div class="card border-0">
+            <div class="card-head">
+                <div class = "question-number">{{q_counter}}</div>
+                <div class="row">
+                    <div class="col-10 ">
+                        {{question.question}}
+                    </div>
+
+                    <div class=" col-2 print-marks">
+                        <small>Marks: </small> {{question.points}}
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card-body">
-            <label for="answer{{question.id}}">Answer:</label>
-            <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
-                </textarea>
-        </div>
-    </div>
-
-</div>
-{% elif question.q_type in ["definitions", "explain"] %}
-<div class = "row " style="page-break-inside: avoid;">
-    
-    <div class="card">
-        <div class="card-head">
-            <div class="row">
-                <div class="col-10 ">
-                    {{q_counter}} - {{question.question}}
-                </div>
-                
-                <div class=" col-2">
-                   <small>Marks: </small> {{question.points}}
-                </div>
-            </div>
-        </div>
-
-        <div class="card-body">
-            <label for="answer{{question.id}}">Answer:</label>
-            <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
-                </textarea>
-        </div>
-    </div>
-
-</div>
-
-
-{% elif question.q_type == "cloze" %}
-<div class = "row " style="page-break-inside: avoid;">
-    
-    <div class="card">
-        <div class="card-head">
-            <div class="row">
-                <div class="col-10 ">
-                    {{q_counter}} - {{question.question}}
-                </div>
-                <div class=" col-2">
-                    Marks: {{question.points}}
-                </div>
-            </div>
-        </div>
-
-        <div class="card-body">
-            <label for="answer{{question.id}}">Answer:</label>
-            <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
-                </textarea>
-        </div>
-    </div>
-
-</div>
-{% elif question.q_type == "formulas" %}
-<div class = "row " style="page-break-inside: avoid;">
-    
-    <div class="card">
-        <div class="card-head">
-            <div class="row">
-                <div class="col-10 ">
-                    {{q_counter}} - {{question.question}}
-                </div>
-                
-                <div class=" col-2">
-                    Marks: {{question.points}}
-                </div>
-            </div>
-        </div>
-
-        <div class="card-body">
-            <label for="answer{{question.id}}">Answer:</label>
-            <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
-                </textarea>
-        </div>
-    </div>
-
-</div>
-
-
-{% elif question.q_type == "mcq" %}
-<div class = "row " style="page-break-inside: avoid;">
-    
-    <div class="card">
-        <div class="card-head">
-            <div class="row my-2">
-                <div class="col-10 ">
-                    {{q_counter}} - {{question.question}}
-                </div>
-                <div class=" col-2">
-                    Marks: {{question.points}}
-                </div>
-            </div>
-        </div>
-
-        <div class="card-body">
-            <div class="row my-1">
-                <p>A - 
-                    <span class="  answer-button{{question.id}}"
-                        id="A-btn{{question.id}}" style="width: 100%"></span>
-               </p>
-                
-            </div>
-            <div class="row my-1">
-                <p>B - 
-                    <span class="  answer-button{{question.id}}"
-                        id="B-btn{{question.id}}" style="width: 100%"></span>
-               </p>
-            </div>
-
-            <div class="row my-1">
-                <p>C - 
-                    <span class="  answer-button{{question.id}}"
-                        id="C-btn{{question.id}}" style="width: 100%"></span>
-               </p>
-            </div>
-           
-            <div class="row my-1">
-                <p>D - 
-                    <span class="  answer-button{{question.id}}"
-                        id="D-btn{{question.id}}" style="width: 100%"></span>
-               </p>
-            </div>
             <div class="card-body">
-                <input type="hidden" id="answer{{question.id}}" name="answer{{question.id}}">
+                <label for="answer{{question.id}}"></label>
+                <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                </textarea>
             </div>
         </div>
+
     </div>
-    <script>
-        const answers{{ question.id }} =["{{question.content}}", "{{question.boc_2}}", "{{question.boc_3}}", "{{question.boc_4}}"];
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-        const shuffledAnswers{{ question.id }} = shuffle(answers{{ question.id }});
-        const answer_buttons{{ question.id }} = document.querySelectorAll('.answer-button{{question.id}}');
-            //const buttons = document.querySelectorAll('.answer-button'+{{ question.id }});
-        answer_buttons{{ question.id }}.forEach((button, index) => {
+    {% elif question.q_type in ["definitions", "explain"] %}
+    <div class="row mt-1" style="page-break-inside: avoid;">
 
-            button.innerText = shuffledAnswers{{ question.id }}[index];
-            button.value = shuffledAnswers{{ question.id }}[index];
+        <div class="card border-0">
+            <div class="card-head">
+                <div class = "question-number">{{q_counter}}</div>
+                <div class="row">
+                    <div class="col-10 ">
+                         {{question.question}}
+                    </div>
+
+                    <div class=" col-2 print-marks">
+                        <small>Marks: </small> {{question.points}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <label for="answer{{question.id}}"></label>
+                <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                </textarea>
+            </div>
+        </div>
+
+    </div>
+
+
+    {% elif question.q_type == "cloze" %}
+    <div class="row mt-1" style="page-break-inside: avoid;">
+
+        <div class="card border-0">
+            <div class="card-head">
+                <div class = "question-number">{{q_counter}}</div>
+                <div class="row">
+                    <div class="col-10 ">
+                        {{question.question}}
+                    </div>
+                    <div class=" col-2 print-marks">
+                        <small>Marks: </small> {{question.points}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <label for="answer{{question.id}}"></label>
+                <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                </textarea>
+            </div>
+        </div>
+
+    </div>
+    {% elif question.q_type == "formulas" %}
+    <div class="row mt-1" style="page-break-inside: avoid;">
+
+        <div class="card border-0">
+            <div class="card-head">
+                <div class = "question-number">{{q_counter}}</div>
+                <div class="row">
+                    <div class="col-10 ">
+                        {{question.question}}
+                    </div>
+                    <div class=" col-2 print-marks">
+                        <small>Marks: </small> {{question.points}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <label for="answer{{question.id}}"></label>
+                <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                </textarea>
+            </div>
+        </div>
+
+    </div>
+
+
+    {% elif question.q_type == "mcq" %}
+            <div class="row mt-1" style="page-break-inside: avoid;">
+
+                            <div class="card border-0">
+                                <div class="card-head">
+                                    <div class = "question-number">{{q_counter}}</div>
+                                    <div class="row my-2">
+                                        <div class="col-10 ">
+                                            {{question.question}}
+                                        </div>
+                                        <div class=" col-2 print-marks">
+                                            <small>Marks: </small> {{question.points}}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="row my-1">
+                                        <p>A -
+                                            <span class="  answer-button{{question.id}}" id="A-btn{{question.id}}"
+                                                style="width: 100%"></span>
+                                        </p>
+
+                                    </div>
+                                    <div class="row my-1">
+                                        <p>B -
+                                            <span class="  answer-button{{question.id}}" id="B-btn{{question.id}}"
+                                                style="width: 100%"></span>
+                                        </p>
+                                    </div>
+
+                                    <div class="row my-1">
+                                        <p>C -
+                                            <span class="  answer-button{{question.id}}" id="C-btn{{question.id}}"
+                                                style="width: 100%"></span>
+                                        </p>
+                                    </div>
+
+                                    <div class="row my-1">
+                                        <p>D -
+                                            <span class="  answer-button{{question.id}}" id="D-btn{{question.id}}"
+                                                style="width: 100%"></span>
+                                        </p>
+                                    </div>
+                                    <div class="card-body">
+                                        <input type="hidden" id="answer{{question.id}}" name="answer{{question.id}}">
+                                    </div>
+                                </div>
+                            </div>
+            </div>
+
+
+            <script>
+                const answers{{ question.id }} = [
+                  {{ question.content|tojson|safe }},
+                  {{ question.boc_2|tojson|safe }},
+                  {{ question.boc_3|tojson|safe }},
+                  {{ question.boc_4|tojson|safe }}
+                ];
+              
+                function shuffle(array) {
+                  for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                  }
+                  return array;
+                }
+              
+                const shuffledAnswers{{ question.id }} = shuffle(answers{{ question.id }});
+                const answer_buttons{{ question.id }} = document.querySelectorAll('.answer-button{{ question.id }}');
+              
+                answer_buttons{{ question.id }}.forEach((button, index) => {
+                  button.innerText = decodeURIComponent(shuffledAnswers{{ question.id }}[index]);
+                  button.value = decodeURIComponent(shuffledAnswers{{ question.id }}[index]);
+                });
+              </script>
+
+
+
+
+
+    {% endif %}
+    {% endfor %}
+</div>
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+</div>
+<script>
+        console.log("check")
+        // Toggle visibility for print
+        $(".print-toggle").on('change', function () {
+            console.log("toggling")
+            var target = $(this).data('target');
+            $(target).toggleClass('no-print');
+        });
+
+        // Print function
+        $("#print-button").click(function () {
+            console.log("printing")
+            window.print();
+        });
+
+
+        // Shuffle function
        
-});
+
+$("#generate-pdf").click(function () {
+            generatePDF();
+        });
+
+
+        function generatePDF() {
+            // Get the HTML content
+            var htmlContent = document.getElementById('printable').innerHTML;
+
+            // Create a new jsPDF instance
+            var doc = new jsPDF();
+
+            // Convert HTML to PDF
+            doc.html(htmlContent, {
+                callback: function (doc) {
+                // Save the PDF
+                doc.save('output.pdf');
+                },
+                x: 10,
+                y: 10
+            });
+            }
     </script>
-</div>
+    
 
-
-
-
-
-{% endif %}
-{% endfor %}
-</div>
-</div>
-
-
-
-
-
-
-</div>
-
-
-
-</div>
 
 {% endblock %}

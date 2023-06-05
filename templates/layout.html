@@ -4,9 +4,6 @@
 
 <head>
 
-    <!---- AUTO SIZE -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/autosize.js/4.0.2/autosize.min.js"></script>
-
 
 <!-- Cookie Consent by FreePrivacyPolicy.com https://www.FreePrivacyPolicy.com 
 <script type="text/javascript" src="//www.freeprivacypolicy.com/public/cookie-consent/4.1.0/cookie-consent.js" charset="UTF-8"></script>
@@ -20,9 +17,6 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
 <!-- End Cookie Consent by FreePrivacyPolicy.com https://www.FreePrivacyPolicy.com -->
 
 
-
-
-
 <!-- Below is the link that users can use to open Preferences Center to change their preferences. Do not modify the ID parameter. Place it where appropriate, style it as needed. -->
 
 
@@ -33,23 +27,36 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
 
-
 <link rel="icon"  href="{{ url_for('static', filename='Cephadex-logo-6.ico') }}" >
-
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, width=device-width" />
+
+
+
 
     <!--- MATHJAX-->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 
-    <!-- http://getbootstrap.com/docs/5.1/ -->
 
+
+
+    <!-- http://getbootstrap.com/docs/5.1/ -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.js"></script>
+
+
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 
+
+
+    <!---- AUTO SIZE -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/autosize.js/4.0.2/autosize.min.js"></script>
+
+
+    <!--- GOOGLE AUTH-->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <!-- SUBMIT FORMS JAVASCRIPT-->
@@ -123,13 +130,12 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
 <meta name="description"
 content="Cephadex is an AI-powered educational platform for creating custom flashcards, worksheets, and tests. Study and share your educational material with ease.">
 
-
+<!---
 <script type="text/javascript" charset="UTF-8">
     document.addEventListener('DOMContentLoaded', function () {
         cookieconsent.run({ "notice_banner_type": "interstitial", "consent_type": "express", "palette": "light", "language": "en", "page_load_consent_levels": ["strictly-necessary"], "notice_banner_reject_button_hide": false, "preferences_center_close_button_hide": false, "page_refresh_confirmation_buttons": false, "website_name": "www.cephadex.com", "website_privacy_policy_url": "www.cephadex.com/privacy_policy" });
     });
-</script>
-<meta name="robots" content="noindex">
+</script>-->
 </div>
 <!-- Google Analytics -->
 <script async
@@ -242,11 +248,11 @@ $(document).ready(function () {
 });</script>
 {% if current_user.is_authenticated %}
     <div class="d-flex" id="wrapper">
-    <div id = "sidebar-wrapper" class="d-flex flex-column flex-shrink-0 {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}" style="width: 240px; height:100vh;">
+        <div id = "sidebar-wrapper" class="sidebar-print d-flex flex-column flex-shrink-0 {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}" style="width: 240px; height:100vh;">
 
         <a href="/" class="d-flex align-items-center">
           <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
-          <span class="fs-4">Sidebar</span>
+          <span class="fs-4"></span>
         </a>
         <hr>
         <ul class="nav nav-pills flex-column mb-auto mt-3">
@@ -255,51 +261,55 @@ $(document).ready(function () {
                     <span class="menu-text"><img src="\static\Cepha-banner-2.png" max-width="50" height="50"/></span>
                 </a>
           <li class="nav-item text-center mt-4">
-            <a href="/extract" class="nav-link text-center">
-                <span class="menu-icon " style="display:none"><img src="/static/create-svg-icon.svg" max-width="40" height="40"/></span>
+            <a href="/extract" class="nav-link text-center" id="sidebar-create" >
+                <span class="menu-icon " style="display:none"><img src="/static/create-svg-icon.svg" title = "Create decks" max-width="40" height="40"/></span>
                 <span class="menu-text">Create</span>
             </a>
           </li>
           <li>
-            <a href="/viewdecks" class="nav-link text-center">
-                <span class="menu-icon" style="display:none"><img src="/static/deck-svg-icon.svg" max-width="40" height="40"/></span>
+            <a href="/viewdecks" class="nav-link text-center" id="sidebar-viewdecks">
+                <span class="menu-icon" style="display:none"><img src="/static/deck-svg-icon.svg" title = "My decks" max-width="40" height="40"/></span>
                 <span class="menu-text">Decks</span>
             </a>
           </li>
           <li>
-            <a href="/test_results_overview" class="nav-link text-center">
-                <span class="menu-icon" style="display:none"><img src="/static/quiz-2-svg-icon.svg" max-width="40" height="40"/></span>
-                <span class="menu-text">Assignments</span>
+            <a href="/test_results_overview" class="nav-link text-center" id="sidebar-quiz">
+                <span class="menu-icon" style="display:none"><img src="/static/quiz-2-svg-icon.svg" title = "My quizzes" max-width="40" height="40"></span>
+                <span class="menu-text">Quizzes</span>
             </a>
           </li>
           <li>
-            <a href="/my_groups" class="nav-link text-center">
+            <a href="/my_groups" class="nav-link text-center" id="sidebar-groups">
 
-                <span class="menu-icon" style="display:none"><img src="/static/group-svg-icon.svg" max-width="40" height="40"/></span>
+                <span class="menu-icon" style="display:none"><img src="/static/group-svg-icon.svg" title = "My groups" max-width="40" height="40"/></span>
             <span class="menu-text">Groups</span>
             </a>
           </li>
           <li>
-            <a href="/public_decks" class="nav-link text-center">
-                <span class="menu-icon" style="display:none"><img src="/static/public-svg-icon.svg" max-width="40" height="40"/></span>
+            <a href="/public_decks" class="nav-link text-center" id="sidebar-public">
+                <span class="menu-icon" style="display:none"><img src="/static/public-svg-icon.svg" title = "Public decks" max-width="40" height="40"/></span>
                 <span class="menu-text">Public decks</span>
             </a>
           </li>
           <li>
-            <a href="/import_deck" class="nav-link text-center">
-                <span class="menu-icon" style="display:none"><img src="/static/import-svg-icon.svg" max-width="40" height="40"/></span>
+            <a href="/import_deck" class="nav-link text-center" id="sidebar-import">
+                <span class="menu-icon" style="display:none"><img src="/static/import-svg-icon.svg" title = "Import from Anki" max-width="40" height="40"/></span>
                 <span class="menu-text">Import</span>
             </a>
           </li>
           <li>
-            <a href="/upgrade" class="nav-link text-center">
-                <span class="menu-icon" style="display:none"><img src="/static/upgrade-svg-icon.svg" max-width="40" height="40"/></span>
+            <a href="/upgrade" class="nav-link text-center" id="sidebar-upgrade">
+                <span class="menu-icon" style="display:none"><img src="/static/upgrade-svg-icon.svg" title = "Upgrade" max-width="40" height="40"/></span>
                 <span class="menu-text">Upgrade</span>
             </a>
           </li>
         </ul>
-        <hr>
+      
+        <h5 class = " text-center p-3 text-white " id="sidebar-credit"style="background-color: #a880fd; margin: 0px!important;">
+            <span class = "menu-icon" style="display:none">{{current_user.remaining_credit()}}</span>
+            <span class = "menu-text">Credits: {{current_user.remaining_credit()}}</span>
         
+        </h5>
       </div>
 
         <!-- Page ontent -->
@@ -313,8 +323,8 @@ $(document).ready(function () {
             <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
                 <div class="container-fluid">
                       <a class =" navbar-brand" id="menu-toggle">
-                                <img class="menu-icon"src="\static\arrow-left-svg-icon.svg" max-width="40" height="40"/>
-                                <img class="menu-text" src="\static\arrow-right-svg-icon.svg" max-width="40" height="40"/>
+                                <img class="menu-icon img-grow-2" src="\static\sidebar-svg-icon.svg" max-width="40" height="40"/>
+                                <img class="menu-text img-grow-2" src="\static\sidebar-collapse-icon-svg.svg" max-width="40" height="40"/>
 
                                     </a>
 
@@ -605,7 +615,7 @@ $(document).ready(function () {
 
 
 
-<footer class="text-center site-footer pt-2" >
+<footer class="text-center site-footer pt-2 no-print" >
     <!----
     <a class="btn btn-outline-dark btn-floating m-1" href="https://www.facebook.com/Cephadex" role="button"
         target="_blank"><i class="fab fa-facebook-f"></i></a>
@@ -711,6 +721,7 @@ $(window).on('load', function() {
     });
      
     </script>
+    
         <script>
 
             $("#menu-toggle").click(function(e) {

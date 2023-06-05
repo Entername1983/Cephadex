@@ -1,23 +1,8 @@
 import openai 
 import os
-from bs4 import BeautifulSoup
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import or_, and_, insert, not_
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship, Mapped
+from sqlalchemy.sql import or_, and_, insert
 from flask import g, Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify, current_app
-from flask_session import Session
-from tempfile import mkdtemp
-import pytz
-from pytz import common_timezones
-from sqlalchemy_utils import database_exists, create_database
-from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from wtforms import DateField, IntegerField, StringField, PasswordField, SubmitField, RadioField, SelectField, BooleanField, TextAreaField
-from email_validator import validate_email, EmailNotValidError
-from flask_wtf.file import FileField, FileAllowed, FileRequired, FileSize
-from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms.validators import InputRequired, Length, ValidationError, EqualTo, Optional, URL, DataRequired, Email
-from flask_wtf import FlaskForm
+from flask_login import login_user, LoginManager, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import ImmutableDict
@@ -26,54 +11,47 @@ from extractors import send_question_generator, why_wrong_generator, explain_mor
 from helpers import split_text, count_tokens
 from google.oauth2 import id_token
 from google.auth.transport import requests
-import sys
-from sqlalchemy.sql import func
 import logging
 import logging.handlers
-from logging.handlers import RotatingFileHandler
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 import datetime as dt
 from flask_migrate import Migrate
-import urllib.parse
 from urllib.parse import unquote
 from helpers import remove_punctuation, apology
 import difflib
-from anki import request_anki_permission, anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes, check_anki_connect
-from flask import abort
-from celery import Celery
+from anki import request_anki_permission, anki_create_deck, anki_create_card, find_notes, check_anki_connect
 import time
-import schedule
-from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS, FLASK_DEBUG
+from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS, FLASK_DEBUG
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import JobNotification, DeletedAccounts, StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
-import configparser
 import logging.config
 from events import event_tracker
-from flask_talisman import Talisman
 from logging.config import dictConfig
 from logging_config import LOGGING_CONFIG
-from Crypto.Cipher import AES
 from bleach import clean
-from json import JSONEncoder
 from flask_wtf.csrf import generate_csrf
 import stripe
-from threading import Thread
 import uuid
-import codecs
 import random
-from forms import RegSub, RegisterForm, LoginForm, ChangePassForm, TryOut, DeckOrg, UploadFileForm
-from forms import EditCard, EditDeck, AddTermForm, AccountForm, DeleteAccountForm, UpdateProfilePicForm, FeedbackForm
+from forms import RegSub, RegisterForm, TryOut, DeckOrg, UploadFileForm
+from forms import AccountForm, DeleteAccountForm, UpdateProfilePicForm, FeedbackForm
 from forms import SearchAndSortForm, Share, BuildTest, UpdateCardForm, GroupForm, UpdateFileNameForm
 from pydub import AudioSegment
-import subprocess
+from lists import TEST_NAMES, DECK_NAMES, SOURCE_FILE_NAMES, TRANSCRIPTION_FILE_NAMES, SUMMARY_FILE_NAMES, NOTES_FILE_NAMES
 from pydub.utils import mediainfo
 from extractors import audio_processing
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+import requests as req
+from urllib.parse import urljoin
+
 from send_email import send_email
 from forms import Unsubscribe
 from error_handlers import YoutubeError
+from collections import defaultdict
+from flask import Flask, make_response, render_template
+from xhtml2pdf import pisa
+from io import BytesIO
+
 
 dictConfig(LOGGING_CONFIG)
 
@@ -111,7 +89,7 @@ ALLOWED_ATTRIBUTES = {
 }
 
 ## Token related processing
-TOKENS_PER_PAGE = 682
+TOKENS_PER_PAGE = 341
 PAGES_PER_MIN = 3
 
 
@@ -680,6 +658,22 @@ def get_due_cards(deck_id):
         return apology('Deck not found', 404)
     return deck.get_due_cards(n)
 
+@app.route("/new_user_settings_tests", methods = ["POST", "GET"])
+@login_required
+def new_user_settings_tests():
+    print("entered new user settings tests")
+    logger.debug("entered new user settings")
+    data = request.get_json()
+    checked = data.get('checked')
+    if checked:
+        logger.debug("option is checked")
+        user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+        user_settings.new_user_tests = False
+        logger.debug(user_settings.new_user_tests)
+        db.session.add(user_settings)
+        db.session.commit()
+    return jsonify({'success': True})
+
 @app.route("/new_user_settings", methods = ["POST", "GET"])
 @login_required
 def new_user_settings():
@@ -722,6 +716,22 @@ def new_user_settings_viewdecks():
         db.session.add(user_settings)
         db.session.commit()
     return jsonify({'success': True})
+
+@app.route("/new_user_settings_cards", methods = ["POST", "GET"])
+@login_required
+def new_user_settings_cards():
+    logger.debug("entered new user settings")
+    data = request.get_json()
+    checked = data.get('checked')
+    if checked:
+        logger.debug("option is checked")
+        user_settings = UserSettings.query.filter_by(user=current_user.id).first()
+        user_settings.new_user_cards = False
+        db.session.add(user_settings)
+        db.session.commit()
+    return jsonify({'success': True})
+
+
 
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
@@ -1191,8 +1201,6 @@ def extract():
                             job_creator(texts, deck, prompt_options, slug, input_type)
                             prompt_options['main_opt'] = 'Mcq'
                             job_creator(texts, deck, prompt_options, slug, input_type)
-                            prompt_options['main_opt'] = 'Cloze'
-                            job_creator(texts, deck, prompt_options, slug, input_type)
                         else:
                             job_creator(texts, deck, prompt_options, slug, input_type)
 
@@ -1291,7 +1299,7 @@ def credit_counter(form):
 
 
 def tokens_to_credit(tokens):
-    credit = tokens / 682
+    credit = tokens / 341
     return credit
 
 def allowed_file(filename):
@@ -1352,8 +1360,9 @@ def get_or_create_deck(form, prompt_options):
     if form.deck_list.data:
         deck = form.deck_list.data
     else:
-        time = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
-        deck_name = form.name.data or "".join(main_opt + " "+ "deck" +" "+ time)
+        chosen_name = random.choice(DECK_NAMES)
+        random_number = random.randint(10, 99)
+        deck_name = f"{chosen_name}_{random_number}"
         deck_description = form.description.data or "".join(main_opt + " " + "deck")
         deck = Deck(name=deck_name, description=deck_description)
         db.session.add(deck)
@@ -1388,10 +1397,15 @@ def get_text_from_form_input(form):
     return text, input_type
 
 def save_source_text_to_deck(name, deck, text, prompt_options, method="extract"):
+
     logger.debug("entered save_source_text_to_deck %s", deck)
     try:
         main_opt = prompt_options['main_opt']
-        f_name = name
+
+        chosen_name = random.choice(SOURCE_FILE_NAMES)
+
+        f_name = f"{chosen_name}_(source_file)"
+
         file_storage = DeckFiles(file_name=f_name,
                                   text_string=text, create_type = "source",
                                     time_created = dt.datetime.now(dt.timezone.utc))
@@ -1690,6 +1704,7 @@ def legal():
 
 @app.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
 def build_test(deck_id):
+    settings = UserSettings.query.filter_by(user=current_user.id).first()
     c_deck_id = deck_id
     event_tracker(current_user.id, "build_test", c_deck_id)
     deck = Deck.query.get_or_404(c_deck_id)
@@ -1699,6 +1714,9 @@ def build_test(deck_id):
         print(request.form.to_dict())
         test_questions = request.form.getlist('selected_cards[]')
         name = deck.name + " Test" + " " + datetime.now().strftime("%Y-%m-%d %H:%M")
+        chosen_name = random.choice(TEST_NAMES)
+        random_number = random.randint(10, 99)
+        name = chosen_name + " " + str(random_number)
         new_test = Test(creator=current_user.id, deck_id = deck.id)
         db.session.add(new_test)
         new_test.name = name
@@ -1757,10 +1775,12 @@ def build_test(deck_id):
         db.session.commit()
         return redirect('/assign_test/{test.id}'.format(test=new_test))
     return render_template('build_test.html',
-                        title='Test Builder', deck=deck, creator=creator)
+                        title='Test Builder', deck=deck, creator=creator, settings = settings)
 
 @app.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
 def assign_test(test_id):
+    settings = UserSettings.query.filter_by(user=current_user.id).first()
+
     c_test_id = test_id
     update_card_form = UpdateCardForm(request.form)
     form = BuildTest()
@@ -1805,9 +1825,10 @@ def assign_test(test_id):
                             test=test, form = form, update_card_form = update_card_form)
     except Exception as e:
         logger.info(e)
-        flash("At this moment you can only assign tests to other users.  We are working on allowing you to assign tests to non-users")
+        
+        ##flash("At this moment you can only assign tests to other users.  We are working on allowing you to assign tests to non-users")
         return render_template('assign_test.html', title='Assign test',
-                            test=test, form = form, update_card_form = update_card_form)
+                            test=test, form = form, update_card_form = update_card_form, settings = settings)
 
 
 @app.route('/update_card', methods=['POST'])
@@ -1899,7 +1920,7 @@ def assign(test_id, user_email):
     if not_users == []:
         flash('Test assigned!', 'success')
     else:
-        flash(f"Could not locate the following users: {not_users}", "danger")
+        flash(f"Could not locate the following users: {not_users}.  Currently you can only assign to other users", "danger")
     return redirect('/assign_test/{test_id}'.format(test_id = c_test_id))
 
 
@@ -2292,12 +2313,22 @@ def assemble_file(total_jobs):
         full_text = ""
         for job in total_jobs:
             full_text += job.processed_content
-        rand_num = random.randint(1, 1000)
-        name = task_type + dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d-%H") + str(rand_num)
+        if task_type == "Turn2notes":
+            chosen_name = f"{random.choice(NOTES_FILE_NAMES)}_{task_type}"
+        elif task_type == "Transcribe":
+            chosen_name = f"{random.choice(TRANSCRIPTION_FILE_NAMES)}_{task_type}"
+        elif task_type == "Summarize":
+            chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)}_{task_type}"
+        else:
+            chosen_name = f"{random.choice(SOURCE_FILE_NAMES)}_{task_type}"
+        rand_int = random.randint(1, 99)
+        name = f"{chosen_name}_{rand_int}"
         existing_file = DeckFiles.query.filter_by(file_name=name).first()
         print(f"File already exists {existing_file}")
         if not existing_file:
             print("no existing file, creating one")
+
+            name = chosen_name
             file_storage = DeckFiles(file_name=name, text_string=full_text,
                                     create_type = task_type,
                                     time_created = dt.datetime.now(dt.timezone.utc))
@@ -2315,7 +2346,7 @@ def job_error_checker(slug):
     if error_ratio > 0:
         print("Recognized error")
         job_notification = JobNotification.query.filter_by(slug=slug).first()
-        credit = current_user.remaining_credit() * 682 + job_notification.cost + 6820
+        credit = current_user.remaining_credit() * 341 + job_notification.cost + 3410
         new_usage_record = UsageRecord(user_id=job_notification.user_id,
             date=dt.datetime.now(dt.timezone.utc), operation_type="credit",
             operation_details="credit for job error", operation_count=0,
@@ -2580,10 +2611,12 @@ def public_decks():
 @app.route("/deck_manager/<int:deck_id>", methods=['GET', 'POST'])
 @login_required
 def deck_manager(deck_id):
+    settings = UserSettings.query.filter_by(user=current_user.id).first()
     form = DeckOrg()
     share_form = Share()
     deck = Deck.query.filter_by(id=deck_id).first()
     tests = Test.query.filter_by(deck_id=deck_id).all()
+
     if current_user.id != deck.user_id:
         return apology("Sorry, this is not your deck")
     files = deck.deck_files
@@ -2608,7 +2641,8 @@ def deck_manager(deck_id):
 
 
     return render_template('deck_manager.html', deck=deck, files=files,
-                            share_form = share_form, tests = tests, form=form)
+                            share_form = share_form, tests = tests,
+                              form=form, settings=settings)
 
 ##@app.route("/team", methods=['GET', 'POST'])
 ##def team():
@@ -3253,7 +3287,30 @@ def remove_user_group(group_id, user_id):
         return jsonify({"message": "You do not have permission"
                     "to remove users from this group", "status": "error"})
     
+@app.route("/download/<int:test_id>")
+@login_required
+def download(test_id):
+    # Get HTML content
+    test_url = url_for('test_print', test_id=test_id, _external=True)
+    response = req.get(test_url)
+    html_content = response.content
 
+    # Create a pdf buffer
+    pdf = BytesIO()
+
+    # Define the link fetcher
+    def fetch_resources(uri, rel):
+        # Here the base URL should be the URL to the test_print page
+        return req.get(urljoin(test_url, uri)).content
+
+    # Then pass that HTML to CreatePDF
+    pisa.CreatePDF(BytesIO(html_content), pdf, link_callback=fetch_resources)
+
+    return make_response(pdf.getvalue(), 200,
+                         {
+                             'Content-Type': 'application/pdf',
+                             'Content-Disposition': 'attachment; filename=output.pdf'
+                         })
 
 ##################### EMAIL ###########################################################
 

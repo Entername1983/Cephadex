@@ -1,6 +1,14 @@
 {% extends "layout.html" %}
 
 {% block title %} View Decks {% endblock %}
+
+{% block head %}
+
+
+<!--- INTRO JS link -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/introjs.min.css" rel="stylesheet" />
+
+{% endblock %}
 {% block main_0 %}
 <!----
 <div class="fab-container">
@@ -20,6 +28,8 @@
 
 
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/intro.min.js"></script>
+
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -31,7 +41,58 @@
   });
 </script>
 
-<div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 1100" id="myToast">
+<script>
+
+    {% if settings.new_user_decks == 1 %}
+        viewDecksTour()
+    {% endif %}
+    
+  function viewDecksTour() {
+      document.addEventListener('DOMContentLoaded', function () {
+        introJs().setOptions({
+          showProgress: true,
+      steps: [{
+        title: 'Welcome!',
+        intro: "<img src='/static/avatar-octopus.png' style='max-height:220px;'><p>Hi I'm Ceph, I'll be your guide today."
+      },
+      {
+        Title:'Decks',
+        intro: "This is the page where all your decks will be displayed."
+      },
+      {
+        element: document.querySelector('.stats-container'),
+        intro: "We'll show you some stats about your decks here"
+      },
+
+    {
+      element: document.querySelector('#deckTable'),
+      intro: "All your decks will be visible here, right now you don't have any."
+    },
+    {
+      element: document.querySelector('#sidebar-create'),
+      intro: "Let's create a deck, click here to get started!",
+      position: 'center'
+
+      }]
+
+    }).start();
+      });
+
+      fetch('/new_user_settings_viewdecks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ checked: true })
+      })
+
+
+    }
+
+</script>
+
+
+<div class="toast-container position-fixed bottom-0 start-0 p-3"  style="z-index: 1100" id="myToast">
   {% if shared_decks|length > 0 %}
 
   <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -78,9 +139,9 @@
 {% endfor %}
 
 
-<div class="dashboard d-md-block d-none">
+<div class="dashboard d-md-block d-none" data-intro="This is your dashboard displaying your stats">
 
-  <div class="stats-container">
+  <div class="stats-container" id="stats-container">
 
       {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
 
@@ -136,7 +197,7 @@
 
 
 
-<div class="m-3">
+<div class="m-3" id = "deck-viewer">
 
   <div class=" m-2 p-2">
 
@@ -624,32 +685,7 @@ function shareDeck(deckId) {
   });
 </script>
 
-<script>
-  const checkbox = document.getElementById('new-user-decks-checkbox');
-  const newuserdiv = document.getElementById('new-user-decks-info');
-  checkbox.addEventListener('change', function () {
-    console.log(checkbox.checked)
-    if (this.checked) {
-      newuserdiv.style.display = "none";
-      fetch('/new_user_settings_viewdecks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ checked: true })
-      })
 
-    } else {
-      fetch('/new_user_settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ checked: false })
-      });
-    }
-  });
-</script>
 
 <script>
   function rejectTest(testId, userId) {

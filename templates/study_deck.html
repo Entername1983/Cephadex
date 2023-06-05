@@ -29,7 +29,7 @@
         if (cardList === null || cardList === undefined) {
           jq("#force-study").show();
           jq("#contain-main").hide();
-          jq('#no-cards').html('<p id="no-cards">You have no reviews pending for this deck!</p>');
+          jq('#no-cards').show();
 
         }
         else {
@@ -201,6 +201,7 @@
         }
       }
       else if (currentCard.category == "Mcq") {
+        
         // if button a b c or d has class correct then increment the card
       }
     }
@@ -270,10 +271,12 @@
     }
     // Sets the data for the card and cardsDue
     function setCardData(cardData, cardsDue) {
+      console.log("Setting card data")
       var formula = cardData.formula;
       formula = '\\[' + formula + '\\]';
       jq('#card-term').html(currentCard.term);
       jq('#card-id').html(currentCard.id);
+      console.log(currentCard.id);
       jq('#card-content').html(currentCard.content);
       if (currentCard.category == "Formulas") {
         jq('#card-formula').html(formula);
@@ -309,15 +312,16 @@
     // change 
     function mcqCorrectAnswerChecker() {
       var cardId = jq('#card-id').text();
-
+      console.log("mcqCorrectAnswerChecker")
+      console.log(cardId)
       var csrf_token = jq("input[name='csrf_token']").val();
       var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
       for (var i = 0; i < answerButtons.length; i++) {
         if (jq(answerButtons[i]).hasClass('correct-mcq') && jq(answerButtons[i]).hasClass('selected')) {
-          incrementCard(csrf_token, card_id);
+          incrementCard(csrf_token, cardId);
         }
         else if (jq(answerButtons[i]).hasClass('incorrect-mcq') && jq(answerButtons[i]).hasClass('selected')) {
-          decrementCard(csrf_token, card_id);
+          decrementCard(csrf_token, cardId);
         }
       }
     }
@@ -369,8 +373,11 @@
             return;
           }
           else {
+            console.log("entered else in mcqLoadNextCard")
+            
             currentCard = cardList[currentCardIndex];
             cardsDue = cardList.length;
+            console.log(currentCard, cardsDue)
             mcqChecker();
             setCardData(currentCard, cardsDue);
             LoadRandomMcq();
@@ -590,6 +597,7 @@
     </div>
   </div>
 </div>
+<h4 id="no-cards" class = "m-5 text-center" style="display:none">Congratulations!🎉🎉 You have completed all of your reviews for this deck.  Keep up the amazing work!🐙🐙</h4>
 
 
 <div class="container-fluid study-container mb-2" id = "contain-main">
@@ -645,19 +653,8 @@
     </div>
   </div>
 </div>
+</div>
 
-<!---
-<div class="row d-flex align-items-center justify-content-center">
-
-    <div class="row d-flex align-items-center text-center justify-content-center" style="display:none" id="no-cards">
-    </div>
-    <div class="row d-flex align-items-center justify-content-center">
-      <a class="btn box_warning eq_buttons ml-5" style="max-width: 300px; display:none" href="/casualmode/{{deck}}"
-        id="force-study" style="display: none">Study anyway</a>
-    </div>
-
-
-</div>--->
 <!----  MODAL ------>
 
 <div class="fab-chat-container">

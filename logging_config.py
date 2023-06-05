@@ -22,9 +22,25 @@ LOGGING_CONFIG = {
             'maxBytes': 1024*1024*5,  # 5MB
             'backupCount': 5,  # keep 5 backup files
         },
+        'processingFileHandler': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG',
+            'formatter': 'simpleFormatter',
+            'filename': 'processing.log',
+            'maxBytes': 1024*1024*5,  # 5MB
+            'backupCount': 5,  # keep 5 backup files
+        },
     },
     'root': {
         'level': 'DEBUG',
         'handlers': ['consoleHandler', 'fileHandler'],
+        'propagate': False,
+    },
+    'loggers': {
+        'processing': {
+            'level': 'DEBUG',
+            'handlers': ['processingFileHandler'],
+            'propagate': False,
+        },
     },
 }

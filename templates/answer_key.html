@@ -1,51 +1,69 @@
 {% extends "layout.html" %} {% block title %} Test Builder {% endblock %} 
 {% block head %} 
+<script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta name="robots" content="noindex">
+
 
 
 <style type="text/css" media="print">
-    @page 
-    {
-        size:  auto;   /* auto is the initial value */
-        margin: 0mm;  /* this affects the margin in the printer settings */
+    @page {
+        size: auto;
+        /* auto is the initial value */
+        margin: 0mm;
+        /* this affects the margin in the printer settings */
     }
 
-    html
-    {
-        background-color: #FFFFFF; 
-        margin: 10px;  /* this affects the margin on the html before sending to printer */
+    html {
+        background-color: #FFFFFF;
+        margin: 10px;
+        /* this affects the margin on the html before sending to printer */
     }
 
-    body
-    {
-        margin: 10mm 15mm 10mm 15mm; /* margin you want for the content */
+    body {
+        margin: 10mm 15mm 10mm 15mm;
+        /* margin you want for the content */
     }
+</style>
+<style type="text/css" media="print">
     @media print {
-        .navbar { /* Assuming .navbar is the class of your navigation bar */
-            display: none!important;
+        body * {
+            visibility: hidden;
+        }
+        #printable, #printable * {
+            visibility: visible;
+        }
+        #printable-container {
+            /* Adjust margins and other styles for the printable content */
+            margin: 0;
+            padding: 0;
         }
     }
-    </style>
+</style>
 
 {% endblock %}
 {% block
     main_0 %}
-    <div class = "p-4">
+
+    <div id = "printable" class ="printable printable-container">
+
+<div class = "p-4">
 {% set q_counter = 0 %}
-<div class="row">
-    {% if current_user.subscription_plan in [1, 2, 3] %}
-        <img src="/static/Cepha-banner-1.png" style="max-width:200px">
-        <br>
-            {% endif %}
+    <div class="row">
+        {% if current_user.subscription_plan in [1, 2, 3] %}
+            <img src="/static/Cepha-banner-1.png" style="max-width:200px">
+            <br>
+                {% endif %}
+        </div>
+    <div class="row">
+            
+
+        <div class="col-12 d-flex align-items-center">
+            <h4>Answers for: {{test.name}}</h4>
+        </div>
+
+
     </div>
-<div class="row">
-        
-
-    <div class="col-12 d-flex align-items-center">
-        <h4>Answers for: {{test.name}}</h4>
-    </div>
-
-
-</div>
 <br>
 {% for question in test.questions %}
 {% set q_counter = loop.index %}
@@ -189,5 +207,5 @@
 
 
 </div>
-
+</div
 {% endblock %}

@@ -137,7 +137,7 @@ class User(db.Model, UserMixin):
             .order_by(UsageRecord.date.desc()).first()
         )
         if usage_record:
-            remaining_credit = round(usage_record.remaining_count/682)
+            remaining_credit = round(usage_record.remaining_count/341)
         else:
             subscription_plan = (
             SubscriptionPlan.query
@@ -333,11 +333,11 @@ class Card(db.Model):
             if self.box_id > 3:
                 self.box_id = 3
         if self.box_id == 0:
-            self.srs_interval = self.srs_interval * 1.2    
+            self.srs_interval = self.srs_interval * 2    
         if self.box_id == 1:
-            self.srs_interval = self.srs_interval * 2
+            self.srs_interval = self.srs_interval * 4
         if self.box_id == 2:
-            self.srs_interval = self.srs_interval * 5
+            self.srs_interval = self.srs_interval * 6
         if self.box_id == 3:
             self.srs_interval = self.srs_interval * 10
         if self.srs_interval > 525600:

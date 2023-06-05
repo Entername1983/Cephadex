@@ -1,5 +1,77 @@
-{% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block
+{% extends "layout.html" %} {% block title %} Test Builder {% endblock %} {% block head %}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/introjs.min.css" rel="stylesheet" />
+
+
+
+
+
+{% endblock %}{% block
 main_0 %}
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/intro.min.js"></script>
+
+<script>
+
+    {% if settings.new_user_tests == 1 %}
+    console.log("new user")
+        viewDecksTour()
+    {% endif %}
+    
+  function viewDecksTour() {
+      document.addEventListener('DOMContentLoaded', function () {
+        introJs().setOptions({
+          showProgress: true,
+      steps: [
+      {
+        element: document.querySelector('#question-box'),
+        intro: "Your questions appear here.  You can edit the question, answer and marks directly.  ",
+      },
+      {
+        element: document.querySelector('#test-info-collapse'),
+        intro: "You can edit the quiz details here"
+      },
+    {
+      element: document.querySelector('#tour-save'),
+      intro: "Don't forget to save any changes you make"
+    },
+    {
+      element: document.querySelector('#tour-assign'),
+      intro: "Click here to assign your quiz, simply enter the email(s) of the student(s) you want to assign it to"
+    },
+    {
+      element: document.querySelector('#tour-print'),
+      intro: "Print your quiz here"
+    },
+    {
+      element: document.querySelector('#tour-answer-key'),
+      intro: "Print an answer key here"
+    },
+    {
+      
+      intro: "That's it.  Your quiz will be saved in your deck so you can re-use it as often as you want.  The results of any quizzes assigned can be found in the quizzes section.  As always if you have any questions or feedback please let us know!"
+    }],
+      scrollToElement: false,
+
+    }).start();
+      });
+
+      fetch('/new_user_settings_tests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ checked: true })
+      })
+
+
+    }
+
+</script>
+
+
+
 <script data-cookie-consent="strictly-necessary">
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -71,7 +143,7 @@ main_0 %}
     <div class="container-fluid box-manager" style="background-color:#efe8ff; padding-top: 4px!important; padding-bottom: 4px!important;">
         <form action="" method="POST">
             {{ form.hidden_tag() }}
-            <div class="row d-flex justify-content-start">
+            <div class="row my-3 d-flex justify-content-start">
                 <div class="d-flex">
                     <!-- ASSIGN TEST -->
                     <a  data-bs-toggle="collapse" class="mx-2 img-grow" data-bs-target="#test-info-collapse" alt="Collapse" style="max-width:35px;max-height:35px;"
@@ -79,23 +151,23 @@ main_0 %}
                         <img src="\static\collapse-icon.png" alt="Collapse" style="max-width:35px;max-height:35px; cursor: pointer;"
                             title="Collapse test">
                             </a>
-                    <input class="mx-2 img-grow" type="image" src="/static/save-icon.png"
+                    <input class="mx-2 img-grow" id = "tour-save" type="image" src="/static/save-icon.png"
                         style="padding: 0px!important; width: 35px; height:35px" alt="Save changes" title="Save">
 
-                    <a class="mx-2 img-grow" data-bs-toggle="modal" data-bs-target="#assignModal" style="cursor: pointer;">
+                    <a class="mx-2 img-grow" id = "tour-assign" data-bs-toggle="modal" data-bs-target="#assignModal" style="cursor: pointer;">
                         <img src="/static/share-icon.png" style="width: 35px; height:35px" alt="Assign" title="Assign">
                     </a>
 
                
 
                     <!-- PRINT -->
-                    <a href="/test_print/{{test.id}}" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
+                    <a href="/test_print/{{test.id}}" id ="tour-print" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
                         alt="Print" title="Print">
                         <img src="\static\print-icon.png" alt="Print" style="max-width:35px;max-height:35px;"
                             title="Print">
                     </a>
                     {% if current_user.subscription_plan in [1, 2, 3, 4, 5, 6, 7] %}
-                    <a href="/answer_key/{{test.id}}" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
+                    <a href="/answer_key/{{test.id}}" id = "tour-answer-key" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
                     alt="Print" title="Answer key">
                     <img src="\static\answer-key-icon.png" alt="Print" style="max-width:35px;max-height:35px;"
                         title="Print answer key">
@@ -239,7 +311,7 @@ main_0 %}
 </div>
 
 
-        <div class="container-fluid box-manager mt-2" id="question-box" style="background-color:#efe8ff; padding: 1px!important;max-height:80vh; overflow-y: scroll;">
+        <div class="container-fluid mt-2" id="question-box" style="padding: 1px!important;max-height:80vh; overflow-y: scroll;">
             {% for question in test.questions %}
             {% if question.q_type == "mcq" %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">

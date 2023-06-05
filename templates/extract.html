@@ -1,24 +1,72 @@
 {% extends "layout.html" %} {% block title %} Extractor {% endblock %}
+{% block head %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/introjs.min.css" rel="stylesheet" />
+
+{% endblock %}
+
+
+
 {% block main_0 %}
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/intro.min.js"></script>
 
 
-{% if settings.new_user == True %}
 
-<div class="container-fluid box_study" id="new-user-info">
-    <h5> Welcome to our creation page</h5>
-    <p> This is where the magic happens! On this page you can create all sorts of study material.</p>
-    <ul>
-        <li> Feel free to try out different combinations</li>
-        <li> For summaries, notes and transcriptions the results will be stored in the deck files associated with your deck</li>
-        <li> Big documents can take a few minutes to process, you will be notified through the app and by email when they are done</li>
-        <li> We are constantly looking to make improvements and add features, so if there is something you'd like that Cephadex can't do be sure to let us know</li>
-    </ul>
-    <form id="new-user-study">
-        <input type="checkbox" class="" id="new-user-checkbox" value="checked">
-        <label class="form-check-label" for="new-user-checkbox">Do not show this message again</label>
-    </form>
-</div>
+
+
+<script>
+
+    {% if settings.new_user == 1 %}
+        viewDecksTour()
+    {% endif %}
+    
+  function viewDecksTour() {
+      document.addEventListener('DOMContentLoaded', function () {
+        introJs().setOptions({
+          showProgress: true,
+      steps: [{
+        title: 'Create a deck',
+        intro: "This is the deck creation page, where you can turn your content into study material and flashcards."
+      },
+      {
+        Title:'Input your content',
+        element: document.querySelector('#tour-input'),
+        intro: "First choose what type of content you want to input, a file (pdf, ppt, doc, txt), plain text or a link (youtube or wikipedia)."
+      },
+      {
+        element: document.querySelector('#credit-display'),
+        intro: "We'll show you how many credits that will use here"
+      },
+
+    {
+      element: document.querySelector('#tour-name'),
+      intro: "You can enter a deck name and description here, or choose an existing deck to add to.  If you can't think of a name don't worry, we'll pick one for you!"
+    },
+    {
+      element: document.querySelector('#extract-output-tab'),
+      intro: "You can see some advanced customization options here, but you can ignore them for now.",
+    },
+
+{
+  element: document.querySelector('#generate-btn'),
+  intro: "Click here to start the creation process.  You will be re-directed back to your decks page and notified when your deck is ready!"
+      }]
+
+    }).start();
+      });
+
+      fetch('/new_user_settings_create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ checked: true })
+      })
+
+
+    }
+
+</script>
 <script>
     const checkbox = document.getElementById('new-user-checkbox');
     const newuserdiv = document.getElementById('new-user-info');
@@ -46,7 +94,8 @@
     });
 
 </script>
-{% endif %}
+
+
 <script>
     $(document).ready(function(){
         $('#file-input').change(function(){
@@ -187,7 +236,7 @@
                 <!---- SECTION ON WHAT--->
                 <div class = "box_study p-3">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6" id = "tour-input">
                         <h5 class="mb-3">Type of input</h5>
                         <h6 class="mb-1"> Upload a file</h6>
                         <div class="input-group">
@@ -218,7 +267,7 @@
                             semi-colon ";".
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6" id ="tour-name">
                         <h5 class="mb-3">Choose a deck</h5>
                         <h6 class="mb-1">Create a new deck</h6>
                         <div class="form-floating mb-2">

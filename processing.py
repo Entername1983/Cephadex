@@ -4,7 +4,6 @@ from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS, CONST_PLA
 from datetime import datetime, timedelta
 import json
 from flask import current_app
-from random import randrange
 from time import sleep
 from cardcreator import creator, split_text
 from extractors import create_image, summarize, turn_to_notes, add_period, extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx, extract_audio, transcribe_and_translate
@@ -12,13 +11,13 @@ from app import app
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
 import asyncio
-import aiohttp
-from aiohttp import ClientSession
-from sqlalchemy.orm import object_session
 import random
 from extractors import transcribe_whisper
 import os
 from datetime import timezone
+
+
+
 
 async def process_jobs():
     engine = create_engine(SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS)
@@ -340,7 +339,7 @@ def generate_images(deck, session=None):
 def check_card_exist(deck, term):
     deck = Deck.query.filter_by(id=deck.id).first()
     for card in deck.cards:
-        if card.term == term:
+        if card.term.lower() == term.lower():
             print(f"card {term} already exists")
             return True
     return False
