@@ -1,4 +1,4 @@
-{% extends "layout.html" %} {% block title %} Test Builder {% endblock %}
+{% extends "layout.html" %} {% block title %} AI Generated Quiz Ready to Print  {% endblock %}
 {% block head %}
 <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -44,7 +44,7 @@
 {% block
 main_0 %}
 
-<div id="print-options" class="box-manager my-5 no-print d-flex justify-content-around align-items-center flex-wrap py-3">
+<div id="print-options" class="box-manager no-print d-flex justify-content-around align-items-center flex-wrap no-print">
     <div class="print-option-item">
         <label class="form-check-label">
             <input type="checkbox" class="print-toggle form-check-input" data-target=".print-marks" checked> Print Marks
@@ -100,7 +100,7 @@ main_0 %}
 
         </div>
     {% if test.instructions %}
-    <div class="row my-4 print-instructions">
+    <div class="row my-2 print-instructions">
         <h5>Instructions:</h5>
         <p><i> {{test.instructions}}</i> </p>
     </div>

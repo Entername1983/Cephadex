@@ -123,6 +123,13 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 
+@app.before_request
+def redirect_to_https():
+    if not app.debug:  # or another condition to check if app is in production
+        if request.headers.get('X-Forwarded-Proto', 'http') == 'http':
+            url = request.url.replace('http://', 'https://', 1)
+            return redirect(url, code=301)
+
 @app.context_processor
 def inject_csrf_token():
     return dict(csrf_token=generate_csrf())
@@ -149,6 +156,15 @@ def before_request():
         g.feedback_form = None
     else:
         g.feedback_form = FeedbackForm()
+@app.route('/robots.txt')
+def robots():
+    return send_file('static/robots.txt')
+
+@app.route('/sitemap.xml')
+def sitemap():
+    return send_file('static/sitemap.xml')
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1360,11 +1376,12 @@ def get_or_create_deck(form, prompt_options):
     if form.deck_list.data:
         deck = form.deck_list.data
     else:
-        chosen_name = random.choice(DECK_NAMES)
-        random_number = random.randint(10, 99)
-        deck_name = f"{chosen_name}_{random_number}"
+        if not form.name.data:
+            chosen_name = random.choice(DECK_NAMES)
+        else:
+            chosen_name = form.name.data
         deck_description = form.description.data or "".join(main_opt + " " + "deck")
-        deck = Deck(name=deck_name, description=deck_description)
+        deck = Deck(name=chosen_name, description=deck_description)
         db.session.add(deck)
         db.session.commit()
     deck.user_id = current_user.id
@@ -1404,7 +1421,7 @@ def save_source_text_to_deck(name, deck, text, prompt_options, method="extract")
 
         chosen_name = random.choice(SOURCE_FILE_NAMES)
 
-        f_name = f"{chosen_name}_(source_file)"
+        f_name = f"{chosen_name} (source_file)"
 
         file_storage = DeckFiles(file_name=f_name,
                                   text_string=text, create_type = "source",
@@ -1715,8 +1732,8 @@ def build_test(deck_id):
         test_questions = request.form.getlist('selected_cards[]')
         name = deck.name + " Test" + " " + datetime.now().strftime("%Y-%m-%d %H:%M")
         chosen_name = random.choice(TEST_NAMES)
-        random_number = random.randint(10, 99)
-        name = chosen_name + " " + str(random_number)
+
+        name = chosen_name
         new_test = Test(creator=current_user.id, deck_id = deck.id)
         db.session.add(new_test)
         new_test.name = name
@@ -2317,13 +2334,13 @@ def assemble_file(total_jobs):
         for job in total_jobs:
             full_text += job.processed_content
         if task_type == "Turn2notes":
-            chosen_name = f"{random.choice(NOTES_FILE_NAMES)}_{task_type}"
+            chosen_name = f"{random.choice(NOTES_FILE_NAMES)} {task_type}"
         elif task_type == "Transcribe":
-            chosen_name = f"{random.choice(TRANSCRIPTION_FILE_NAMES)}_{task_type}"
+            chosen_name = f"{random.choice(TRANSCRIPTION_FILE_NAMES)} {task_type}"
         elif task_type == "Summarize":
-            chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)}_{task_type}"
+            chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)} {task_type}"
         else:
-            chosen_name = f"{random.choice(SOURCE_FILE_NAMES)}_{task_type}"
+            chosen_name = f"{random.choice(SOURCE_FILE_NAMES)} {task_type}"
         rand_int = random.randint(1, 99)
         name = f"{chosen_name}_{rand_int}"
         existing_file = DeckFiles.query.filter_by(file_name=name).first()
@@ -2803,10 +2820,10 @@ def handle_checkout_session(event):
     plans_dict = {
     'price_1NAp58GXWJkeH44y1XCry43l':'premium_yearly',
     'price_1NAp4FGXWJkeH44yaeBrflCN': 'premium_monthly', 
-    'price_1N8LUuGXWJkeH44yZcPvdyIk': 'standard_yearly', 
-    'price_1N8LSNGXWJkeH44yRgflWxVx': 'standard_monthly',
-    'price_1NAp2WGXWJkeH44yPZ7Lfh2I': 'basic_yearly',
-    'price_1NAoyjGXWJkeH44y6apbQdjH': 'basic_monthly',
+    'price_1NFjudGXWJkeH44yLo0dmszD': 'standard_yearly', 
+    'price_1NFk27GXWJkeH44y8mfXRW71': 'standard_monthly',
+    'price_1NFk0RGXWJkeH44yR221a2k9': 'basic_yearly',
+    'price_1NFk0RGXWJkeH44y6Cc9kCOV': 'basic_monthly',
     }
     # Extract customer ID and subscription ID from the invoice object
     customer_id = event['data']['object']['customer']

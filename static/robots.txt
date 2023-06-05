@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /private/
+User-agent: *
+Crawl-delay: 10
+Sitemap: http://www.cephadex.com/sitemap.xml

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %} View Decks {% endblock %}
+{% block title %} Your AI Decks and Lesson Viewer {% endblock %}
 
 {% block head %}
 
@@ -53,7 +53,7 @@
           showProgress: true,
       steps: [{
         title: 'Welcome!',
-        intro: "<img src='/static/avatar-octopus.png' style='max-height:220px;'><p>Hi I'm Ceph, I'll be your guide today."
+        intro: "<img src='/static/avatar-octopus.png' alt='ai-tutor'style='max-height:220px;'><p>Hi I'm Ceph, I'll be your guide today."
       },
       {
         Title:'Decks',
@@ -301,6 +301,11 @@
       </table>
     </div>
   </div>
+  <script>
+    $(document).on('show.bs.dropdown', function (e) {
+      $('.dropdown').not(e.target).removeClass('show').find('.dropdown-menu').removeClass('show');
+    });
+  </script>
   <!----- SHARE DECK MODAL -->
   {% for deck in decks %}
   <script>
@@ -415,12 +420,12 @@ function shareDeck(deckId) {
                 <p class="card-text">{{deck.sender}}</p>
                 <a id="approve{{deck.id}}" onclick="approveSharedDeck(event, {{deck.id}})" class="mx-2"
                   style="cursor: pointer; text-decoration: none;">
-                  <img src="\static\approve-icon.png" alt="See source docs"
+                  <img src="\static\approve-icon.png" alt="Accept AI generated deck"
                     style="max-width:35px;max-height:35px;" class="img-grow px-1" title="Approve">
                 </a>
                 <a id="reject{{deck.id}}" class="mx-2" onclick="rejectSharedDeck(event, {{deck.id}})"
                   style="cursor: pointer; text-decoration: none;">
-                  <img src="\static\reject-icon.png" alt="Reject" style="max-width:35px;max-height:35px;"
+                  <img src="\static\reject-icon.png" alt="Reject AI generated deck" style="max-width:35px;max-height:35px;"
                     class="img-grow px-1" title="Reject">
                 </a>
               </div>
@@ -497,7 +502,7 @@ function shareDeck(deckId) {
                 <a href="/take_test/{{test.id}}/{{user.id}}" class="mx-2" style="cursor: pointer;">
                   Click here to take the test
                 </a>
-                <a href="#" class="mx-2" onclick="rejectTest('{{test.id}}', '{{user.id}}');"><img src="/static/reject-icon.png" class ="img-grow" style="max-width:40px; max-height:40px;"></a> <!-- Added delete button -->
+                <a href="#" class="mx-2" onclick="rejectTest('{{test.id}}', '{{user.id}}');"><img src="/static/reject-icon.png" class ="img-grow" alt="Reject AI generated quiz" style="max-width:40px; max-height:40px;"></a> <!-- Added delete button -->
               </div>
             </div>
           </div>

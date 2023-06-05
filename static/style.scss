@@ -76,7 +76,10 @@ $yellow: #FFFD98;
 
 
 
-
+* {
+  margin: 0;
+  padding: 0;
+}
 
 $btn-white-space: nowrap;
 
@@ -1861,6 +1864,10 @@ a {
 
 
 @media print {
+  * {
+    padding: 0;
+    margin: 0;
+}
   .navbar { 
       display: none!important;
   }
