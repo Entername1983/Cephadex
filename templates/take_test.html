@@ -176,37 +176,30 @@
                     });
             });
                 </script>
-                {% if test.time_limit %}
-
-<script>
-
-    const timer = document.querySelector('#timer');
-    const duration = {{test.time_limit}}* 60;
-    console.log(duration);
-    function updateTimer() {
-        const remainingTime = Math.max(duration - Math.floor((new Date() - startTime) / 1000), 0);
-        console.log(remainingTime)
-        const minutes = Math.floor(remainingTime / 60);
-        console.log(minutes)
-        const seconds = Math.floor(remainingTime % 60).toString().padStart(2, '0');
-        console.log(seconds)
-        timer.textContent = `${minutes}:${seconds}`;
-        if (remainingTime <= 0) {
-            clearInterval(timerInterval);
-            timer.textContent = 'Time is up!';
-            document.querySelector('#my-form').submit(); // submit the form when the timer expires
-        }
-    }
-    const startTime = new Date();
-    updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
-
-</script>
-
-{% endif %}
+                           
 
             </div>
+            {% else %}
 
+            <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
+            <div class="card mt-1">
+                <div class="card-head">
+                    <div class="row p-1">
+                        <div class="col-10 ">
+                            {{q_counter}} - {{question.question}}
+                        </div>
+                        <div class="col-2 ">
+                            Marks: {{question.points}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <label for="answer{{question.id}}">Answer:</label>
+
+                    <input type="text" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                </div>
+            </div>
 
 
             {% endif %}

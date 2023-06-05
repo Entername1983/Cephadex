@@ -1990,21 +1990,24 @@ def test_results(test_id, user_id):
     for question in test.questions:
         answer = QuestionResult.query.filter_by(test_id = c_test_id,
                                 taker = c_user_id, question_id = question.id).first()
-        answer_given = remove_punctuation(answer.answer).lower().strip()
-        if question.q_type == "jeopardy":
-            answer_expected = remove_punctuation(question.term).lower().strip()
-        elif question.q_type == "cloze":
-            answer_expected = remove_punctuation(question.content).lower().strip()
-        elif question.q_type == "mcq":
-            answer_expected = remove_punctuation(question.content).lower().strip()
-        matcher = difflib.SequenceMatcher(None, answer_given.lower(),
-                                           answer_expected.lower())
-        if matcher.ratio() > 0.9:
-            point_counter += question.points
-            correct_counter += 1
-            answer.points = int(question.points)
-        else:
-            answer.points = 0
+        if answer.answer:
+            answer_given = remove_punctuation(answer.answer).lower().strip()
+            if question.q_type == "jeopardy":
+                answer_expected = remove_punctuation(question.term).lower().strip()
+            elif question.q_type == "cloze":
+                answer_expected = remove_punctuation(question.content).lower().strip()
+            elif question.q_type == "mcq":
+                answer_expected = remove_punctuation(question.content).lower().strip()
+            else:
+                answer_expected = remove_punctuation(question.content).lower().strip()
+            matcher = difflib.SequenceMatcher(None, answer_given.lower(),
+                                            answer_expected.lower())
+            if matcher.ratio() > 0.9:
+                point_counter += question.points
+                correct_counter += 1
+                answer.points = int(question.points)
+            else:
+                answer.points = 0
         if not answer.points:
             answer.points = 0
     test = db.session.query(Test).filter_by(id=c_test_id).first()
