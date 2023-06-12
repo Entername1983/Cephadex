@@ -40,7 +40,6 @@ from helpers import remove_punctuation, apology
 from anki import request_anki_permission, anki_import_all, anki_import_deck, anki_create_deck, anki_create_card, find_notes, check_anki_connect
 from flask import abort
 from celery import Celery
-from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, BROKER, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
 import logging.config
@@ -53,6 +52,27 @@ from bleach import clean
 from json import JSONEncoder
 from flask_wtf.csrf import generate_csrf
 from threading import Thread
+
+SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
+UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = os.environ.get("DEBUG")
+SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+MAX_CONTENT = os.environ.get("MAX_CONTENT")
+SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
+ALLOWED_EXTENSIONS = os.environ.get("ALLOWED_EXTENSIONS")
+FLASK_DEBUG = os.environ.get("FLASK_DEBUG")
+MAX_CONTENT = os.environ.get("MAX_CONTENT")
+
+
+
+
+
+
+class GameAnswerSubmit(FlaskForm):
+    answer = StringField('Answer')
+    
+
 
 class CreateGameForm(FlaskForm):
     deck = SelectField('Deck', validators=[DataRequired()])
