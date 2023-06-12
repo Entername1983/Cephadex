@@ -1,7 +1,6 @@
 from models import User, SubscriptionPlan, UsageRecord
 from app import db
 from datetime import datetime, timedelta
-from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS
 from sqlalchemy import create_engine
 from app import app
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -15,7 +14,10 @@ from sqlalchemy import func
 import csv
 
 
-
+SQLALCHEMY_ENGINE_OPTIONS = os.environ.get("SQLALCHEMY_ENGINE_OPTIONS")
+SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+MAX_CONTENT = os.environ.get("MAX_CONTENT")
+SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
 
 
 

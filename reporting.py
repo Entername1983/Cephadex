@@ -3,7 +3,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from models import User, UsageRecord
 from app import db
-from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS, CONST_PLAN
 from sqlalchemy import create_engine
 from app import app
 from datetime import timezone
@@ -14,11 +13,12 @@ from models import Test, Feedback, DeckFiles, Deck, Card, EventTracking
 from send_email import send_email_report
 import os
 from sqlalchemy import func
-
 import csv
-import pandas as pd
 
-
+SQLALCHEMY_ENGINE_OPTIONS = os.environ.get("SQLALCHEMY_ENGINE_OPTIONS")
+SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+MAX_CONTENT = os.environ.get("MAX_CONTENT")
+SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS
