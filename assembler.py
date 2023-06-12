@@ -23,8 +23,10 @@ from itertools import groupby
 from sqlalchemy.exc import IntegrityError
 
 SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
-SQLALCHEMY_ENGINE_OPTIONS = os.environ.get("SQLALCHEMY_ENGINE_OPTIONS")
+SQLALCHEMY_ENGINE_OPTIONS = json.loads(os.environ['SQLALCHEMY_ENGINE_OPTIONS'])
 CONST_PLAN = os.environ.get("CONST_PLAN")
+NUM_WORKERS_ASSEMBLER = os.environ.get("NUM_WORKERS_ASSEMBLER")
+
 
 ACCEPTABLE_ERROR_RATIO = 0.2
 DENOMINATOR_CHECK_FLASHCARDS = 100
@@ -446,7 +448,7 @@ def check_card_exist(deck, term):
 if __name__ == "__main__":
     with app.app_context():
         async def main():
-            num_workers = 1  # Number of concurrent workers to run
+            num_workers = NUM_WORKERS_ASSEMBLER  # Number of concurrent workers to run
             tasks = []
             for _ in range(num_workers):
                 task = asyncio.create_task(process_jobs())
