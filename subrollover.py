@@ -12,9 +12,9 @@ from send_email import send_email_report
 import os
 from sqlalchemy import func
 import csv
+import json
 
-
-SQLALCHEMY_ENGINE_OPTIONS = os.environ.get("SQLALCHEMY_ENGINE_OPTIONS")
+SQLALCHEMY_ENGINE_OPTIONS = json.loads(os.environ['SQLALCHEMY_ENGINE_OPTIONS'])
 SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
 MAX_CONTENT = os.environ.get("MAX_CONTENT")
 SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")

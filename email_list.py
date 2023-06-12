@@ -1,10 +1,11 @@
 import csv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS
 from models import User, Subscriber
-
-
+import json
+import os
+SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+SQLALCHEMY_ENGINE_OPTIONS = json.loads(os.environ['SQLALCHEMY_ENGINE_OPTIONS'])
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS
