@@ -28,7 +28,6 @@ from helpers import remove_punctuation, apology
 import difflib
 from anki import request_anki_permission, anki_create_deck, anki_create_card, find_notes, check_anki_connect
 import time
-from config import UPLOAD_FOLDER, SECRET_KEY, DEBUG, SQLALCHEMY_DATABASE_URI, MAX_CONTENT, SQLALCHEMY_TRACK_MODIFICATIONS, ALLOWED_EXTENSIONS, FLASK_DEBUG
 from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import Game, PlayerGame, GameAnswer, GameVote
 from models import JobNotification, DeletedAccounts, StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
@@ -63,13 +62,21 @@ from io import BytesIO
 
 dictConfig(LOGGING_CONFIG)
 
-
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
 AUTH2_CLIENT_ID = os.environ.get("AUTH2_CLIENT_ID")
 
 SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
+UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = os.environ.get("DEBUG")
+SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+MAX_CONTENT = os.environ.get("MAX_CONTENT")
+SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
+ALLOWED_EXTENSIONS = os.environ.get("ALLOWED_EXTENSIONS")
+FLASK_DEBUG = os.environ.get("FLASK_DEBUG")
+MAX_CONTENT = os.environ.get("MAX_CONTENT")
 
 os.environ["FLASK_DEBUG"] = FLASK_DEBUG
 # Configure application

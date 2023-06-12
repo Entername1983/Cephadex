@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS, CONST_PLAN
 from datetime import datetime, timedelta
 import json
 from flask import current_app
@@ -16,7 +15,9 @@ from extractors import transcribe_whisper
 import os
 from datetime import timezone
 
-
+SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+SQLALCHEMY_ENGINE_OPTIONS = os.environ.get("SQLALCHEMY_ENGINE_OPTIONS")
+CONST_PLAN = os.environ.get("CONST_PLAN")
 
 
 async def process_jobs():
