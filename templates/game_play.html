@@ -1,0 +1,349 @@
+{% extends "layout.html" %}
+
+{% block title %} Game {% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+
+
+
+{% endblock %}
+{% block main_0 %}
+
+
+<div class="container-fluid">
+    <div class="row text-center mb-4">
+        <h1 class="display-3 hcepha1">Tentacle Tango</h1>
+    </div>
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-3 text-center">
+            <h5>Timer: <span id="timer"></span>(seconds)</h5>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>Round: <span id="round">0</span></h5>
+        </div>
+        <div class="col-md-3 text-center">
+            {% if game.creator == current_user.id %}
+                <button class="btn btn-primary" id="next-round-button">Next round</button>
+                <button class="btn btn-danger" id="end-game-button">End Game</button>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <h2 class="text-center">Game board</h2>
+            <div id="game-board" class="card box-manager p-3 mb-4" style="min-height:400px;">
+                <div id="game-over" style="display:none;">
+                    <h1 id="game-over-text"></h1>
+                </div>
+                <div id="play-field" class="card-body">
+                    <h4 class = "card-title" id="flashcard-question"></h4>
+
+                    <div id="answers-input" style="display:none">
+                        <form id="answer-form">
+                            <input type="text" id="answer-input" class="form-control" placeholder="Enter your answer">
+                            <button type="button" class="btn btn-success" id="submit-answer" onclick="submitAnswer()">Submit</button>
+                        </form>
+                    </div>
+                    <div id="end-of-round">
+                        <div id="vote-answers"></div>
+                    </div>
+                    <div id="answers"></div>
+                    <div id="correct-answer"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <h2 class="text-center">Players</h2>
+            <div class="box-manager p-5" id="game-scores" style="min-height:400px;">
+                <ul class="list-group">
+                    {% for player in players %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <h6>{{ player.username }}</h6>
+                            <span class="badge bg-info badge-pill" id="score_{{player.player_id}}"></span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/// CONSTANTS
+
+const gameId = "{{ game.id }}";
+const playerId = "{{ current_user.id }}";
+const socket = io.connect('http://localhost:5000');
+const gameCreator = "{{ game.creator }}";
+//// BUTTONS
+$('#end-game-button').click(endGame);
+$('#submit-answer-button').click(submitAnswer);
+$('#reveal-answers-button').click(revealAnswers);
+$('#answer-form').on('submit', function(event) {
+    event.preventDefault();  
+    submitAnswer();
+});
+$('#next-round-button').click(nextRound);
+socket.on('connect', function() {
+    console.log('Connected to server');
+});
+
+
+//// LISTENERS 
+socket.on('connect', function() {
+    const userId = "{{ current_user.id }}";
+    console.log('Connected to server');
+    socket.emit('join_game', {user_id: userId, game_id: gameId});
+});
+
+socket.on('disconnect', function() {
+    console.log('Disconnected from server');
+});
+
+socket.on('user_joined', function(data) {
+    console.log(data.user_id + ' has joined the game');
+});
+
+socket.on('start_round', function(data) {
+    console.log('Round started: ', data);
+    $('#vote-answers').empty();
+
+    $('#flashcard-question').text(data.question);
+    $('#current-flashcard-id').text(data.card_id);
+    $('#round').text(data.round);
+    checkEndGame(data.round);
+    $('#answers-input').show();
+    $('#submit-answer').show();
+    $('#answer-input').show();
+    console.log(data.card_id, data.question, data.round)
+    startTimer();
+});
+//
+//socket.on('submit_answer', function(data) {
+//    console.log("submit_answer")
+//    checkAllAnswersSubmitted();
+//});
+
+socket.on('check_if_all_answers_submitted', function(data) {
+    console.log("all_answers_submitted for round " + data.round_id)
+    revealAnswers();
+    clearInterval(timerId);
+});
+
+socket.off('update_scores');
+socket.on('update_scores', function(data) {
+    console.log("update_scores")
+    console.log(data.player_scores)
+    displayNewScores(data.player_scores);
+});
+
+socket.on('check_all_votes_are_in', function(data) {
+    console.log("check_all_votes_are_in");
+    count_votes();
+});
+
+
+function nextRound() {
+    console.log("clicked next round")
+    socket.emit('start_round', {game_id: gameId});
+        $('#vote-answers').empty();
+
+}
+socket.on('count_votes', function(data) {
+    console.log("received count votes from backend")
+    console.log(data);
+    console.log("data answers info", data.answers_info);
+    displayVotes(data.answers_info);
+    if (playerId == gameCreator) {
+        updateScores();
+    }
+    
+});
+
+socket.on('end_game', function() {
+    console.log("end_game")
+    $('#play-field').hide();
+    $('#game-over').show();
+    $('#game-over-text').text('Game over!');
+    $('#next-round-button').hide();
+    $('#end-game-button').hide();
+});
+
+
+/// FUNCTIONS
+function startTimer() {
+    console.log("startTimer")
+    if (timerId) {
+        clearInterval(timerId);
+    }
+    timeLeft = {{game.time_limit}};
+    $('#timer').text(timeLeft);
+    timerId = setInterval(function() {
+        timeLeft -= 1;
+        $('#timer').text(timeLeft);
+        if (timeLeft <= 0) {
+            clearInterval(timerId);
+            $('#answer-input').hide();
+            $('#submit-answer').hide();
+            submitAnswer();
+        }
+    }, 1000); 
+}
+function submitAnswer() {
+    console.log("submitAnswer")
+    const answer = $('#answer-input').val(); 
+    const roundId = $('#round').text();
+    console.log(answer, playerId)
+    socket.emit('submit_answer', {game_id: gameId, round_id: roundId, answer: answer, player_id: playerId});
+    $('#answer-input').val('');
+    $('#answers-input').hide();
+    checkAllAnswersSubmitted();
+}
+
+function updateScores() {
+    console.log("updateScores")
+    const roundId = $('#round').text();
+    socket.emit('update_scores', {game_id: gameId, round_id: roundId});
+}
+
+function displayNewScores(scores) {
+    console.log("displayNewScores")
+    console.log(scores)
+    scores = JSON.parse(scores);
+
+    scores.forEach(function(score) {
+        console.log(scores)
+        $('#score_' + score.player).text(score.score);
+    });
+}
+
+function checkAllAnswersSubmitted() {
+    console.log("asking server to check if all answers have been submitted")
+    const roundId = $('#round').text();
+    console.log("checking again")
+    socket.emit('check_if_all_answers_submitted', {game_id: gameId, round_id: roundId});
+
+}
+
+function revealAnswers() {
+    console.log("revealAnswers")
+    const roundId = $('#round').text();
+
+    $.get('{{ url_for('reveal_answers', game_id=game.id)}}', { round_id: roundId } , function(data) {
+        $('#answers').empty(); 
+        data.answers.forEach(function(answer, index) {
+            const button = $('<button>').text(answer).attr('id', 'answer-' + index).addClass('option-btn').addClass('btn-generate');
+
+            button.click(function() {
+                submitVote(answer); 
+            });
+            $('#answers').append(button);
+        });
+        $('.vote-button').show();
+
+    });
+}
+
+function submitVote(answerText) {
+    roundId = $('#round').text();
+    console.log('Vote submitted:', answerText);
+    socket.emit('submit_vote', {game_id: gameId, answer: answerText, player_id: playerId, round_id: roundId});
+    $('.option-btn').hide();
+    checkAllVotesAreIn();
+}
+function checkAllVotesAreIn() {
+    console.log("checkAllVotesAreIn Emitting")
+    socket.emit('check_all_votes_are_in', {game_id: gameId, round_id: roundId});
+}
+
+
+function count_votes() {
+    if (playerId == gameCreator) {
+        socket.emit('count_votes', {game_id: gameId, round_id: roundId});
+
+    }
+}
+
+window.onbeforeunload = function(e) {
+  socket.disconnect();
+};
+
+function displayVotes(answers_info) {
+    answers_info.sort(function(a, b) {
+        return b.votes - a.votes;
+    });
+    answers_info.forEach(function(answer_info) {
+        var listItem = $('<li></li>');
+        var answerText = $('<span></span>').text(answer_info.text + ' - ');
+        var votesCount = $('<span></span>').text(answer_info.votes + ' votes');
+        listItem.addClass('list-group-item');
+        votesCount.addClass('badge').addClass('bg-warning').addClass('badge-pill');
+        if (answer_info.is_correct) {
+            console.log("is correct, adding appropriate class")
+            listItem.addClass('correct-game-answer');
+        }
+        else {
+            console.log("is incorrect adding apprpriate class")
+            listItem.addClass('incorrect-game-answer');
+        }
+        listItem.append(answerText);
+        listItem.append(votesCount);
+        $('#vote-answers').append(listItem);
+    });
+}
+
+
+function endGame() {
+    socket.emit('end_game', {game_id: gameId});
+}
+
+
+function checkEndGame(round) {
+    totalRounds = {{ game.rounds }} + 1;
+    if (round === totalRounds) {
+        endGame();
+    }
+}
+
+
+</script>
+
+
+
+
+
+<script>
+let timerId;
+let timeLeft;
+function resetVoting() {
+    // Clear the current vote, if any
+    currentVote = null;
+
+    // Hide the voting buttons until answers are revealed
+    $('.vote-button').hide();
+}
+
+function resetAnswerSubmission() {
+    // Clear the answer input field
+    $('#answer-input').val('');
+
+    // Show the answer input and submit button
+    $('#answer-input').show();
+    $('#submit-answer-button').show();
+}
+
+function getServerTime() {
+    console.log("getting server time")
+    $.get('{{ url_for('server_time') }}', function(data) {
+        server_time = new Date('1970-01-01T' + data.server_time + 'Z');
+        console.log(server_time)
+    });
+}
+
+
+
+</script>
+
+{% endblock %}
+

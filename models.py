@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask import Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify
 from flask_migrate import Migrate
+from sqlalchemy import UniqueConstraint
 
 db = SQLAlchemy()
 
@@ -79,6 +80,7 @@ class User(db.Model, UserMixin):
     groups = db.relationship("Group", secondary=user_group_association, backref="users")
     role = db.Column(db.String(255), nullable = True)
     stripe_customer_id = db.Column(db.String(255), nullable=True)
+    guest = db.Column(db.Boolean, default=False)
 
     def member_since(self):
         return self.time_created.strftime('%b %Y')
@@ -631,7 +633,16 @@ class Deck(db.Model):
     def import_deck_csv(self):
         pass
     
-    
+class DeckAttributes(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    subject = db.Column(db.String(100))
+    grade = db.Column(db.String(100))
+    topic = db.Column(db.String(100))
+    sub_topic = db.Column(db.String(100))
+    difficulty = db.Column(db.String(50))
+    concepts = db.Column(db.Text)
+    time_created = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     
 class Subscriber(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -790,10 +801,13 @@ class JobNotification(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     slug = db.Column(db.String(128), nullable=False)
+    state = db.Column(db.String(10), nullable=False, default="queued")
     complete = db.Column(db.Boolean, default=False)
     notified = db.Column(db.Boolean, default=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     cost = db.Column(db.Integer, default=0)
+    input_details = db.Column(db.String(128), nullable=True)
+    extract_type = db.Column(db.String(128), nullable=True)
 
 
 
@@ -818,7 +832,7 @@ class Job(db.Model):
     processed_content = db.Column(db.Text, nullable=True)
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id', ondelete='SET NULL'), nullable=True)
     save_source = db.Column(db.Boolean, default=False)
-
+    qty_cards_created = db.Column(db.Integer, default=0)
 
 class EventTracking(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -830,6 +844,34 @@ class EventTracking(db.Model):
     updated_at = db.Column(db.DateTime, nullable=True)
     
    
+
+######### CACHED RESPONSES #####
+class CachedResponse(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    input_type = db.Column(db.String(64), nullable=True)
+    input_data = db.Column(db.Text, nullable=True)
+    input_text = db.Column(db.Text, nullable=True)
+    output_type = db.Column(db.String(64), nullable=True)
+    output_data = db.Column(db.Text, nullable=True)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_accessed = db.Column(db.DateTime, default=datetime.utcnow)
+    accessed_count = db.Column(db.Integer, default=0)
+    subject = db.Column(db.String(64), nullable=True)
+    topic = db.Column(db.String(64), nullable=True)
+    subtopic = db.Column(db.String(64), nullable=True)
+    concepts = db.Column(db.String(64), nullable=True)
+    difficulty = db.Column(db.String(64), default=False)
+
+
+    __table_args__ = (UniqueConstraint('input_type', 'output_type', name='uix_1'), )
+
+
+
+
+
+
+
+
 ######### GAMIFICATION
 
 
@@ -872,3 +914,43 @@ class Goal(db.Model):
     target_level = db.Column(db.Integer, nullable=False)
     start_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     end_date = db.Column(db.DateTime)
+
+
+
+###  GAMES ####
+
+
+class Game(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    creator = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    current_flashcard_id = db.Column(db.Integer, db.ForeignKey('card.id'))
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    rounds = db.Column(db.Integer, default=0)
+    time_limit = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    start_time = db.Column(db.DateTime)
+    current_round = db.Column(db.Integer, default=0)
+
+class PlayerGame(db.Model):
+    __tablename__ = 'player_game'
+    player_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    username = db.Column(db.String(64))
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'), primary_key=True)
+    score = db.Column(db.Integer, default=0)
+    turns_as_main_player = db.Column(db.Integer, default=0)
+    points = db.Column(db.Integer, default = 0)
+
+class GameAnswer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(2560))
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    round = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    is_correct = db.Column(db.Boolean, default=False)
+
+class GameVote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    answer_id = db.Column(db.Integer, db.ForeignKey('game_answer.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    round = db.Column(db.Integer)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))

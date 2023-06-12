@@ -131,9 +131,9 @@ async def handle_extract_terms(merged_slug, deck, payload, session):
     method = "extract"
     response = await(extract_terms(payload["text"], payload["prompt_options"]))
     process_response(response, merged_slug)
-    save_terms_to_deck(deck, response[0], payload["prompt_options"],
+    counter = save_terms_to_deck(deck, response[0], payload["prompt_options"],
             method, session)
-
+    merged_slug.qty_cards_created = counter
 
 def process_response(response, merged_slug):
     if isinstance(response[0], list):
@@ -162,6 +162,7 @@ async def handle_long_form(merged_slug, main_opt, trans_opt, payload):
     elif main_opt == "Summarize":
         method = "Summary"
         processed_text = await summarize(payload["text"], payload["prompt_options"])
+
     if processed_text:
         merged_slug.processed_content = processed_text
     if merged_slug.processed_content == "":
@@ -200,23 +201,24 @@ def save_terms_to_deck(deck, terms, prompt_options, method="extract", session=No
         if isinstance(terms, dict):
             terms = [terms]
         if main_opt == "Mcq":
-            process_mcq_terms(session, deck, terms, cat, method, main_opt)
+            counter = process_mcq_terms(session, deck, terms, cat, method, main_opt)
         elif main_opt not in ['Mcq', 'Transcribe', 'Formulas', 'turn2notes', 'summarize', 'Discuss']:
-            process_default_terms(session, deck, terms, cat, method, main_opt)
+            counter = process_default_terms(session, deck, terms, cat, method, main_opt)
         elif main_opt == "Formulas":
-           process_formula_terms(session, deck, terms, cat, method, main_opt)
+           counter = process_formula_terms(session, deck, terms, cat, method, main_opt)
         elif main_opt == "Discuss":
-           process_discuss_terms(session, deck, terms, cat, method, main_opt)
+           counter = process_discuss_terms(session, deck, terms, cat, method, main_opt)
         elif main_opt == "Transcribe":
-            process_translation(session, deck, terms, prompt_options, method, main_opt, trans_opt)
-        return True
+            counter = process_translation(session, deck, terms, prompt_options, method, main_opt, trans_opt)
+        return counter
+    
     except Exception as e:
         print(f"Error while saving terms to deck: {e}")
         session.rollback()
 
-
 def process_mcq_terms(session, deck, terms, cat, method, main_opt):
     v, w, x, y, z = mapping.get(main_opt, ("A", "B", "C", "D", "E"))
+    counter = 0
     for item in terms:
         try:
             term = item.get(v)
@@ -238,13 +240,17 @@ def process_mcq_terms(session, deck, terms, cat, method, main_opt):
                 entry = Card(
                     category=cat, term=term, content=content, boc_2=boc_2, 
                     boc_3=boc_3, boc_4=boc_4,create_method=method)
+                counter += 1
                 session.add(entry)
                 deck.cards.append(entry)
                 session.commit()
         except Exception as e:
             print(f"Error while saving mcq terms to deck: {e}")
             session.rollback()
+    return counter
+        
 def process_default_terms(session, deck, terms, cat, method, main_opt):
+    counter = 0
     x, y = mapping.get(main_opt, ("A", "B"))
     for item in terms:
         try:
@@ -258,14 +264,15 @@ def process_default_terms(session, deck, terms, cat, method, main_opt):
                 entry = Card(category=cat, term=term, content=content, create_method=method)
                 session.add(entry)
                 deck.cards.append(entry)
+                counter += 1
                 session.commit()
         except Exception as e:
             print(f"Error while saving terms to deck: {e}")
             session.rollback()
-
+    return counter 
 def process_discuss_terms(session, deck, terms, cat, method, main_opt):
     x, y, z = mapping.get(main_opt, ("A", "B", "C")) + (None,) * (3 - len(mapping.get(main_opt, ("A", "B", "C"))))
-
+    counter = 0
     for item in terms:
         try:
             term = item.get(x)
@@ -285,13 +292,15 @@ def process_discuss_terms(session, deck, terms, cat, method, main_opt):
                 session.add(entry)
                 deck.cards.append(entry)
                 session.commit()
+                counter += 1
         except Exception as e:
             print(f"Error while saving discuss terms to deck: {e}")
             session.rollback()
+    return counter
 
 def process_formula_terms(session, deck, terms, cat, method, main_opt):
     x, y, z = mapping.get(main_opt, ("A", "B", "C")) + (None,) * (3 - len(mapping.get(main_opt, ("A", "B", "C"))))
-
+    counter = 0
     for item in terms:
         term = item.get(x)
         term = ' '.join(term) if isinstance(term, list) else term
@@ -308,23 +317,26 @@ def process_formula_terms(session, deck, terms, cat, method, main_opt):
                 session.add(entry)
                 deck.cards.append(entry)
                 session.commit()
+                counter += 1
             except Exception as e:
                 print(f"Error while saving formula terms to deck: {e}")
                 session.rollback()
-
+    return counter
 def process_translation(session, deck, terms, prompt_options, method, main_opt, trans_opt):
     trans_opt = prompt_options['trans_opt']
+    counter = 0
     if trans_opt is not None:
         name = f"{deck.name}_{method}_Transcribe{trans_opt}_{str(datetime.now(timezone.utc))}"
         create_type = f"{trans_opt} translation"
         transcript_trans = DeckFiles(file_name = name, text_string = terms,
                             time_created=datetime.now(timezone.utc),
                             create_type = create_type)
+        counter += 1
         session.add(transcript_trans)
         deck.deck_files.append(transcript_trans)
         session.commit()
         print(f"Transcription {transcript_trans.file_name} created")
-
+    return counter
 ####  Needs to be checked ####
 def generate_images(deck, session=None):
     for card in deck.cards:

@@ -54,7 +54,16 @@ from json import JSONEncoder
 from flask_wtf.csrf import generate_csrf
 from threading import Thread
 
+class CreateGameForm(FlaskForm):
+    deck = SelectField('Deck', validators=[DataRequired()])
+    rounds = IntegerField('Rounds', validators=[InputRequired()])
+    time_limit = IntegerField('Time Limit', validators=[InputRequired()])
+    participate = RadioField('Participate', choices=[('yes', 'Yes'), ('no', 'No')], validators=[InputRequired()])
+    submit = SubmitField('Study Deck')
 
+class StudyDeckForm(FlaskForm):
+    deck = SelectField('Deck', validators=[DataRequired()])
+    submit = SubmitField('Study Deck')
 
 class Unsubscribe(FlaskForm):
     email = StringField(validators=[InputRequired(), Length(min=5, max=100)], render_kw={"placeholder": "Email"})

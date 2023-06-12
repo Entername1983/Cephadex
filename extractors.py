@@ -15,7 +15,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import tiktoken
 import textwrap
 from reportlab.lib.pagesizes import letter
-from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
+from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices, prompt_from_scratch
 from prompts import new_prompt_choices, regen_choices
 from bs4 import BeautifulSoup
 import requests
@@ -45,6 +45,56 @@ async def call_ai_terms(sys_instruct, user_prompt):
             ],
         )
     return response
+
+
+async def add_more_cards(subject, topic, concepts, grade, extract_type):
+    print("entered add more cards")
+    sys_instruct = "You are an excellent teacher, knowledgeable on all subjects who is an expert at making detailed content, you only return data in JSON format"
+    prompt = build_add_more_cards_prompt(subject, topic, concepts, grade, extract_type)
+    response = await call_ai_terms(sys_instruct, prompt)
+    response_ = response['choices'][0]['message']['content'].strip()
+    print(response_)
+    if extract_type == "Cloze":
+        response_ = add_underscores(response_)
+    byte_string = response_.encode('utf-8')
+    x = byte_string.decode('utf-8')
+    json_start = x.find('[')
+    if json_start != -1:
+        json_end = x.rfind(']')  # Find the position of the last closing bracket in the string
+        if json_end != -1:
+            json_part = x[json_start:json_end+1] 
+    else:
+        print("No valid JSON found")
+
+    try:
+        data = json.loads(json_part)
+    except json.JSONDecodeError as e:
+        print(f"Could not parse as JSON: {json_part}")
+        print(f"Error details: {e}")
+    return data
+
+
+
+def build_add_more_cards_prompt(subject, topic, concepts, grade, extract_type):
+    prompt = prompt_from_scratch[extract_type]
+    prompt = prompt.replace("{subject}", subject)
+    prompt = prompt.replace("{topic}", topic)
+    prompt = prompt.replace("{concepts}", concepts)
+    prompt = prompt.replace("{grade}", grade)
+    return prompt
+
+async def extract_deck_attributes(text):
+    sys_instruct = "You are an expert at education and classification of content by subject, topic and level of difficulty. You are diligent and think about things carefully and only return content in JSON format"
+    user_prompt = 'Identify the main subject, topic, concepts and level of difficulty of the following text, the levels of difficulty should be based upon the educational level at which one would be expected to encounter the identified concepts, either primary school, middle school, high school, college or post-graduate level.  Return your response as a JSON object only in the following format: {"subject": "main subject identified", "topic": "main topic identified", "concepts": ["concept1", "concept2", ...], "difficulty": "difficulty level"}\n  The passage: \n {text}'
+    user_prompt = user_prompt.replace('{text}', text)
+    response = await call_ai_terms(sys_instruct, user_prompt)
+    response_ = response['choices'][0]['message']['content'].strip()
+    
+    byte_string = response_.encode('utf-8')
+    x = byte_string.decode('utf-8')
+    print(x)
+    x = json.loads(x)
+    return x
 
 async def extract_terms(text: str, prompt_options: dict):
     text = remove_html_tags(text)

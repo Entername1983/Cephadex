@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block title %} New Game {% endblock %}
+
+{% block head %}
+
+
+{% endblock %}
+{% block main_0 %}
+
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <h1 class="display-3 m-3 text-center hcepha1">New Game</h1>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-dark text-white" style="background-color:  #6019FF!important;">
+                <div class="card-body" style="background-color:  #6019FF!important;">
+                    {% if decks %}
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="form-group">
+                            <h6>Deck to use</h6>
+                            {{ form.deck(id = "deck", class="form-control") }}
+                        </div>
+                        <div class="form-group">
+                            <h6>Number of rounds</h6>
+                            {{ form.rounds(id="rounds", class = "form-control") }}
+                        </div>
+                        <div class="form-group">
+                            <h6>Time limit in seconds</h6>
+                            {{ form.time_limit(id="time_limit", class = "form-control") }}
+                        </div>
+                        <div class = "form-group">
+                            <h6>Participate in game</h6>
+                            <div class="form-check">
+                                {{ form.participate(id="participate") }}
+                            </div>
+                        </div>
+                        <div class="form-group mt-3">
+                            <input type="submit" value="Create game" class="btn btn-primary btn-block">
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-warning mt-4" role="alert">
+                        You don't have any decks. <a href="{{ url_for('extract') }}" class="alert-link">Create a deck</a> first.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

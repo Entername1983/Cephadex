@@ -1699,4 +1699,12 @@ a {
   main-class {
     margin-top: 0px !important;
   }
+}
+/* GAME CLASSES */
+.correct-game-answer {
+  color: green !important;
+}
+
+.incorrect-game-answer {
+  color: red !important;
 }/*# sourceMappingURL=style.css.map */

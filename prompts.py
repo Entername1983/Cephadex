@@ -23,6 +23,81 @@ bloom_choices = {
     "Create": "Creating",
     }
 
+prompt_from_scratch = {
+    'Definitions': '''Create at least 10 definitions on the subject of {subject} and the
+    topic of {topic} as you can.  The definitions should be related to the following
+    concepts {concepts} and be appropriate for a {grade} student.  
+    Create a JSON object which enumerates a set of child objects. 
+    Each of the child objects should correspond to one of the terms extracted and
+    have a property named "A" as well as one named "B". \n The resulting JSON 
+    object should be in this format: [{"A":"term","B":"definition"}] 
+    \n The passage: \n''',
+
+    "Theories": '''Create at least 10 theory explanation questions on the subject of {subject} 
+    and the topic of {topic} as you can. The questions should be related to the following
+    concepts {concepts} and be appropriate for a {grade} student. Create a JSON object
+    which enumerates a set of child objects. Each of the child objects should 
+    correspond to one of the theories or concepts extracted and have a property named
+    "A", for the theory or concept, as well as one named "B", for the explanation.
+    \n The resulting JSON object should be in this format: 
+    [{"A":"string","B":"string"}] \n The passage: \n''',
+
+    "Cloze": '''Create at least 10 cloze deletion questions on the subject of {subject} and 
+    the topic of {topic} as you can.  The questions should be related to the following 
+    concepts {concepts} and suitable for {grade} students. Create a JSON object which enumerates a set of child objects. 
+    Each of the child objects should correspond to one of the cloze deletion texts and 
+    have a property named "A" for the text to be filled in and have underscores "_____" 
+    to mark where the answer should go, and "B" for the missing word(s). \n 
+    The resulting JSON object should be in this format: [{"A":"string","B":"string"}] 
+    \n The passage: \n''',
+
+    "Mcq":'''Create at least 10 multiple choice questions on the subject of {subject} and 
+    the topic of {topic} as you can.  The questions should be related to the following 
+    concepts {concepts}and suitable for {grade} students. Create a JSON object which enumerates a set of child objects. 
+    Each of the child objects should correspond to one of the multiple choice questions 
+    and have a property named "A" for the question, one named "B" for the correct answer 
+    and 3 other properties for the wrong answers, "C", "D", "E". \n 
+    The resulting JSON object should be in this format: [{"A": "string", "B":"Answer",
+      "C":"Wrong answer 1", "D":"Wrong answer 2", "E":"Wrong answer 3"}] \n The passage
+        \n''',
+    "Comprehension":'''Create at least 10 comprehension questions on the subject of {subject} and 
+    the topic of {topic} as you can.  The questions should be related to the following 
+    concepts {concepts}and suitable for {grade} students. Create a JSON object which enumerates a set of child objects. 
+    Each of the child objects should correspond to one of the comprehension questions 
+    and have a property named "A" for the question, and "B" for the answer. \n 
+    The resulting JSON object should be in this format: [{"A":"string","B":"string"}] 
+    \n The passage: \n''',    
+    "Formulas": '''The subject is {subject}, the topic is {topic} and the main concepts
+    are {concepts} identify at least 10 related formulas or terms suitable for {grade} students, 
+    and provide the name of the 
+    formula (or term), the formula itself (or formula associated with the term) in 
+    LaTeX format, and an explanation of the formula.  Create a JSON object which 
+    enumerates a set of child objects.  Each of the child objects should correspond
+    to one of the formulas extracted and have a property named "A", for the name of
+    the formula, "B" for the formula itself in latex format, and "C" for the 
+    explanation of the formula.  \n The resulting JSON object should be in this 
+    format: [{"A":"name of formula","B":"LaTeX formula","C":"explanation of formula"}] 
+    \n The passage: \n''',
+    "Explain": '''Create at least 10 questions meant to test {grade} students ability
+    to understand the topic of {topic} as part of the subject of {subject} 
+    and the concepts of {concepts} in the passage as defined in Blooms taxonomy.  
+    Questions should start with with explain.  Additionally provide a sample answer 
+    to each question.  Create a JSON object which enumerates a set of child objects.  
+    Each of the child objects should correspond to one of hte questions and 
+    have a property named "A" as well as one named "B" corresponding to the sample 
+    answer. \n The resulting JSON object should be in this format: 
+    "[{"A":"Question","B":"Sample answer"] \n The passage: \n''',
+    "Discuss": '''Create at least 8 debate topics on the topic of {topic} 
+    in the subject of {subject} that are appropriate for {grade} students and test 
+    their understanding of {concepts} well as arguments for and against each side.  
+    Each debate topic should start with the word "Discuss.. Create a JSON object which 
+    enumerates a set of child objects. Each of the child objects should correspond to 
+    one of the debate topics extracted and have a property named "A" for the question, 
+    one named "B" containing the arguments for and against. \n The resulting JSON object 
+    should be in this format: "[{"A":"Discuss question","B":"1 - Arguments for: ... 2 - 
+    Argumnets against: ..."] \n The passage: \n''',
+    } 
+
 
 prompt_choices2 =  {
     "Econ": "Economics",
@@ -97,6 +172,10 @@ lang_choices = {
 len_choices = {
     "long": "very long",
     "short": "short",}
+
+
+
+
 
 
 

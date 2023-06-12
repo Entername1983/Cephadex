@@ -674,7 +674,7 @@ function shareDeck(deckId) {
           $("#progress-bar").css("width", progress + "%").text(progress + "%");
           $("#progress-container").show();
         }
-        if (data.result === 1) {
+        if (data.result === "ready") {
           // Job is done, update UI accordingly
           $("#progress-container").hide();
         } else {

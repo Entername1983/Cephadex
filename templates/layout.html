@@ -201,10 +201,8 @@ gtag('config', 'G-6NB4ZPCNB0');
                         // so the page will update itself
                         // every 5 seconds until we get a non-zero result
                         
-                    } else if (data.result == 1) {
-                        $.post(
-                '/file_assembler',
-            );
+                    } else if (data.result == "ready") {
+                    
                         // When we finally get the result we update it on the page
                         console.log("just before notification complete"),
                             console.log(slug_id)
@@ -219,7 +217,7 @@ gtag('config', 'G-6NB4ZPCNB0');
                 }
             );
            
-            setTimeout(doPoll, 10000);
+            setTimeout(doPoll, 5000);
         }
         // Here we actually instruct the browser to call the function for the effect:
         $(document).ready(function () {
@@ -268,8 +266,20 @@ $(document).ready(function () {
           </li>
           <li>
             <a href="/viewdecks" class="nav-link text-center" id="sidebar-viewdecks">
-                <span class="menu-icon" style="display:none"><img src="/static/deck-svg-icon.svg" title = "My decks" max-width="40" height="40"/></span>
+                <span class="menu-icon" style="display:none"><img src="/static/home-school-icon-svg.svg" title = "My decks" max-width="40" height="40"/></span>
                 <span class="menu-text">Decks</span>
+            </a>
+          </li>
+          <li>
+            <a href="/study_select" class="nav-link text-center" id="sidebar-viewdecks">
+                <span class="menu-icon" style="display:none"><img src="/static/master-icon.png" title = "Study" max-width="40" height="40"/></span>
+                <span class="menu-text">Study</span>
+            </a>
+          </li>
+          <li>
+            <a href="/game_new" class="nav-link text-center" id="sidebar-viewdecks">
+                <span class="menu-icon" style="display:none"><img src="/static/game-icon-svg.svg" title = "games" max-width="40" height="40"/></span>
+                <span class="menu-text">Games</span>
             </a>
           </li>
           <li>
