@@ -78,7 +78,6 @@ ALLOWED_EXTENSIONS = os.environ.get("ALLOWED_EXTENSIONS")
 FLASK_DEBUG = False
 MAX_CONTENT = os.environ.get("MAX_CONTENT")
 
-os.environ["FLASK_DEBUG"] = FLASK_DEBUG
 # Configure application
 app = Flask(__name__)
 app.config.from_object('config')
