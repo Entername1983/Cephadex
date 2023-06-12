@@ -416,7 +416,7 @@ def log_response_data(prompt, response, content, success, session=None):
 if __name__ == "__main__":
     with app.app_context():
         async def main():
-            num_workers = 30  # Number of concurrent workers to run
+            num_workers = 12  # Number of concurrent workers to run
             tasks = []
             for _ in range(num_workers):
                 task = asyncio.create_task(process_jobs())
