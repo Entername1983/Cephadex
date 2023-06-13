@@ -1,12 +1,9 @@
 from datetime import datetime, timedelta
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from models import User, UsageRecord
 from app import db
 from sqlalchemy import create_engine
 from app import app
 from datetime import timezone
-from flask import current_app
 from sqlalchemy.orm import scoped_session, sessionmaker
 from models import DeletedAccounts, StripeEvents
 from models import Test, Feedback, DeckFiles, Deck, Card, EventTracking
@@ -15,6 +12,7 @@ import os
 from sqlalchemy import func
 import csv
 import json
+
 SQLALCHEMY_ENGINE_OPTIONS = json.loads(os.environ['SQLALCHEMY_ENGINE_OPTIONS'])
 SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
 MAX_CONTENT = os.environ.get("MAX_CONTENT")

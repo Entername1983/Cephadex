@@ -1,14 +1,13 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 from flask import current_app
-from time import sleep
-from cardcreator import creator, split_text
-from extractors import create_image, summarize, turn_to_notes, add_period, extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx, extract_audio, transcribe_and_translate
+from extractors import create_image, summarize, turn_to_notes, add_period, extract_terms
+from extractors import transcribe_and_translate
 from app import app
-from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
-from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
+from models import Job, ResponseData, DeckFiles, Deck, Card
+from models import SubscriptionPlan, User
 import asyncio
 import random
 from extractors import transcribe_whisper
@@ -19,7 +18,7 @@ SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
 SQLALCHEMY_ENGINE_OPTIONS = json.loads(os.environ['SQLALCHEMY_ENGINE_OPTIONS'])
 CONST_PLAN = os.environ.get("CONST_PLAN")
 NUM_WORKERS_PROCESSOR = os.environ.get("NUM_WORKERS_PROCESSOR")
-SLEEP_TIME = os.environ.get("SLEEP_TIME")
+SLEEP_TIME = int(os.environ.get("SLEEP_TIME"))
 
 
 async def process_jobs():
@@ -67,7 +66,7 @@ async def process_jobs():
                                 session.commit()
                                 break
             else:
-                await asyncio.sleep(3)
+                await asyncio.sleep(SLEEP_TIME)
 
 
 
@@ -418,7 +417,7 @@ def log_response_data(prompt, response, content, success, session=None):
 if __name__ == "__main__":
     with app.app_context():
         async def main():
-            num_workers = NUM_WORKERS_PROCESSOR  # Number of concurrent workers to run
+            num_workers = int(NUM_WORKERS_PROCESSOR)  # Number of concurrent workers to run
             tasks = []
             for _ in range(num_workers):
                 task = asyncio.create_task(process_jobs())

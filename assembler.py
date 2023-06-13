@@ -1,36 +1,40 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 from flask import current_app
 from time import sleep
-from cardcreator import creator
-from extractors import create_image, summarize, turn_to_notes, add_period, extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx, extract_audio, transcribe_and_translate
+from extractors import add_period
 from app import app
-from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
-from models import UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution
+from models import Job, Card
+from models import DeckFiles, Deck
 from models import JobNotification, DeckAttributes, CachedResponse
 import asyncio
 import random
-from extractors import transcribe_whisper, add_more_cards
+from extractors import  add_more_cards
 import os
 import datetime as dt
 from helpers import count_tokens, split_text
 from extractors import extract_deck_attributes
 from datetime import timezone
-from lists import SOURCE_FILE_NAMES, TRANSCRIPTION_FILE_NAMES, SUMMARY_FILE_NAMES, NOTES_FILE_NAMES
+from lists import SUMMARY_FILE_NAMES
 from itertools import groupby
 from sqlalchemy.exc import IntegrityError
+import openai
+
 
 SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
 SQLALCHEMY_ENGINE_OPTIONS = json.loads(os.environ['SQLALCHEMY_ENGINE_OPTIONS'])
 CONST_PLAN = os.environ.get("CONST_PLAN")
-NUM_WORKERS_ASSEMBLER = os.environ.get("NUM_WORKERS_ASSEMBLER")
+NUM_WORKERS_ASSEMBLER = int(os.environ.get("NUM_WORKERS_ASSEMBLER"))
 
 
 ACCEPTABLE_ERROR_RATIO = 0.2
 DENOMINATOR_CHECK_FLASHCARDS = 100
+
+
 async def process_jobs():
+
     engine = create_engine(SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS)
     session_factory = scoped_session(sessionmaker(bind=engine))
     while True:
@@ -59,6 +63,7 @@ async def process_jobs():
                                 full_text, deck_id = result            
                             ##Creates a deck attribute row by sending the first 3000 tokens of the long form to open AI
                             attributes = await create_deck_attributes(full_text, deck_id, session)
+                            print(attributes)
                             deck_attributes = session.query(DeckAttributes).filter_by(id=attributes).first()
 
                             try:
@@ -69,21 +74,32 @@ async def process_jobs():
                             ## checks if the JobNotif has extract_type needed to check for flashcards
                             if check_for_flashcards_type(job_notification.extract_type):
                                 if not check_sufficient_cards_created(flashcard_counter, job_notification.cost):
+                                    print("not enough cards created")
                                     subject = deck_attributes.subject
                                     topic = deck_attributes.topic
                                     concepts = deck_attributes.concepts
                                     grade = deck_attributes.grade
-                                    x = await add_more_cards(subject, topic, concepts, grade, job_notification.extract_type)
+                                    x = await more_cards_please(subject, topic, concepts, grade, job_notification)
                                     method = "extra"
                                     save_terms_to_deck(deck_id, x, job_notification.extract_type, method, session)
 
                     ## change job notification back to queued
                             change_job_notification_to_ready(job_notification, session)
                             cache_it(jobs, session, job_notification, deck_attributes)
+                    else:
+                        job_notification.state = 'queued'
+                        session.commit()
             except Exception as e:
                 print(e)
                 session.rollback()
         sleep(10)
+
+
+async def more_cards_please(subject, topic, concepts, grade, job_notification):
+    with current_app.app_context():
+        x = await add_more_cards(subject, topic, concepts, grade, job_notification.extract_type)
+    return x
+
 
 def cache_it(jobs, session, job_notification, deck_attributes):
     input_type = job_notification.input_details
@@ -145,7 +161,7 @@ def find_queued_notifications(session):
         print(job_notification)
         if job_notification:
             print("found job notification", job_notification.id)
-            ##job_notification.state = 'processing'
+            job_notification.state = 'processing'
             session.commit()
             return job_notification
         else: 
@@ -241,20 +257,22 @@ def reassemble_audio_transcript(jobs, session):
 
 
 async def create_deck_attributes(full_text, deck_id, session):
-    print("entered create deck attributes")
-    text = limit_text(full_text)
-    ## send text to open AI and get attributes 
-    response = await extract_deck_attributes(text)
-    print(response)
-    subject = response['subject']
-    topic = response['topic']
-    concepts = ", ".join(response['concepts'])
-    difficulty = response['difficulty']
-    attributes = DeckAttributes(deck_id=deck_id,
-            subject=subject, topic=topic, concepts=concepts, grade=difficulty)
-    session.add(attributes)
-    session.commit()
-    return attributes.id
+    with current_app.app_context():
+
+        print("entered create deck attributes")
+        text = limit_text(full_text)
+        ## send text to open AI and get attributes 
+        response = await extract_deck_attributes(text)
+        print(response)
+        subject = response['subject']
+        topic = response['topic']
+        concepts = ", ".join(response['concepts'])
+        difficulty = response['difficulty']
+        attributes = DeckAttributes(deck_id=deck_id,
+                subject=subject, topic=topic, concepts=concepts, grade=difficulty)
+        session.add(attributes)
+        session.commit()
+        return attributes.id
 
 def limit_text(full_text):
     print("entered limit text")
@@ -448,7 +466,7 @@ def check_card_exist(deck, term):
 if __name__ == "__main__":
     with app.app_context():
         async def main():
-            num_workers = NUM_WORKERS_ASSEMBLER  # Number of concurrent workers to run
+            num_workers = 2 ##int(NUM_WORKERS_ASSEMBLER)
             tasks = []
             for _ in range(num_workers):
                 task = asyncio.create_task(process_jobs())

@@ -5,13 +5,16 @@ import qrcode
 from flask import abort
 from io import BytesIO
 from sqlalchemy.sql import or_, and_, insert
-from flask import g, Flask, flash, redirect, render_template, request, session, url_for, Response, send_file, jsonify, current_app
+from flask import g, Flask, flash, redirect, render_template, request, session
+from flask import url_for, Response, send_file, jsonify, current_app
 from flask_login import login_user, LoginManager, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import ImmutableDict
 from cardcreator import create_image, creator
-from extractors import send_question_generator, why_wrong_generator, explain_more, regenerate_definition, add_period, extract_from_wiki, extract_from_youtube, create_pdf, check_comma_list, get_video_id, text_extractor
+from extractors import send_question_generator, why_wrong_generator, explain_more
+from extractors import regenerate_definition, extract_from_wiki, text_extractor
+from extractors import extract_from_youtube, create_pdf, check_comma_list, get_video_id
 from helpers import split_text, count_tokens
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -26,11 +29,15 @@ from flask_migrate import Migrate
 from urllib.parse import unquote
 from helpers import remove_punctuation, apology
 import difflib
-from anki import request_anki_permission, anki_create_deck, anki_create_card, find_notes, check_anki_connect
+from anki import request_anki_permission, anki_create_deck, anki_create_card, find_notes
+from anki import check_anki_connect
 import time
-from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback, ResponseData, DeckFiles, Subscriber, Deck, SharedDecks, Card
+from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback
+from models import DeckFiles, Subscriber, Deck, SharedDecks, Card
 from models import Game, PlayerGame, GameAnswer, GameVote
-from models import JobNotification, DeletedAccounts, StripeEvents, GroupInvite, Group, user_group_association, UsageRecord, SubscriptionPlan, User, cards, source_files, cards_shared, questions, distribution, UserSettings, deck_relationships
+from models import JobNotification, DeletedAccounts, StripeEvents, GroupInvite, Group
+from models import user_group_association, UsageRecord, SubscriptionPlan
+from models import  User, questions, distribution, UserSettings, deck_relationships
 import logging.config
 from events import event_tracker
 from logging.config import dictConfig
@@ -42,23 +49,20 @@ import uuid
 import random
 from forms import RegSub, RegisterForm, TryOut, DeckOrg, UploadFileForm, StudyDeckForm
 from forms import AccountForm, DeleteAccountForm, UpdateProfilePicForm, FeedbackForm
-from forms import SearchAndSortForm, Share, BuildTest, UpdateCardForm, GroupForm, UpdateFileNameForm
+from forms import SearchAndSortForm, Share, BuildTest, UpdateCardForm, GroupForm
+from forms import UpdateFileNameForm
 from pydub import AudioSegment
-from lists import TEST_NAMES, DECK_NAMES, SOURCE_FILE_NAMES, TRANSCRIPTION_FILE_NAMES, SUMMARY_FILE_NAMES, NOTES_FILE_NAMES
+from lists import TEST_NAMES, DECK_NAMES
 from pydub.utils import mediainfo
 from extractors import audio_processing
 import requests as req
 from urllib.parse import urljoin
 from flask_socketio import SocketIO, emit, join_room, leave_room
-
 from send_email import send_email
 from forms import Unsubscribe
 from error_handlers import YoutubeError
-from collections import defaultdict
-from flask import Flask, make_response, render_template
+from flask import make_response
 from xhtml2pdf import pisa
-from io import BytesIO
-
 
 dictConfig(LOGGING_CONFIG)
 
@@ -299,10 +303,12 @@ def googleSignIn():
                 if user.username:
                     username = user.username
                 else:
-                    user.username  = user.email
+                    username  = user.email
                 player = PlayerGame(player_id = user.id, game_id = game_id, username = username)
                 db.session.add(player)
                 db.session.commit()
+                if 'game_id' in session:
+                    del session['game_id']
                 return redirect(url_for('game_lobby', game_id=game_id))
             flash('You have been logged in!', 'success')
             event_tracker(user.id, "login", "google")
@@ -356,7 +362,6 @@ def update_sidebar_state():
     session['sidebar-collapsed'] = is_collapsed
     return '', 204  # return 204 No Content response
 
- 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     try:
@@ -367,16 +372,11 @@ def register():
             username = request.form['username']
             ##timezone = request.form['password']
             ##role = request.form['role']
-            contacted = request.form.get('contacted')
             subscribe = request.form.get('subscribe')
-            betakey = request.form.get('betakey')
             role = request.form.get('role')
             timezone = form.timezone.data
             if timezone == None:
                 timezone = "Europe/Dublin"
-            logger.debug(contacted)
-            logger.debug(subscribe)
-
             # Get the user's email address and ID token from the session
             email = session['google_email']
             userid= session['google_id_token']
@@ -384,19 +384,28 @@ def register():
             family_name = session['family_name']
             account_type = "free"
             subscription_plan = 1
-            ###if betakey:
-               ## if betakey in BetaKeys:
-                 ##   subscription_plan = 3
-                   ## account_type = betakey
-                ##else:
-                  ##  return apology("Invalid Beta Key", 403)
-            user = User(email=email, first_name=given_name, account_type = account_type,
-                        last_name=family_name,external_id=userid,
-                        external_type='google', subscription_plan = subscription_plan,
-                        contacted_email=True, username=username,
-                        timezone = timezone,
-                        subscription_start_date = dt.datetime.now(dt.timezone.utc),
-                        role = role)
+            existing_user = User.query.filter_by(email=email, guest=True).first()
+            if existing_user:
+                existing_user.username = username
+                existing_user.guest = False
+                existing_user.external_id = userid
+                existing_user.external_type = 'google'
+                existing_user.subscription_plan = 1
+                existing_user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+                existing_user.role = role
+                existing_user.timezone = timezone
+                db.session.commit()
+                user = existing_user
+                return redirect(url_for('viewdecks'))
+            else: 
+                user = User(email=email, first_name=given_name, account_type = account_type,
+                            last_name=family_name,external_id=userid,
+                            external_type='google', subscription_plan = subscription_plan,
+                            contacted_email=True, username=username,
+                            timezone = timezone,
+                            subscription_start_date = dt.datetime.now(dt.timezone.utc),
+                            role = role)
+                db.session.add(user)
             send_email(email, given_name, 'welcome')
             user_settings = UserSettings(user=user.id)
             if subscribe == "subscribe":
@@ -408,7 +417,6 @@ def register():
                     db.session.add(subscriber)
             event_tracker(user.id, "register", "google")
             db.session.add(user_settings)
-            db.session.add(user)
             db.session.commit()
             login_user(user)
             game_id = session.get('next_game_id')
@@ -416,11 +424,12 @@ def register():
                 game = Game.query.get(game_id)
                 game.players.append(current_user)
                 db.session.commit()
+                if 'game_id' in session:
+                    del session['game_id']
                 return redirect(url_for('game_lobby', game_id=game_id))
             flash("You have been registered and logged in!", "success")
             return redirect(url_for('viewdecks'))
         return render_template('register.html', title='Register', form = form)
-        
     except Exception as e:
         logger.debug(e)
         logger.debug("error registering user")
@@ -558,25 +567,14 @@ def account_settings():
 def study():
     return render_template("study.html", title="Study")
 
-
 @app.route('/study_select', methods=['GET', 'POST'])
 def study_select():
-    decks = Deck.query.filter_by(user_id=current_user.id).all()  # Assuming one-to-many relationship between User and Deck
     form = StudyDeckForm()
-
-    if decks:
-        form.deck.choices = [(deck.id, deck.name) for deck in decks]
-    else:
-        form.deck.choices = []
-    
+    form.deck.choices = [(deck.id, deck.name) for deck in Deck.query.filter_by(user_id=current_user.id).all()]
+    decks = Deck.query.filter_by(user_id=current_user.id).all()
     if form.validate_on_submit():
-        deck_id = form.deck.data
-        # Redirect to a study page or do something with the chosen deck
-        return redirect(url_for('study_deck', deck_id=deck_id))
-    
-    return render_template('study_select.html', form=form, decks=decks)
-
-
+        return redirect(url_for('study_deck', deck_id=form.deck.data))
+    return render_template('study_select.html', form=form, decks = decks)
 
 @app.route("/delete/<int:id>", methods=["DELETE"])
 @login_required
@@ -599,7 +597,7 @@ def rename_deck(id, new_name):
     deck.rename(clean(c_new_name))
     db.session.commit()
     return redirect(url_for('viewdecks'))
-    
+
 @app.route("/account", methods = ["POST", "GET"])
 @login_required
 def account():
@@ -661,11 +659,9 @@ def update_profile_pic():
             logger.debug("recognized file")
             # Generate a random and secure filename
             filename = secure_filename(profile_picture.filename)
-
             # Save the file to our server
             pic_path = os.path.join('static', 'profile_pictures', filename)
             profile_picture.save(pic_path)
-
             # Update the user's profile picture
             user = User.query.filter_by(id=current_user.id).first()
             user.pic = pic_path
@@ -837,8 +833,6 @@ def new_user_settings_cards():
         db.session.add(user_settings)
         db.session.commit()
     return jsonify({'success': True})
-
-
 
 @app.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
@@ -1068,11 +1062,9 @@ def carousel(deck_id):
 def edit_card():
     logger.debug("edit_card")
     form = DeckOrg(request.form)
-
     if form.validate():
         id = form.id.data
         card = Card.query.filter_by(id=id).first()
-
         if card:
             card.term = form.term.data.strip()
             card.content = form.content.data.strip()
@@ -1080,7 +1072,6 @@ def edit_card():
             card.boc_3 = form.boc_3.data.strip()
             card.boc_4 = form.boc_4.data.strip()
             card.formula = form.formula.data.strip()
-
             db.session.commit()
             return jsonify({"status": "success"})
         else:
@@ -1100,7 +1091,6 @@ def terms_and_conditions():
 @app.route("/delete_account", methods=["GET", "POST"])
 def delete_account():
     form = DeleteAccountForm()
-
     if form.validate_on_submit():
         user = User.query.filter_by(id=current_user.id).first()
         if user.email == form.del_email.data:
@@ -1116,7 +1106,6 @@ def delete_account():
                 details = form.more.data
             else:
                 details = None
-
             deleted_entry = DeletedAccounts(user_id=current_user.id,
                     email = current_user.email, date_created = current_user.time_created,
                     date_deleted = dt.datetime.now(dt.timezone.utc), reason=reason,
@@ -1191,8 +1180,6 @@ def send_audio_file(file, deck_id, prompt_options, slug):
     # Return the location of the saved file
     return file_path
 
-
-
 """"
     is_valid_audio(file)
 
@@ -1240,6 +1227,7 @@ def initialize_user_settings():
     return user_settings
 
 @app.route("/extract", methods = ["GET", "POST"])
+
 @login_required
 def extract():
     logger.debug("entered extract")
@@ -3495,7 +3483,7 @@ def game_new():
 def game_lobby(game_id):
     game = Game.query.get(game_id)
     join_game_url = url_for('game_join', game_id=game.id, _external=True)
-    players = game.players
+    ##players = game.players
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -3510,7 +3498,7 @@ def game_lobby(game_id):
     qr_code = base64.b64encode(stream.getvalue()).decode()
     ## if hosts clicks start game, start game
     return render_template('game_lobby.html', game=game,
-            qr_code=qr_code, game_url = join_game_url, players = players)
+            qr_code=qr_code, game_url = join_game_url)
 
 
 @socketio.on('start_game')
@@ -3544,6 +3532,8 @@ def game_join(game_id):
                 db.session.add(player)
                 db.session.commit()
                 login_user(player)
+                if 'game_id' in session:
+                    del session['game_id']
                 return redirect(url_for('game_lobby', game_id=game.id))
             else:
                 flash("It looks like that email is already associated with an account.  Please log in to join the game.")
@@ -3561,19 +3551,17 @@ def game_login():
 def game_play(game_id):
     game = Game.query.get_or_404(game_id)
     if game.start_time:
-        print("game players are", game.players)
+        ##print("game players are", game.players)
         players = []
         usernames = {}
         for player in game.players:
-            print("player is", player.id)
-            player_ = PlayerGame.query.filter_by(game_id=game.id, player_id=player.id).first()
-            players.append(player_)
+            players.append(player)
             
-            if username := User.query.get(player.id).username:
+            if username := User.query.get(player.player_id).username:
                 print("username is", username)
-                usernames[player.id] = username
+                usernames[player.player_id] = username
             else:
-                usernames[player.id] = User.query.get(player.id).email
+                usernames[player.player_id] = User.query.get(player.player_id).email
             print("usernames", usernames)
 
         return render_template('game_play.html', game=game, players = players, usernames=usernames)
@@ -3620,10 +3608,10 @@ def reveal_answers(game_id):
     return jsonify({'answers': answers_text})
 
 @socketio.on('disconnect')
-def handle_disconnect():
+def handle_disconnect(data):
     # Get the user and game information from the session
     user_id = session.get('user_id')
-    game_id = session.get('game_id')
+    game_id = data['game_id']
     
     if user_id and game_id:
         # Remove the player from the game
@@ -3700,25 +3688,28 @@ def handle_start_round(data):
                           'card_id': card_id, 'round': round}, room=game_id)
 @socketio.on('submit_vote')
 def submit_vote(data):
-    print("entered submit vote")
-    game_id = int(data['game_id'])
-    round_id = int(data['round_id'])
-    answer = data['answer']
-    player_id = data['player_id']
-    game = Game.query.get_or_404(game_id)
-    print(game)
-    # Get the answer index from the request data
-    answer_match = GameAnswer.query.filter_by(game_id=game.id, round=round_id, text=answer).first()
+    try:
+        print("entered submit vote")
+        game_id = int(data['game_id'])
+        round_id = int(data['round_id'])
+        answer = data['answer']
+        player_id = data['player_id']
+        game = Game.query.get_or_404(game_id)
+        print(game)
+        # Get the answer index from the request data
+        answer_match = GameAnswer.query.filter_by(game_id=game.id, round=round_id, text=answer).first()
 
-    # Create a new vote
-    vote = GameVote(answer_id=answer_match.id,
-                     user_id=current_user.id, game_id=game.id, round=round_id)
+        # Create a new vote
+        vote = GameVote(answer_id=answer_match.id,
+                        user_id=current_user.id, game_id=game.id, round=round_id)
 
-    # Save the vote to the database
-    db.session.add(vote)
-    db.session.commit()
-    print("vote submitted", answer_match.id, current_user.id, answer)
-    return jsonify({'message': 'Vote submitted successfully.'})
+        # Save the vote to the database
+        db.session.add(vote)
+        db.session.commit()
+        print("vote submitted", answer_match.id, current_user.id, answer)
+        return jsonify({'message': 'Vote submitted successfully.'})
+    except Exception as e:
+        print("exception in submit vote", e)
 
 
 @socketio.on('submit_answer')
@@ -3741,18 +3732,21 @@ def handle_submit_answer(data):
 
 @socketio.on('check_if_all_answers_submitted')
 def check_if_all_answers_submitted(data):
-    print("entered checking if all answers")
-    game_id = int(data['game_id'])
-    round_id = int(data['round_id'])
-    print("checking if all answers submitted")
-    game = Game.query.get_or_404(game_id)
-    answers = GameAnswer.query.filter_by(game_id=game.id, round=round_id).all()
-    print("length of answers", len(answers))
-    print("length of players", len(game.players))
-    if len(answers) - 1 == len(game.players):
-        print("all answer submitted, emitting")
-        print(round_id, game_id)
-        emit('check_if_all_answers_submitted', {'round_id':round_id}, callback=messageReceived, room=data['game_id'])
+    try:
+        print("entered checking if all answers")
+        game_id = int(data['game_id'])
+        round_id = int(data['round_id'])
+        print("checking if all answers submitted")
+        game = Game.query.get_or_404(game_id)
+        answers = GameAnswer.query.filter_by(game_id=game.id, round=round_id).all()
+        print("length of answers", len(answers))
+        print("length of players", len(game.players))
+        if len(answers) - 1 == len(game.players):
+            print("all answer submitted, emitting")
+            print(round_id, game_id)
+            emit('check_if_all_answers_submitted', {'round_id':round_id}, callback=messageReceived, room=data['game_id'])
+    except Exception as e:
+        print("exception in check if all answers ubmitted", e)
 
 @socketio.on('check_all_votes_are_in')
 def check_all_votes_are_in(data):
@@ -3819,7 +3813,6 @@ def count_votes(data):
                 player_game.points += int(points)
     db.session.commit()
     print(correct_answer.text, total_points, data['round_id'], data['game_id'])
-
     total_points_json = json.dumps(total_points)
     print(total_points_json)
     answers_info = [{'text': answer.text, 'votes': votes_counts[answer.id], 'is_correct': answer.is_correct} for answer in answers]
@@ -3876,7 +3869,7 @@ def update_scores(data):
         players = game.players
         player_scores = []
         for player in players:
-            player_game = PlayerGame.query.filter_by(player_id=player.id, game_id=game_id).first()
+            player_game = PlayerGame.query.filter_by(player_id=player.player_id, game_id=game_id).first()
             player_scores.append({'player': player_game.player_id, 'score': player_game.points})
         player_scores_json = json.dumps(player_scores)
         print(player_scores_json)
@@ -3889,8 +3882,8 @@ def submit_answer(game_id, round_id, answer_text, user_id):
     print("entered submit answer")
     game = Game.query.get_or_404(game_id)
     user = User.query.get_or_404(user_id)
-    if user not in game.players:
-        abort(403)
+    ##if user not in game.players:
+    ##    abort(403)
     print(round_id)
     print(answer_text)
     existing_answer = GameAnswer.query.filter_by(

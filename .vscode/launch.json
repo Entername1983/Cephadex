@@ -20,6 +20,15 @@
             ],
             "jinja": true,
             "justMyCode": true
+        },
+        {
+            "name": "Assembler debug",
+            "type": "python",
+            "request": "launch",
+            "program": "assembler.py",
+            "env": {
+                "VARIABLE_NAME": "VariableValue"
+            }
         }
     ]
 }

@@ -16,16 +16,18 @@
         <h1 class="display-3 hcepha1">Tentacle Tango</h1>
     </div>
     <div class="row justify-content-center mb-4">
-        <div class="col-md-3 text-center">
+        <div class="col-md-2 text-center">
             <h5>Timer: <span id="timer"></span>(seconds)</h5>
         </div>
         <div class="col-md-3 text-center">
             <h5>Round: <span id="round">0</span></h5>
         </div>
-        <div class="col-md-3 text-center">
+        <div class="col-md-4 text-center">
             {% if game.creator == current_user.id %}
                 <button class="btn btn-primary" id="next-round-button">Next round</button>
+                <button class= "btn btn-warning" id="reveal-answers-button">Reveal Answers</button>
                 <button class="btn btn-danger" id="end-game-button">End Game</button>
+                
             {% endif %}
         </div>
     </div>

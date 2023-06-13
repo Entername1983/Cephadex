@@ -1,12 +1,10 @@
 import os 
 import openai 
-from pypdf import PdfReader
 from dotenv import load_dotenv, find_dotenv
 import csv
-from pptx import Presentation
 import numpy as np
-from extractors import extract_from_pdf, large_extract_terms, extract_from_pptx, extract_terms, extract_from_docx, extract_audio, transcribe_and_translate
-import base64
+from extractors import extract_from_pdf, large_extract_terms, extract_from_pptx
+from extractors import extract_from_docx, extract_audio, transcribe_and_translate
 import requests
 import tiktoken
 

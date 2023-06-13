@@ -1,7 +1,7 @@
 import string
 import tiktoken 
 import numpy as np
-from flask import redirect, render_template, request, session
+from flask import render_template
 
 
 encoding = tiktoken.get_encoding("cl100k_base")

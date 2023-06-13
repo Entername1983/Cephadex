@@ -859,7 +859,7 @@ class CachedResponse(db.Model):
     subject = db.Column(db.String(64), nullable=True)
     topic = db.Column(db.String(64), nullable=True)
     subtopic = db.Column(db.String(64), nullable=True)
-    concepts = db.Column(db.String(64), nullable=True)
+    concepts = db.Column(db.String(256), nullable=True)
     difficulty = db.Column(db.String(64), default=False)
 
 
@@ -930,6 +930,7 @@ class Game(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     start_time = db.Column(db.DateTime)
     current_round = db.Column(db.Integer, default=0)
+    players = db.relationship('PlayerGame', backref='game')
 
 class PlayerGame(db.Model):
     __tablename__ = 'player_game'
@@ -939,6 +940,7 @@ class PlayerGame(db.Model):
     score = db.Column(db.Integer, default=0)
     turns_as_main_player = db.Column(db.Integer, default=0)
     points = db.Column(db.Integer, default = 0)
+    
 
 class GameAnswer(db.Model):
     id = db.Column(db.Integer, primary_key=True)

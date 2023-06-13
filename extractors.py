@@ -15,8 +15,8 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import tiktoken
 import textwrap
 from reportlab.lib.pagesizes import letter
-from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices, prompt_from_scratch
-from prompts import new_prompt_choices, regen_choices
+from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
+from prompts import  regen_choices, prompt_from_scratch
 from bs4 import BeautifulSoup
 import requests
 from pylatexenc.latex2text import LatexNodes2Text
@@ -30,6 +30,8 @@ import random
 from models import db
 from pytesseract import image_to_string
 
+openai.api_key = os.environ.get("OPENAI_API_KEY")
+
 encoding = tiktoken.get_encoding("cl100k_base")
 logger = logging.getLogger("extractors")
 logger.setLevel(logging.DEBUG)
@@ -37,13 +39,25 @@ logger.setLevel(logging.DEBUG)
 
 ## CALLS TO OPEN AI API
 async def call_ai_terms(sys_instruct, user_prompt):
-    response = await asyncify(openai.ChatCompletion.create)(
-        model="gpt-3.5-turbo",
-        messages=[
-                {"role": "system", "content": sys_instruct},
-                {"role": "user", "content": user_prompt},
-            ],
-        )
+    print("entered call ai terms")
+    print(openai.api_key)
+    print(f"Process {os.getpid()} before call: API key is {os.environ.get('OPENAI_API_KEY')}")
+
+    try:
+        response = await asyncify(openai.ChatCompletion.create)(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": sys_instruct},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+    except Exception as e:
+        print(e)
+    print(f"Process {os.getpid()} before call: API key is {os.environ.get('OPENAI_API_KEY')}")
+
+    print("after supposed api call")
+    print(openai.api_key)
+
     return response
 
 
@@ -53,7 +67,7 @@ async def add_more_cards(subject, topic, concepts, grade, extract_type):
     prompt = build_add_more_cards_prompt(subject, topic, concepts, grade, extract_type)
     response = await call_ai_terms(sys_instruct, prompt)
     response_ = response['choices'][0]['message']['content'].strip()
-    print(response_)
+    print("response:", response_)
     if extract_type == "Cloze":
         response_ = add_underscores(response_)
     byte_string = response_.encode('utf-8')
@@ -84,10 +98,22 @@ def build_add_more_cards_prompt(subject, topic, concepts, grade, extract_type):
     return prompt
 
 async def extract_deck_attributes(text):
+    print("entered extract deck attributes function")
     sys_instruct = "You are an expert at education and classification of content by subject, topic and level of difficulty. You are diligent and think about things carefully and only return content in JSON format"
     user_prompt = 'Identify the main subject, topic, concepts and level of difficulty of the following text, the levels of difficulty should be based upon the educational level at which one would be expected to encounter the identified concepts, either primary school, middle school, high school, college or post-graduate level.  Return your response as a JSON object only in the following format: {"subject": "main subject identified", "topic": "main topic identified", "concepts": ["concept1", "concept2", ...], "difficulty": "difficulty level"}\n  The passage: \n {text}'
     user_prompt = user_prompt.replace('{text}', text)
-    response = await call_ai_terms(sys_instruct, user_prompt)
+    print("before call ai terms")
+    print(openai.api_key)
+    print(f"Process {os.getpid()} before call: API key is {os.environ.get('OPENAI_KEY')}")
+
+    try:
+        response = await call_ai_terms(sys_instruct, user_prompt)
+    except Exception as e:
+        print(e)
+    print("after call ai terms")
+    print(openai.api_key)
+
+    print(response)
     response_ = response['choices'][0]['message']['content'].strip()
     
     byte_string = response_.encode('utf-8')
