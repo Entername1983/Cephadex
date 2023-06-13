@@ -39,10 +39,11 @@ async def process_jobs():
     session_factory = scoped_session(sessionmaker(bind=engine))
     while True:
         with session_factory() as session:
-            try:
+           
             ## looks through the JobNotification table and finds a queued job notification.  Changes the status to processing and returns that job notification
-                job_notification = find_queued_notifications(session)
-                if job_notification:
+            job_notification = find_queued_notifications(session)
+            if job_notification: 
+                try:
                 ## looks through the jobs associated with the job notification and checks if all jobs are complete.  Return number of jobs completed + flashcards created
                     result = check_if_jobs_are_done(job_notification)
                     print(result)
@@ -63,14 +64,8 @@ async def process_jobs():
                                 full_text, deck_id = result            
                             ##Creates a deck attribute row by sending the first 3000 tokens of the long form to open AI
                             attributes = await create_deck_attributes(full_text, deck_id, session)
-                            print(attributes)
                             deck_attributes = session.query(DeckAttributes).filter_by(id=attributes).first()
-
-                            try:
-                                assign_attributes_to_deck(deck_id, deck_attributes, session)
-                            except Exception as e:
-                                print ("error assigning attributes to deck", e)
-                            print(attributes)
+                            assign_attributes_to_deck(deck_id, deck_attributes, session)
                             ## checks if the JobNotif has extract_type needed to check for flashcards
                             if check_for_flashcards_type(job_notification.extract_type):
                                 if not check_sufficient_cards_created(flashcard_counter, job_notification.cost):
@@ -86,12 +81,12 @@ async def process_jobs():
                     ## change job notification back to queued
                             change_job_notification_to_ready(job_notification, session)
                             cache_it(jobs, session, job_notification, deck_attributes)
-                    else:
-                        job_notification.state = 'queued'
-                        session.commit()
-            except Exception as e:
-                print(e)
-                session.rollback()
+                except Exception as e:
+                            print(e)
+                            session.rollback()
+            else:
+                job_notification.state = 'queued'
+                session.commit()           
         sleep(10)
 
 
@@ -258,7 +253,6 @@ def reassemble_audio_transcript(jobs, session):
 
 async def create_deck_attributes(full_text, deck_id, session):
     with current_app.app_context():
-
         print("entered create deck attributes")
         text = limit_text(full_text)
         ## send text to open AI and get attributes 
@@ -466,7 +460,7 @@ def check_card_exist(deck, term):
 if __name__ == "__main__":
     with app.app_context():
         async def main():
-            num_workers = 2 ##int(NUM_WORKERS_ASSEMBLER)
+            num_workers = 1 ##int(NUM_WORKERS_ASSEMBLER)
             tasks = []
             for _ in range(num_workers):
                 task = asyncio.create_task(process_jobs())
