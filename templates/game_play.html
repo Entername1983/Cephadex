@@ -13,7 +13,7 @@
 
 <div class="container-fluid">
     <div class="row text-center mb-4">
-        <h1 class="display-3 hcepha1">Tentacle Tango</h1>
+        <h1 class="display-3 hcepha1">CephaFlex</h1>
     </div>
     <div class="row justify-content-center mb-4">
         <div class="col-md-2 text-center">
@@ -24,7 +24,7 @@
         </div>
         <div class="col-md-4 text-center">
             {% if game.creator == current_user.id %}
-                <button class="btn btn-primary" id="next-round-button">Next round</button>
+                <button class="btn btn-primary" id="next-round-button">Let the games begin!</button>
                 <button class= "btn btn-warning" id="reveal-answers-button">Reveal Answers</button>
                 <button class="btn btn-danger" id="end-game-button">End Game</button>
                 
@@ -33,10 +33,14 @@
     </div>
     <div class="row">
         <div class="col-md-8">
-            <h2 class="text-center">Game board</h2>
+            <h2 class="text-center"id="game-over-text">Game board</h2>
             <div id="game-board" class="card box-manager p-3 mb-4" style="min-height:400px;">
                 <div id="game-over" style="display:none;">
-                    <h1 id="game-over-text"></h1>
+                    
+                    <div id="scoreboard" class="container">
+                        <h2>Final Scoreboard</h2>
+                        <ul id="scoreboard-list" class="list-group"></ul>
+                      </div>
                 </div>
                 <div id="play-field" class="card-body">
                     <h4 class = "card-title" id="flashcard-question"></h4>
@@ -58,11 +62,14 @@
         <div class="col-md-4">
             <h2 class="text-center">Players</h2>
             <div class="box-manager p-5" id="game-scores" style="min-height:400px;">
-                <ul class="list-group">
+                <ul id ="player-list" class="list-group">
                     {% for player in players %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <h6>{{ player.username }}</h6>
-                            <span class="badge bg-info badge-pill" id="score_{{player.player_id}}"></span>
+                            <span class="badge bg-info badge-pill score" id="score_{{player.player_id}}"></span>
+                            {% if game.creator == current_user.id %}
+                                <button class="btn btn-small btn-danger" onclick="removePlayer('{{player.player_id}}')">Remove</button>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
@@ -86,7 +93,12 @@ $('#answer-form').on('submit', function(event) {
     event.preventDefault();  
     submitAnswer();
 });
-$('#next-round-button').click(nextRound);
+$('#next-round-button').click(function() {
+  nextRound();
+  $('#next-round-button').text('Next Round');
+});
+
+
 socket.on('connect', function() {
     console.log('Connected to server');
 });
@@ -268,8 +280,10 @@ function count_votes() {
 }
 
 window.onbeforeunload = function(e) {
-  socket.disconnect();
+    socket.emit('custom_disconnect', {game_id: gameId});
+
 };
+
 
 function displayVotes(answers_info) {
     answers_info.sort(function(a, b) {
@@ -298,6 +312,7 @@ function displayVotes(answers_info) {
 
 function endGame() {
     socket.emit('end_game', {game_id: gameId});
+    endGameScores();
 }
 
 
@@ -308,6 +323,44 @@ function checkEndGame(round) {
     }
 }
 
+socket.on('player_left', function(data) {
+    // Remove the player from the list
+    $("li:contains('" + data.username + "')").remove();
+});
+
+
+
+function removePlayer(playerIdRemoved) {
+    console.log('Remove player:', playerId);
+    socket.emit('remove_player', {game_id: gameId, player_id: playerIdRemoved});
+}
+
+socket.on('player_removed', function(data) {
+    console.log('Player removed:', data.playerIdRemoved);
+    // Remove the player from the list
+    $("#score_" + data.player_IdRemoved).parent().remove();
+});
+function endGameScores() {
+    // Get the player list
+    var playerList = $('#player-list li');
+
+    // Sort the player list by score in descending order
+    playerList.sort(function(a, b) {
+      var scoreA = parseInt($(a).find('.score').text());
+      var scoreB = parseInt($(b).find('.score').text());
+      return scoreB - scoreA;
+    });
+
+    // Append players to the scoreboard in the sorted order
+    var scoreboardList = $('#scoreboard-list');
+    playerList.each(function() {
+      var playerName = $(this).find('h6').text();
+      var playerScore = $(this).find('.score').text();
+      var listItem = $('<li>').addClass('list-group-item');
+      listItem.text(playerName + ' - Score: ' + playerScore);
+      scoreboardList.append(listItem);
+    });
+}
 
 </script>
 

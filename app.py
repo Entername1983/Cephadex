@@ -122,10 +122,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 #### LOGGERS
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(logging.INFO)
+werkzeug_logger.setLevel(logging.ERROR)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.ERROR)
 logging.getLogger('pdfminer').setLevel(logging.ERROR)
 
 try:
@@ -3607,8 +3607,9 @@ def reveal_answers(game_id):
     print(answers_text)
     return jsonify({'answers': answers_text})
 
-@socketio.on('disconnect')
-def handle_disconnect(data):
+@socketio.on('custom_disconnect')
+def handle_custom_disconnect(data):
+    print("user disconnected")
     # Get the user and game information from the session
     user_id = session.get('user_id')
     game_id = data['game_id']
@@ -3922,7 +3923,25 @@ def increase_round(game_id):
     print(game.current_round)
     return game.current_round
 
+@socketio.on('remove_player')
+def on_remove_player(data):
+    print("entered on remove player")
+    game_id = data['game_id']
+    player_id = data['player_id']
+    
+    remove_player(game_id, player_id)
+    
+    emit('player_removed', {'player_id': player_id}, room=game_id)
 
+
+def remove_player(game_id, player_id):
+    print("entered remove player")
+
+    player = PlayerGame.query.filter_by(player_id=player_id, game_id=game_id).first()
+
+    if player:
+        db.session.delete(player)
+        db.session.commit()    
 ##################### EMAIL ###########################################################
 
 

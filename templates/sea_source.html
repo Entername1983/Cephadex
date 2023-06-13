@@ -23,6 +23,17 @@
         .navbar { /* Assuming .navbar is the class of your navigation bar */
             display: none!important;
         }
+        body * {
+            visibility: hidden;
+        }
+        #printable, #printable * {
+            visibility: visible;
+        }
+        #printable-container {
+            /* Adjust margins and other styles for the printable content */
+            margin: 0;
+            padding: 0;
+        }
     }
     </style>
 
@@ -31,7 +42,7 @@
     main_0 %}
 
 
-<div class = "container-fluid">
+<div class = "container-fluid printable-container printable">
     <div class="row">
         <div class="col-1">
         <img src="/static/Cepha-banner-1.png" style="max-height:75px">

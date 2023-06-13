@@ -48,6 +48,7 @@
 const socket = io.connect('http://localhost:5000');
 const userId = '{{ current_user.id }}';
 const gameId = '{{ game.id }}';
+console.log(gameId);
 socket.on('connect', function() {
     console.log('Connected!');
     // Join the game room
@@ -73,8 +74,13 @@ socket.on('players_updated', function(data) {
         $('#players-in-lobby').append('<li class = "list-group-item" id="player-' + player.user_id + '">' + player.username + '</li>');
     });
 });
+socket.on('player_left', function(data) {
+    // Remove the player from the list
+    $("li:contains('" + data.username + "')").remove();
+});
+
 window.onbeforeunload = function(e) {
-  socket.disconnect();
+    socket.emit('custom_disconnect', {game_id: gameId});
 };
 
 
