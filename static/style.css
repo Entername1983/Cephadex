@@ -1707,4 +1707,8 @@ a {
 
 .incorrect-game-answer {
   color: red !important;
+}
+
+#questions-parent .card {
+  box-shadow: none !important;
 }/*# sourceMappingURL=style.css.map */

@@ -14,12 +14,14 @@ SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
 
 def send_email( recipients, first_name, template_name,
                 subject = None, text_body = None,
-                html_body = None, sender = None, payload = None):
+                html_body = None, sender = None, payload = None, link = None):
     
     email_template = {
         'deck_ready': 'd-29696fa7e9e84eb7a81d04491e24e212',
         'welcome': 'd-35f9b384cd83460eac6601895e36a645',
         'upgrade': 'd-58efdfc3c4f14794ab83629b10d2f1b0',
+        'deck_shared': 'd-b878423ea0304bd2a70c21cbe9129b75',
+        'test_shared': 'd-0b0b6b0b0b0b0b0b0b0b0b0b0b0b0b0b',
     }
     message = Mail(
         from_email='cephadex@cephadex.com',
@@ -34,6 +36,7 @@ def send_email( recipients, first_name, template_name,
         'Sender_City': 'SKERRIES',
         'Sender_County': 'DUBLIN',
         'Sender_Postcode': 'K34 VW93',
+        'link': link,
     }
     try:
         sg = SendGridAPIClient(SEND_GRID_KEY)

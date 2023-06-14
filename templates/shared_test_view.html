@@ -1,115 +1,18 @@
-{% extends "layout.html" %} {% block title %} AI Generated Quiz Ready to Print  {% endblock %}
-{% block head %}
-<script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<meta name="robots" content="noindex">
-
-
-<style type="text/css" media="print">
-    @page {
-        size: auto;
-        /* auto is the initial value */
-        margin: 10mm;
-        /* this affects the margin in the printer settings */
-    }
-
-    html {
-        background-color: #FFFFFF;
-        margin: 10px;
-        /* this affects the margin on the html before sending to printer */
-    }
-
-    body {
-        margin: 10mm 15mm 10mm 15mm;
-        /* margin you want for the content */
-    }
-</style>
-<style type="text/css" media="print">
-    @media print {
-        body * {
-            visibility: hidden;
-        }
-        #printable, #printable * {
-            visibility: visible;
-        }
-        #printable-container {
-            /* Adjust margins and other styles for the printable content */
-            margin: 0;
-            padding: 0;
-        }
-        .main-class {
-            margin-top: 0px!important;
-        }
-    }
-</style>
+{% extends "layout.html" %} {% block title %} Shared Test Viewer {% endblock %} 
+{% block head %} 
 
 {% endblock %}
-{% block
-main_0 %}
-
-<div id="print-options" class="box-manager no-print d-flex justify-content-around align-items-center flex-wrap no-print">
-    <div class="print-option-item">
-        <label class="form-check-label">
-            <input type="checkbox" class="print-toggle form-check-input" data-target=".print-marks" checked> Print Marks
-        </label>
-    </div>
-    <div class="print-option-item">
-        <label class="form-check-label">
-            <input type="checkbox" class="print-toggle form-check-input" data-target=".print-test-name" checked> Print Test Name
-        </label>
-    </div>
-    <div class="print-option-item">
-        <label class="form-check-label">
-            <input type="checkbox" class="print-toggle form-check-input" data-target=".print-student-name" checked> Print Student Name
-        </label>
-    </div>
-    <div class="print-option-item">
-        <label class="form-check-label">
-            <input type="checkbox" class="print-toggle form-check-input" data-target=".print-instructions" checked> Print Instructions
-        </label>
-    </div>
-    <div class="print-option-item">
-        <a  id="print-button"  title="Print"><img class = "img-grow" src="/static/print-icon.png" style="width: 35px; height:35px"></a>
-    </div>
-</div>
 
 
+{% block main_0 %}
+{% if current_user.is_authenticated %}
+<a id="take-test" class="conversion-button" href="/take_shared_test/{{test.share_id}}">Save this quiz</a>
+{% else %}
+<a class="conversion-button" data-bs-toggle="modal" data-bs-target="#registerModal">Register to take this quiz</a>
+{% endif %}
 
 
-
-    <div id = "printable" class ="printable printable-container">
-
-<div class="px-1">
-    {% set q_counter = 0 %}
-    <div class="row">
-        {% if current_user.subscription_plan in [1, 2, 3] %}
-        <img src="/static/Cepha-banner-1.png" class = "mb-2"style="max-width:200px">
-       
-        {% endif %}
-    </div>
-        <div class="row">
-
-            <div class="col-4 d-flex align-items-center">
-                <h5 class = "print-student-name" >Name:</h5>
-            </div>
-            <div class="col-6 d-flex align-items-center ">
-                <h4 class ="print-test-name">{{test.name}}</h4>
-            </div>
-            {% if test.points %}
-            <div class="col-2 d-flex align-items-center print-marks">
-                <h5 class = "print-marks"> Marks: {{test.points}}</h5>
-            </div>
-            {% endif %}
-
-        </div>
-    {% if test.instructions %}
-    <div class="row my-2 print-instructions">
-        <h5>Instructions:</h5>
-        <p><i> {{test.instructions}}</i> </p>
-    </div>
-    {% endif %}
-    <br>
-    <div id = "questions-parent">
+<div id = "questions-parent">
     {% for question in test.questions %}
     {% set q_counter = loop.index %}
     {% if question.q_type == "jeopardy" %}
@@ -293,62 +196,16 @@ main_0 %}
 
     {% endif %}
     {% endfor %}
-</div>
-</div>
 
 
 
 
 
 
-</div>
 
 
-
-</div>
-<script>
-        console.log("check")
-        // Toggle visibility for print
-        $(".print-toggle").on('change', function () {
-            console.log("toggling")
-            var target = $(this).data('target');
-            $(target).toggleClass('no-print');
-        });
-
-        // Print function
-        $("#print-button").click(function () {
-            console.log("printing")
-            window.print();
-        });
-
-
-        // Shuffle function
-       
-
-$("#generate-pdf").click(function () {
-            generatePDF();
-        });
-
-
-        function generatePDF() {
-            // Get the HTML content
-            var htmlContent = document.getElementById('printable').innerHTML;
-
-            // Create a new jsPDF instance
-            var doc = new jsPDF();
-
-            // Convert HTML to PDF
-            doc.html(htmlContent, {
-                callback: function (doc) {
-                // Save the PDF
-                doc.save('output.pdf');
-                },
-                x: 10,
-                y: 10
-            });
-            }
-    </script>
-    
 
 
 {% endblock %}
+
+

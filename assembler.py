@@ -83,11 +83,11 @@ async def process_jobs():
                             cache_it(jobs, session, job_notification, deck_attributes)
                 except Exception as e:
                             print(e)
-                            session.rollback()
+                            session.rollback()             
+                            job_notification.state = 'queued'
+                            session.commit()      
             else:
-                job_notification.state = 'queued'
-                session.commit()           
-        sleep(10)
+                sleep(10)
 
 
 async def more_cards_please(subject, topic, concepts, grade, job_notification):

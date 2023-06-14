@@ -330,29 +330,56 @@ function shareDeck(deckId) {
   });
 }
   </script>
-  <div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}"
-    aria-hidden="true">
+  <div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header modal-header-style p-4">
-          <h5 class="modal-title" id="ModalLabel{{deck.id}}">Share deck</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="share-form{{deck.id}}" method="POST">
-            {{ share_form.csrf_token }}
-            <div class="form-group my-2">
-              <div class="form-floating">
-                {{ share_form.emails(id='email' + deck.id|string, class_='form-control', required=True, placeholder="Type receiver's email here")|safe }}
-                <label for="email{{deck.id}}">Email</label>
-              </div>
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="ModalLabel{{deck.id}}">Share deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <button type="button" class="btn btn-generate" onclick="shareDeck('{{ deck.id }}')">Share</button>
-          </form>
+            <div class="modal-body">
+                <form id="share-form{{deck.id}}" method="POST">
+                    {{ share_form.csrf_token }}
+                    <div class="form-group my-2">
+                        <div class="form-floating">
+                            {{ share_form.emails(id='email' + deck.id|string, class_='form-control', required=True,
+                            placeholder="Type receiver's email here")|safe }}
+                            <label for="email{{deck.id}}">Email</label>
+                        </div>
+                        <div class = mt-2>
+                          <img id="qr_code_image{{deck.id}}" src="" alt="QR Code" width="100" height="100"style="display:none" >
+
+                        <p id="share-link{{deck.id}}" readonly style="display:none"></p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-generate" onclick="generateLink('{{ deck.id }}')">Generate Link and QR Code</button>
+
+                    <button type="button" class="btn-generate" onclick="shareDeck('{{ deck.id }}')">Share</button>
+                </form>
+            </div>
         </div>
-      </div>
     </div>
   </div>
+  <script>
+    function generateLink(deck_id) {
+        console.log("generate link")
+        $.ajax({
+            url: '/generate_link/' + deck_id,
+            type: 'GET',
+            success: function(data) {
+              console.log(data);
+                $('#share-link' + deck_id).text(data['share_link']);
+                $('#share-link' + deck_id).show();
+                $('#qr_code_image' + deck_id).attr('src', 'data:image/jpeg;base64,' + data['qr_code']);
+                $('#qr_code_image' + deck_id).show();
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+    </script>
+
 </div>
 <!----- INFO MODAL OBSOLETE--
 <div class="modal fade" id="infoDecksModal{{deck.id}}" tabindex="-1" aria-labelledby="#infoDecksModalLabel{{deck.id}}"

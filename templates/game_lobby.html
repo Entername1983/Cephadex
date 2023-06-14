@@ -45,9 +45,18 @@
 </div>
 
 <script>
-const socket = io.connect('http://localhost:5000');
+const ENVIRONMENT = "{{ environment }}";
+
+let socketAddress = 'http://localhost:5000';
+
+if (ENVIRONMENT === 'production') {
+    socketAddress = 'https://cephadex.heroku.com';
+}
+console.log(socketAddress);
 const userId = '{{ current_user.id }}';
 const gameId = '{{ game.id }}';
+const socket = io.connect(socketAddress);
+
 console.log(gameId);
 socket.on('connect', function() {
     console.log('Connected!');

@@ -386,7 +386,8 @@ class SharedDecks(db.Model):
     public = db.Column(db.Integer, default=0) 
     edited = db.Column(db.Integer, default=0)
     cards = db.relationship('Card', secondary=cards_shared, backref="decks", lazy="select")
-    
+    share_id = db.Column(db.String(36), nullable=True, unique=True)
+
     def delete(self):
         db.session.delete(self)
         db.session.commit()
@@ -414,7 +415,7 @@ class Deck(db.Model):
     accepted = db.Column(db.Boolean, default=False)
     sharer = db.Column(db.Integer) 
     share_date = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    share_id = db.Column(db.String(36), nullable=True, unique=True)
     group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
     group = db.relationship("Group", back_populates="decks")
     children = db.relationship("Deck",
@@ -722,7 +723,7 @@ class Test(db.Model):
     image = db.Column(db.String(255))
     text = db.Column(db.String(2550))
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id', ondelete='SET NULL'), nullable=True)
-    
+    share_id = db.Column(db.String(255))
     def sum_points(self):
         sum = 0
         for questions in self.questions:

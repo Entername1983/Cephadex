@@ -9,21 +9,26 @@
 
 {% endblock %}
 {% block main_0 %}
-
+<audio id="music" loop>
+    <source src="/static/game-beat-1.mp3" type="audio/mpeg">
+</audio>
 
 <div class="container-fluid">
     <div class="row text-center mb-4">
-        <h1 class="display-3 hcepha1">CephaFlex</h1>
+        <h1 class="display-3 hcepha1">Cepha-Flex</h1>
     </div>
     <div class="row justify-content-center mb-4">
         <div class="col-md-2 text-center">
-            <h5>Timer: <span id="timer"></span>(seconds)</h5>
+            <h5>Timer: <span id="timer"></span></h5>
         </div>
         <div class="col-md-3 text-center">
             <h5>Round: <span id="round">0</span></h5>
         </div>
         <div class="col-md-4 text-center">
+            
             {% if game.creator == current_user.id %}
+            <button class="btn btn-primary" id="musicButton">Play Music</button>
+
                 <button class="btn btn-primary" id="next-round-button">Let the games begin!</button>
                 <button class= "btn btn-warning" id="reveal-answers-button">Reveal Answers</button>
                 <button class="btn btn-danger" id="end-game-button">End Game</button>
@@ -47,8 +52,8 @@
 
                     <div id="answers-input" style="display:none">
                         <form id="answer-form">
-                            <input type="text" id="answer-input" class="form-control" placeholder="Enter your answer">
-                            <button type="button" class="btn btn-success" id="submit-answer" onclick="submitAnswer()">Submit</button>
+                            <textarea id="answer-input" class="form-control" rows = "4", placeholder="Enter your answer"></textarea>
+                            <button type="button" class="btn btn-success mt-1" id="submit-answer" onclick="submitAnswer()">Submit</button>
                         </form>
                     </div>
                     <div id="end-of-round">
@@ -83,7 +88,15 @@
 
 const gameId = "{{ game.id }}";
 const playerId = "{{ current_user.id }}";
-const socket = io.connect('http://localhost:5000');
+const ENVIRONMENT = "{{ environment }}";
+let socketAddress = 'http://localhost:5000';
+
+if (ENVIRONMENT === 'production') {
+    socketAddress = 'https://cephadex.heroku.com';
+}
+console.log(socketAddress);
+
+const socket = io.connect(socketAddress);
 const gameCreator = "{{ game.creator }}";
 //// BUTTONS
 $('#end-game-button').click(endGame);
@@ -160,6 +173,7 @@ socket.on('check_all_votes_are_in', function(data) {
 
 function nextRound() {
     console.log("clicked next round")
+    $('.option-btn').hide();
     socket.emit('start_round', {game_id: gameId});
         $('#vote-answers').empty();
 
@@ -363,7 +377,22 @@ function endGameScores() {
 }
 
 </script>
-
+<script>
+    let isMusicPlaying = false;
+    const music = document.getElementById('music');
+    
+    document.getElementById('musicButton').addEventListener('click', function() {
+        if (isMusicPlaying) {
+            music.pause();
+            isMusicPlaying = false;
+            this.innerHTML = 'Play Music';
+        } else {
+            music.play();
+            isMusicPlaying = true;
+            this.innerHTML = 'Pause Music';
+        }
+    });
+    </script>
 
 
 

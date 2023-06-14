@@ -80,7 +80,8 @@ SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS"
 ALLOWED_EXTENSIONS = os.environ.get("ALLOWED_EXTENSIONS")
 FLASK_DEBUG = False
 MAX_CONTENT = os.environ.get("MAX_CONTENT")
-
+ENVIRONMENT=os.environ.get('ENVIRONMENT')
+APP_URL = os.environ.get('APP_URL')
 # Configure application
 app = Flask(__name__)
 app.config.from_object('config')
@@ -220,8 +221,6 @@ def robots():
 def sitemap():
     return send_file('static/sitemap.xml')
 
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -268,10 +267,13 @@ def index():
 
 @app.route("/googleSignIn", methods=["POST"])
 def googleSignIn():
+    print("entered google sign in ")
+    print(session['shared_test_id'])
     #Security validation
     form = TryOut()
     logger.debug("entered google sign in")
     csrf_token_cookie = request.cookies.get('g_csrf_token')
+    print("csrf_token_cookie: ", csrf_token_cookie)
     if not csrf_token_cookie:
         logger.debug('No CSRF token in Cookie.')
         return jsonify({'error': 'No CSRF token in Cookie'}), 400
@@ -284,22 +286,54 @@ def googleSignIn():
         return jsonify({'error': 'Failed to verify double submit cookie.'}), 400
     try:
         #encrypted credential
-        
         credential = request.form.get('credential')
+        print(credential)
         # Decrypt credential, third parameter comes from google API console client ID
-        idinfo = id_token.verify_oauth2_token(credential,
-                                               requests.Request(), AUTH2_CLIENT_ID)
+        try:
+            idinfo = id_token.verify_oauth2_token(credential,
+                                                requests.Request(), AUTH2_CLIENT_ID)
+        except ValueError as e:
+            # Invalid token
+            logger.error('Invalid token. Error: %s', e)
+            return jsonify({'error': 'Invalid token'}), 400
         # ID token is valid. Get the user's Google Account ID from the decoded token.
+        print(idinfo)
         #  (UniqueID to use for login)
         userid = idinfo['sub']
+        print(userid)
         user = User.query.filter_by(external_id=userid).first()
-        if (user):
-            
+        if user:
+            print("found user")
             login_user(user)
             game_id = session.get('game_id')
             print("game id is", game_id)
-            if game_id is not None:
-                game = Game.query.get(game_id)
+            if 'shared_deck_id' in session:
+                print("shared deck id is", session['shared_deck_id'])
+                shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
+                new_deck = Deck(user_id = current_user.id,
+                        name=shared_deck.name,
+                        description=shared_deck.description,
+                        time_created=dt.datetime.now(dt.timezone.utc))
+                db.session.add(new_deck)
+                for card in shared_deck.cards:
+                    new_card = Card(term=card.term,
+                        content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
+                        boc_4=card.boc_4,img=card.img, sound=card.sound,
+                        subject=card.subject, topic=card.topic,
+                        category=card.category,
+                        prompt_option=card.prompt_option,
+                        prompt_option2=card.prompt_option2,
+                        trans_option=card.trans_option, len_option=card.len_option,
+                        qmin_option=card.qmin_option,
+                        qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+                    new_deck.cards.append(new_card)
+                del session['shared_deck_id']
+                db.session.commit()
+                flash("You have been logged in and the deck has been added to your decks", "success")
+                return redirect(url_for('viewdecks'))
+            if 'game_id' in session:
+                game_id = session.get('game_id')
+                print("game id is", game_id)
                 if user.username:
                     username = user.username
                 else:
@@ -307,9 +341,16 @@ def googleSignIn():
                 player = PlayerGame(player_id = user.id, game_id = game_id, username = username)
                 db.session.add(player)
                 db.session.commit()
-                if 'game_id' in session:
-                    del session['game_id']
+                del session['game_id']
                 return redirect(url_for('game_lobby', game_id=game_id))
+            if 'shared_test_id' in session:
+                print("recognized share_test_id")
+                shared_test_id = session.get('shared_test_id')
+                print("shared test id is", shared_test_id)
+                print("user id is", user.id)
+                del session['shared_test_id']
+                return redirect(url_for('take_test_2',
+                    share_id=shared_test_id, user_id = user.id))
             flash('You have been logged in!', 'success')
             event_tracker(user.id, "login", "google")
             return redirect(url_for('viewdecks'))
@@ -420,12 +461,41 @@ def register():
             db.session.commit()
             login_user(user)
             game_id = session.get('next_game_id')
+            if 'shared_test_id' in session:
+                print("shared test id is", session['shared_test_id'])
+                shared_test_id = session['shared_test_id']
+                del session['shared_test_id']
+                return redirect(url_for('take_test_2',
+                    share_id=shared_test_id, user_id = user.id))
+            if 'shared_deck_id' in session:
+                print("shared deck id is", session['shared_deck_id'])
+                shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
+                new_deck = Deck(user_id = current_user.id,
+                        name=shared_deck.name,
+                        description=shared_deck.description,
+                        time_created=dt.datetime.now(dt.timezone.utc))
+                db.session.add(new_deck)
+                for card in shared_deck.cards:
+                    new_card = Card(term=card.term,
+                        content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
+                        boc_4=card.boc_4,img=card.img, sound=card.sound,
+                        subject=card.subject, topic=card.topic,
+                        category=card.category,
+                        prompt_option=card.prompt_option,
+                        prompt_option2=card.prompt_option2,
+                        trans_option=card.trans_option, len_option=card.len_option,
+                        qmin_option=card.qmin_option,
+                        qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+                    new_deck.cards.append(new_card)
+                del session['shared_deck_id']
+                db.session.commit()
+                flash("You have been registered and logged in!", "success")
+                return redirect(url_for('viewdecks'))
             if game_id is not None:
                 game = Game.query.get(game_id)
                 game.players.append(current_user)
                 db.session.commit()
-                if 'game_id' in session:
-                    del session['game_id']
+                del session['game_id']
                 return redirect(url_for('game_lobby', game_id=game_id))
             flash("You have been registered and logged in!", "success")
             return redirect(url_for('viewdecks'))
@@ -1722,18 +1792,104 @@ def delete_file(deck_id, file_id):
     db.session.commit()
     return redirect(("/sea_dox/{deck}").format(deck=deck.id)) 
 
+@app.route('/generate_link/<int:deck_id>', methods=['GET'])
+@login_required
+def generate_link(deck_id):
+    print("entered generate link")
+    # create a share_id for the deck and store it in the database
+    deck = Deck.query.get(deck_id)
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+
+    if deck.share_id:
+        print("deck already has share_id")
+
+        qr.add_data(APP_URL + 'shared_deck_view/' + deck.share_id)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffered = BytesIO()
+        img.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+
+        return jsonify({'share_link': APP_URL + 'shared_deck_view/' + deck.share_id, 'qr_code': img_str})
+    else:
+        print("deck does not have share_id")
+        share_id = str(uuid.uuid4())
+        deck.share_id = share_id
+        db.session.commit()
+        
+        # generate a QR code
+        qr.add_data(APP_URL + 'shared_deck_view/' + share_id)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffered = BytesIO()
+        img.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+
+        # return the shared link and QR code
+        return jsonify({'share_link': APP_URL + 'shared_deck_view/' + share_id, 'qr_code': img_str})
+
+
+@app.route('/generate_link_test/<int:test_id>', methods=['GET'])
+@login_required
+def generate_link_test(test_id):
+    test = Test.query.get(test_id)
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    if test.share_id:
+        qr.add_data(APP_URL + 'shared_test_view/' + test.share_id)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffered = BytesIO()
+        img.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        return jsonify({'share_link': APP_URL + 'shared_test_view/' + test.share_id, 'qr_code': img_str})
+    else:
+        share_id = str(uuid.uuid4())
+        test.share_id = share_id
+        db.session.commit()
+        qr.add_data(APP_URL + 'shared_test_view/' + share_id)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffered = BytesIO()
+        img.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        return jsonify({'share_link': APP_URL + 'shared_test_view/' + share_id, 'qr_code': img_str})
+
+
+@app.route('/shared_deck_view/<string:share_id>', methods=['GET'])
+def shared_deck_view(share_id):
+    deck = Deck.query.filter_by(share_id=share_id).first_or_404()
+    session['shared_deck_id'] = share_id
+    print(session['shared_deck_id'])
+    return render_template('shared_deck_view.html', deck=deck)
+
+@app.route('/shared_test_view/<string:share_id>', methods=['GET'])
+def shared_test_view(share_id):
+    test = Test.query.filter_by(share_id=share_id).first_or_404()
+    session['shared_test_id'] = share_id
+    print(session['shared_test_id'])
+    return render_template('shared_test_view.html', test=test)
+
+
+
 @app.route("/share_deck/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
 def share_deck(deck_id):
+
     c_deck_id = deck_id
     share_form = Share()
     sender_id = current_user.id
     deck_to_copy = Deck.query.get_or_404(c_deck_id)
+    if not deck_to_copy.share_id:
+        share_id = str(uuid.uuid4())
+        deck_to_copy.share_id = share_id
+        db.session.commit()
+
     event_tracker(current_user.id, "share_deck", c_deck_id)
 
     if share_form.validate_on_submit():
         users_emails = share_form.emails.data.split(",")
-
+        
         for email in users_emails:
             email = email.strip()
             user = User.query.filter_by(email=email).first()
@@ -1743,7 +1899,8 @@ def share_deck(deck_id):
                                            description=deck_to_copy.description,
                                             sender=sender_id,
                                             time_created=dt.datetime.now(dt.timezone.utc),
-                                            receiver=user.id)
+                                            receiver=user.id,
+                                              shared_id = deck_to_copy.shared_id)
                 db.session.add(shared_deck)
 
                 for card in deck_to_copy.cards:
@@ -1761,6 +1918,11 @@ def share_deck(deck_id):
                                     diff_lvl=card.diff_lvl)
                     shared_deck.cards.append(new_card)
                 db.session.commit()
+            else:
+                share_link = APP_URL + 'shared_deck_view/' + deck_to_copy.share_id
+                print("sending email to", email)
+                send_email(email, None, 'deck_shared', 'Someone sent you a deck', link=share_link)
+                pass
         return jsonify('success', 'Deck shared successfully')
     else:
         return jsonify('error', 'Deck not shared')
@@ -1789,11 +1951,36 @@ def approve_shared(deck_id):
                         qmin_option=card.qmin_option,
                         qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
         new_deck.cards.append(new_card)
-    db.session.commit()
     shared_deck.delete()
     db.session.commit()
     success = True
     return jsonify({'success': success})
+
+@app.route("/save_shared_deck/<share_id>/", methods=["GET", "POST"])
+@login_required
+def save_shared_deck(share_id):
+    event_tracker(current_user.id, "approve_shared", share_id)
+    shared_deck = Deck.query.filter_by(share_id=share_id).first_or_404()
+    new_deck = Deck(user_id = current_user.id,
+                    name=shared_deck.name,
+                    description=shared_deck.description,
+                    time_created=dt.datetime.now(dt.timezone.utc))
+    db.session.add(new_deck)
+    for card in shared_deck.cards:
+        new_card = Card(term=card.term,
+                         content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
+                        boc_4=card.boc_4,img=card.img, sound=card.sound,
+                        subject=card.subject, topic=card.topic,
+                        category=card.category,
+                        prompt_option=card.prompt_option,
+                        prompt_option2=card.prompt_option2,
+                        trans_option=card.trans_option, len_option=card.len_option,
+                        qmin_option=card.qmin_option,
+                        qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+        new_deck.cards.append(new_card)
+    db.session.commit()
+    success = True
+    return redirect(url_for('deck_manager', deck_id=new_deck.id))
 
 @app.route("/reject_shared/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
@@ -2048,7 +2235,49 @@ def assign(test_id, user_email):
         flash(f"Could not locate the following users: {not_users}.  Currently you can only assign to other users", "danger")
     return redirect('/assign_test/{test_id}'.format(test_id = c_test_id))
 
+@app.route("/take_test_2/<share_id>/<int:user_id>/", methods=["GET", "POST"])
+@login_required
+def take_test_2(share_id, user_id):
 
+    event_tracker(current_user.id, "take_test", share_id)
+    test = Test.query.filter_by(share_id=share_id).first_or_404()
+    test_result = TestResult.query.filter_by(test_id = test.id, taker = user_id).first()
+    
+    if request.method == 'POST':
+            for question in test.questions:
+                question_id = question.id
+                to_call = "answer"+str(question_id)
+                answer = request.form.get(to_call, '')
+                answer = answer.strip()
+                result = QuestionResult(test_id = test.id,
+                                        taker = current_user.id,
+                                        question_id = question.id, answer = answer)
+                db.session.add(result)
+                db.session.commit()
+            end_time = request.form.get('end-time')
+            end_time = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+            test_result.end_time = end_time
+            db.session.commit()
+            return redirect('/test_results/{test_id}/{user_id}'.format
+                            (test_id = test.id, user_id = user_id))
+       
+    else:
+        if test_result is None:
+            start_time = dt.datetime.now(dt.timezone.utc)
+            test_result = TestResult(test_id = test.id,
+                                    taker = user_id, start_time = start_time,
+                                    creator=test.creator)
+            taker = User.query.get_or_404(user_id)
+            db.session.add(test_result)
+            db.session.commit()
+            return render_template('take_test.html',
+                            test=test, taker=taker, start_time = start_time)
+        else:
+            test.taker.remove(current_user)
+            db.session.commit()
+            flash('you have already taken this test', 'danger')
+            return redirect('/test_results_overview/')
+        
 @app.route("/take_test/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 @login_required
 def take_test(test_id, user_id):
@@ -2235,6 +2464,9 @@ def test_answers(test_id, taker_id):#
                 QuestionResult.query
                 .filter_by(test_id = test.id, taker=c_taker_id).all()
     )
+    for qr in question_results:
+        print(f"Question ID: {qr.question_id}, Answer: {qr.answer}")
+
     result.sum_points()   
     taker = User.query.filter_by(id = c_taker_id).first()
     if result.creator != current_user.id:
@@ -3483,6 +3715,7 @@ def game_new():
 def game_lobby(game_id):
     game = Game.query.get(game_id)
     join_game_url = url_for('game_join', game_id=game.id, _external=True)
+    print(ENVIRONMENT)
     ##players = game.players
     qr = qrcode.QRCode(
         version=1,
@@ -3498,7 +3731,8 @@ def game_lobby(game_id):
     qr_code = base64.b64encode(stream.getvalue()).decode()
     ## if hosts clicks start game, start game
     return render_template('game_lobby.html', game=game,
-            qr_code=qr_code, game_url = join_game_url)
+            qr_code=qr_code, game_url = join_game_url,
+            environment=ENVIRONMENT)
 
 
 @socketio.on('start_game')
@@ -3566,7 +3800,8 @@ def game_play(game_id):
 
         return render_template('game_play.html', game=game, players = players, usernames=usernames)
     else:
-        return redirect(url_for('game_lobby', game_id=game.id))
+        return redirect(url_for('game_lobby', game_id=game.id,
+                                 environment=ENVIRONMENT))
 
 
 
@@ -3725,7 +3960,7 @@ def handle_submit_answer(data):
             answer = 'No answer'
         else:
             print("answer in data")
-            answer = data['answer']
+            answer = clean(data['answer'])
             print("answer is ", answer)
         player_id = data['player_id']
         submit_answer(game_id, round_id, answer, player_id)

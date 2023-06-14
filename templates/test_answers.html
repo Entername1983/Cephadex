@@ -28,28 +28,35 @@
                 {% for question in test.questions %}
                 <div class="card m-1">
                     <div class="card-body" >
-                        <div class="row">
-                            <div class="col-9">
                                 <h5 class="card-title">Question: {{ question.question }}</h5>
 
-                                {% for q_result in question_results %}
-                                {% if q_result.question_id == question.id %}
+                        <div class="row">
+
+                              {% for q_result in question_results %}
+                              {% if q_result.question_id == question.id  %}
+                              <div class="col-9">
+
+                              
 
                                 <p class="card-text">
                                     Answer given: {{ q_result.answer }}
                                 </p>
                             </div>
+
                             <div class="col-3">
                                 <label for="points{{q_result.id}}">Points:</label>
                                 <input class="control-form box_study" style="max-width:40px" type="text"
                                     id="points{{q_result.id}}" placeholder="{{q_result.points}}"
                                     value="{{q_result.points}}" name="points{{q_result.id}}">
                             </div>
+
+                                {% endif %}
+                                {% endfor %}
+
                         </div>
                     </div>
                 </div>
-                {% endif %}
-                {% endfor %}
+                
 
 
                 {% endfor %}
