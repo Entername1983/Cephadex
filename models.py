@@ -74,7 +74,7 @@ class User(db.Model, UserMixin):
     contacted_email = db.Column(db.Boolean, default=False)
     dob = db.Column(db.DateTime, nullable=True)
     timezone = db.Column(db.String(64))
-    subscription_plan = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=False, default=1)
+    subscription_plan = db.Column(db.Integer, db.ForeignKey('subscription_plans.id', ondelete='SET NULL'), nullable=False, default=1)
     subscription_start_date = db.Column(db.DateTime)
     latest_roll_over = db.Column(db.DateTime)
     groups = db.relationship("Group", secondary=user_group_association, backref="users")
@@ -181,7 +181,7 @@ class StripeEvents(db.Model):
     event_data = db.Column(db.Text, nullable=True)
     event_created = db.Column(db.DateTime, default=datetime.utcnow)
     stripe_customer_id = db.Column(db.String(255), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='SET NULL'))
     processed = db.Column(db.Boolean, default=False)
     processed_at = db.Column(db.DateTime, nullable=True)
     error_message = db.Column(db.String(255), nullable=True)
@@ -196,7 +196,7 @@ class Group(db.Model):
     group_type = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
-    creator_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    creator_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='SET NULL'))
     creator = db.relationship("User", foreign_keys=[creator_id])
     avatar = db.Column(db.String(255))
     is_private = db.Column(db.Boolean, default=False)
@@ -207,10 +207,10 @@ class GroupInvite(db.Model):
     __tablename__ = "group_invite"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
-    group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
+    group_id = db.Column(db.Integer, db.ForeignKey("group.id", ondelete='SET NULL'))
     group = db.relationship("Group", foreign_keys=[group_id])
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    invited_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='SET NULL'))
+    invited_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete='SET NULL'))
     invited_by_email = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
@@ -416,7 +416,7 @@ class Deck(db.Model):
     sharer = db.Column(db.Integer) 
     share_date = db.Column(db.DateTime, default=datetime.utcnow)
     share_id = db.Column(db.String(36), nullable=True, unique=True)
-    group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
+    group_id = db.Column(db.Integer, db.ForeignKey("group.id", ondelete='SET NULL'))
     group = db.relationship("Group", back_populates="decks")
     children = db.relationship("Deck",
                     secondary=deck_relationships,
@@ -636,7 +636,7 @@ class Deck(db.Model):
     
 class DeckAttributes(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id', ondelete='SET NULL'))
     subject = db.Column(db.String(100))
     grade = db.Column(db.String(100))
     topic = db.Column(db.String(100))
@@ -752,9 +752,9 @@ class Question(db.Model):
 
 class QuestionResult(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    test_id = db.Column(db.Integer, db.ForeignKey('test.id'))
+    test_id = db.Column(db.Integer, db.ForeignKey('test.id', ondelete='SET NULL'))
     taker = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id', ondelete='SET NULL'))
     answer = db.Column(db.String(50))
     points = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
@@ -878,8 +878,8 @@ class CachedResponse(db.Model):
 
 
 skills_category_skill = db.Table('skills_category_skill',
-    db.Column('skill_id', db.Integer, db.ForeignKey('skill.id'), primary_key=True),
-    db.Column('category_id', db.Integer, db.ForeignKey('skills_category.id'), primary_key=True)
+    db.Column('skill_id', db.Integer, db.ForeignKey('skill.id', ondelete='SET NULL'), primary_key=True),
+    db.Column('category_id', db.Integer, db.ForeignKey('skills_category.id', ondelete='SET NULL'), primary_key=True)
 )
 
 
@@ -898,19 +898,19 @@ class User_Skill(db.Model):
     __tablename__ = 'user_skill'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
-    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id'), nullable=False)
+    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id', ondelete='SET NULL'), nullable=False)
 
 class Badge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     avatar = db.Column(db.String(100), nullable=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('skills_category.id'), nullable=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('skills_category.id', ondelete='SET NULL'), nullable=True)
 
 class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
-    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id'), nullable=False)
+    skill_id = db.Column(db.Integer, db.ForeignKey('skill.id', ondelete='SET NULL'), nullable=False)
     skill = db.relationship('Skill', backref='goals')
     target_level = db.Column(db.Integer, nullable=False)
     start_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -924,7 +924,7 @@ class Goal(db.Model):
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     creator = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
-    current_flashcard_id = db.Column(db.Integer, db.ForeignKey('card.id'))
+    current_flashcard_id = db.Column(db.Integer, db.ForeignKey('card.id', ondelete='SET NULL'))
     deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
     rounds = db.Column(db.Integer, default=0)
     time_limit = db.Column(db.Integer, default=0)
@@ -935,9 +935,9 @@ class Game(db.Model):
 
 class PlayerGame(db.Model):
     __tablename__ = 'player_game'
-    player_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), primary_key=True)
     username = db.Column(db.String(64))
-    game_id = db.Column(db.Integer, db.ForeignKey('game.id'), primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id', ondelete='SET NULL'), primary_key=True)
     score = db.Column(db.Integer, default=0)
     turns_as_main_player = db.Column(db.Integer, default=0)
     points = db.Column(db.Integer, default = 0)
@@ -946,14 +946,14 @@ class PlayerGame(db.Model):
 class GameAnswer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(2560))
-    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id', ondelete='SET NULL'))
     round = db.Column(db.Integer)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))
     is_correct = db.Column(db.Boolean, default=False)
 
 class GameVote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    answer_id = db.Column(db.Integer, db.ForeignKey('game_answer.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    answer_id = db.Column(db.Integer, db.ForeignKey('game_answer.id', ondelete='SET NULL'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'))
     round = db.Column(db.Integer)
-    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id', ondelete='SET NULL'))
