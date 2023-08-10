@@ -1,21 +1,17 @@
-import openai 
 import os
 from random import shuffle
 import qrcode
-from flask import abort
 from io import BytesIO
 from sqlalchemy.sql import or_, and_, insert
 from flask import g, Flask, flash, redirect, render_template, request, session
 from flask import url_for, Response, send_file, jsonify, current_app
-from flask_login import login_user, LoginManager, login_required, logout_user, current_user
-from flask_bcrypt import Bcrypt
+from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import ImmutableDict
 from cardcreator import create_image, creator
 from extractors import send_question_generator, why_wrong_generator, explain_more
-from extractors import regenerate_definition, extract_from_wiki, text_extractor
-from extractors import extract_from_youtube, create_pdf, check_comma_list, get_video_id
-from helpers import split_text, count_tokens
+from extractors import regenerate_definition
+from extractors import create_pdf, check_comma_list
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import logging
@@ -25,160 +21,96 @@ import base64
 from forms import CreateGameForm
 from datetime import datetime
 import datetime as dt
-from flask_migrate import Migrate
 from urllib.parse import unquote
 from helpers import remove_punctuation, apology
 import difflib
-from anki import request_anki_permission, anki_create_deck, anki_create_card, find_notes
-from anki import check_anki_connect
+from models.anki import request_anki_permission, anki_create_deck, anki_create_card, find_notes
+from models.anki import check_anki_connect
 import time
-from models import db, Job, TestResult, QuestionResult, Question, Test, Feedback
-from models import DeckFiles, Subscriber, Deck, SharedDecks, Card
-from models import Game, PlayerGame, GameAnswer, GameVote
-from models import JobNotification, DeletedAccounts, StripeEvents, GroupInvite, Group
-from models import user_group_association, UsageRecord, SubscriptionPlan
-from models import  User, questions, distribution, UserSettings, deck_relationships
+from models.decks.job import Job
+from models.decks.card_factory import CardFactory
+from models.decks.card import Card
+from models.decks.deck import Deck
+from models.decks.deck_files import DeckFiles
+from models.decks.job_notification import JobNotification
+from models.decks.shared_decks import SharedDecks
+from models.games.game_answer import GameAnswer
+from models.games.game_vote import GameVote
+from models.games.game import Game
+from models.games.player_game import PlayerGame
+from models.groups.group_invite import GroupInvite
+from models.groups.group import Group
+from models.quiz.question_result import QuestionResult
+from models.quiz.question import Question
+from models.quiz.quiz import Test
+from models.quiz.quiz_result import TestResult
+from models.tracking.feedback import Feedback
+from models.user.deleted_accounts import DeletedAccounts
+from models.user.subscriber import Subscriber
+from models.user.usage_record import UsageRecord
+from models.user.user_settings import UserSettings
+from models.user.user import User
+from models.stripe_events import StripeEvents
+from models.association_tables import questions
+from models.association_tables import distribution, deck_relationships, user_group_association
+from models.extractors.extractor import Extractor, tokens_general
+from models.exceptions.flask_error_handlers import handle_audio_error, handle_youtube_error, handle_file_not_found_error, handle_unknown_error
 import logging.config
-from events import event_tracker
-from logging.config import dictConfig
-from logging_config import LOGGING_CONFIG
+from models.tracking.events import event_tracker
 from bleach import clean
 from flask_wtf.csrf import generate_csrf
 import stripe
 import uuid
 import random
+## FORMS
 from forms import RegSub, RegisterForm, TryOut, DeckOrg, UploadFileForm, StudyDeckForm
 from forms import AccountForm, DeleteAccountForm, UpdateProfilePicForm, FeedbackForm
 from forms import SearchAndSortForm, Share, BuildTest, UpdateCardForm, GroupForm
 from forms import UpdateFileNameForm
 from pydub import AudioSegment
-from lists import TEST_NAMES, DECK_NAMES
-from pydub.utils import mediainfo
-from extractors import audio_processing
+from lists import TEST_NAMES
 import requests as req
 from urllib.parse import urljoin
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import emit, join_room
 from send_email import send_email
 from forms import Unsubscribe
-from error_handlers import YoutubeError
+from models.exceptions.exceptions import YoutubeError, AudioError
 from flask import make_response
 from xhtml2pdf import pisa
+from PIL import Image
+from config import configure_app
+from extensions import init_extensions
+from settings import APP_URL, AUTH2_CLIENT_ID, ENVIRONMENT
 
-dictConfig(LOGGING_CONFIG)
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
-AUTH2_CLIENT_ID = os.environ.get("AUTH2_CLIENT_ID")
-
-SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
-UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
-SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = os.environ.get("DEBUG")
-SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
-SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
-ALLOWED_EXTENSIONS = os.environ.get("ALLOWED_EXTENSIONS")
-FLASK_DEBUG = False
-MAX_CONTENT = os.environ.get("MAX_CONTENT")
-ENVIRONMENT=os.environ.get('ENVIRONMENT')
-APP_URL = os.environ.get('APP_URL')
 # Configure application
 app = Flask(__name__)
-app.config.from_object('config')
 
+configure_app(app)
+db, bcrypt, migrate, login_manager, socketio = init_extensions(app)
 ### AUTO ESCAPE"
 jinja_options = ImmutableDict(
- extensions=[
-  'jinja2.ext.autoescape', 'jinja2.ext.with_' 
- ])
+    extensions=[
+    'jinja2.ext.autoescape', 'jinja2.ext.with_' 
+    ])
 
 app.jinja_env.autoescape = True
-### BLEACH ALLOWED TAGS
-ALLOWED_TAGS = [    'a', 'abbr', 'acronym', 'b', 'br', 'code', 'em', 'i', 'li',    'ol', 'strong', 'ul', 'p', 'pre', 'blockquote', 'hr', 'img',    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'div',    'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
-ALLOWED_ATTRIBUTES = {
-    '*': ['class', 'style'],
-    'a': ['href', 'title'],
-    'abbr': ['title'],
-    'acronym': ['title'],
-    'img': ['alt', 'src'],
-    'table': ['border', 'cellpadding', 'cellspacing'],
-    'th': ['scope'],
-    'td': ['colspan', 'rowspan'],
-    'iframe': ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen']
-}
-
-## Token related processing
-TOKENS_PER_PAGE = 341
-PAGES_PER_MIN = 3
-ACCEPTABLE_ERROR_RATIO = 0.2
-if MAX_CONTENT is not None:
-    MAX_CONTENT = int(MAX_CONTENT)
-bcrypt = Bcrypt(app)
-app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = SECRET_KEY
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-#### LOGGERS
-werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(logging.ERROR)
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
-logging.getLogger('pdfminer').setLevel(logging.ERROR)
-
-try:
-    file_handler = logging.handlers.RotatingFileHandler(
-        'app.log', maxBytes=1024*1024*5, backupCount=5)
-    file_handler.setFormatter(
-        logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S'))
-    logger.addHandler(file_handler)
-except PermissionError:
-    logger.warning("Could not open file handler for 'app.log'")
-
-try:
-    processing_file_handler = logging.handlers.RotatingFileHandler(
-        'processing.log', maxBytes=1024*1024*5, backupCount=5)
-    processing_file_handler.setFormatter(
-        logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S'))
-    processing_logger = logging.getLogger('processing')
-    processing_logger.addHandler(processing_file_handler)
-except PermissionError:
-    logger.warning("Could not open file handler for 'processing.log'")
+logger = logging.getLogger(__name__)  # Logs to 'app.log'
+processing_logger = logging.getLogger('processing')  # Logs to 'processing.log'
 
 
+##objgraph.show_growth()
+
+##@app.after_request
+##def analyze_memory(response):
+  ##  objgraph.show_most_common_types(limit=10)
+  ##  objgraph.show_growth()
+
+   ## return response
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
-ALLOWED_IMAGES = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
-
-migrate = Migrate(app, db)
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-socketio = SocketIO(app, cors_allowed_origins="*")
-
-# Ensure templates are auto-reloaded
-app.config["TEMPLATES_AUTO_RELOAD"] = True
-
-# Configure session to use filesystem (instead of signed cookies)
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
 
 @app.before_request
 def redirect_to_https():
@@ -267,8 +199,7 @@ def index():
 
 @app.route("/googleSignIn", methods=["POST"])
 def googleSignIn():
-    print("entered google sign in ")
-    print(session['shared_test_id'])
+
     #Security validation
     form = TryOut()
     logger.debug("entered google sign in")
@@ -503,6 +434,8 @@ def register():
     except Exception as e:
         logger.debug(e)
         logger.debug("error registering user")
+        return "An error occurred during registration", 500
+
 
 
 @app.route('/subscribe', methods=['GET', 'POST'])
@@ -640,8 +573,13 @@ def study():
 @app.route('/study_select', methods=['GET', 'POST'])
 def study_select():
     form = StudyDeckForm()
-    form.deck.choices = [(deck.id, deck.name) for deck in Deck.query.filter_by(user_id=current_user.id).all()]
-    decks = Deck.query.filter_by(user_id=current_user.id).all()
+    decks = []
+    try:
+        form.deck.choices = [(deck.id, deck.name) for deck in Deck.query.filter_by(user_id=current_user.id).all()]
+        decks = Deck.query.filter_by(user_id=current_user.id).all()
+    except Exception as e:
+        logger.debug(e)
+        logger.debug("error getting decks - no decks found")
     if form.validate_on_submit():
         return redirect(url_for('study_deck', deck_id=form.deck.data))
     return render_template('study_select.html', form=form, decks = decks)
@@ -1223,54 +1161,8 @@ def import_public_deck(deck_id):
 
 
 
-def send_audio_file(file, deck_id, prompt_options, slug):
-        # Generate a random string of 5 digits
-    upload_folder = app.config['UPLOAD_FOLDER']
-    random_string = ''.join(random.choices('0123456789', k=5))
 
-    # Get the original file name and extension
-    original_filename = file.filename
-    filename, extension = os.path.splitext(original_filename)
 
-    # Create a new file name
-    new_filename = f"{filename}_{random_string}{extension}"
-    new_filename_secure = secure_filename(new_filename)
-
-    # Create the upload folder if it doesn't exist
-    os.makedirs(upload_folder, exist_ok=True)
-
-    # Join the upload folder path and the secure file name
-    file_path = os.path.join(upload_folder, new_filename_secure)
-
-    # Save the file
-    file.save(file_path)
-    logging.info("file path: %s", file_path)
-
-    audio_processing(file_path, current_user, deck_id, prompt_options, slug)
-    # Return the location of the saved file
-    return file_path
-
-""""
-    is_valid_audio(file)
-
-    file_type = type(file)
-    logging.info(file.filename)
-    logging.info("entered send_audio_file %s", file_type)
-    if not file:
-        logging.info("no file data")
-    random_number = ''.join(random.choices('0123456789', k=5))
-    filename = file.filename
-    extension = os.path.splitext(filename)[1].lower()
-
-    ##file.filename = "file" + str(current_user.id) + random_number + extension
-    folder_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                app.config['UPLOAD_FOLDER'])
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    file_loc = os.path.join(folder_path, secure_filename(file.filename))
-    file.save(file_loc)
-    audio_processing(file_loc, current_user, deck, prompt_options, db)
-"""
 def is_valid_audio(file_storage):
     try:
         # Attempt to load audio file
@@ -1296,8 +1188,8 @@ def initialize_user_settings():
         db.session.commit()
     return user_settings
 
-@app.route("/extract", methods = ["GET", "POST"])
 
+@app.route("/extract", methods = ["GET", "POST"])
 @login_required
 def extract():
     logger.debug("entered extract")
@@ -1305,152 +1197,47 @@ def extract():
     ## plan level requried for genereting images
     form = UploadFileForm()
     if form.validate_on_submit():
-        logger.debug("entered validate on submit")
-        slug = create_slug()
-        session['slug'] = slug
-        audio_extensions = None
-        valid_extensions = [".mp3", ".wav"]
-        if form.file.data:
-            audio_extensions = os.path.splitext(form.file.data.filename)[1].lower()
-        # List of valid extensions
-        if audio_extensions in valid_extensions:
-            try:
-                handle_audio_extract(form, slug, audio_extensions)
-            except Exception as e:
-                handle_audio_error(e)
-        else:
-            try:
-                handle_regular_extract(form, slug)
-            except YoutubeError as e:
-                handle_youtube_error(e)
-            except FileNotFoundError as e:
-                handle_file_not_found_error(e)
-            except Exception as e:
-                handle_unknown_error(e)
-        return redirect('/viewdecks')
+        print(form.file)
 
+        extract_obj = Extractor(db.session, form)
+        session['slug'] = extract_obj.slug
+        print(session['slug'])
+        try:
+            extract_obj.get_content()
+            deck, new_deck_created = extract_obj.get_deck(form)
+            if new_deck_created:
+                db.session.add(deck)
+                db.session.commit()
+            extract_obj.quantity_tokens()
+            if current_user.perform_operation('extract', extract_obj.tokens) == False:
+                db.session.delete(extract_obj.deck)
+                db.session.commit()
+                flash('You have reached your monthly usage limit.'
+                'Please upgrade your account to continue.')
+                event_tracker(current_user.id, 'extract_start',
+                            'fail', "limit_reached")
+                return redirect(url_for('upgrade'))
+            extract_obj.save_source_text()
+            extract_obj.create_jobs()
+        except AudioError as e:
+            handle_audio_error(e)
+        except YoutubeError as e:
+            handle_youtube_error(e)
+        except FileNotFoundError as e:
+            handle_file_not_found_error(e)
+        except Exception as e:
+            handle_unknown_error(e)
+        return redirect('/viewdecks')
     return render_template("extract.html", title="Extract", form=form,
                             settings = user_settings)
-
-def handle_audio_error(e):
-    event_tracker(current_user.id, 'extract_start', 'fail', 'audioerror')
-    flash('We were unable to extract the text from the audio file. Please try another file or contact us for assistance.')
-    logger.error(f"Audio error {e}")
-    return redirect(url_for('extract'))
-
-
-def handle_youtube_error(e):
-    event_tracker(current_user.id, 'extract_start', 'fail', 'youtubeerror')
-    flash('We were unable to extract the text from the link. A small minority of youtube videos do not allow text extraction. Please try another link or contact us for assistance.')
-    logger.error(f"Youtube error {e}")
-    return redirect(url_for('extract'))
-
-def handle_file_not_found_error(e):
-    flash("File not found. Please try again.")
-    event_tracker(current_user.id, 'extract_start', 'fail', 'filenotfound')
-    logger.error(f"File not found {e}")
-    return redirect(url_for('extract'))
-
-def handle_unknown_error(e):
-    logger.error(e)
-    event_tracker(current_user.id, 'extract_start', 'fail', 'unknown')
-    flash('Something went wrong. This error has been logged and we are now investigating the cause.  Please try again or contact us for assistance')
-    return redirect('/extract')
-
-def handle_regular_extract(form, slug):
-    deck, text, prompt_options, input_type, input_details = handle_form_submission(form)
-    logger.debug(text[:100])
-    tokens = count_tokens(text)
-    texts = None
-    if text != None and len(text) > 0:      
-        if perform_operation(current_user.id,
-                            prompt_options['main_opt'], tokens, input_type) == False:
-            flash('You have reached your monthly usage limit.'
-                'Please upgrade your account to continue.')
-            event_tracker(current_user.id, 'extract_start',
-                        'fail', "limit_reached")
-            return redirect(url_for('upgrade'))
-        else:
-            if prompt_options['save_text_opt'] == True:
-                method = "Source"
-                deck_name = f"{deck.name} Source"
-                save_source_text_to_deck(deck_name, deck,
-                                        text, prompt_options, method)
-            texts= split_text(text)
-            if not isinstance(texts, list):
-                texts = [texts]
-
-            
-            if prompt_options['main_opt'] == 'Mix':
-                extract_type = 'Mcq'
-                prompt_options['main_opt'] = 'Definitions'
-                job_creator(texts, deck, prompt_options, slug, input_details)
-                prompt_options['main_opt'] = 'Mcq'
-                job_creator(texts, deck, prompt_options, slug, input_details)
-
-            else:
-                job_creator(texts, deck, prompt_options, slug, input_details)
-                extract_type = prompt_options['main_opt']            
-            prompt_options['main_opt'] = 'Summarize'
-            job_creator(texts, deck, prompt_options, slug, input_details, task_type = prompt_options['main_opt'])
-            job_notification = JobNotification(user_id=current_user.id,
-                slug = slug, cost = tokens,
-                date_created = dt.datetime.now(dt.timezone.utc)
-                , input_details = input_details, extract_type = extract_type)
-    db.session.add(job_notification)
-    db.session.commit()
-
-def handle_audio_extract(form, slug, audio_extensions):
-    duration = check_audio_file(form)
-    form.file.data.seek(0)
-    if duration:
-        prompt_options = process_prompt_options(form)
-        if prompt_options['main_opt'] == 'Mix':
-            prompt_options['main_opt'] = 'Definitions'
-        tokens = convert_time_to_tokens(duration)
-        perform_operation(current_user.id, "extract", tokens)
-        deck = get_or_create_deck(form, prompt_options)
-        form.file.data.seek(0)
-        deck_id = deck.id
-        send_audio_file(form.file.data, deck_id, prompt_options, slug)
-        job_notification = JobNotification(user_id=current_user.id,
-            slug = slug,  cost = tokens, date_created = dt.datetime.now(dt.timezone.utc),
-              input_details=audio_extensions)
-        db.session.add(job_notification)
-        db.session.commit()
-
-
-def create_slug():
-    now = dt.datetime.now(dt.timezone.utc).isoformat()
-    return str(current_user.id) + now
-
-def job_creator(texts, deck, prompt_options, slug, input_details, task_type = None):
-    for text in texts:
-        counter = 0
-        total_len = len(texts)
-        counter = counter + 1
-        payload_dict = {'deck': deck.id, 'text': text,
-                        'prompt_options': prompt_options}
-        payload = json.dumps(payload_dict)
-        current_user_id = current_user.id 
-        if task_type == None:    
-            task_type = prompt_options['main_opt']
-        data = Job(slug=slug, user = current_user_id,
-                    task_type=task_type, payload=payload,
-                    item_number = counter, deck_id=deck.id, item_quantity = total_len)
-        event_tracker(current_user.id, 'start_' + input_details,
-                    'success', payload)
-        if counter == total_len:
-            session['slug'] = slug
-        db.session.add(data)
-        db.session.commit()
 
 
 @app.route("/call_credit_counter", methods = ["POST"])
 def call_credit_counter():
-    form = UploadFileForm()  # you might need to adjust this part to fit your project
+    form = UploadFileForm()  
+    print("entered call credit counter")
     try:
-        credit = credit_counter(form)
+        credit = round(tokens_to_credit(tokens_general(form)), 1)
         print("credit: ", credit)
         return jsonify(credit)
     except YoutubeError:
@@ -1459,229 +1246,12 @@ def call_credit_counter():
         flash("File not found. Please try again.")
         logger.error(f"File not found {e}")
         redirect(url_for('extract'))
-
     except Exception as e:
         logger.error(e)
-    
-
-
-
-def credit_counter(form):
-    print("Entered credit counter")
-    if form.file.data:
-        print("Entered data")
-        if form.file.data.filename.endswith(".mp3") or form.file.data.filename.endswith(".wav"):
-            duration = check_audio_file(form)
-            tokens = convert_time_to_tokens(duration)
-        else:
-            text, filename, tokens = get_text_from_file(form.file.data)
-    elif form.text_input.data: 
-            print("Entered text")   
-            text = form.text_input.data
-            print(text[:50])
-            tokens = count_tokens(text)
-    elif form.link_input.data:
-            print("Entered link")
-            try:
-                text = get_text_from_link(form.link_input.data)
-            except YoutubeError:
-                raise YoutubeError
-            except Exception as e:
-                logger.info(e)
-                return "error"
-            print(text[:50])
-            tokens = count_tokens(text)
-    return round(tokens_to_credit(tokens), 1)
-
-
-def tokens_to_credit(tokens):
-    credit = tokens / 341
     return credit
 
-def allowed_file(filename):
-    if filename.endswith(".mp3") or filename.endswith(".wav"):
-        return True
-    
-def check_audio_file(form):
-    file = form.file.data  # Get the file object from the form
-    filename = file.filename
-    if filename.endswith(".mp3") or filename.endswith(".wav"):
-        file_data = file.read()  # Read the file data
-        file_size = len(file_data)  # Calculate the file size
-        logging.info(f"File size: {file_size}")
-        # Save the file temporarily to be used by FFmpeg
-        temp_filename = "temp_audio_file" + filename
-        with open(temp_filename, "wb") as temp_file:
-            temp_file.write(file_data) 
-        info = mediainfo(temp_filename)
-        try:
-            duration = float(info['duration'])
-        except Exception as e:
-            logging.info(e)
-            time_base = float(info['time_base'].split('/')[1])
-            duration = float(info['duration_ts']) / time_base
-        logging.info(f"Duration: {duration}")
-        os.remove(temp_filename)
-        return duration
-    else:
-        return False
-## Functions for extract:
-def handle_form_submission(form):
-    try:
-        prompt_options = process_prompt_options(form)
-        deck = get_or_create_deck(form, prompt_options)
-        text, input_type, input_details = get_text_from_form_input(form)
-    except YoutubeError:
-        raise YoutubeError
-    return deck, text, prompt_options, input_type, input_details
-
-def process_prompt_options(form):
-    prompt_options = {
-        'main_opt': form.prompt.data or None,
-        'subject_opt': form.subject.data or None,
-        'trans_opt': form.languages.data or None,
-        'lang_opt': form.main_lang.data or None,
-        'detail_lvl_opt': form.length.data or None,
-        'min_opt': form.qmin_option.data or None,
-        'max_opt': form.qmax_option.data or None,
-        'images_opt': form.generate_images.data or None,
-        'save_text_opt': form.save_text.data or None,
-        'custom_term': form.custom_term.data or None,
-        'custom_content': form.custom_content.data or None,
-    }
-    return prompt_options
-
-def get_or_create_deck(form, prompt_options):
-    main_opt = prompt_options['main_opt']
-    if form.deck_list.data:
-        deck = form.deck_list.data
-    else:
-        if not form.name.data:
-            chosen_name = random.choice(DECK_NAMES)
-        else:
-            chosen_name = form.name.data
-        deck_description = form.description.data or ""
-        deck = Deck(name=chosen_name, description=deck_description)
-        db.session.add(deck)
-        db.session.commit()
-    deck.user_id = current_user.id
-    return deck
-
-def get_text_from_form_input(form):
-    if form.file.data:
-        try:
-            text, filename, tokens = get_text_from_file(form.file.data)
-            input_type = filename
-            ## extract extension from file name
-            input_details = filename.split(".")[-1]
-            print(input_details)
-        except Exception as e:
-            raise e
-    elif form.text_input.data and form.text_input.data.strip():
-        text = form.text_input.data
-        input_type = "text"
-        input_details = "text"
-    elif form.link_input.data and form.link_input.data.strip():
-        try:
-            text = get_text_from_link(form.link_input.data)
-            input_type = form.link_input.data
-            input_details = input_type
-            print(input_details)
-        except YoutubeError:
-            raise YoutubeError
-        except Exception as e:
-            raise e
-           
-    else:
-        text = None
-
-    return text, input_type, input_details
-
-def save_source_text_to_deck(name, deck, text, prompt_options, method="extract"):
-
-    logger.debug("entered save_source_text_to_deck %s", deck)
-    try:
-        file_storage = DeckFiles(file_name=name,
-                                  text_string=text, create_type = "source",
-                                    time_created = dt.datetime.now(dt.timezone.utc))
-        db.session.add(file_storage)
-        deck.deck_files.append(file_storage)
-        db.session.commit()
-    except Exception as e:
-        logger.debug(f"Error while saving source text to deck: {e}")
-        db.session.rollback()
-    return True
-
-def get_text_from_file(file_data):
-    print("entered get_text_from_file")
-    try:
-        file = file_data
-        current_user_id = current_user.id
-        now = dt.datetime.now(dt.timezone.utc)
-        filename = file.filename
-        extension = os.path.splitext(filename)[1].lower()
-        file.filename = "file" + str(current_user_id) + str(now) + extension
-        folder_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                    app.config['UPLOAD_FOLDER'])
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        file_loc = os.path.join(folder_path, secure_filename(file.filename))
-        file.save(file_loc)
-        text, tokens = text_extractor(file_loc)
-        print(text)
-        print(filename)
-        print(tokens)
-        return text, filename, tokens
-    except Exception as e:
-        logger.debug(f"Error occurred while processing file: {e}")
-        return None
-    finally:
-        os.remove(file_loc)
-    
-
-
-def get_text_from_link(link_input):
-    text = None
-    try:
-        if "wikipedia" in link_input:
-            if check_comma_list(link_input):
-                link_input = link_input.split(";")
-                for link in link_input:
-                    part = extract_from_wiki(link)
-                    if text is None:
-                        text = part
-                    else:
-                        text = text + part
-            else:
-                text = extract_from_wiki(link_input)
-        else:
-            if check_comma_list(link_input):
-                link_input = link_input.split(";")
-                for link in link_input:
-                    link = get_video_id(link)
-                    part = extract_from_youtube(link)
-                    if text is None:
-                        text = part
-                    else:
-                        text = text + part
-            else:
-                print("single link")
-                link_input = get_video_id(link_input)
-                print(link_input)
-               
-                text = extract_from_youtube(link_input)
-          
-
-        return text
-    except YoutubeError as e:
-        print("1")
-        print("Caught exception type:", type(e))
-        raise YoutubeError
-    except Exception as e:
-        print("Caught exception type:", type(e))
-        print("2")
-        logger.debug(f"Error occurred while processing link: {e}")
-        return None
+def tokens_to_credit(tokens):
+    return tokens / 341
 
 
 @app.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
@@ -1798,17 +1368,12 @@ def generate_link(deck_id):
     print("entered generate link")
     # create a share_id for the deck and store it in the database
     deck = Deck.query.get(deck_id)
-    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
 
     if deck.share_id:
         print("deck already has share_id")
 
-        qr.add_data(APP_URL + 'shared_deck_view/' + deck.share_id)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffered = BytesIO()
-        img.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
+        link = APP_URL + 'shared_deck_view/' + deck.share_id
+        img_str = create_qr_code(link)
 
         return jsonify({'share_link': APP_URL + 'shared_deck_view/' + deck.share_id, 'qr_code': img_str})
     else:
@@ -1818,41 +1383,58 @@ def generate_link(deck_id):
         db.session.commit()
         
         # generate a QR code
-        qr.add_data(APP_URL + 'shared_deck_view/' + share_id)
-        qr.make(fit=True)
-
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffered = BytesIO()
-        img.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
+        link = APP_URL + 'shared_deck_view/' + share_id
+        img_str = create_qr_code(link)
 
         # return the shared link and QR code
         return jsonify({'share_link': APP_URL + 'shared_deck_view/' + share_id, 'qr_code': img_str})
+
+def create_qr_code(link):
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    qr.add_data(link)
+    qr.make(fit=True)
+    img_qr = qr.make_image(fill_color="black", back_color="#efe8ff")
+
+    # Load your background image
+    background = Image.open("static\Cephadex-logo-6.png")
+
+    # Make background image the same size as the QR code
+    background = background.resize(img_qr.size, Image.ANTIALIAS)
+
+    # Convert images to RGBA to ensure compatibility
+    img_qr = img_qr.convert("RGBA")
+
+    # Apply transparency to QR code (0 to 255, 255 being fully opaque)
+    img_qr.putalpha(150) 
+
+    background = background.convert("RGBA")
+
+    # Composite the QR code onto the background
+    result = Image.alpha_composite(background, img_qr)
+
+    # Save the result to a BytesIO object
+    buffered = BytesIO()
+    result.save(buffered, format="PNG")
+
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return img_str
+
 
 
 @app.route('/generate_link_test/<int:test_id>', methods=['GET'])
 @login_required
 def generate_link_test(test_id):
     test = Test.query.get(test_id)
-    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
     if test.share_id:
-        qr.add_data(APP_URL + 'shared_test_view/' + test.share_id)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffered = BytesIO()
-        img.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
+        link = APP_URL + 'shared_test_view/' + test.share_id
+        img_str = create_qr_code(link)
         return jsonify({'share_link': APP_URL + 'shared_test_view/' + test.share_id, 'qr_code': img_str})
     else:
         share_id = str(uuid.uuid4())
         test.share_id = share_id
         db.session.commit()
-        qr.add_data(APP_URL + 'shared_test_view/' + share_id)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffered = BytesIO()
-        img.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
+        img_str = create_qr_code(link)
+
         return jsonify({'share_link': APP_URL + 'shared_test_view/' + share_id, 'qr_code': img_str})
 
 
@@ -2143,6 +1725,7 @@ def assign_test(test_id):
                             test=test, form = form, update_card_form = update_card_form, settings = settings)
 
 
+
 @app.route('/update_card', methods=['POST'])
 @login_required
 def update_card():
@@ -2197,9 +1780,13 @@ def delete_question(test_id, question_id):
 def delete_test(test_id):
     c_test_id = test_id
     test_to_delete = Test.query.get_or_404(c_test_id)
-    db.session.delete(test_to_delete)
-    db.session.commit()
+    if current_user.id == test_to_delete.creator:
+        db.session.delete(test_to_delete)
+        db.session.commit()
     return redirect('/test_results_overview/')
+
+
+
 
 @app.route("/assign/<int:test_id>/<string:user_email>/", methods=["GET", "POST"])
 @login_required
@@ -2234,6 +1821,10 @@ def assign(test_id, user_email):
     else:
         flash(f"Could not locate the following users: {not_users}.  Currently you can only assign to other users", "danger")
     return redirect('/assign_test/{test_id}'.format(test_id = c_test_id))
+
+
+
+
 
 @app.route("/take_test_2/<share_id>/<int:user_id>/", methods=["GET", "POST"])
 @login_required
@@ -2304,22 +1895,22 @@ def take_test(test_id, user_id):
             return redirect('/test_results/{test_id}/{user_id}'.format
                             (test_id = c_test_id, user_id = c_user_id))
        
-    else:
-        if test_result is None:
-            start_time = dt.datetime.now(dt.timezone.utc)
-            test_result = TestResult(test_id = test_id,
-                                    taker = c_user_id, start_time = start_time,
-                                    creator=test.creator)
-            taker = User.query.get_or_404(user_id)
-            db.session.add(test_result)
-            db.session.commit()
-            return render_template('take_test.html',
-                            test=test, taker=taker, start_time = start_time)
-        else:
-            test.taker.remove(current_user)
-            db.session.commit()
-            flash('you have already taken this test', 'danger')
-            return redirect('/test_results_overview/')
+
+    
+    start_time = dt.datetime.now(dt.timezone.utc)
+    test_result = TestResult(test_id = test_id,
+                            taker = c_user_id, start_time = start_time,
+                            creator=test.creator)
+    taker = User.query.get_or_404(user_id)
+    db.session.add(test_result)
+    db.session.commit()
+    return render_template('take_test.html',
+                    test=test, taker=taker, start_time = start_time)
+        ##else:
+          ##  test.taker.remove(current_user)
+         ##   db.session.commit()
+           ## flash('you have already taken this test', 'danger')
+          ##  return redirect('/test_results_overview/')
 
 @app.route('/reject_test/<int:test_id>/<int:user_id>', methods=['DELETE'])
 def reject_test(test_id, user_id):
@@ -2380,12 +1971,11 @@ def test_results(test_id, user_id):
 
 @app.route("/test_results_overview/", methods=["GET", "POST"])
 def test_results_overview():
-    user = current_user
-    tests_created = Test.query.filter_by(creator = user.id).all()
+    tests_created = Test.query.filter_by(creator = current_user.id).all()
     ## results of tests taken
-    test_results_taken = TestResult.query.filter_by(taker = user.id).all()
+    test_results_taken = TestResult.query.filter_by(taker = current_user.id).all()
     ## results of tests given
-    test_results_given = TestResult.query.filter_by(creator = user.id).all()
+    test_results_given = TestResult.query.filter_by(creator = current_user.id).all()
     tests = []
     for result in test_results_taken:
         test = Test.query.filter_by(id=result.test_id).first()
@@ -2703,7 +2293,7 @@ def job_error_checker(slug):
     print(slug)
     error_ratio = check_for_errors(slug)
     print("error ratio", error_ratio)
-    if error_ratio > ACCEPTABLE_ERROR_RATIO:
+    if error_ratio > 0:
         print("Recognized error")
         job_notification = JobNotification.query.filter_by(slug=slug).first()
         credit = current_user.remaining_credit() * 341 + job_notification.cost + 3410
@@ -2824,44 +2414,9 @@ def convert_time_to_tokens(time):
     logger.info("tokens %s", tokens)
     return tokens
 
-def perform_operation(user_id, operation_type, n, operation_details=None):
-    # Check the user's remaining count for this time period
-    user = User.query.filter_by(id=user_id).first()
-    logger.debug("checking operation %s, %s", operation_type, n)
-    usage_record = (
-            UsageRecord.query
-            .filter_by(user_id=user.id)
-            .order_by(UsageRecord.date.desc()).first()
-    )
-    subscription_plan = (
-            SubscriptionPlan.query
-            .filter_by(id=user.subscription_plan).first() 
-    ) 
-    if usage_record is None:
-        remaining_count = subscription_plan.limit_count
-    else:
-        remaining_count = usage_record.remaining_count
-    if remaining_count - n <= 0:
-        return False
-    # Perform the operation and update the usage record
-    # Update the usage reco
-    new_record = UsageRecord(user_id=user.id, operation_type=operation_type,
-                              time_period='month',
-                                limit_count=subscription_plan.limit_count)
-    new_record.operation_count = n
-    if usage_record is None:
 
-        new_record.remaining_count = subscription_plan.limit_count - n
-    else:
-        new_record.remaining_count = usage_record.remaining_count - n
-    db.session.add(new_record)
 
-def check_subscription_plan(user):
-    subscription_plan = (
-        SubscriptionPlan.query
-        .filter_by(id=user.subscription_plan).first()
-    )
-    return subscription_plan
+
 
 ####################  MORE INFO ABOUT CARDS ###########################################
 
@@ -2986,6 +2541,7 @@ def deck_manager(deck_id):
     if form.validate_on_submit():
         if form.new_deck_name.data:
             deck.name = form.new_deck_name.data
+            deck.source = form.new_deck_source.data
             deck.description = form.new_deck_description.data
             deck.subject = form.new_deck_subject.data
             deck.topic = form.new_deck_topic.data
@@ -4199,5 +3755,5 @@ if __name__ == "__main__":
 
 else:
     # For Alembic
-    from models import db
+    from models.extensions import db
     db.init_app(app)

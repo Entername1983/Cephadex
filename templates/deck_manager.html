@@ -518,7 +518,7 @@ function generateLink(deck_id) {
                     </div>
 
                     <div class="form-floating mt-1">
-                        {{ form.new_deck_description(class="form-control", value = deck.desccription,
+                        {{ form.new_deck_description(class="form-control", value = deck.description,
                         placeholder=deck.description|default("Description")) }}
                         <label for="new_deck_description">Description</label>
                     </div>
@@ -534,7 +534,11 @@ function generateLink(deck_id) {
                         placeholder=deck.topic|default("Topic")) }}
                         <label for="new_deck_topic">Topic</label>
                     </div>
-
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_source(class="form-control", value = deck.source,
+                        placeholder=deck.source|default("Source")) }}
+                        <label for="new_deck_subject">Source(s)</label>
+                    </div>
                     <div class="form-floating my-2">
                         {{ form.deck_list(id="existing-input", class="form-select full-w", placeholder="Select a deck")
                         }}

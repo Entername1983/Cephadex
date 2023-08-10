@@ -23,7 +23,7 @@
         {% if current_user.role in ['student', 'lifelong-learner', 'part-time-student'] %}
 
         <div class="col-md-6">
-            <div class="card  box-manager mt-2">
+            <div class="card mt-2">
                 <div class="card-header deck-manager-header">
                     <h4>My results</h4>
                 </div>
@@ -65,16 +65,17 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card box-manager mt-2">
+            <div class="card mt-2">
                 <div class="card-header deck-manager-header">
-                    <h4>Assignments</h4>
+                    <h4>Quizzes</h4>
                 </div>
                 <div class="card-body " style="height: 25vh; overflow-y: scroll;">
 
                     {% if created|length == 0 %}
                     <p>You don't have any quizzes or worksheets. To create some first create a deck and then build a
                         quiz based on that deck.</p>
-                    {% else %} <table class="table">
+                    {% else %} 
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th scope="col">Name:</th>
@@ -98,7 +99,7 @@
                 </div>
             </div>
 
-            <div class="card box-manager mt-2">
+            <div class="card  mt-2">
                 <div class="card-header deck-manager-header">
                     <h4>My students' results</h4>
                 </div>
@@ -145,7 +146,7 @@
 
 
         <div class="col-md-6">
-            <div class="card box-manager mt-2">
+            <div class="card mt-2">
                 <div class="card-header deck-manager-header">
                     <h4>Created assignments</h4>
                 </div>
@@ -172,13 +173,14 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    {% endif %}
                 </div>
             </div>
         </div>
-        {% endif %}
+        
         <div class="col-md-6">
 
-            <div class="card  box-manager mt-2">
+            <div class="card  mt-2">
                 <div class="card-header deck-manager-header">
                     <h4>My students' results</h4>
                 </div>
@@ -208,7 +210,7 @@
                     </table>{% endif %}
                 </div>
             </div>
-            <div class="card box-manager mt-2">
+            <div class="card mt-2">
                 <div class="card-header deck-manager-header">
                     <h4>My results</h4>
                 </div>

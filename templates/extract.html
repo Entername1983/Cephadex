@@ -194,14 +194,15 @@
         document.getElementById("extract-message").style.display = "inline-block";
     }
 </script>
+<!---
 <div class = "container-fluid">
-<div class="d-md-block d-none mt-1 mb-4 d-flex justify-content-center">
-    <div class="scrolling-header">
-        Turn <span class="scrolling-header-words" id="from">youtube video</span> into <span
-            class="scrolling-header-words" id="to">flashcards</span>
+    <div class="d-md-block d-none mt-1 mb-4 d-flex justify-content-center">
+        <div class="scrolling-header">
+            Turn <span class="scrolling-header-words" id="from">youtube video</span> into <span
+                class="scrolling-header-words" id="to">flashcards</span>
+        </div>
     </div>
-</div>
-</div>
+</div>--->
 <div class="container-fluid" style="max-width:1200px;">
     <form id = "extract-form" method="POST" action="{{url_for('extract')}}" enctype="multipart/form-data", onsubmit="showSpinner()">
         {{form.hidden_tag()}}
@@ -272,20 +273,21 @@
                         <h6 class="mb-1">Create a new deck</h6>
                         <div class="form-floating mb-2">
                             {{form.name(id="name-input", class="form-control form-control-lg")}}
-                            <label for="name-input">Name of the deck</label>
-                        </div>
-                        <div class="form-floating mb-3 d-md-block d-none">
-                            {{form.description(id="description-input", class="form-control form-control-lg")}}
-                            <label for="description-input">Description of the deck</label>
+                            <label for="name-input"> Name of the deck</label>
                         </div>
                         {% if current_user.decks %}
                         <h6 class="mb-1">Add to existing deck</h6>
                         <div class="form-floating mb-3">
                             {{form.deck_list(id="existing-input", class="form-select form-control-lg",
                             placeholder="Select a deck")}}
-                            <label for="existing-input">Select a deck</label>
+                            <label for="existing-input"> Select a deck</label>
                         </div>
+                        
                         {% endif %}
+                        <div class=" form-floating mb-3">
+                            {{ form.main_lang(id="main-lang", class="form-select form-control-lg")}}
+                            <label for="main-lang"> Choose a language </label>
+                        </div>
                     </div>
                 </div>
                 </div>
@@ -344,8 +346,6 @@
 
                         <div class="col-md-6">
 
-
-
                             <div class="extract-boxes" id="language-select" style="display: none;">
 
                                 {{form.languages (class="box_study form-control")}}
@@ -363,14 +363,9 @@
                     </div>
                 </div>
             
-
             <div class="box_study p-3 mt-2">
-
                 <h5>Advanced options</h5>
                 <div class="row">
-
-
-                
                
                             <!----      <div class="input-group my-2" id="min-max">
                                 TOO CONFUSING AND DOESN@T WORK WELL SO REMOVED FOR NOW
@@ -383,17 +378,15 @@
                         </div>
                             </div>---->
                     <div class="col-md-6 form-floating mt-2">
-                        {{ form.subject(id = "subject-input", class="form-select")}}
-                        <label for="subject-input">Choose a subject</label>
+                        {{ form.subject(id = "subject-input", class="form-select ")}}
+                        <label for="subject-input"> Choose a subject</label>
                     </div>
                     <div class="col-md-6 form-floating mt-2">
-                        {{ form.length(id="detail-input", class="form-select")}}
-                        <label for="subject-input">Choose a level of detail</label>
+                        {{ form.length(id="detail-input", class="form-select form-control-lg")}}
+                        <label for="subject-input"> Choose a level of detail</label>
                     </div>
-                    <div class=" col-md-6 form-floating mt-2">
-                        {{ form.main_lang(id="main-lang", class="form-select")}}
-                        <label for="main-lang">Choose a language </label>
-                    </div>
+                    
+
             </div>
             </div>
             </div>
@@ -401,6 +394,7 @@
         <button type="submit" id="hidden-submit-btn" style="display: none;"></button>
 
         <div class="row justify-content-end">
+            
     <div id = "extract-spinner" class="spinner-border m-3" role="status" color="#FF6700!important"style="display: none;" >
         </div>
             {{form.submit(id="generate-btn", class=" btn-generate form-control form-control-lg", style
@@ -431,7 +425,7 @@
             }
     
             // check file type
-            var allowedTypes = ["mp3", "wav", "pdf", "docx", "doc", "ppt", "pptx", "txt"];
+            var allowedTypes = ["mp3", "wav", "pdf", "docx", "pptx", "txt"];
             var fileType = file.name.split('.').pop().toLowerCase();
             if (!allowedTypes.includes(fileType)) {
                 fileInput.setCustomValidity('Invalid file type. Allowed types are: ' + allowedTypes.join(", "));

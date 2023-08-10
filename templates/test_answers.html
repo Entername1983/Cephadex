@@ -36,8 +36,9 @@
                               {% if q_result.question_id == question.id  %}
                               <div class="col-9">
 
-                              
-
+                                <p class="card-text">
+                                    Correct Answer: {{ question.content }}
+                                </p>
                                 <p class="card-text">
                                     Answer given: {{ q_result.answer }}
                                 </p>

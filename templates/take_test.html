@@ -110,26 +110,26 @@
                 </div>
                 <div class="row my-1">
                     <div class=" d-flex align-items-center justify-content-center">
-                        <button class="btn box_study  form-control answer-button{{question.id}}" style="width: 100%"
+                        <button class=" box_study  form-control answer-button{{question.id}}" style="width: 100%"
                             id="A-btn{{question.id}}">A</button>
                     </div>
                 </div>
                 <div class="row my-1">
                     <div class=" d-flex align-items-center justify-content-center">
-                        <button class="btn box_study form-control answer-button{{question.id}}"
+                        <button class=" box_study form-control answer-button{{question.id}}"
                             id="B-btn{{question.id}}" style="width: 100%">B</button>
                     </div>
                 </div>
 
                 <div class="row my-1">
                     <div class="d-flex align-items-center justify-content-center">
-                        <button class="btn box_study form-control answer-button{{question.id}}" style="width: 100%"
+                        <button class=" box_study form-control answer-button{{question.id}}" style="width: 100%"
                             id="C-btn{{question.id}}">C</button>
                     </div>
                 </div>
                 <div class="row my-1">
                     <div class=" d-flex align-items-center justify-content-center">
-                        <button class="btn box_study form-control answer-button{{question.id}}" style="width: 100%"
+                        <button class=" box_study form-control answer-button{{question.id}}" style="width: 100%"
                             id="D-btn{{question.id}}">D </button>
                     </div>
                 </div>
@@ -139,7 +139,7 @@
 
 
                 <script>
-                    const answers{{ question.id }} =["{{question.content}}", "{{question.boc_2}}", "{{question.boc_3}}", "{{question.boc_4}}"];
+                    const answers{{ question.id }} =["{{question.content|safe}}", "{{question.boc_2|safe}}", "{{question.boc_3|safe}}", "{{question.boc_4|safe}}"];
                     function shuffle(array) {
                         for (let i = array.length - 1; i > 0; i--) {
                             const j = Math.floor(Math.random() * (i + 1));
