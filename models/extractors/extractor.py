@@ -20,19 +20,18 @@ import random
 from pytesseract import image_to_string
 from models.decks.deck import Deck
 from models.decks.deck_files import DeckFiles
-from lists import DECK_NAMES
+from tools.lists import DECK_NAMES
 from flask import session
 from flask_login import current_user
 import datetime as dt
 from pydub.utils import mediainfo
-from helpers import count_tokens, split_text
+from models.helpers.helpers import count_tokens, split_text
 from models.decks.job import Job
 from models.decks.job_notification import JobNotification
 from models.exceptions.exceptions import YoutubeError, UnsupportedFileError, AudioError
 from werkzeug.utils import secure_filename
 from models.extractors.extractor_config import PAGES_PER_MIN, TOKENS_PER_PAGE
-import tempfile
-from werkzeug.datastructures import FileStorage
+
 
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")

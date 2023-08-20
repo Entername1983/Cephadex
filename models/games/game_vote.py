@@ -1,4 +1,4 @@
-from models.extensions import db, migrate
+from run.extensions import db
 
 class GameVote(db.Model):
     id = db.Column(db.Integer, primary_key=True)

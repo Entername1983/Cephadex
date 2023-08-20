@@ -1,7 +1,7 @@
 
 from models.association_tables import cards_shared
 from datetime import datetime
-from models.extensions import db, migrate
+from run.extensions import db
 
 class SharedDecks(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

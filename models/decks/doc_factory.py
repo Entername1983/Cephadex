@@ -2,14 +2,14 @@
 import datetime as dt
 import random
 from sqlalchemy import select
-from models.creators.creator import OpenAiCaller
+from sqlalchemy.orm import selectinload
+from models.creators.creator import AiCaller
 from .deck_files import DeckFiles
-
 from .deck import Deck
 from .deck_attributes import DeckAttributes
-from lists import SUMMARY_FILE_NAMES
+from tools.lists import SUMMARY_FILE_NAMES
 
-
+## Creates documents and also in charge of creating deck attributes
 class DocFactory:
     def __init__(self, session, deck_id):
         self.session = session
@@ -29,8 +29,6 @@ class DocFactory:
         self.session.commit()
         return full_text
 
-
-
     def save_transcript(self, content:list):
         print("entered save transcript...")
         deck = self.session.query(Deck).filter_by(id=self.deck).first()
@@ -48,7 +46,7 @@ class DocFactory:
         ## One deck can be associated with many attributes
         print("entered create deck attributes...")
         deck = self.session.query(Deck).filter_by(id=self.deck).first()
-        open_ai_caller = OpenAiCaller()
+        open_ai_caller = AiCaller()
         response = open_ai_caller.extract_deck_attributes(text)
         print(response)
         subject = response['subject']
@@ -64,7 +62,6 @@ class DocFactory:
         self.assign_attributes_to_deck(deck, attributes)
         return attributes
 
-
     def assign_attributes_to_deck(self, deck, deck_attributes):
         print("entered assign attributes to deck")
         print("deck is ", deck)
@@ -76,19 +73,23 @@ class DocFactory:
             deck.description = deck_attributes.concepts
         self.session.commit()
 
-
-
-
     async def async_create_doc(self, content:list) -> str:
         print("entered async create doc...")
-        deck = await self.session.execute(select(Deck).filter_by(id=self.deck))
+        print(content)
+        result = await self.session.execute(
+            select(Deck).filter_by(id=self.deck).options(selectinload(Deck.deck_files))
+        )
+        
+        # Retrieve the object correctly
+        deck = result.scalars().one()
         full_text = "".join(job.processed_content for job in content)
         task_type = content[0].task_type
         chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)} - {task_type}"
         file_storage = DeckFiles(file_name=chosen_name, text_string=full_text,
                                 create_type=task_type,
                                 time_created=dt.datetime.now(dt.timezone.utc))
-        self.session.add(file_storage)
+        self.session.add(file_storage) ## needed?
+        await self.session.flush() 
         deck.deck_files.append(file_storage)
         await self.session.commit()
         return full_text
@@ -108,7 +109,7 @@ class DocFactory:
         print("entered async create deck attributes...")
         result = await self.session.execute(select(Deck).filter_by(id=self.deck))
         deck = result.scalar_one()
-        open_ai_caller = OpenAiCaller()
+        open_ai_caller = AiCaller()
         response = await open_ai_caller.extract_deck_attributes(text)
         print(response)
         subject = response['subject']
@@ -134,3 +135,7 @@ class DocFactory:
         if deck.description is None:
             deck.description = deck_attributes.concepts
         await self.session.commit()
+
+
+
+

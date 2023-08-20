@@ -1,0 +1,116 @@
+{% extends "layout.html" %} {% block title %} Card Editor {% endblock %} {%
+block head %} {% endblock %} {% block main_0 %}
+
+<div class="container-md box_0 flex my-5">
+  <div class="row mt-3">
+    <div class="col-lg d-flex justify-content-center">
+
+
+
+      <h1 class="mt-4 ">{{deck.name}} ({{ deck.quantity_cards() }})</h1>
+    </div>
+    <div class="col-lg">
+      <div
+        class="d-flex justify-content-end my-2 btn-group eq_buttons_div"
+        style="width: 100%"
+      >
+        <div class="col-md">
+          <a
+            href="/study_bp/study_deck/{{deck.id}}"
+            class="btn btn-primary box_study m-1 eq_buttons"
+          >
+            Study</a
+          >
+          <a
+            href="/deck_bp/addterms/{{deck.id}}"
+            class="btn btn-primary box_study m-1 eq_buttons"
+          >
+            Add cards</a
+          >
+        </div>
+        <div class="col-md">
+          <a href="/deck_bp/viewdecks" class="btn btn-primary box_study m-1 eq_buttons">
+            Decks
+          </a>
+          <a
+            href="/deck_bp/delete/{{deck.id}}"
+            class="btn btn-primary box_warning m-1 eq_buttons"
+          >
+            Delete</a
+          >
+          <a
+            href="/deck_bp/generate_img/{{deck.id}}"
+            class="btn btn-primary box_warning m-1 eq_buttons"
+            ></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    {% for card in cards %}
+
+    <div class="col-sm-6">
+      <div class="card m-2 bg-light">
+        <div class="card-body">
+          {% if card.img is not none %}
+          <img class="card-img-top" src= "\{{card.img}}" alt="Card image cap">
+          {% endif %}
+          <form action="" method="post">
+            <input
+              name="id"
+              type="hidden"
+              id="card.id"
+              value="{{ card.id }}"
+              placeholder="{{ card.id }}"
+            />
+            <div class="row">
+              <input
+                name="term"
+                class="card-title border-0 input_0 form-control form-control-lg"
+                type="text"
+                id="card.id"
+                placeholder="{{ card.term }}"
+                value="{{ card.term }}"
+              />
+            </div>
+            <div class="row">
+              <textarea
+                name="content"
+                class="form-control card-text border-0 input_0 form-control form-control-lg"
+                type="text"
+                id="card.id"
+                rows="3"
+                placeholder="{{ card.content }}"
+              > {{ card.content }}</textarea>
+            </div>
+            <div class="col ">
+              <div class="row eq_buttons_div no_gutter align-items-center justify-content-center">
+                <input
+                  class="btn box_study eq_buttons "
+                  type="submit"
+                  value="Save"
+                />
+              </div>
+              <div class="row eq_buttons_div no_gutter align-items-center justify-content-center ">
+                <a
+                  href="{{ url_for('deck_bp.regen_def', deck_id=deck.id, card_id=card.id)}}"
+                  class="btn box_study eq_buttons"
+                  >Regenerate</a
+                >
+              </div>
+              <div class="row eq_buttons_div no_gutter align-items-center justify-content-center">
+                <a
+                  href="{{ url_for('deck_bp.delete_card', deck_id=deck.id, card_id=card.id) }}"
+                  class="btn box_warning eq_buttons"
+                  >Delete</a
+                >
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

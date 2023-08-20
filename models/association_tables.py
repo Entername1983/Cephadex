@@ -1,12 +1,11 @@
-from models.extensions import db
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
+from run.extensions import db
 
 # relational database cards & decks
 cards = db.Table("cards", 
                  db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
                  db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),
                  )
+
 source_files = db.Table("source_files",
                         db.Column("deck_file_id", db.Integer, db.ForeignKey("deck_files.id")), 
                         db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),  # 
@@ -15,7 +14,8 @@ source_files = db.Table("source_files",
 cards_shared = db.Table("cards_shared", 
                  db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
                  db.Column("shared_decks_id", db.Integer, db.ForeignKey("shared_decks.id")),
-                 )                             
+                 )    
+                         
 questions = db.Table("questions",
                         db.Column("test_id", db.Integer, db.ForeignKey("test.id")),
                         db.Column("question_id", db.Integer, db.ForeignKey("question.id")),

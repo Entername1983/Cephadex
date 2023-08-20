@@ -1,8 +1,8 @@
 from datetime import datetime
 from models.association_tables import cards, source_files, deck_relationships
 from flask import jsonify
-from models.extensions import db
-
+from run.extensions import db
+from sqlalchemy.orm import relationship
 
 class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -40,7 +40,7 @@ class Deck(db.Model):
                     secondaryjoin=(deck_relationships.c.child_deck == id),
                     backref=db.backref("parents", lazy="dynamic"),
                     lazy="dynamic")
-    
+
     def correct_incorrect(self):
         correct = 0
         incorrect = 0

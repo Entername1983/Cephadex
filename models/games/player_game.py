@@ -1,4 +1,4 @@
-from models.extensions import db, migrate
+from run.extensions import db
 
 class PlayerGame(db.Model):
     __tablename__ = 'player_game'

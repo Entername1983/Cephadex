@@ -1,5 +1,7 @@
 from datetime import datetime
-from models.extensions import db, migrate
+from run.extensions import db
+from sqlalchemy.orm import relationship
+from models.association_tables import source_files
 
 class DeckFiles(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -10,4 +12,3 @@ class DeckFiles(db.Model):
     text_string = db.Column(db.Text)
     create_type = db.Column(db.String(50))
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
-    

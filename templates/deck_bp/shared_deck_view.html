@@ -1,0 +1,86 @@
+{% extends "layout.html" %} {% block title %} Shared Deck Viewer {% endblock %} 
+{% block head %} 
+
+{% endblock %}
+
+
+{% block main_0 %}
+{% if current_user.is_authenticated %}
+<a id="save-deck" class="conversion-button" href="/deck_bp/save_shared_deck/{{deck.share_id}}">Save this deck</a>
+{% else %}
+<a class="conversion-button" data-bs-toggle="modal" data-bs-target="#registerModal">Register to save this deck</a>
+{% endif %}
+
+
+<div  id = "tour-cards"class = "row">
+       
+    {% for card in deck.cards %}
+    {% if card.category == "Mcq" %}
+    <div class = "col-md-6 p-2">
+        <div class = "card">
+            <div class = "card-body">
+                <h5 class = "card-title">{{ card.term }}</h5>
+                <ul class="list-group list-group-flush" id="list{{ loop.index }}">
+                    <li class="list-group-item" style="color: green;">{{card.content}}</li>                            
+                    <li class="list-group-item" style="color: red;">{{card.boc_2}}</li>
+                    <li class="list-group-item" style="color: red;">{{card.boc_3}}</li>
+                    <li class="list-group-item"style="color: red" >{{card.boc_4}}</li>
+                  </ul>
+            </div>
+        </div>
+    </div>
+    {% elif card.category == "Formulas" %}
+    <div class = "col-md-6 p-2">
+        <div class = "card">
+            <div class = "card-body">
+                <h5 class = "card-title">{{ card.term }}</h5>
+                {{card.formula|safe}}
+                <p>{{card.content}}</p>
+            </div>
+        </div>
+    </div>
+    {% elif card.category == "Discussion" %}
+    <div class = "col-md-6 p-2">
+        <div class = "card">
+            <div class = "card-body">
+                <h5 class = "card-title">{{ card.term }}</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">{{card.content}}</li>
+                    <li class="list-group-item">{{card.boc_2}}</li>
+                  </ul>
+            </div>
+        </div>
+    </div>
+    {% else %} 
+    <div class = "col-md-6 p-2">
+        <div class = "card">
+            <div class = "card-body">
+                <h5 class = "card-title">{{ card.term }}</h5>
+                <p>{{card.content}}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+
+</div>
+
+
+
+<script>
+    $('#save-deck').click(function() {
+        $.ajax({
+            url: '/deck_bp/save_shared_deck/{{deck.share_id}}',
+            type: 'GET',
+            success: function(response){
+                console.log(response);
+                alert("Deck saved!");
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+    });
+</script>
+{% endblock %}

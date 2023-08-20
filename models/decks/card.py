@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from models.extensions import db, migrate
+from run.extensions import db
 
 
 class Card(db.Model):

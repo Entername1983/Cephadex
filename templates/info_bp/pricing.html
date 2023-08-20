@@ -1,0 +1,163 @@
+{% extends "layout.html" %} {% block title %} Pricing {% endblock %}
+{% block head %}
+<link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+{% endblock %}
+{% block main_0 %}
+
+
+<div class = "container-fluid">
+    <!----
+<section class="jumbotron text-center mb-0">
+    <h1 class="display-4">Get Premium for Free!</h1>
+    <p class="lead">Help us test our new premium features and get full access for free!</p>
+    <hr class="my-4">
+    <p>Contact us to learn more.</p>
+    <a class="btn btn-primary btn-lg" href="mailto:support@cephadex.com" role="button">Contact Us</a>
+</section>------>
+<section class="pricing-section py-5">
+        <div class="row">
+            <div class="col-lg-4 col-md-4 mt-2">
+                <div class="card mb-4 shadow-sm h-100">
+                    <div class="card-header text-white modal-header-style-2">
+                        <h4 class="my-0 fw-normal">Cuttle Cadet  - Basic
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h1 class="card-title pricing-card-title">Free<small class="text-muted"></small></h1>
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li><i class="bi bi-check text-success"></i> 100 Credits*</li>
+                            <li><i class="bi bi-check text-success"></i> Process ppts, pdfs, docs, youtube videos, wikilinks</li>
+                            <li><i class="bi bi-check text-success"></i> Import from Anki
+                            </li>
+                            <li><i class="bi bi-check text-success"></i> Access to public decks</li>
+                            <li><i class="bi bi-check text-success"></i> Study with spaced repetition</li>
+                            <li><i class="bi bi-check text-success"></i> Extract from wikipedia and youtube links</li>
+                            <li><i class="bi bi-check text-success"></i> Share decks with friends</li>
+                            <li><i class="bi bi-check text-success"></i> Track your progress with study analytics</li>
+
+
+                        </ul>      <a type="button" style="position:relative; bottom:0"
+                        class="w-100 btn btn-lg btn-generate mt-auto"  data-bs-toggle="modal" data-bs-target="#registerModal">Get started</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-4 mt-2">
+                <div class="card mb-4 shadow-sm h-100">
+                    <div class="card-header text-white modal-header-style-2">
+                        <h4 class="my-0 fw-normal">Squid Scholar - Standard
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h1 class="card-title pricing-card-title">$4.99<small class="text-muted">/mo</small></h1>
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li><i class="bi bi-check text-success"></i> 600 Credits*</li>
+                            <li><i class="bi bi-check text-success"></i> Create tests and worksheets</li>
+                            <li><i class="bi bi-check text-success"></i> Full Anki integration
+                            </li>
+                            <li><i class="bi bi-check text-success"></i> Use any input format including audio files</li>
+                            <li><i class="bi bi-check text-success"></i> Access to all our card customization options</li>
+                            <li><i class="bi bi-check text-success"></i> Extract from wikipedia and youtube links</li>
+                            <li><i class="bi bi-check text-success"></i> Supports over 30 languages</li>
+                            <li><i class="bi bi-check text-success"></i> Create groups</li>
+                            <li><i class="bi bi-check text-success"></i> No ads</li>
+                            <li><i class="bi bi-check text-success"></i> Regenerate up to 50 cards</li>
+
+
+                        </ul>      <a type="button" style="position:relative; bottom:0"
+                        class="w-100 btn btn-lg btn-generate mt-auto" href="/user_bp/upgrade">Get started</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-4 mt-2">
+                <div class="card mb-4 shadow-sm h-100">
+                    <div class="card-header text-white modal-header-style-2">
+                        <h4 class="my-0 fw-normal">Octopus Oracle - Premium</h4>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h1 class="card-title pricing-card-title">$9.99 <small class="text-muted">/ mo</small></h1>
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li><i class="bi bi-check text-success"></i> All Squid Scholar features</li>
+                            <li><i class="bi bi-check text-success"></i> 2000 credits*</li>
+                            <li><i class="bi bi-check text-success"></i> Supports audio formats (.wav and .mp3)</li>
+                            <li><i class="bi bi-check text-success"></i> Unused credit rolls over to next month</li>
+                            <li><i class="bi bi-check text-success"></i> Assign tests to your students</li>                           
+                            <li><i class="bi bi-check text-success"></i> Assign tests to your students</li>
+                            <li><i class="bi bi-check text-success"></i> Print answer keys</li>
+                            <li><i class="bi bi-check text-success"></i> Auto grade assigned tests</li>
+                            <li><i class="bi bi-check text-success"></i> Access to, Ceph, our AI tutor</li>
+                            <li><i class="bi bi-check text-success"></i> Create unlimited groups</li>
+                            <li><i class="bi bi-check text-success"></i> Regenerate individual cards at will</li>
+                            <li><i class="bi bi-check text-success"></i> Branding free</li>
+
+
+                        </ul>
+                        <a type="button" style="position:relative; bottom:0"
+                        class="w-100 btn btn-lg btn-generate mt-auto" href="/user_bp/upgrade">Get started</a>
+
+                    </div>
+                </div>
+            </div>
+            <!---
+            <div class="col-lg-4 col-md-4 mt-2">
+                <div class="card mb-4 shadow-sm h-100">
+                    <div class="card-header text-white modal-header-style-2">
+                        <h4 class="my-0 fw-normal"> - Premium
+                        </h4>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h1 class="card-title pricing-card-title">$19.99 <small class="text-muted">/ mo</small></h1>
+
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li><i class="bi bi-check text-success"></i> All Squid Scholar features</li>
+                            <li><i class="bi bi-check text-success"></i> 3000 credits*</li>
+                            <li><i class="bi bi-check text-success"></i> Create an unlimited amount of groups</li>
+                            <li><i class="bi bi-check text-success"></i> Ability to top up your credit if needed</li>
+                            <li><i class="bi bi-check text-success"></i> Branding free</li>
+
+                            <li><i class="bi bi-check text-success"></i> Exclusive early access to new features</li>
+
+
+                        </ul>
+                        <a type="button" style="position:relative; bottom:0"
+                            class="w-100 btn btn-lg btn-generate mt-auto" href="/upgrade">Get started</a>
+
+                    </div>
+                </div>
+            </div>--->
+<!---
+            <div class="col-lg-3 col-md-6 mt-2">
+
+
+                <div class="card mb-4 shadow-sm h-100">
+                    <div class="card-header text-white modal-header-style">
+                        <h4 class="my-0 fw-normal">Nautilus - Enterprise</h4>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+
+                        <h1 class="card-title pricing-card-title">Custom:
+                            <small class="text-muted"></small>
+                        </h1>
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li><i class="bi bi-check text-success"></i> All premium features</li>
+                            <li><i class="bi bi-check text-success"></i> Customized tutor chat bots</li>
+                            <li><i class="bi bi-check text-success"></i> Customized inquiry bots based upon your
+                                specific organization</li>
+                            <li><i class="bi bi-check text-success"></i> Gradebook management</li>
+                            <li><i class="bi bi-check text-success"></i> Student analytics and reports</li>
+                            <li><i class="bi bi-check text-success"></i> ...</li>
+
+
+                        </ul>
+                        <a type="button" style="position:relative; bottom:0"
+                            class="w-100 btn btn-lg btn-generate mt-auto"
+                            href="mailto:support@cephadex.com" target="blank">Contact us</a>
+
+                    </div>
+                </div>
+            </div>
+            --->
+<p><i> * 1 credit is equivalent to approximately 1 page worth of English content.  Use our <a href="/user_bp/check_credit">credit checker</a> to see how much credit your content needs</p>
+</section>
+
+</div>
+</div>
+{% endblock %}

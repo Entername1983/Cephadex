@@ -1,0 +1,18 @@
+
+
+import os
+import json
+from dotenv import load_dotenv
+load_dotenv()
+
+
+
+ASYNC_SQLALCHEMY_DATABASE_URI = os.environ.get("ASYNC_SQLALCHEMY_DATABASE_URI")
+SQLALCHEMY_ENGINE_OPTIONS = json.loads(os.environ['SQLALCHEMY_ENGINE_OPTIONS'])
+CONST_PLAN = os.environ.get("CONST_PLAN")
+NUM_WORKERS_PROCESSOR = os.environ.get("NUM_WORKERS_PROCESSOR")
+SLEEP_TIME = int(os.environ.get("SLEEP_TIME"))
+MAX_CONCURRENT_TASKS = 1
+ACCEPTABLE_ERROR_RATIO = 0.2
+DENOMINATOR_CHECK_FLASHCARDS = 100
+LONG_FORM_JOBS = ["Summarize", "Turn2notes", "Transcribe"]

@@ -1,0 +1,578 @@
+{% extends "layout.html" %}
+
+{% block title %} Decks - Storing Your Educational Content {% endblock %}
+
+{% block head %}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/introjs.min.css" rel="stylesheet" />
+
+
+
+
+
+{% endblock %}
+
+{% block main_0 %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/intro.min.js"></script>
+
+<script>
+
+    {% if settings.new_user_cards == 1 %}
+    console.log("new user")
+        viewDecksTour()
+    {% endif %}
+    
+  function viewDecksTour() {
+      document.addEventListener('DOMContentLoaded', function () {
+        introJs().setOptions({
+          showProgress: true,
+      steps: [{
+        title: 'Deck manager',
+        intro: "This is where you'll manage the content stored in your decks such as cards, files and quizzes.  As well as related decks. "
+      },
+      {
+        Title:'Input your content',
+        element: document.querySelector('#tour-cards'),
+        intro: "All the cards in your deck will be displayed here",
+        position: "center"
+      },
+
+    {
+      element: document.querySelector('#tour-collapse'),
+      intro: "Here you can access quizzes created from the deck, files (such as summaries, notes or transcriptions as well as the source file) as well as parent or child decks."
+    },
+    {
+      element: document.querySelector('#tour-study'),
+      intro: "You can start a study session here"
+    },
+    {
+      element: document.querySelector('#tour-quiz'),
+      intro: "Click here to enter the quiz/assignment builder.  In Cephadex you build quizzes by selecting cards from your deck."
+    },
+    {
+      element: document.querySelector('#tour-card-viewer'),
+      intro: "You can edit (desktop mode only) cards, regenerate them, delete them or add new ones here"
+    },
+    {
+      element: document.querySelector('#tour-edit'),
+      intro: "Edit your deck attributes here"
+    },
+    {
+      element: document.querySelector('#tour-share'),
+      intro: "Share your deck with other users here"
+    },
+    {
+      element: document.querySelector('#tour-more'),
+      intro: "Export to anki, as a CSV or delete the deck in the dropdown menu here"
+    },
+
+
+{
+    title: "That's it!",
+  intro: "You should now have the basics.  There are a lot more features and we encourage you to explore the quiz maker!  If you have any feedback or questions please contact us.  We're always looking to improve!"
+      }],
+      scrollToElement: false,
+
+    }).start();
+      });
+
+      fetch('/new_user_settings_cards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ checked: true })
+      })
+
+
+    }
+
+</script>
+
+
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 d-none d-sm-block text-center d-flex justify-content-center align-items-center ">
+            <h1 class="my-2 hcepha1">{{ deck.name }} </h1>
+        </div>
+        <div class="col-md-6">
+           <div class="card box-manager mt-2">
+            <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
+                {% if deck.cards|length > 0 %}
+                    <a href='/study_bp/study_deck/{{ deck.id }}' id = "tour-study" class = "img-grow" title="Study"><img src="/static/master-icon.png" style="width: 35px; height:35px"></a>
+                    <a href="/quiz_bp/build_test/{{ deck.id }}" id = "tour-quiz" class = "img-grow" title="Create quiz"><img src="/static/quiz-3-svg-icon.svg" style="width: 35px; height:35px"></a>
+                    <a href="/deck_bp/carousel/{{ deck.id }}" id = "tour-card-viewer" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="width: 35px; height:35px"></a>
+
+                    <a class="px-2" data-bs-toggle="modal" id = "tour-edit" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
+                        <img src="/static/edit-deck-icon.png" class = "img-grow" style="width: 35px; height:35px" title="Edit"></a>
+                    <a  data-bs-toggle="modal" id = "tour-share" data-bs-target="#Modal{{ deck.id }}"
+                        style="cursor: pointer;" class = "img-grow" title="Share"><img src="/static/share-icon.png" style="width: 35px; height:35px"></a>
+                        
+                    {% else %}
+                    <p>You don't seem to have any cards in this deck, click <a href="/extract_bp/extract"> here </a> to create
+                        some.</p>
+                    {% endif %}
+                    <a onclick="event.stopPropagation();" id = "tour-more" width="35px" height="35px"
+                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                        style="cursor: pointer;" class = "img-grow" title="More actions"><img src="/static/more-icon.png" style="width: 35px; height:35px"></a>
+
+
+                    <!-- Dropdown menu containing the list of links -->
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" onclick="exportDeckAnki('{{ deck.id }}'); event.stopPropagation();"
+                             style="cursor: pointer;">Export to
+                            Anki</a>
+                        <a class="dropdown-item" onclick="event.stopPropagation();"
+                            href="/deck_bp/downloadascsv/{{ deck.id }}">Download CSV</a>
+                        <a class = "dropdown-item" onclick="event.stopPropagation();"
+                            href="/deck_bp/sea_dox/{{ deck.id }}">Manage files</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" style="cursor: pointer;"
+                            onclick="event.stopPropagation(); { deleteDeck('{{ deck.id }}'); }">Delete deck</a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div >
+        <div id = "tour-collapse" class = "row mt-2 ">
+
+            <div class = "col-sm-4 px-2 mt-2 d-none d-sm-block">
+            <button class="btn-small btn btn-deck-manager w-100" type="button" data-bs-toggle="collapse" data-bs-target="#quizCollapse" aria-expanded="false" aria-controls="quizCollapse">Quizzes</button>
+            </div>
+
+
+            <div class = "col-sm-4 px-2 mt-2 d-none d-sm-block">
+            <button class="btn-small btn btn-deck-manager w-100" type="button" data-bs-toggle="collapse" data-bs-target="#fileCollapse" aria-expanded="false" aria-controls="fileCollapse">Files</button>
+            </div>
+
+            <div class = "col-sm-4 px-2 mt-2 d-none d-sm-block">
+            <button class="btn-small btn btn-deck-manager w-100" type="button" data-bs-toggle="collapse" data-bs-target="#relatedCollapse" aria-expanded="false" aria-controls="relatedCollapse">Related decks</button>
+            </div>
+        </div>
+        <div class = "row mt-2 d-block d-sm-none">
+
+            <p class = "d-flex justify-content-evenly">
+            <a class="" data-bs-toggle="collapse" data-bs-target="#quizCollapse" aria-expanded="false" aria-controls="quizCollapse">Quizzes</a>
+
+
+                <a class="" data-bs-toggle="collapse" data-bs-target="#fileCollapse" aria-expanded="false" aria-controls="fileCollapse">Files</a>
+
+                <a class=""data-bs-toggle="collapse" data-bs-target="#relatedCollapse" aria-expanded="false" aria-controls="relatedCollapse">Related decks</a></p>
+        </div>
+          <div class="row mt-2">
+            <div class="col">
+              <div class="collapse" id="quizCollapse">
+                <div class="card card-body mt-2">
+                    <ul class="list-group list-group-flush">
+                        {% if tests %}
+                            {% for test in tests %}
+                        <li class="list-group-item"><a href="/quiz_bp/assign_test/{{test.id}}">{{ test.name }}</a></li>                            
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item" style="color: red;">No quizzes found.  Create one using your deck.</li>
+                        {% endif %}
+                    </ul>                
+                </div>
+              </div>
+              <div class="collapse show" id="fileCollapse">
+                <div class="card card-body mt-2">
+                    <ul class="list-group list-group-flush">
+                        {% if deck.deck_files  %}
+
+                        {% for file in deck.deck_files %}
+                        <li class="list-group-item"><a href="/deck_bp/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item"  style="color: red;">No files found</li>
+                        {% endif %}
+
+                        </ul>
+                    </div>
+            </div>
+                <div class="collapse" id="relatedCollapse">
+                  <div class="card card-body mt-2">
+                    <ul class="list-group list-group-flush">
+
+                        {% if deck.children.all()|length > 0 %}
+                        {% for child_deck in deck.children %}
+                        <li class="list-group-item"><a href="/deck_bp/deck_manager/{{child_deck.id}}">Child - {{ child_deck.name }}</a></li>
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item"  style="color: red;">No child decks found</li>
+                        {% endif %}   
+                        
+                        {% if deck.parents.all()|length > 0 %}
+                        {% for parent in deck.parents.all() %}
+                        <li class="list-group-item"><a href="/deck_bp/deck_manager/{{parent.id}}">Parent - {{ parent.name }}</a> </li>
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item"  style="color: red;">No parent decks found</li>
+                        {% endif %}
+                    </ul>               
+                </ul>
+
+                </div>
+              </div>
+          </div>
+
+</div>  
+
+
+    </div>
+    <!--
+    <h4 class = "text-center my-1">{{ deck.quantity_cards() }} cards</h4>-->
+    <div  id = "tour-cards"class = "row">
+       
+            {% for card in deck.cards %}
+            {% if card.category == "Mcq" %}
+            <div class = "col-md-6 p-2">
+                <div class = "card">
+                    <div class = "card-body">
+                        <h5 class = "card-title">{{ card.term }}</h5>
+                        <ul class="list-group list-group-flush" id="list{{ loop.index }}">
+                            <li class="list-group-item" style="color: green;">{{card.content}}</li>                            
+                            <li class="list-group-item" style="color: red;">{{card.boc_2}}</li>
+                            <li class="list-group-item" style="color: red;">{{card.boc_3}}</li>
+                            <li class="list-group-item"style="color: red" >{{card.boc_4}}</li>
+                          </ul>
+                    </div>
+                </div>
+            </div>
+            {% elif card.category == "Formulas" %}
+            <div class = "col-md-6 p-2">
+                <div class = "card">
+                    <div class = "card-body">
+                        <h5 class = "card-title">{{ card.term }}</h5>
+                        {{card.formula|safe}}
+                        <p>{{card.content}}</p>
+                    </div>
+                </div>
+            </div>
+            {% elif card.category == "Discussion" %}
+            <div class = "col-md-6 p-2">
+                <div class = "card">
+                    <div class = "card-body">
+                        <h5 class = "card-title">{{ card.term }}</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">{{card.content}}</li>
+                            <li class="list-group-item">{{card.boc_2}}</li>
+                          </ul>
+                    </div>
+                </div>
+            </div>
+            {% else %} 
+            <div class = "col-md-6 p-2">
+                <div class = "card">
+                    <div class = "card-body">
+                        <h5 class = "card-title">{{ card.term }}</h5>
+                        <p>{{card.content}}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+
+    </div>
+        
+
+
+  
+
+</div>
+
+
+
+ 
+
+
+
+<script>
+    function shareDeck(deckId) {
+        var email = document.getElementById('email' + deckId).value;
+        var encodedEmail = encodeURIComponent(email);
+        var form = document.getElementById('share-form' + deckId);
+        var formData = new FormData(form);
+        formData.append("email", email);
+        fetch('/share_deck/' + deckId, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                alert("Deck shared successfully!")
+            })
+            .catch(error => {
+                console.error(error);
+                alert("Error sharing deck. Please try again.")
+            });
+    }
+    function deleteDeck(deckId) {
+        if (confirm('Are you sure you want to delete this deck?')) {
+            // Get the CSRF token from the page
+            var csrfToken = getCsrfToken();
+
+            // Make an AJAX request to delete the deck
+            $.ajax({
+                url: '/deck_bp/delete/' + deckId,
+                type: 'DELETE',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                success: function (response) {
+                    // Deck deleted successfully, remove it from the DOM
+                    window.location.href = '/deck_bp/viewdecks';
+                },
+                error: function (xhr) {
+                    // Handle error
+                    console.error('Error deleting deck:', xhr.status);
+                }
+            });
+        }
+        function getCsrfToken() {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            if (meta) {
+                return meta.getAttribute("content");
+            }
+            return null;
+        }
+    }
+</script>
+
+
+<script>
+    async function exportDeckAnki(deckId) {
+
+    console.log("export deck to anki")
+    try {
+    await requestAnkiConnectPermission();
+    exportDeckToAnki(deckId);
+    } catch (error) {
+      console.log(error);
+      alert("AnkiConnect is not running. Please make sure you are on a desktop with anki connect running.")
+    }
+  }
+    async function requestAnkiConnectPermission() {
+        const url = 'http://127.0.0.1:8765/';
+        const request = {
+            action: 'requestPermission',
+            version: 6,
+        };
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(request),
+        });
+        const data = await response.json();
+        console.log(data.permission);
+        return data;
+    }
+    async function ankiConnectInvoke(action, version, params) {
+        const url = 'http://127.0.0.1:8765/';
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ action, version, params })
+        });
+        return await response.json();
+    }
+    async function exportDeckToAnki(deckId) {
+        // Replace this with the actual URL that returns the deck name and cards from your backend
+        const backendUrl = `/get_deck_data/` + deckId;
+        console.log(backendUrl)
+        try {
+            const response = await fetch(backendUrl);
+            if (response.ok) {
+                const deckData = await response.json();
+                const deckName = deckData.name;
+                const cards = deckData.cards;
+
+                // Call the exportToAnki function with the fetched deck name and cards
+                await exportToAnki(deckName, cards);
+            } else {
+                alert("Error fetching deck data1: " + response.statusText);
+            }
+        } catch (error) {
+            alert("Error fetching deck data: " + error);
+        }
+    }
+    async function exportToAnki(deckName, cards) {
+        const ankiConnectUrl = "http://127.0.0.1:8765";
+        console.log("entered export to anki")
+        console.log(deckName, cards)
+        // Create or update the deck
+        await fetch(ankiConnectUrl, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "createDeck",
+                version: 6,
+                params: {
+                    deck: deckName,
+                },
+            }),
+        });
+        // Add cards to the deck
+        for (const card of cards) {
+            console.log("individual card")
+            console.log(card.front)
+            await fetch(ankiConnectUrl, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "addNote",
+                    version: 6,
+                    params: {
+                        note: {
+                            deckName: deckName,
+                            modelName: "Basic",
+                            fields: {
+                                Front: card.front,
+                                Back: card.back,
+                            },
+                            options: {
+                                allowDuplicate: false,
+                            },
+                            tags: card.tags || [],
+                        },
+                    },
+                }),
+            });
+        }
+        alert("Deck exported to Anki succesfully!");
+    }
+</script>
+<div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="ModalLabel{{deck.id}}">Share deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="share-form{{deck.id}}" method="POST">
+                    {{ share_form.csrf_token }}
+                    <div class="form-group my-2">
+                        <div class="form-floating">
+                            {{ share_form.emails(id='email' + deck.id|string, class_='form-control', required=True,
+                            placeholder="Type receiver's email here")|safe }}
+                            <label for="email{{deck.id}}">Email</label>
+                        </div>
+                        <div class = mt-2>
+                        <p id="share-link{{deck.id}}" readonly style="display:none"></p>
+                        <img id="qr_code_image{{deck.id}}" src="" alt="QR Code" width="100" height="100" style="display:none">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-generate" onclick="generateLink('{{ deck.id }}')">Generate Link and QR Code</button>
+
+                    <button type="button" class="btn btn-generate" onclick="shareDeck('{{ deck.id }}')">Share</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+function generateLink(deck_id) {
+    console.log("generate link")
+    $.ajax({
+        url: '/deck_bp/generate_link/' + deck_id,
+        type: 'GET',
+        success: function(data) {
+            console.log(data);
+
+            $('#share-link' + deck_id).text(data['share_link']);
+            $('#share-link' + deck_id).show();
+            $('#qr_code_image' + deck_id).attr('src', 'data:image/jpeg;base64,' + data['qr_code']);
+            $('#qr_code_image' + deck_id).show();
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+}
+</script>
+<!---- EDIT DECK ATTRIBUTES MODAL -->
+<div class="modal fade" id="editDeckModalLong" tabindex="-1" role="dialog" aria-labelledby="editDeckModalLongTitle"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="editDeckModalLongTitle">Edit Deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                </button>
+
+            </div>
+            <div class="m-2" id="addCardMessage"></div>
+            <div class="modal-body">
+                <form id="newCardForm" action="" method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_name(class="form-control", value=deck.name,
+                        placeholder=deck.name|default('Name')) }}
+                        <label for="new_deck_name">Name</label>
+                    </div>
+
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_description(class="form-control", value = deck.description,
+                        placeholder=deck.description|default("Description")) }}
+                        <label for="new_deck_description">Description</label>
+                    </div>
+
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_subject(class="form-control", value = deck.subject,
+                        placeholder=deck.subject|default("Subject")) }}
+                        <label for="new_deck_subject">Subject</label>
+                    </div>
+
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_topic(class="form-control", value = deck.topic,
+                        placeholder=deck.topic|default("Topic")) }}
+                        <label for="new_deck_topic">Topic</label>
+                    </div>
+                    <div class="form-floating mt-1">
+                        {{ form.new_deck_source(class="form-control", value = deck.source,
+                        placeholder=deck.source|default("Source")) }}
+                        <label for="new_deck_subject">Source(s)</label>
+                    </div>
+                    <div class="form-floating my-2">
+                        {{ form.deck_list(id="existing-input", class="form-select full-w", placeholder="Select a deck")
+                        }}
+                        <label for="existing-input">Make child of:</label>
+                    </div>
+
+                    <div class="form-check form-switch mt-2">
+                     
+                            <input class="form-check-input" type="checkbox" name="public" id="public" value="True" {{ 'checked' if deck.public else '' }}>
+                            <label class="form-check-label" for="subscribe">Make deck public</label>
+                          </div>  
+
+
+
+                    </div>
+
+                    <div class="modal-footer">
+                        {{ form.edit_deck(class=" btn-generate") }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    window.onload = function() {
+        {% for card in deck.cards %}
+            if ("{{ card.category }}" == "Mcq") {
+                var ul = document.getElementById('list{{ loop.index }}');
+                for (var i = ul.children.length; i >= 0; i--) {
+                    ul.appendChild(ul.children[Math.random() * i | 0]);
+                }
+            }
+        {% endfor %}
+    }
+
+</script>
+{% endblock %}

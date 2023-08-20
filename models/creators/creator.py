@@ -3,8 +3,8 @@ import openai
 import json
 import os
 import tiktoken
-from prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
-from prompts import  regen_choices, prompt_from_scratch
+from prompts.prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
+from prompts.prompts import  regen_choices, prompt_from_scratch
 import requests
 import asyncify
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger("extractors")
 logger.setLevel(logging.DEBUG)
 
 
-class OpenAiCaller:
+class AiCaller:
     def __init__(self):
         self.api_key = os.getenv('OPENAI_API_KEY')
         openai.api_key = self.api_key
@@ -178,11 +178,11 @@ class OpenAiCaller:
         response = byte_string.decode('utf-8')   
         return response
 
-    async def summarize(self, items, prompt_options):
+    async def summarize(self, items, prompt_options = None):
         return await self.process_text("summarizing key points in a passage", "Summarize", items)
 
-    async def turn_to_notes(self, items, prompt_options):
-        return await self.process_text("turning text into study notes", "Turn", items)
+    async def turn_to_notes(self, items, prompt_options = None):
+        return await self.process_text("turning text into study notes", "Turn into notes", items)
     
 
 

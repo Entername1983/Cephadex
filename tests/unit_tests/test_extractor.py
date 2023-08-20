@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from pathlib import Path
 from models.extractors.extractor import extract_from_pdf, extract_from_pptx, extract_from_docx, get_duration
 from models.extractors.extractor import extract_from_url, extract_from_wiki, extract_from_youtube, get_video_id, get_audio_content
-from models.extractors.extractor_config import PAGES_PER_MIN, TOKENS_PER_PAGE
+
 class TestExtractorMethods(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -1,4 +1,4 @@
-from models.extensions import db, migrate
+from run.extensions import db
 from models.quiz.question_result import QuestionResult
 
 class TestResult(db.Model):

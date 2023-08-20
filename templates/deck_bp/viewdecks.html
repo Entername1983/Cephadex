@@ -1,0 +1,792 @@
+{% extends "layout.html" %}
+
+{% block title %} Your AI Decks and Lesson Viewer {% endblock %}
+
+{% block head %}
+
+
+<!--- INTRO JS link -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/introjs.min.css" rel="stylesheet" />
+
+{% endblock %}
+{% block main_0 %}
+<!----
+<div class="fab-container">
+  <div class="fab-options">
+
+    <button onclick="document.location='/extract'" class="btn btn-primary fab-option">Create</button>
+    <button onclick="document.location='/public_decks'" class="btn btn-primary fab-option">Public Decks</button>
+    <button onclick="document.location='/import_deck'" class="btn btn-primary fab-option">Import from Anki</button>
+
+  </div>
+
+
+  <button class=" fab-main">+</button>
+
+</div>
+--->
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/intro.min.js"></script>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var toastElements = document.querySelectorAll('.toast');
+    toastElements.forEach(function (toastElement) {
+      var toast = new bootstrap.Toast(toastElement);
+      toast.show();
+    });
+  });
+</script>
+
+<script>
+
+    {% if settings.new_user_decks == 1 %}
+        viewDecksTour()
+    {% endif %}
+    
+  function viewDecksTour() {
+      document.addEventListener('DOMContentLoaded', function () {
+        introJs().setOptions({
+          showProgress: true,
+      steps: [{
+        title: 'Welcome!',
+        intro: "<img src='/static/avatar-octopus.png' alt='ai-tutor'style='max-height:220px;'><p>Hi I'm Ceph, I'll be your guide today."
+      },
+      {
+        Title:'Decks',
+        intro: "This is the page where all your decks will be displayed."
+      },
+      {
+        element: document.querySelector('.stats-container'),
+        intro: "We'll show you some stats about your decks here"
+      },
+
+    {
+      element: document.querySelector('#deckTable'),
+      intro: "All your decks will be visible here, right now you don't have any."
+    },
+    {
+      element: document.querySelector('#sidebar-create'),
+      intro: "Let's create a deck, click here to get started!",
+      position: 'center'
+
+      }]
+
+    }).start();
+      });
+
+      fetch('/new_user_settings_viewdecks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ checked: true })
+      })
+
+
+    }
+
+</script>
+
+
+<div class="toast-container position-fixed bottom-0 start-0 p-3"  style="z-index: 1100" id="myToast">
+  {% if shared_decks|length > 0 %}
+
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">New decks</strong>
+      <small class="text-muted"></small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      <button class="mx-2 btn btn-generate" data-bs-toggle="modal" data-bs-target="#SharedDecksModal" alt="shared decks"
+        style="cursor: pointer">
+        Approve decks
+      </button>
+    </div>
+  </div>
+
+  
+
+
+  {% endif %}
+  {% if tests|length > 0 %}
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">New tests</strong>
+      <small class="text-muted"></small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      <button class="mx-2 btn btn-generate" data-bs-toggle="modal" data-bs-target="#testModal" alt="shared decks"
+        style="cursor: pointer">
+        Take test
+      </button>
+    </div>
+  </div>
+
+  {% endif %}
+</div>
+{% set ns = namespace(total_correct=0, total=0) %}
+{% for deck in decks %}
+{% set correct, incorrect = deck.correct_incorrect() %}
+{% set ns.total_correct = ns.total_correct + correct %}
+{% set ns.total = ns.total + incorrect + correct %}
+
+{% endfor %}
+
+
+<div class="dashboard d-md-block d-none" data-intro="This is your dashboard displaying your stats">
+
+  <div class="stats-container" id="stats-container">
+
+      {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
+
+      <div class="stat pt-2">          
+        <h6>Decks: {{user.quantity_decks()}} </h6>
+      </div>
+    <div class="stat pt-2">
+          <h6>New cards: {{user.quantity_cards_new()}} </h6>
+      </div>
+      <div class="stat pt-2">
+          <h6>Cards: {{user.quantity_cards()}} </h6>
+      </div>
+      <div class="stat pt-2">
+          <h6>Cards mastered: {{user.quantity_cards_mastered()}} </h6>
+      </div>
+
+      <div class="stat pt-2">
+          <h6>Cards practiced: {{ ns.total }}  </h6>
+      </div>
+      <div class="stat pt-2">
+          <h6>Correct answers: {{ ns.total_correct }} </h6>
+      </div>
+
+  {% else %}
+  
+        <div class="stat pt-2">
+
+          <h6>Decks: {{user.quantity_decks()}} </h6>
+        </div>
+    <div class="stat pt-2">
+          <h6>Cards: {{user.quantity_cards()}} </h6>
+      </div>
+      <div class="stat pt-2">
+          <h6>Assignments: {{user.quantity_tests()}} </h6>
+      </div>
+      <div class="stat pt-2">
+          <h6>Documents: {{user.quantity_files()}} </h6>
+      </div>
+
+      <div class="stat pt-2">
+          <h6>Groups: {{ user.quantity_groups() }}  </h6>
+      </div>
+      <div class="stat pt-2">
+          <h6>Public decks: {{ user.quantity_decks_public()}} </h6>
+      </div>
+  </div>
+</div>
+
+  {% endif %}
+</div>
+
+
+
+
+
+<div class="m-3" id = "deck-viewer">
+
+  <div class=" m-2 p-2">
+
+    <div class="m-1" id="progress-container" style="display: none;">
+      <h6 style = "color: #6019FF">
+        🤖Your cards are being created... beep..beep..boop...beep...</h6>
+      <div class="progress ">
+        <div id="progress-bar" class="progress-bar progress-bar-striped  progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+          aria-valuemax="100"></div>
+      </div>
+    </div>
+    {% if not decks %}
+
+    <div><h5>You currently don't have any decks, click on "create" in the side bar</h5></div>
+
+    {% endif %}
+    <div id="result-container" style="display: none;"></div>
+    <div class="row mt-1">
+
+      <!----- REMOVING SEARCH FEATURE FOR NOW
+    <div class="col-xl-4 col-lg-5">
+      <form action="" method="get">
+        <div class="row justify-content-end">
+            <div class="input-group mb-3 floating-form" style = "max-width: 300px">
+            <input type="text" class="form-control " id="search-deck-name"
+                name="search" placeholder="Search decks by name" value="{{ request.args.get('search', '') }}">
+              <button type="submit" class="btn btn-primary text-center mx-auto " >Search</button>
+            </div>
+            </form>
+          </div>
+        </div>
+      </form>
+    </div>
+---->
+      <table class="table table_0 mobile-optimised" id="deckTable">
+        <thead>
+          <tr>
+            <th data-sort="asc" onclick="sortTable(0)">Name <img src="/static/sort-arrows-outline-icon.png"
+                style="max-height:15px; max-width:15px"></th>
+            <th data-sort="asc" onclick="sortTable(2)">Category <img src="/static/sort-arrows-outline-icon.png"
+                style="max-height:15px; max-width:15px"></th>
+
+          
+            {% if current_user.role in ["student", "lifelong-learner", "part-time-student"] %}
+            <th data-sort="asc" onclick="sortTable(3)">Due/total <img src="/static/sort-arrows-outline-icon.png"
+                style="max-height:15px; max-width:15px"></th>
+{% else %}
+<th data-sort="asc" onclick="sortTable(3)">Cards <img src="/static/sort-arrows-outline-icon.png"
+  style="max-height:15px; max-width:15px"></th>
+  {% endif %}
+            <th data-sort="asc" onclick="sortTable(4)">Created <img src="/static/sort-arrows-outline-icon.png"
+                style="max-height:15px; max-width:15px"></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for deck in decks %}
+          <tr id = "deck-{{deck.id}}" class="view-row"  onclick="window.location.href='/deck_bp/deck_manager/{{ deck.id }}';"
+            onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
+            onmouseout="this.style.backgroundColor='';;this.style.color= ''" >
+            <td data-th="Name" >
+              <h5 style = "padding-left: 15px !important;">{{ deck.name }}</h5>
+            </td>
+            <td data-th="Category">{{ deck.check_cat() }} {% if deck.deck_files|length > 0 %} + files {% endif %}</td>
+
+            {% if user.role in ["student", "lifelong-learner", "part-time-student"] %}
+            <td data-th="Due/total"> {{ deck.cards_due() }}/{{ deck.quantity_cards() }}</td>
+            {% else %}
+            <td data-th="Cards"> {{ deck.quantity_cards() }}</td>
+{% endif %}
+<td data-th="Created">{{ deck.time_created.strftime("%Y-%m-%d") }}</td>
+            <td>
+              <div class="dropdown">
+                <img src="/static/more-icon.png" onclick="event.stopPropagation();" width="32px" height="32px"
+                  class="dropdown-toggle img-more" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                  style="cursor: pointer;">
+                <!-- Dropdown menu containing the list of links -->
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/deck_bp/carousel/{{ deck.id }}">Edit</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/quiz_bp/build_test/{{ deck.id }}">Create quiz</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
+                    style="cursor: pointer;">Share</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/study_bp/study_deck/{{ deck.id }}">Study</a>
+
+                  
+                  
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/deck_bp/sea_dox/{{ deck.id }}" data-bs-toggle="tooltip"
+                    data-bs-placement="bottom" title="See files associated with this deck">Files</a>
+                  <a class="dropdown-item" onclick="exportDeckAnki('{{ deck.id }}'); event.stopPropagation();" style="cursor: pointer;">Export to
+                    Anki</a>
+                  <a class="dropdown-item" onclick="event.stopPropagation();" href="/deck_bp/downloadascsv/{{ deck.id }}">Download CSV</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" style="cursor: pointer;" onclick="event.stopPropagation(); { deleteDeck('{{ deck.id }}'); }">Delete</a>
+
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    $(document).on('show.bs.dropdown', function (e) {
+      $('.dropdown').not(e.target).removeClass('show').find('.dropdown-menu').removeClass('show');
+    });
+  </script>
+  <!----- SHARE DECK MODAL -->
+  {% for deck in decks %}
+  <script>
+function shareDeck(deckId) {
+  var email = document.getElementById('email' + deckId).value;
+  var encodedEmail = encodeURIComponent(email);
+  var form = document.getElementById('share-form' + deckId);
+  var formData = new FormData(form);
+  formData.append("email", email);
+  fetch('/deck_bp/share_deck/' + deckId, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+    alert("Deck shared successfully!")
+  })
+  .catch(error => {
+    console.error(error);
+    alert("Error sharing deck. Please try again.")
+  });
+}
+  </script>
+  <div class="modal fade" id="Modal{{deck.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{deck.id}}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-header-style p-4">
+                <h5 class="modal-title" id="ModalLabel{{deck.id}}">Share deck</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="share-form{{deck.id}}" method="POST">
+                    {{ share_form.csrf_token }}
+                    <div class="form-group my-2">
+                        <div class="form-floating">
+                            {{ share_form.emails(id='email' + deck.id|string, class_='form-control', required=True,
+                            placeholder="Type receiver's email here")|safe }}
+                            <label for="email{{deck.id}}">Email</label>
+                        </div>
+                        <div class = mt-2>
+                          <img id="qr_code_image{{deck.id}}" src="" alt="QR Code" width="100" height="100"style="display:none" >
+
+                        <p id="share-link{{deck.id}}" readonly style="display:none"></p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-generate" onclick="generateLink('{{ deck.id }}')">Generate Link and QR Code</button>
+
+                    <button type="button" class="btn-generate" onclick="shareDeck('{{ deck.id }}')">Share</button>
+                </form>
+            </div>
+        </div>
+    </div>
+  </div>
+  <script>
+    function generateLink(deck_id) {
+        console.log("generate link")
+        $.ajax({
+            url: '/generate_link/' + deck_id,
+            type: 'GET',
+            success: function(data) {
+              console.log(data);
+                $('#share-link' + deck_id).text(data['share_link']);
+                $('#share-link' + deck_id).show();
+                $('#qr_code_image' + deck_id).attr('src', 'data:image/jpeg;base64,' + data['qr_code']);
+                $('#qr_code_image' + deck_id).show();
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    }
+    </script>
+
+</div>
+<!----- INFO MODAL OBSOLETE--
+<div class="modal fade" id="infoDecksModal{{deck.id}}" tabindex="-1" aria-labelledby="#infoDecksModalLabel{{deck.id}}"
+  aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header modal-header-style p-4">
+        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}" >Deck details:</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row box_study mt-1">
+          <li class="list-group-item">Deck name:
+            <h5>{{deck.name}}</h5>
+          </li>
+          <li class="list-group-item">Deck creator:
+            <h5>{{deck.creator}}</h5>
+          </li>
+          <li class="list-group-item">Deck description:
+            <h5>{{deck.description}}</h5>
+          </li>
+          <li class="list-group-item">Times accessed:
+            <h5>{{deck.times_accessed}}</h5>
+          </li>
+          <li class="list-group-item">Subject:
+            <h5>{{deck.subject}}</h5>
+          </li>
+          <li class="list-group-item">Deck topic:
+            <h5>{{deck.topic}}</h5>
+          </li>
+          <li class="list-group-item">Date created:
+            <h5>{{deck.time_created}}</h5>
+          </li>
+          <li class="list-group-item">Last access time:
+            <h5>{{deck.time_updated}}</h5>
+          </li>
+          <li class="list-group-item">Creation method:
+            <h5>{{deck.create_method}}</h5>
+          </li>
+          <li class="list-group-item">Shared:
+            <h5>{{deck.shared}}</h5>
+          </li>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+----->
+{% endfor %}
+<!---- SHARED DECKS MODAL----->
+<div class="modal fade" id="SharedDecksModal" tabindex="-1" aria-labelledby="#SharedDecksModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header modal-header-style p-4">
+        <h5 class="modal-title" id="SharedDecksModalLabel">Shared Decks</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          {% for deck in shared_decks %}
+          <div class="col-sm-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">{{deck.name}}</h5>
+                <p class="card-text">{{deck.sender}}</p>
+                <a id="approve{{deck.id}}" onclick="approveSharedDeck(event, {{deck.id}})" class="mx-2"
+                  style="cursor: pointer; text-decoration: none;">
+                  <img src="\static\approve-icon.png" alt="Accept AI generated deck"
+                    style="max-width:35px;max-height:35px;" class="img-grow px-1" title="Approve">
+                </a>
+                <a id="reject{{deck.id}}" class="mx-2" onclick="rejectSharedDeck(event, {{deck.id}})"
+                  style="cursor: pointer; text-decoration: none;">
+                  <img src="\static\reject-icon.png" alt="Reject AI generated deck" style="max-width:35px;max-height:35px;"
+                    class="img-grow px-1" title="Reject">
+                </a>
+              </div>
+            </div>
+          </div>
+          <script>
+            function approveSharedDeck(event, deckId) {
+              event.preventDefault();
+              $.ajax({
+                type: "GET",
+                url: "/approve_shared/" + deckId,
+                success: function () {
+                  // Refresh the content of the modal
+                  console.log("approve shared deck")
+                  refreshSharedDecksModal();
+                }
+              });
+            }
+            function rejectSharedDeck(event, deckId) {
+              event.preventDefault();
+              if (confirm('Are you sure you want to reject this shared deck?')) {
+                $.ajax({
+                  type: "GET",
+                  url: "/reject_shared/" + deckId,
+                  success: function () {
+                    // Refresh the content of the modal
+                    refreshSharedDecksModal();
+                  }
+                });
+              }
+            }
+          </script>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+<script>
+  function refreshSharedDecksModal() {
+    // Get the modal element
+    const sharedDecksModal = $('#SharedDecksModal');
+    // Hide the modal to prevent flickering
+    //sharedDecksModal.modal('hide');
+    // Reload the entire modal using jQuery's load method
+    sharedDecksModal.load(location.href + ' #SharedDecksModal > *', function () {
+      // Show the modal again after the new content has been loaded
+      sharedDecksModal.modal('show');
+    });
+  }
+</script>
+<!------ TEST MODAL-->
+<div class="modal fade" id="testModal" tabindex="-1" aria-labelledby="#testModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header modal-header-style p-4">
+        <h5 class="modal-title" id="testModalLabel" >Tests</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          {% for test in tests %}
+          <div id="testCard_{{ test.id }}" class="col-sm-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Name: {{test.name}}</h5>
+                <p class="card-text">Description: {{test.description}}</p>
+                <p class="card-text">Due date: {{test.due_date}}</p>
+                <p class="card-text">Marks: {{test.points}}</p>
+                <p class="card-text">Number of questions: {{test.num_questions}}</p>
+                <p class="card-text">Instructions: {{test.instructions}}</p>
+                <a href="/quiz_bp/take_test/{{test.id}}/{{user.id}}" class="mx-2" style="cursor: pointer;">
+                  Click here to take the test
+                </a>
+                <a href="#" class="mx-2" onclick="rejectTest('{{test.id}}', '{{user.id}}');"><img src="/static/reject-icon.png" class ="img-grow" alt="Reject AI generated quiz" style="max-width:40px; max-height:40px;"></a> <!-- Added delete button -->
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  async function exportDeckAnki(deckId) {
+    console.log("export deck to anki")
+    try {
+    await requestAnkiConnectPermission();
+    exportDeckToAnki(deckId);
+    } catch (error) {
+      console.log(error);
+      alert("AnkiConnect is not running. Please make sure you are on a desktop with anki connect running.")
+    }
+  }
+  async function requestAnkiConnectPermission() {
+    const url = 'http://127.0.0.1:8765/';
+    const request = {
+      action: 'requestPermission',
+      version: 6,
+    };
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+    const data = await response.json();
+    console.log(data.permission);
+    return data;
+  }
+  async function ankiConnectInvoke(action, version, params) {
+    const url = 'http://127.0.0.1:8765/';
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ action, version, params })
+    });
+    return await response.json();
+  }
+  async function exportDeckToAnki(deckId) {
+    // Replace this with the actual URL that returns the deck name and cards from your backend
+    const backendUrl = `/get_deck_data/` + deckId;
+    console.log(backendUrl)
+    try {
+      const response = await fetch(backendUrl);
+      if (response.ok) {
+        const deckData = await response.json();
+        const deckName = deckData.name;
+        const cards = deckData.cards;
+
+        // Call the exportToAnki function with the fetched deck name and cards
+        await exportToAnki(deckName, cards);
+      } else {
+        alert("Error fetching deck data1: " + response.statusText);
+      }
+    } catch (error) {
+      alert("Error fetching deck data: " + error);
+    }
+  }
+  async function exportToAnki(deckName, cards) {
+    const ankiConnectUrl = "http://127.0.0.1:8765";
+    console.log("entered export to anki")
+    console.log(deckName, cards)
+    // Create or update the deck
+    await fetch(ankiConnectUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "createDeck",
+        version: 6,
+        params: {
+          deck: deckName,
+        },
+      }),
+    });
+    // Add cards to the deck
+    for (const card of cards) {
+      console.log("individual card")
+      console.log(card.front)
+      await fetch(ankiConnectUrl, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "addNote",
+          version: 6,
+          params: {
+            note: {
+              deckName: deckName,
+              modelName: "Basic",
+              fields: {
+                Front: card.front,
+                Back: card.back,
+              },
+              options: {
+                allowDuplicate: false,
+              },
+              tags: card.tags || [],
+            },
+          },
+        }),
+      });
+    }
+    alert("Deck exported to Anki succesfully!");
+  }
+</script>
+
+<!--- ENABLE TOOLTIPS-->
+<script>
+
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+</script>
+
+
+<!---- SORTING SCRIPT ----->
+<script>
+  function sortTable(column) {
+    let table = document.getElementById("deckTable");
+    let rows = table.getElementsByTagName("tr");
+    let header = table.getElementsByTagName("th")[column];
+    let order = header.getAttribute("data-sort");
+    let sorting = true;
+    let i, x, y, shouldSwitch;
+
+    while (sorting) {
+      sorting = false;
+      for (i = 1; i < rows.length - 1; i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("td")[column];
+        y = rows[i + 1].getElementsByTagName("td")[column];
+
+        if (column === 3) {
+          if (order === 'asc' ? parseInt(x.innerHTML) > parseInt(y.innerHTML) : parseInt(x.innerHTML) < parseInt(y.innerHTML)) {
+            shouldSwitch = true;
+            break;
+          }
+        } else {
+          if (order === 'asc' ? x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase() : x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        sorting = true;
+      }
+    }
+
+    header.setAttribute("data-sort", order === 'asc' ? 'desc' : 'asc');
+  }
+</script>
+<script>
+  function updateProgress() {
+
+    $.post("/query",
+      { id: slug_id },
+      function (data) {
+        var progress = data.progress;
+        if (progress !== null) {
+          console.log("progress not null for " + slug_id + " is " + progress + "%")
+          $("#progress-bar").css("width", progress + "%").text(progress + "%");
+          $("#progress-container").show();
+        }
+        if (data.result === "ready") {
+          // Job is done, update UI accordingly
+          $("#progress-container").hide();
+        } else {
+
+          // Job is not done yet, schedule another update
+          setTimeout(updateProgress, 5000);
+        }
+      });
+  }
+
+  $(document).ready(function () {
+    updateProgress();
+  });
+</script>
+
+
+
+<script>
+  function rejectTest(testId, userId) {
+    if (confirm('Are you sure you want to delete this test?')) {
+      const csrfToken = getCsrfToken();
+
+      $.ajax({
+        url: '/quiz_bp/reject_test/' + testId + '/' + userId, // Replace with your Flask route URL
+        type: 'DELETE',
+        headers: {
+          'X-CSRFToken': csrfToken // Set the CSRF token in the request headers
+        },
+        success: function(response) {
+          // Handle success response if needed
+          console.log('Test deleted successfully');
+          $('#testCard_' + testId).remove();
+        },
+        error: function(error) {
+          // Handle error response if needed
+          console.log('Error deleting test:', error);
+        }
+      });
+    }
+  }
+  function deleteDeck(deckId) {
+  if (confirm('Are you sure you want to delete this deck?')) {
+    // Get the CSRF token from the page
+    var csrfToken = getCsrfToken();
+
+    // Make an AJAX request to delete the deck
+    $.ajax({
+      url: '/deck_bp/delete/' + deckId,
+      type: 'DELETE',
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
+      success: function(response) {
+        // Deck deleted successfully, remove it from the DOM
+        $('#deck-' + deckId).remove();
+      },
+      error: function(xhr) {
+        // Handle error
+        console.error('Error deleting deck:', xhr.status);
+      }
+    });
+  }
+}
+  function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta) {
+    return meta.getAttribute("content");
+  }
+  return null;
+}
+</script>
+
+
+</div>
+<script>
+$(document).ready(function(){
+  $("#extract-button").mousedown(function(){
+      $("#icon-img").attr("src","/static/new-deck-icon-active.png");
+  });
+  $("#extrat-button").mouseup(function(){
+      $("#icon-img").attr("src","/static/new-deck-icon.png");
+  });
+  $("#extract-button").mouseout(function(){
+      $("#icon-img").attr("src","/static/new-deck-icon.png");
+  });
+});
+</script>
+{% endblock %}

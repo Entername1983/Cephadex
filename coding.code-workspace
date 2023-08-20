@@ -9,7 +9,10 @@
 		}
 	],
 	"settings": {
+		"python.analysis.typeCheckingMode": "off",
 		"editor.tabCompletion": "on",
-		"diffEditor.codeLens": true
+		"workbench.colorCustomizations": {
+			"titleBar.activeBackground": "#6019FF"
+		}
 	}
 }

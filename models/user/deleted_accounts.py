@@ -1,5 +1,5 @@
 from datetime import datetime
-from models.extensions import db, migrate
+from run.extensions import db
 
 
 class DeletedAccounts(db.Model):

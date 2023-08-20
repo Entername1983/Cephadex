@@ -1,0 +1,38 @@
+{% set q_counter = 0 %}
+{% extends "layout.html" %}
+
+
+
+
+
+{% block title %}  Choose a Deck to Study {% endblock %}
+
+{% block main_0 %}
+
+
+<div class="container p-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center my-5 hcepha1">Choose a Deck to Study</h1>
+            <div class="text-center my-4">
+                {% if decks %}
+                    <form method="POST" class="form-inline d-flex justify-content-center">
+                        {{ form.hidden_tag() }}
+                        <div class="form-group mx-sm-3 mb-2">
+                            {{ form.deck(class="form-control", id="deckSelect") }}
+                        </div>
+                        <button type="submit" class="btn btn-generate mb-2">{{ form.submit.label.text }}</button>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning mt-4 mx-auto" role="alert" style="max-width: 400px;">
+                        You don't have any decks. <a href="{{ url_for('extract_bp.extract') }}" class="alert-link">Create a deck</a> first.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %} 
+

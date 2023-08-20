@@ -1,0 +1,952 @@
+{% extends "layout.html" %} {% block title %} Study {% endblock %} {% block head %}
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    
+    <script>
+      var jq = $.noConflict();
+    
+      jq(document).ready(function () {
+        var cardList = [];
+        var currentCard;
+        var currentCardIndex = 0;
+        var decks = {{ decks_json|safe }};
+        var cardStack = [];
+        var cardsDue;
+        var lastTapTime = 0;
+        var mcq_guess_counter = 0;
+        console.log(decks)
+    
+        // Load Deck due cards on load page 
+        // loop through each deck in decks
+        
+        let promises = 0;
+        for (let i = 0; i < decks.length; i++) {
+          const deck = decks[i].id;
+          console.log(deck);
+          console.log("entered deck of decks loop");
+          jq.ajax({
+            type: 'GET',
+            url: '/study_bp/get-due-cards/' + deck,
+            dataType: 'json',
+            success: function (data) {
+              const deckCards = data;
+              console.log(i);
+              console.log(deckCards);
+              // Concatenate the deck cards into the cardList array
+              cardList = cardList.concat(deckCards);
+              console.log(cardList);
+              promises++;
+              console.log("promise");
+              console.log(promises);
+              if (promises === decks.length) {
+                console.log("checking if this works");
+                cardList = cardList.sort(compareRandom)
+                currentCard = cardList[currentCardIndex];
+                cardsDue = cardList.length - currentCardIndex;
+                setCardData(currentCard,cardsDue);
+                if (currentCard.category == "Mcq") {
+                  mcqChecker();
+                  LoadRandomMcq();
+                  mcqCorrectAnswerSetter();
+                }
+                else {
+                  jq("#mcq").hide();
+                }
+                jq("#force-study").hide();
+                console.log(currentCard.name);
+                console.log(currentCardIndex);
+              }
+            }
+          });
+        }
+    
+        // EVENT LISTENERS
+       
+        document.addEventListener('touchend', function (event) 
+        {
+          var currentTime = new Date().getTime();
+          var tapLength = currentTime - lastTapTime;
+          if (tapLength < 200 && tapLength > 0) {
+            // Double tap
+            console.log("you double tapped")
+            event.preventDefault();
+            //wait 1000ms before loading next card
+    
+           loadNextCardOnCategory();
+          }
+          lastTapTime = currentTime;
+        });
+    
+        jq(document).on('dblclick', function () 
+        {
+          console.log("you double clicked");
+          loadNextCardOnCategory()
+        });
+    
+        jq('#forgot-btn').click(function () 
+        {
+          jq('#forgot-btn').addClass("selected");
+          jq('#remember-btn').removeClass("selected");
+          jq('#card-extra-content').show();
+          console.log("forgot button active, remember button inactive")
+        });
+    
+        jq('#remember-btn').click(function () 
+        {
+          jq('#remember-btn').addClass("selected");
+          jq('#forgot-btn').removeClass("selected");
+          jq('#card-extra-content').show();
+          console.log("remember button active, forgot button inactive")
+        });
+    
+        jq('#next-btn').on('click', function () 
+        {
+          loadNextCard();
+        });
+    
+        jq('#force-study').on('click', function () 
+        {
+          alert("You are entering casual mode, viewing the cards will not count towards your review!")
+          return;
+        });
+    
+        jq('#prev-btn').on('click', function () 
+        {
+          // Call the function to load the previous card
+          loadPreviousCard();
+        });
+    
+        jq('#A-btn, #B-btn, #C-btn, #D-btn').click(function () 
+        {
+          selectButton(jq(this));
+        });
+    
+        //touch swipe functionality
+        var touchStartX = null;
+        var touchStartY = null;
+    
+        jq(document.body).on('touchstart', function (event) 
+        {
+          // disable default touch action
+          console.log("touchstart")
+          touchStartX = event.changedTouches[0].clientX;
+          touchStartY = event.changedTouches[0].clientY;
+          console.log(touchStartX, touchStartY)
+        });
+    
+        jq(document.body).on('touchend', function (event) 
+        {
+          var touchEndX = event.changedTouches[0].clientX;
+          var touchEndY = event.changedTouches[0].clientY;
+          var touchDiffX = touchStartX - touchEndX;
+          var touchDiffY = touchStartY - touchEndY;
+          var touchDiffRatio = touchDiffY / touchDiffX;
+          console.log(touchEndX, touchEndY)
+          var swipes = 0;
+          if (touchDiffRatio >= -1 && touchDiffRatio <= 1) 
+          { // Horizontal swipe
+            if (currentCard.category != "Mcq") 
+            {  
+              if (touchDiffX > 0) 
+              { // Swipe left
+                if (jq('#forgot-btn').hasClass('selected')) 
+                {
+                  loadNextCard();
+                }
+                else if (jq('#remember-btn').hasClass('selected')) 
+                {
+                  jq('#remember-btn').removeClass('selected');
+                  jq('#forgot-btn').addClass('selected');
+                  loadNextCard();
+                }
+                else 
+                {
+                  jq('#forgot-btn').addClass('selected');
+                  jq('#card-extra-content').show();
+                }
+              }
+              else 
+              { // Swipe right
+                
+                if (jq('#remember-btn').hasClass('selected')) 
+                {
+                  loadNextCard();
+                } 
+                else if (jq('#forgot-btn').hasClass('selected')) 
+                {
+                  jq('#forgot-btn').removeClass('selected');
+                  jq('#remember-btn').addClass('selected');
+                  loadNextCard();
+                } 
+                else 
+                {
+                  jq('#remember-btn').addClass('selected');
+                  jq('#card-extra-content').show();
+                }
+              }
+            }
+          }
+          else if (touchDiffRatio < -1 || touchDiffRatio > 1) 
+          { // Vertical swipe
+            // implement swipe functionality for MCQ cards
+            if (currentCard.category == "Mcq") 
+            {
+              // if swipe up load next card
+              if (touchDiffY < 0) 
+              { // Swipe down
+                console.log("swipe down")
+                if (jq('#A-btn, #B-btn, #C-btn, #D-btn').hasClass('selected')) 
+                {
+                  loadNextCard();
+                }
+              }
+              else if (touchDiffy > 0) 
+              { // Swipe up
+                console.log("swipe up")
+              }
+            }
+    
+          }
+    
+        });
+    
+        // FUNCTIONS
+        function loadNextCardOnCategory()
+        {
+          if (currentCard.category == 'Mcq') 
+          {
+            mcqLoadNextCard();
+          }
+          else 
+          {
+            loadNextCard();
+          }
+        }
+        //load next card
+        function loadNextCard() 
+        {
+          cardStack.push(currentCard)
+          var card_id = currentCard.id;
+          var csrf_token = jq("input[name='csrf_token']").val();
+    
+          if (currentCard.category != "Mcq") 
+          {
+            console.log("not mcq")
+            if (jq('#remember-btn').hasClass('selected')) 
+            {
+              console.log("remember selected")
+              incrementCard(csrf_token, card_id);
+            }
+            else if (jq('#forgot-btn').hasClass('selected')) 
+            {
+              decrementCard(csrf_token, card_id);
+            }
+            else 
+            {
+              console.log("no button selected")
+            }
+            jq('A-btn').removeClass('selected');
+            jq('B-btn').removeClass('selected');
+            jq('C-btn').removeClass('selected');
+            jq('D-btn').removeClass('selected');
+            jq('#remember-btn').removeClass("selected");
+            jq('#forgot-btn').removeClass("selected");
+            jq('#card-extra-content').hide();
+    
+            cardList.splice(currentCardIndex, 1); // remove the current card from list
+            currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
+    
+            if (cardList.length === 0) 
+            {
+              location.reload(true);
+              cardsDue = cardList.length;
+            //$$BUG jq("#force-study").show();
+            //$$BUG jq("#contain-main").hide();
+              jq('#cards-due').html(cardsDue);
+    
+              return;
+    
+            } 
+            else 
+            {
+              currentCard = cardList[currentCardIndex];
+              cardsDue = cardList.length;
+              mcqChecker();
+              
+              setCardData(currentCard,cardsDue);
+    
+              LoadRandomMcq();
+              mcqCorrectAnswerSetter();
+            }
+          }
+          else if (currentCard.category == "Mcq") 
+          {
+            // if button a b c or d has class correct then increment the card
+            console.log("entered load next card for mcq")
+          }
+        }
+    
+        function loadPreviousCard() 
+        {
+          // Pop the top card from the stack to go back to the previous card
+          if (cardStack.length == 0) {
+            alert("No previous cards");
+          }
+          var previousCard = cardStack.pop();
+    
+          if (previousCard) {
+            // If there is a previous card on the stack, switch to it
+            currentCard = previousCard;
+    
+            // Add the current card back to the list and re-sort the list
+            cardList.push(currentCard);
+            cardList.sort(function (a, b) {
+              return a.due_date - b.due_date;
+            });
+            currentCardIndex = cardList.indexOf(currentCard);
+            var formula = cardData.formula;
+            formula = '\\[' + formula + '\\]';
+          
+            jq('#card-term').html(currentCard.term);
+            jq('#card-id').html(currentCard.id);
+            jq('#card-content').html(currentCard.content);
+            if (currentCard.category == "Formulas") {
+              jq('#card-formula').html(formula);
+              MathJax.typeset();
+            }
+            jq('#card-boc_2').html(currentCard.boc_2);
+            jq('#card-boc_3').html(currentCard.boc_3);
+          }
+        }
+        // takes a list of cards and randomly displays each in A-btn, B-btn, C-btn, D-btn
+        function LoadRandomMcq() 
+        {
+          var randomMcq = [currentCard.boc_2, currentCard.boc_3, currentCard.boc_4, currentCard.content];
+          randomMcq.sort(function () {
+            return 0.5 - Math.random();
+          });
+          jq('#A-btn').html(randomMcq[0]);
+          jq('#B-btn').html(randomMcq[1]);
+          jq('#C-btn').html(randomMcq[2]);
+          jq('#D-btn').html(randomMcq[3]);
+        }
+        // mcqChecker function
+        function mcqChecker() 
+        {
+          if (currentCard.category == "Mcq") {
+            console.log("mcqChecker is true")
+            jq('#mcq').show();
+            jq('#n-mcq').hide();
+          }
+          else {
+            console.log("mcqChecker is false")
+            jq('#mcq').hide();
+            jq('#n-mcq').show();
+          }
+        }
+        // mcq correct answer setter
+        function mcqCorrectAnswerSetter() 
+        {
+          console.log("mcqCorrectAnswersetter")
+          y = currentCard.content;
+          console.log(y)
+          console.log(jq('#A-btn').text(), jq('#B-btn').text(), jq('#C-btn').text(), jq('#D-btn').text())
+          var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+    
+          jq('#A-btn, #B-btn, #C-btn, #D-btn')
+            .removeClass('correct-mcq')
+            .removeClass('incorrect-mcq')
+            .removeClass('selected')
+            .removeClass('correct-selected')
+            .removeClass('incorrect-selected');
+        
+    
+          for (var i = 0; i < answerButtons.length; i++) {
+            if (jq(answerButtons[i]).text() == y) {
+              jq(answerButtons[i]).addClass('correct-mcq');
+            } else {
+              jq(answerButtons[i]).addClass('incorrect-mcq');
+            }
+          }
+        }
+    
+        // Sets the data for the card and cardsDue
+        function setCardData(cardData,cardsDue)
+        {
+          var formula = cardData.formula;
+          formula = '\\[' + formula + '\\]';
+        
+          jq('#card-term').html(currentCard.term);
+          jq('#card-id').html(currentCard.id);
+          jq('#card-content').html(currentCard.content);
+          if (currentCard.category == "Formulas") {
+            jq('#card-formula').html(formula);
+            MathJax.typeset();
+          }
+          jq('#card-boc_2').html(currentCard.boc_2);
+          jq('#card-boc_3').html(currentCard.boc_3);
+          jq('#card-boc_4').html(currentCard.boc_4);
+          jq('#cards-due').html(cardsDue);
+        }
+    
+        // API
+        function incrementCard(csrf_token, card_id) 
+        {
+          jq.ajax({
+            type: 'POST',
+            url: '/study_bp/increment/' + card_id,
+            contentType: 'application/x-www-form-urlencoded',
+            headers: { 'X-CSRFToken': csrf_token },
+            success: function (response) {
+              console.log(response);
+            }
+          });
+        }
+    
+        function decrementCard(csrf_token, card_id)
+        {
+          jq.ajax({
+            type: 'POST',
+            url: '/study_bp/decrement/' + card_id,
+            contentType: 'application/x-www-form-urlencoded',
+            headers: { 'X-CSRFToken': csrf_token },
+            success: function (response) {
+              console.log(response);
+            }
+          });
+        }
+    
+        // change 
+    
+        function mcqCorrectAnswerChecker() 
+        {
+          console.log("mcqCorrectAnswerChecker")
+          cardStack.push(currentCard)
+          var card_id = currentCard.id;
+          var csrf_token = jq("input[name='csrf_token']").val();
+          var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+          for (var i = 0; i < answerButtons.length; i++) 
+          {
+            if (jq(answerButtons[i]).hasClass('correct-mcq') && jq(answerButtons[i]).hasClass('selected')) 
+            {
+              incrementCard(csrf_token,card_id);
+            }
+            else if (jq(answerButtons[i]).hasClass('incorrect-mcq') && jq(answerButtons[i]).hasClass('selected')) 
+            {
+              decrementCard(csrf_token,card_id);
+            }
+          }
+        }
+        function selectButton(button) 
+        {
+          if (button.hasClass('selected')) {
+            button.removeClass('selected');
+          }
+          else {
+            button.addClass('selected');
+            if (mcq_guess_counter == 0) {
+              revealCorrectMcq();
+              mcqCorrectAnswerChecker();
+            }
+            mcq_guess_counter += 1;
+            jq('#A-btn, #B-btn, #C-btn, #D-btn').not(button).removeClass('selected');
+            console.log(`${button.attr('id')} button active`);
+          }
+        }
+    
+        function revealCorrectMcq () 
+        {
+          var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+          for (var i = 0; i < answerButtons.length; i++) {
+            if (jq(answerButtons[i]).hasClass('correct-mcq')) {
+              jq(answerButtons[i]).addClass('correct-selected');
+            }
+            else {
+              jq(answerButtons[i]).addClass('incorrect-selected');
+            }
+          }
+        }
+    
+        function hideCorrectMcq () 
+        {
+          var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+          for (var i = 0; i < answerButtons.length; i++) {
+              jq(answerButtons[i]).removeClass('correct-selected');
+              jq(answerButtons[i]).removeClass('incorrect-selected');
+            }
+        }
+    
+        function mcqLoadNextCard() 
+        {
+          console.log("mcqLoadNextCard")
+          console.log(cardList.length)
+          var answerButtons = ['#A-btn', '#B-btn', '#C-btn', '#D-btn'];
+          var counter = 0;
+          
+            for (var i = 0; i < answerButtons.length; i++) {
+              if (counter == 0) {
+              cardList.splice(currentCardIndex, 1); // remove the current card from list
+              currentCardIndex = (currentCardIndex + 1) % cardList.length; // move to the next card
+    
+              if (cardList.length === 0) 
+              {
+                location.reload(true);
+                cardsDue = cardList.length;
+              //$$BUG jq("#force-study").show();
+              //$$BUG jq("#contain-main").hide();
+                jq('#cards-due').html(cardsDue);
+    
+                return;
+    
+              } 
+              else 
+              {
+                currentCard = cardList[currentCardIndex];
+                console.log(currentCard)
+                console.log(cardsDue)
+                cardsDue = cardList.length;
+                console.log(cardsDue)
+                mcqChecker();
+    
+                setCardData(currentCard,cardsDue);
+    
+                LoadRandomMcq();
+                mcqCorrectAnswerSetter();
+                hideCorrectMcq();
+                counter = 1;
+              }
+              mcq_guess_counter = 0;
+            }
+          }
+          counter = 0;
+        }
+
+        function compareRandom(a, b) {
+          return Math.random() - 0.5;
+        }
+
+
+
+
+////////////////  HELP MODAL ////////////////
+function explainFurther(cardId) {
+  var spinner = document.querySelector('#ai-spinner');
+  spinner.style.display = 'block';
+  jq.ajax({
+    type: 'GET',
+    url: '/deck_bp/explain_further/' + cardId,
+    dataType: 'json',
+    success: function (data) {
+      console.log(data);
+      // Update the UI with the fetched card details
+      displayResponse(data);
+      spinner.style.display = 'none';
+    },
+    error: function (error) {
+      console.error('Error fetching card details:', error);
+      spinner.style.display = 'none';
+    }
+  });
+}
+function whyWrong(cardId) {
+  var spinner = document.querySelector('#ai-spinner');
+  spinner.style.display = 'block';
+  jq.ajax({
+
+    type: 'GET',
+    url: '/deck_bp/why_wrong/' + cardId,
+    dataType: 'json',
+    success: function (data) {
+      spinner.style.display = 'none';
+      console.log(data);
+      // Update the UI with the fetched card details
+      displayResponse(data);
+    },
+    error: function (error) {
+      spinner.style.display = 'none';
+      console.error('Error fetching card details:', error);
+    }
+  });
+}
+function openCardInfoModal() {
+  // Display the card ID and term in the modal
+  jq("#modal-card-id").text(currentCard.id);
+  jq("#modal-card-term").text(currentCard.term);
+
+  // Reset the more-info-container
+  jq("#more-info-container").hide();
+  jq("#modal-card-details").empty();
+
+  // Show the modal
+  var cardInfoModal = new bootstrap.Modal(document.getElementById('cardInfoModal'), {});
+  cardInfoModal.show();
+}
+
+jq('#explain-further').on('click', function () {
+  var cardId = jq('#modal-card-id').text();
+  explainFurther(cardId);
+});
+
+jq('#why-wrong').on('click', function () {
+  var cardId = jq('#modal-card-id').text();
+  console.log(cardId)
+  whyWrong(cardId);
+});
+document.getElementById('need-help').addEventListener('click', function () {
+  openCardInfoModal();
+  console.log("clicked");
+});
+function displayResponse(data) {
+  // Create a new div element and add the response text inside it
+  var newDiv = document.createElement('div');
+  newDiv.classList.add('ai-reply');
+  var responseText = document.createElement('p');
+  responseText.innerText = data.response;
+  newDiv.appendChild(responseText);
+
+  // Append the new div to the text container
+  document.getElementById('text-container').appendChild(newDiv);
+}
+
+
+jq('#chat-btn').on('click', function () {
+  var cardId = jq('#modal-card-id').text();
+  var question = jq('#chat-input').val();
+  if (question.trim() !== '') {
+    var latestParagraphText = jq('#text-container p:last-child').length > 0 ? jq('#text-container p:last-child').text() : '';
+    chatInput(cardId, question, latestParagraphText);
+  }
+  function chatInput(cardId, question, latestParagraphText) {
+    console.log("chatinput entered")
+    var spinner = document.querySelector('#ai-spinner');
+    spinner.style.display = 'block';
+    console.log(spinner.data)
+    // Send the input and the latest paragraph tag's text to the backend
+    jq.ajax({
+      type: 'POST',
+      url: '/deck_bp/send_question/' + cardId,
+      data: {
+        question: question,
+        latest_paragraph: latestParagraphText
+      },
+      success: function (data) {
+        console.log('Response from the backend:', data.response);
+        spinner.style.display = 'none';
+        // Create a new div element and add the paragraph inside it
+        var newDiv = jq('<div class="ai-reply"></div>');
+        var newParagraph = jq('<p></p>').text(data.response);
+        newDiv.append(newParagraph);
+
+        // Add the new div to the text container
+        jq('#text-container').append(newDiv);
+        // Process the response data, e.g., display it in the UI
+
+      },
+      error: function (error) {
+        console.error('Error sending the question:', error);
+        spinner.style.display = 'none';
+      }
+    });
+
+    // Clear the input field
+    jq('#chat-input').val('');
+  }
+});
+
+
+// Listen for the 'Enter' key press in the input field
+jq('#chat-input').on('keypress', function (event) {
+  if (event.which === 13) {
+    event.preventDefault();
+    jq('#chat-btn').trigger('click');
+  }
+});
+
+
+
+
+});
+
+
+
+
+
+
+    </script>
+    
+
+
+    
+    {% endblock %} {% block main_0 %}
+    {% if settings.new_user_study == True %}
+
+
+<div class = "container box_study" id = "new-user-study-info">
+<h5> Welcome to our study functionality</h5>
+<p> You can use this functionality to either study a single deck, in which case you should select that deck in "Decks" and then click on the study icon, or to study all your decks, in which case you can access it directly by clicking on "Study".</p>
+<p> We use a spaced repetition system so not all cards will be shown to you at once, and the more you remember a card, the less often it will be displayed.</p>
+<p> Depending on the type of card and whether you are on mobile or desktop the functionality will change a bit</p>
+<ul>
+<li> On desktop for cards other than multiple choice cards, simply select whether you forgot the card or remembered.  At that point the content will be displayed and you can click next to go to the next card.</li>
+<li> On mobile you can swipe left or right, left for "forgot", right for "remembered".  And then you can swipe again in either direction to move to the next card.</li>
+<li> For multiple choice questions it is not possible to swipe.  You have to select on of the 4 choices available and then either double tap the screen if you are on mobile, or double click if you are on a desktop (or laptop), to go to the next screen.</li>
+<li> Once you finish studying all the cards in your list our software will re-calculate which cards are due.  If there are none left you are done!  If you would like to continue studying you may do so but we will not keep track of this in our spaced repetition system.</li>
+</ul>
+<form id = "new-user-study">
+  <input type = "checkbox" class = "" id = "new-user-study-checkbox" value = "checked">
+  <label class = "form-check-label" for = "new-user-study-checkbox">Do not show this message again</label>
+</form>
+
+</div>
+
+
+<script>
+const checkbox = document.getElementById('new-user-study-checkbox');
+const newuserdiv = document.getElementById('new-user-study-info');
+checkbox.addEventListener( 'change', function() {
+  console.log(checkbox.checked)
+  if(this.checked) {
+    newuserdiv.style.display = "none";
+    fetch('/new_user_settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ checked: true })
+    })
+
+  } else {
+    fetch('/new_user_settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ checked: false })
+    });
+  }
+});
+
+
+</script>
+
+
+
+{% endif %}
+
+    
+    {% if decks != [] %}
+    <div class="container ">
+
+      <div class="row">
+        <div class="col-xs-0 order-6 col-md-2 order-md-1  d-flex justify-content-center d-none d-md-block"></div>
+        <div class="col-6 order-2 col-md-2 order-md-2 my-1 d-flex justify-content-center">
+    
+          <a href="/deck_bp/viewdecks">
+            <img src="\static\reply-arrow-outline-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
+              class="" title="Return to decks">
+          </a>
+        </div>
+        <div class="col-6  order-4 col-md-2 order-md-3 my-1  d-flex justify-content-center">
+    
+          <h4> All decks</h4>
+        </div>
+        <div class="col-6 order-5 col-md-2 order-md-4 my-1 d-flex justify-content-center">
+          <h4 id="cards-due"> </h4>
+        </div>
+        <div class="col-6 order-3 col-md-2 order-md-5 my-1 d-flex justify-content-center"> <button class="btn btn-danger"
+            id="need-help">Help</button>
+        </div>
+        <div class="col-xs-0 order-6 col-md-2 order-md-5  d-flex justify-content-center d-none d-md-block"></div>
+      </div>
+    
+    
+    
+    </div>
+    
+    
+    </div>
+    
+    
+    
+    
+    <div class="d-flex align-items-center justify-content-center">
+      <div style="max-width:700px">
+        <div id="contain-main">
+    
+          <div class="container p-1">
+            <div class="col-8-md mx-auto box_0 p-1 border-0 mw1">
+              <div class="card m-1 bg-light p-3 box_study" id="cardC" style="border-radius:15px">
+                <div class="col-6-md mx-auto">
+                  <div id="card-container mx-auto " style="min-height: 300px; width: 300px;">
+                    <div class="card-body box_study" style="border-radius:15px">
+                      <h3
+                        class="card-title border-0 input_0 form-control form-control-lg m-0 d-flex align-items-center justify-content-center"
+                        id="card-term"></h3>
+                      <div id="card-id" style="display: none"></div>
+                      <!-- Card term will be inserted here -->
+    
+                    </div>
+                    <div class="n-mcq" id="n-mcq">
+                      <div style="min-height: 200px;">
+                        <div class="box_1 my-1 p-3" id="card-extra-content" style="display: none">
+                          <div id ="card-formula"></div>
+                          <p id="card-content"></p>
+                        </div>
+                      </div>
+                      <div class="row my-1">
+                        <div class="d-flex align-items-center justify-content-center">
+                          <div class="col d-flex align-items-center justify-content-center"><button class="btn box_study "
+                              style="width: 120px" id="forgot-btn">Lost it</button></div>
+                          <div class="col d-flex align-items-center justify-content-center"><button class="btn box_study"
+                              style="width: 120px" id="remember-btn">Got it</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row my-1">
+                        <div class="d-flex align-items-center justify-content-center">
+                          <div class="col d-flex align-items-center justify-content-center"><button class="btn box_study"
+                              style="width: 120px" id="prev-btn">Previous</button></div>
+                          <div class="col d-flex align-items-center justify-content-center"><button class="btn box_study"
+                              style="width: 120px" id="next-btn">Next</button></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mcq" id="mcq" style="display:none">
+                      <div class="row my-1">
+                        <div class=" d-flex align-items-center justify-content-center">
+                          <button class=" box_study " style="width: 100%;max-height: 20vh; overflow:auto" id="A-btn"></button>
+                        </div>
+                      </div>
+                      <div class="row my-1">
+                        <div class=" d-flex align-items-center justify-content-center"><button class="box_study"
+                            id="B-btn" style="width: 100%; max-height: 20vh; overflow:auto">B</button>
+                        </div>
+                      </div>
+    
+                      <div class="row my-1">
+                        <div class="d-flex align-items-center justify-content-center">
+                          <button class=" box_study" style="width: 100%;max-height: 20vh; overflow:auto" id="C-btn">C</button>
+                        </div>
+                      </div>
+                      <div class="row my-1">
+                        <div class=" d-flex align-items-center justify-content-center"><button class="box_study"
+                          style="width: 100%;max-height: 20vh; overflow:auto" id="D-btn">D </button>
+                        </div>
+                      </div>
+    
+    
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+    
+    <div class="row d-flex align-items-center justify-content-center">
+    
+      <div class="col-3"></div>
+    
+      <div class="col-6">
+        
+      <!---- identified problematic line-->
+          <div class="row d-flex align-items-center text-center justify-content-center" style="display:none"  id="no-cards"></div>
+        <div class="row d-flex align-items-center justify-content-center">
+          <a class="btn box_warning eq_buttons ml-5" style="max-width: 300px; display:none" href="/study_bp/casualmode/{{deck}}" id="force-study"
+            style="display: none">Study anyway</a>
+        </div>
+      
+        </div>
+      <div class="col-3"></div>
+    </div>
+    
+    </div>
+    </div>
+    <!----  MODAL ------>
+<div class="modal fade " id="cardInfoModal" tabindex="-1" aria-labelledby="cardInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-gradient-primary-to-secondary">
+        <div class="row d-flex">
+          <div class = "col-8">
+          <h5 class="" id="cardInfoModalLabel" style="width:200px; color: rgba(255, 181, 88)">How can I help?</h5>
+          </div>
+          <div class = "col-4">
+          <div class="spinner-border" id="ai-spinner" role="status" style="display:none">
+            <span class="sr-only">Loading...</span>
+          </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <h6 id="modal-card-term" style="display:none"></h6>
+          <h6 id="modal-card-id" style="display:none"></h6>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Add the card details here -->
+        <div class="row" id="more-btns">
+          <div class="col-md-6 d-flex justify-content-center">
+            <img class="circle-img" src="/static/helper-avatar.png" alt="Helper avatar">
+
+          </div>
+
+
+          <div class="col-md-6 d-flex align-items-center">
+            <div class = "row">
+              <div class="row">
+                <button id="explain-further" class="btn btn-primary my-1">I want to know more.
+                </button>
+              </div>
+              <div class="row">
+                <button id="why-wrong"  class="btn btn-primary my-1">Why was my answer
+                  incorrect?</button>
+              </div>
+</div>
+          </div>
+        </div>
+    
+
+    <div class="row" id="details">
+      <div id="text-container" class="box_study overflow-auto my-1" style=" min-height: 10vh; max-height: 70vh;">
+        <div class="spinner-border" id="ai-spinner" role="status" style="display:none">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-group my-2">
+          <input type="text" class="form-control" id="chat-input" placeholder="Enter your question here"
+            aria-label="Enter your question here" aria-describedby="chat-btn">
+          <button class="btn btn-outline-secondary" type="button" id="chat-btn">Send</button>
+        </div>
+
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+</div>
+</div>
+</div>
+    {% else %}
+    <div class = "container">
+      <div class = "row justify-content-center ">
+      <h4 class = "text-center"> You don't currently have any cards to study, click <a href="/extract_bp/extract">here</a> to create some, and get kraken!</h4>
+      </div>
+      <div class = "row ">
+      <img class="img-fluid mx-auto"src ="/static/octo-cartoon-1.png" style="max-height:50%; max-width:50%;">
+    </div>
+    </div>
+    
+
+{% endif %}
+
+    {% endblock %}

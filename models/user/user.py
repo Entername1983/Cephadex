@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 from flask_login import UserMixin
 from models.decks.deck import Deck
-from models.groups.group import Group
+from models.group.group import Group
 from models.quiz.quiz import Test
 from models.user.subscription_plan import SubscriptionPlan
 from models.association_tables import user_group_association, distribution, source_files
 from models.user.usage_record import UsageRecord
-from models.extensions import db, migrate
+from run.extensions import db
 
 
 class User(db.Model, UserMixin):

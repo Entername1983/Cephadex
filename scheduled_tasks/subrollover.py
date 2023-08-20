@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from app import app
 from sqlalchemy.orm import scoped_session, sessionmaker
-from events import event_tracker
+from models.tracking.events import event_tracker
 from datetime import timezone
 from models.extensions import db
 from models.decks.job import Job
@@ -22,28 +22,25 @@ from models.games.game import Game
 from models.games.player_game import PlayerGame
 from models.groups.group_invite import GroupInvite
 from models.groups.group import Group
-from models.tests.question_result import QuestionResult
-from models.tests.question import Question
-from models.tests.quiz import Test
-from models.tests.quiz_result import TestResult
+from models.quiz.question_result import QuestionResult
+from models.quiz.question import Question
+from models.quiz.quiz import Test
+from models.quiz.quiz_result import TestResult
 from models.tracking.cached_response import CachedResponse
 from models.tracking.event_tracking import EventTracking
 from models.tracking.feedback import Feedback
 from models.tracking.response_data import ResponseData
 from models.user.deleted_accounts import DeletedAccounts
 from models.user.subscriber import Subscriber
-from models.user.subscription_plan import SubscriptionPlan
-from models.user.usage_record import UsageRecord
 from models.user.user_settings import UserSettings
-from models.user.user import User
 from models.stripe_events import StripeEvents
 from models.association_tables import cards, source_files, cards_shared, questions
 from models.association_tables import distribution, deck_relationships, user_group_association
 from models.association_tables import skills_category_skill
-from models.creators.creator import OpenAiCaller
+from models.creators.creator import AiCaller
 from models.creators.formatters import count_tokens, token_encoding, token_decoding, split_tokens, remove_html_tags, add_period, check_comma_list, add_underscores, comma_list_to_list, clean_text, insert_paragraph, double_backlash
 from models.extractors.extractor import Extractor
-from send_email import send_email_report
+from models.send_email import send_email_report
 import os
 from sqlalchemy import func
 import csv
@@ -53,8 +50,6 @@ SQLALCHEMY_ENGINE_OPTIONS = json.loads(os.environ['SQLALCHEMY_ENGINE_OPTIONS'])
 SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
 MAX_CONTENT = os.environ.get("MAX_CONTENT")
 SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
-
-
 
 
 

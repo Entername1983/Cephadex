@@ -69,7 +69,7 @@ cookieconsent.run({"notice_banner_type":"standalone","consent_type":"express","p
                 var form_data = $(this).serialize();
                 $.ajax({
                     type: 'POST',
-                    url: '{{ url_for("subscribe") }}',
+                    url: '{{ url_for("user_bp.subscribe") }}',
                     data: form_data,
                     success: function (response) {
                         alert(response);
@@ -255,23 +255,23 @@ $(document).ready(function () {
         <hr>
         <ul class="nav nav-pills flex-column mb-auto mt-3">
             <li class=" text-center">
-                <a href="/extract" class=" text-center ">
+                <a href="/extract_bp/extract" class=" text-center ">
                     <span class="menu-text"><img src="\static\Cepha-banner-2.png" max-width="50" height="50"/></span>
                 </a>
           <li class="nav-item text-center mt-4">
-            <a href="/extract" class="nav-link text-center" id="sidebar-create" >
+            <a href="/extract_bp/extract" class="nav-link text-center" id="sidebar-create" >
                 <span class="menu-icon " style="display:none"><img src="/static/create-svg-icon.svg" title = "Create decks" max-width="40" height="40"/></span>
                 <span class="menu-text">Create</span>
             </a>
           </li>
           <li>
-            <a href="/viewdecks" class="nav-link text-center" id="sidebar-viewdecks">
+            <a href="/deck_bp/viewdecks" class="nav-link text-center" id="sidebar-viewdecks">
                 <span class="menu-icon" style="display:none"><img src="/static/home-school-icon-svg.svg" title = "My decks" max-width="40" height="40"/></span>
                 <span class="menu-text">Decks</span>
             </a>
           </li>
           <li>
-            <a href="/study_select" class="nav-link text-center" id="sidebar-viewdecks">
+            <a href="/study_bp/study_select" class="nav-link text-center" id="sidebar-viewdecks">
                 <span class="menu-icon" style="display:none"><img src="/static/study-svg-icon.svg" title = "Study" max-width="40" height="40"/></span>
                 <span class="menu-text">Study</span>
             </a>
@@ -283,32 +283,32 @@ $(document).ready(function () {
             </a>
           </li>--->
           <li>
-            <a href="/test_results_overview" class="nav-link text-center" id="sidebar-quiz">
+            <a href="/quiz_bp/test_results_overview" class="nav-link text-center" id="sidebar-quiz">
                 <span class="menu-icon" style="display:none"><img src="/static/quiz-2-svg-icon.svg" title = "My quizzes" max-width="40" height="40"></span>
                 <span class="menu-text">Quizzes</span>
             </a>
           </li>
           <li>
-            <a href="/my_groups" class="nav-link text-center" id="sidebar-groups">
+            <a href="/group_bp/my_groups" class="nav-link text-center" id="sidebar-groups">
 
                 <span class="menu-icon" style="display:none"><img src="/static/group-svg-icon.svg" title = "My groups" max-width="40" height="40"/></span>
             <span class="menu-text">Groups</span>
             </a>
           </li>
           <li>
-            <a href="/public_decks" class="nav-link text-center" id="sidebar-public">
+            <a href="/deck_bp/public_decks" class="nav-link text-center" id="sidebar-public">
                 <span class="menu-icon" style="display:none"><img src="/static/public-svg-icon.svg" title = "Public decks" max-width="40" height="40"/></span>
                 <span class="menu-text">Public decks</span>
             </a>
           </li>
           <li>
-            <a href="/import_deck" class="nav-link text-center" id="sidebar-import">
+            <a href="/deck_bp/import_deck" class="nav-link text-center" id="sidebar-import">
                 <span class="menu-icon" style="display:none"><img src="/static/import-svg-icon.svg" title = "Import from Anki" max-width="40" height="40"/></span>
                 <span class="menu-text">Import</span>
             </a>
           </li>
           <li>
-            <a href="/upgrade" class="nav-link text-center" id="sidebar-upgrade">
+            <a href="/user_bp/upgrade" class="nav-link text-center" id="sidebar-upgrade">
                 <span class="menu-icon" style="display:none"><img src="/static/upgrade-svg-icon.svg" title = "Upgrade" max-width="40" height="40"/></span>
                 <span class="menu-text">Upgrade</span>
             </a>
@@ -366,10 +366,10 @@ $(document).ready(function () {
                                 
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
      
-                                    <a class="dropdown-item" href="/account">Account</a>
-                                    <a class="dropdown-item" href="/upgrade">Upgrade </a>
+                                    <a class="dropdown-item" href="/user_bp/account">Account</a>
+                                    <a class="dropdown-item" href="/user_bp/upgrade">Upgrade </a>
                                     <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="/logout">Sign out</a>
+                                    <a class="dropdown-item" href="/user_bp/logout">Sign out</a>
                                     <a class="dropdown-item d-md-none" data-bs-toggle="modal" data-bs-target="#feedbackModal">Send feedback</a>
             
                           
@@ -391,7 +391,7 @@ $(document).ready(function () {
             {% else %}
             <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
                 <div class="container px-5 d-flex justify-content-between align-items-center">
-                    <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/viewdecks{% else %}/{% endif %}">
+                    <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/deck_bp/viewdecks{% else %}/{% endif %}">
                         <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
                     </a>
                     <div class="d-flex">
@@ -466,7 +466,7 @@ $(document).ready(function () {
             </div>
             <div class="modal-body border-0 p-4">
 
-                <form id="feedback-form" method="POST" action="{{ url_for('feedback') }}">
+                <form id="feedback-form" method="POST" action="{{ url_for('user_bp.feedback') }}">
                     {{ g.feedback_form.hidden_tag() }}
                 
                     <!-- Name input-->
@@ -533,7 +533,7 @@ $(document).ready(function () {
 
                  <div id="g_id_onload" class = "google-signin-btn"
                      data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
-                     data-context="signin" data-ux_mode="popup" data-login_uri="/googleSignIn" data-nonce=""
+                     data-context="signin" data-ux_mode="popup" data-login_uri="{{ url_for('user_bp.googleSignIn') }}" data-nonce=""
                      data-auto_prompt="false">
                  </div>
                  <div class="g_id_signin d-flex justify-content-center" data-type="standard"
@@ -569,7 +569,7 @@ $(document).ready(function () {
                 <div class="row d-flex justify-content-center">
                         <div id="g_id_onload" class = "google-signin-btn"
                             data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
-                            data-context="signin"  data-ux_mode="popup" data-login_uri="/googleSignIn" data-nonce=""
+                            data-context="signin"  data-ux_mode="popup" data-login_uri="{{ url_for('user_bp.googleSignIn') }}" data-nonce=""
                             data-auto_prompt="false">
                         </div>
                         <div class="g_id_signin d-flex justify-content-center" data-type="standard"
@@ -595,7 +595,7 @@ $(document).ready(function () {
              </div>
              <div class="modal-body border-0 p-4">
                  <h4>Your deck is now ready!</h4>
-                 <p> Click <a href="/latest_deck"> here</a> to view it.
+                 <p> Click <a href="/deck_bp/latest_deck"> here</a> to view it.
                  </p>
              </div>
          </div>
@@ -647,12 +647,12 @@ $(document).ready(function () {
 
     <p style=""><a class="" href="mailto:support@cephadex.com" target="blank">Contact</a>
     
-    <a class="" href="/legal">Legal</a>
+    <a class="" href="/info_bp/legal">Legal</a>
     <!---
     <a class="" href="/news">News</a>--->
-    <a class="" href="/about">About us</a>
-    <a class="" href="/documentation">Documentation</a>
-    <a class="" href="/pricing">Pricing</a>
+    <a class="" href="/info_bp/about">About us</a>
+    <a class="" href="/info_bp/documentation">Documentation</a>
+    <a class="" href="/info_bp/pricing">Pricing</a>
     
     © 2023 Copyright:
     <a class="text-dark" href="/">Cephadex</a></p>
@@ -673,7 +673,7 @@ $(document).ready(function () {
             feedbackForm.addEventListener("submit", function(event) {
                 event.preventDefault(); // prevent form from submitting with a page refresh
     
-                fetch("{{ url_for('feedback') }}", {
+                fetch("{{ url_for('user_bp.feedback') }}", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded",

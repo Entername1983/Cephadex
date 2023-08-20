@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block title %} Game Lobby {% endblock %}
+
+{% block head %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+
+
+{% endblock %}
+{% block main_0 %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <h1 class="display-3">Game Lobby</h1>
+    </div>
+    <div class="row mt-5">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>Players</h2>
+                </div>
+                <ul id="players-in-lobby" class="list-group list-group-flush">
+                    <!-- Player list will be filled here -->
+                </ul>
+            </div>
+            {% if current_user.id == game.creator %}
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary" id="start-game">START GAME</button>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <p>Share this link with your friends to join the game:</p>
+                    <p class="text-primary">{{ game_url }}</p>
+                    <div class="d-flex justify-content-center">
+                        <img src="data:image/png;base64,{{ qr_code }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const ENVIRONMENT = "{{ environment }}";
+
+let socketAddress = 'http://localhost:5000';
+
+if (ENVIRONMENT === 'production') {
+    socketAddress = 'https://cephadex.heroku.com';
+}
+console.log(socketAddress);
+const userId = '{{ current_user.id }}';
+const gameId = '{{ game.id }}';
+const socket = io.connect(socketAddress);
+
+console.log(gameId);
+socket.on('connect', function() {
+    console.log('Connected!');
+    // Join the game room
+    socket.emit('join_game', {user_id: userId, game_id: gameId});
+});
+socket.on('start_game', function(data) {
+    console.log("redirecting")
+    // Redirect to the game page
+    window.location.href = '/game_bp/game_play/' + data.game_id;
+});
+
+$('#start-game').click(function() {
+    console.log('clicked starting game');
+    socket.emit('start_game', {game_id: '{{ game.id }}'});
+});
+socket.on('user_joined', function(data) {
+    // Add the new player to the list
+    $('ul').append('<li>' + data.username + '</li>');
+});
+socket.on('players_updated', function(data) {
+    $('#players-in-lobby').empty(); // Empty the list
+    data.players.forEach(function(player) {
+        $('#players-in-lobby').append('<li class = "list-group-item" id="player-' + player.user_id + '">' + player.username + '</li>');
+    });
+});
+socket.on('player_left', function(data) {
+    // Remove the player from the list
+    $("li:contains('" + data.username + "')").remove();
+});
+
+window.onbeforeunload = function(e) {
+    socket.emit('custom_disconnect', {game_id: gameId});
+};
+
+
+socket.on('player_left', function(data) {
+    const userId = data.user_id;
+    console.log('Player left:', userId);
+    // Remove the player from the DOM
+    $('#player-' + userId).remove();
+});
+</script>
+
+
+{% endblock %}
+

@@ -1,5 +1,5 @@
 from datetime import datetime
-from models.extensions import db, migrate
+from run.extensions import db
 from models.association_tables import questions
 from models.quiz.question import Question
 
