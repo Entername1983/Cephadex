@@ -1,7 +1,6 @@
 from datetime import datetime
 from run.extensions import db
-from sqlalchemy.orm import relationship
-from models.association_tables import source_files
+
 
 class DeckFiles(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

@@ -16,11 +16,11 @@ from models.send_email import send_email
 from flask_wtf.csrf import generate_csrf
 from factory import create_app
 from run.extensions import db, login_manager, socketio
+from models.helpers.log_decorators import log_decorator
 
 app = create_app()
 app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 
-logger = logging.getLogger('flask_app')  # Logs to 'app.log'
 
 @app.before_request
 def redirect_to_https():
@@ -39,7 +39,6 @@ def load_user(user_id):
     """Load user from database"""
     return User.query.get(int(user_id))
 
-logger.debug("app started")
 
 @app.after_request
 def after_request(response):
@@ -66,6 +65,7 @@ def sitemap():
     return send_file('static/sitemap.xml')
 
 @app.route("/", methods=["GET", "POST"])
+@log_decorator
 def index():
     """Home page"""
     form = TryOut()
@@ -75,11 +75,13 @@ def index():
     return redirect(url_for("deck_bp.viewdecks")+'?v=' + str(cache_buster))
 
 @app.route('/testing1', methods = ['GET', 'POST'])
+@log_decorator
 def testing1():
     """test page"""
     return render_template('testing1.html')
         
 @app.route('/update_sidebar_state', methods=['POST'])
+@log_decorator
 def update_sidebar_state():
     """Toggle side bar state"""
     is_collapsed = request.form.get('sidebar-collapsed') == 'true'
@@ -87,6 +89,7 @@ def update_sidebar_state():
     return '', 204  # return 204 No Content response
 
 @app.route("/landingpage", methods = ["GET", "POST"])
+@log_decorator
 def landingpage():
     """ landing page, deprecated"""
     return render_template("landingpage.html", title="Landing Page")
@@ -171,6 +174,7 @@ def check_for_errors(slug):
   ##  return jsonify({"success": True})
 
 @app.route("/query", methods=["POST"])
+@log_decorator
 @login_required
 def query():
     progress = 0
@@ -197,8 +201,8 @@ def query():
 
 @app.route("/notification_complete", methods=["POST"])
 @login_required
+@log_decorator
 def notification_complete():
-    logger.debug("entered notification")
     print("entered notification")
     slug_id= request.form["id"]
     slug = JobNotification.query.filter_by(slug=slug_id).first()

@@ -3,16 +3,17 @@
 import json
 import urllib.request
 import requests
+from typing import Any, Optional
 
 ## action deckNamesAndIds --> returns deck IDs use as param for findCards
 ## action findCards --> returns card IDs use as param for cardsInfo
 ## action cardsInfo --> returns card info
 
-def request(action, **params):
+def request(action: str, **params: Any) -> dict[str, Any]:
     return {'action': action, 'params': params, 'version': 6}
 
 
-def request_params(deckName, term, content, interval=None):
+def request_params(deckName: str, term: str, content: str, interval: Optional[str] = None) -> dict[str, Any]:
     params = {
         "deckName": deckName,
         "modelName": "Basic",
@@ -28,14 +29,9 @@ def request_params(deckName, term, content, interval=None):
     if interval is not None:
         params["fields"]["Interval"] = str(interval)
 
-    payload = {
-        "action": "addNote",
-        "params": params,
-        "version": 6
-    }
-    return payload
+    return {"action": "addNote", "params": params, "version": 6}
 
-def invoke(action, **params):
+def invoke(action: str, **params: Any) -> Any:
     requestJson = json.dumps(request(action, **params)).encode('utf-8')
     print(requestJson)
     response = request_anki(requestJson)
@@ -50,12 +46,12 @@ def invoke(action, **params):
         raise Exception(response['error'])
     return response['result']
 
-def anki_create_deck(deck_name):
+def anki_create_deck(deck_name: str) -> None:
     invoke('createDeck', deck=deck_name)
     print("deck_created")
 
 
-def anki_create_card(deck_name, term, content):
+def anki_create_card(deck_name: str, term: str, content: str) -> None:
     payload = {
         "action": "addNote",
         "params": {
@@ -81,7 +77,7 @@ def anki_create_card(deck_name, term, content):
     response = request_anki(requestJson)
     print("anki json response", response)
 
-def check_anki_connect():
+def check_anki_connect() -> bool:
     print("Entered Anki Connect check")
     """Checks if the Anki Connect server is running and if the required API version is available."""
     try:
@@ -114,7 +110,7 @@ def check_anki_connect():
 
 
     
-def anki_import_all():
+def anki_import_all() -> str:
     response = []
     decks = invoke('deckNamesAndIds')
     for key in decks.items():
@@ -131,7 +127,7 @@ def anki_import_all():
     response=pretty_json(json.dumps(response))
     return response
 
-def anki_import_deck(deck_name):
+def anki_import_deck(deck_name: str) -> str:
     response = []
     name = quote_deck_name_if_needed(deck_name)
     card_ids = invoke('findCards', query='deck:{}'.format(name))
@@ -148,7 +144,7 @@ def anki_import_deck(deck_name):
 
 
 
-def quote_deck_name_if_needed(deck_name):
+def quote_deck_name_if_needed(deck_name: str) -> str:
     if ' ' in deck_name:
         return '"{}"'.format(deck_name)
     else:
@@ -156,12 +152,12 @@ def quote_deck_name_if_needed(deck_name):
 
 
 
-def pretty_json(json_str):
+def pretty_json(json_str: str) -> str:
     parsed = json.loads(json_str)
     return json.dumps(parsed, indent=4)
 
 
-def find_notes2(query):
+def find_notes2(query: str) -> bool:
     print(query)
     # Connect to Anki Connect API
     anki_url = "http://localhost:8765"
@@ -191,7 +187,7 @@ def find_notes2(query):
         raise Exception("Anki Connect error: " + response.text)
     
     
-def find_notes(query):
+def find_notes(query: str) -> bool:
     print(query)
     payload = {
     "action": "findNotes",
@@ -210,16 +206,19 @@ def find_notes(query):
         return False
 
 
-def request_anki(payload):
+def request_anki(payload: bytes) -> Optional[dict[str, Any]]:
     try:
-        response = json.load(urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8765/', payload)))
-        return response
+        return json.load(
+            urllib.request.urlopen(
+                urllib.request.Request('http://127.0.0.1:8765/', payload)
+            )
+        )
     except Exception as e:
-        print("Error: {}".format(e))
+        print(f"Error: {e}")
         return None
 
 
-def request_anki_permission():
+def request_anki_permission() -> bool:
     print("entered request anki permission")
     payload = {
     "action": "requestPermission",

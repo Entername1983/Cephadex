@@ -1,5 +1,4 @@
 
-import logging
 import datetime as dt
 from urllib.parse import unquote
 from flask import Blueprint, render_template, flash, redirect, request, url_for, jsonify
@@ -10,9 +9,8 @@ from models.creators.formatters import check_comma_list
 from models.models_ import Card, Deck, GroupInvite, Group, User, user_group_association
 from models.forms.forms import GroupForm
 from run.extensions import db
+from models.helpers.log_decorators import log_decorator
 
-
-logger = logging.getLogger("flask_app")
 group_bp = Blueprint(
     'group_bp', 
     __name__,
@@ -22,8 +20,8 @@ group_bp = Blueprint(
 
 @group_bp.route('/remove_deck_from_group/<group_id>/<deck_id>', methods=['GET','POST'])
 @login_required
+@log_decorator
 def remove_deck_from_group(group_id, deck_id):
-    logger.debug("remove deck from group")
     group = Group.query.filter_by(id=group_id).first()
     deck = Deck.query.filter_by(id=deck_id).first()
     group.decks.remove(deck)
@@ -33,6 +31,7 @@ def remove_deck_from_group(group_id, deck_id):
 
 @group_bp.route('/my_groups')
 @login_required
+@log_decorator
 def my_groups():
     group_form = GroupForm()
     user_id = current_user.id
@@ -49,11 +48,10 @@ def my_groups():
 
 @group_bp.route('/create_group', methods=['POST'])
 @login_required
+@log_decorator
 def create_group():
-    logger.debug("create group")
     form = GroupForm(request.form)
     if form.validate():
-        logger.debug("form validated")
         name = form.name.data
         description = form.description.data
         group_type = form.group_type.data
@@ -65,20 +63,17 @@ def create_group():
         new_group.users.group_bpend(current_user)
         db.session.commit()
         update_member_permissions(new_group.id, user_id, "write")
-        logger.debug("where")
         db.session.commit()
         success_response = jsonify({'message': 'Group created successfully'}), 201
         
-        logger.debug("Success response: %s", success_response)# Log the success response
         return success_response
     else:
-        logger.debug("form not validated")
-        logger.debug("Form errors: %s", form.errors)  # Log the form errors
         errors = form.errors
         return jsonify(errors), 400
 
 @group_bp.route("/invite_group/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def invite_group():
     group_id = request.args.get('groupId', type=int)
     user_email = request.args.get('email', type=str)
@@ -87,7 +82,6 @@ def invite_group():
     if check_comma_list(user_email):
         users_emails = user_email.split(",")
         for email in users_emails:
-            logger.debug("user email %s", email)
             email = unquote(email).strip()
             user = User.query.filter_by(email=email).first()
             already_invited = GroupInvite().query.filter_by(user_id=user.id,
@@ -124,6 +118,7 @@ def invite_group():
 
 @group_bp.route("/group_bprove_group/<int:group_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def group_bprove_group(group_id):
     c_group_id = group_id
     group_invite = GroupInvite.query.filter_by(id=c_group_id,
@@ -142,6 +137,7 @@ def group_bprove_group(group_id):
     
 @group_bp.route("/reject_group/<int:group_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def reject_group(group_id):
     c_group_id = group_id
     group_invite = GroupInvite.query.filter_by(id=c_group_id,
@@ -229,6 +225,7 @@ def get_invited_users_info(user_id):
     )
 
 @group_bp.route("/group/<int:group_id>/", methods=["GET", "POST"])
+@log_decorator
 @login_required
 def group(group_id):
     c_group_id = group_id
@@ -245,24 +242,21 @@ def group(group_id):
                 invited_users=invited_users, decks = decks, permissions = permissions)
 
 @group_bp.route('/group/<int:group_id>/update_member_permissions', methods=['POST'])
+@log_decorator
 @login_required
 def update_member_permissions(group_id, user_id = None, permission = None):
-    logger.debug("entered member permissions update")
     c_group_id = group_id
     if user_id:
-        logger.debug("user id is %s", user_id)
         target_user_id = user_id
     else:
         data = request.json
         target_user_id = int(data['target_user_id'])
     if permission:
-        logger.debug("permission is %s", permission)
         new_permissions = permission
     else:
         new_permissions = data['new_permissions']
     # Check if the current user is the creator of the group
     group = Group.query.get(c_group_id)
-    logger.debug("group is %s", group)
     user_id = current_user.id
     if group.creator_id == user_id:
         # Update the target user's permissions
@@ -280,11 +274,11 @@ def update_member_permissions(group_id, user_id = None, permission = None):
             "status": "error",
             "message": "You do not have permission to update member permissions"
         }
-    logger.debug(response)
     return jsonify(response)
 
 @group_bp.route('/search_public_decks', methods=['POST'])
 @login_required
+@log_decorator
 def search_public_decks():
     data = request.json
     search_term = clean(data['search'])
@@ -293,6 +287,7 @@ def search_public_decks():
 
 @group_bp.route('/add_deck_to_group', methods=['POST'])
 @login_required
+@log_decorator
 def add_deck_to_group():
     data = request.json
     group_id = clean(data['group_id'])
@@ -327,11 +322,11 @@ def check_group_write_permission(group_id):
                                                                       group_id=c_group_id).first()
     if association and association.permissions and 'write' in association.permissions:
         return True
-    logger.debug("no permission to edit")
     return False
 
 @group_bp.route("/delete_group/<int:group_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def delete_group(group_id):
     c_group_id = group_id
     group = Group.query.get(c_group_id)
@@ -347,6 +342,7 @@ def delete_group(group_id):
 
 @group_bp.route("/import_from_group/<int:deck_id>/<int:group_id>", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def import_from_group(deck_id, group_id):
     c_group_id = group_id
     c_deck_id = deck_id
@@ -374,8 +370,8 @@ def import_from_group(deck_id, group_id):
 
 @group_bp.route("/remove_user_group/<int:group_id>/<int:user_id>", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def remove_user_group(group_id, user_id):
-    logger.debug("remove user group")
     c_group_id = group_id
     c_user_id = user_id
     group = Group.query.get(c_group_id)

@@ -2,38 +2,41 @@ from .card import Card
 from .deck import Deck
 from sqlalchemy.orm import joinedload
 from sqlalchemy import select
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 class CardFactory:
-    def __init__(self, session, deck):
-        self.session = session
-        self.deck = deck
-        self.card_counter = 0
+    def __init__(self, session: 'AsyncSession', deck: Deck):
+        self.session: 'AsyncSession' = session
+        self.deck: Deck = deck
+        self.card_counter: int = 0
 
-    def create_cards(self, content, type):
+    def create_cards(self, content: str, type: str) -> None:
         print(content)
         print("entered create cards...")
         if type == "Mcq":
-            return self.create_mcq(content)
+            self.create_mcq(content)
         elif type == "Formulas":
-            return self.create_formulas(content)
+            self.create_formulas(content)
         elif type == "Discuss":
-            return self.create_discuss(content)
+            self.create_discuss(content)
         else:
-            return self.create_default(content, type)
+            self.create_default(content, type)
         
-    async def async_create_cards(self, content, type):
+    async def async_create_cards(self, content: str, type: str) -> None:
         print(content)
         print("entered async create cards...")
         if type == "Mcq":
-            return await self.async_create_mcq(content)
+            await self.async_create_mcq(content)
         elif type == "Formulas":
-            return await self.async_create_formulas(content)
+            await self.async_create_formulas(content)
         elif type == "Discuss":
-            return await self.async_create_discuss(content)
+            await self.async_create_discuss(content)
         else:
-            return await self.async_create_default(content, type)
+            await self.async_create_default(content, type)
         
-    def create_default(self, content, type):
+    def create_default(self, content: str, type: str) -> None:
         print("entered create default...")
         print(self.session)
         for item in content:
@@ -46,7 +49,7 @@ class CardFactory:
                 self.session.commit()
                 self.card_counter += 1
 
-    def create_mcq(self, content):
+    def create_mcq(self, content: str) -> None:
         print("entered create mcq...")
         print("content: ", content)
         for item in content:
@@ -61,7 +64,7 @@ class CardFactory:
                 self.session.commit()
                 self.card_counter += 1
 
-    def create_formulas(self, content):
+    def create_formulas(self, content: str) -> None:
         print("entered create formulas...")
         for item in content:
             key = item['A']
@@ -73,7 +76,7 @@ class CardFactory:
                 self.session.commit()
                 self.card_counter += 1
 
-    def create_discuss(self, content):
+    def create_discuss(self, content: str) -> None:
         print("entered create discuss...")
         for item in content:
             key = item['A']
@@ -85,19 +88,16 @@ class CardFactory:
                 self.session.commit()
                 self.card_counter += 1
 
-    def check_card_exist(self, term):
-        print("entered check card exist...")
+    def check_card_exist(self, term: str) -> bool:
         # Explicitly query for the deck with the related cards
         deck = self.session.execute(select(Deck).options(joinedload(Deck.cards)).where(Deck.id == self.deck.id))
         deck = deck.unique().scalar_one()
-
         for card in deck.cards:
             if card.term.lower() == term.lower():
-                print(f"card {term} already exists")
                 return True
         return False
 
-    async def async_create_default(self, content, type):
+    async def async_create_default(self, content: str, type: str) -> None:
         print("entered async create default...")
         for item in content:
             key = item['A']
@@ -109,7 +109,7 @@ class CardFactory:
                 await self.session.commit()
                 self.card_counter += 1
 
-    async def async_create_mcq(self, content):
+    async def async_create_mcq(self, content: str) -> None:
         print("entered async create mcq...")
         print(f"content, {content}")
         for item in content:
@@ -127,7 +127,7 @@ class CardFactory:
                 await self.session.commit()
                 self.card_counter += 1
 
-    async def async_create_formulas(self, content):
+    async def async_create_formulas(self, content: str) -> None:
         print("entered async create formulas...")
         for item in content:
             key = item['A']
@@ -139,7 +139,7 @@ class CardFactory:
                 await self.session.commit()
                 self.card_counter += 1
 
-    async def async_create_discuss(self, content):
+    async def async_create_discuss(self, content: str) -> None:
         print("entered async create discuss...")
         for item in content:
             key = item['A']
@@ -151,14 +151,12 @@ class CardFactory:
             await self.session.commit()
             self.card_counter += 1
 
-    async def async_check_card_exist(self, term):
-        print("entered async check card exist...")
+    async def async_check_card_exist(self, term: str) -> None:
         # Explicitly query for the deck with the related cards
         deck = await self.session.execute(select(Deck).options(joinedload(Deck.cards)).where(Deck.id == self.deck.id))
         deck = deck.unique().scalar_one()
 
         for card in deck.cards:
             if card.term.lower() == term.lower():
-                print(f"card {term} already exists")
                 return True
         return False

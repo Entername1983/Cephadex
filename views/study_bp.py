@@ -1,5 +1,5 @@
 import json
-import logging
+
 from bleach import clean
 from flask import Blueprint, render_template, redirect, url_for, jsonify
 from flask_login import login_required, current_user
@@ -10,8 +10,7 @@ from models.models_ import Card, Deck, UserSettings
 from models.forms.forms import StudyDeckForm
 from run.extensions import db
 
-logger = logging.getLogger("flask_app")
-
+from models.helpers.log_decorators import log_decorator
 study_bp = Blueprint(
     'study_bp', 
     __name__,
@@ -23,10 +22,12 @@ NUMBER_OF_CARDS_TO_LOAD = 20
 
 @study_bp.route("/study", methods = ["GET", "POST"])
 @login_required
+@log_decorator
 def study():
     return render_template("study_bp/study.html", title="Study")
 
 @study_bp.route('/study_select', methods=['GET', 'POST'])
+@log_decorator
 def study_select():
     form = StudyDeckForm()
     decks = []
@@ -34,8 +35,7 @@ def study_select():
         form.deck.choices = [(deck.id, deck.name) for deck in Deck.query.filter_by(user_id=current_user.id).all()]  # noqa: E501
         decks = Deck.query.filter_by(user_id=current_user.id).all()
     except Exception as e:
-        logger.debug(e)
-        logger.debug("error getting decks - no decks found")
+        raise e
     if form.validate_on_submit():
         return redirect(url_for('study_bp.study_deck', deck_id=form.deck.data))
     return render_template('study_bp/study_select.html', form=form, decks = decks)
@@ -43,8 +43,8 @@ def study_select():
 
 @study_bp.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])
 @login_required
+@log_decorator
 def get_due_cards(deck_id):
-    logger.debug("entered get due cards")
     c_deck_id = deck_id
     deck = Deck.query.get(clean(c_deck_id))
     ## later add in option to modify number of new cards to be shown
@@ -58,11 +58,11 @@ def get_due_cards(deck_id):
 
 @study_bp.route("/study_deck/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def study_deck(deck_id):
     c_deck_id = deck_id
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings is None:
-        logger.debug("user settings not found")
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
@@ -75,6 +75,7 @@ def study_deck(deck_id):
 
 @study_bp.route("/update_study_data/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def update_study_data(deck_id):
     deck0 = Deck.query.get(deck_id)
     total_answered = deck0.total_answered()
@@ -93,6 +94,7 @@ def update_study_data(deck_id):
 
 @study_bp.route("/study_deck_all", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def study_deck_all():
     event_tracker(current_user.id, "study_deck_all")
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
@@ -110,6 +112,7 @@ def study_deck_all():
 
 @study_bp.route("/increment/<card_id>", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def increment(card_id):
     c_card_id = card_id
     card = Card.query.get(c_card_id)
@@ -125,6 +128,7 @@ def increment(card_id):
 
 @study_bp.route("/decrement/<card_id>", methods = ["POST"])
 @login_required
+@log_decorator
 def decrement(card_id):
     c_card_id = card_id
     card = Card.query.get(c_card_id)
@@ -138,6 +142,7 @@ def decrement(card_id):
     return jsonify({'success': 'Card decremented'}), 200
 
 @study_bp.route("/forcestudy/<deck_id>")
+@log_decorator
 def force_study(deck_id):
     c_deck_id = deck_id
     event_tracker(current_user.id, "force_study", c_deck_id)
@@ -148,5 +153,6 @@ def force_study(deck_id):
     
 @study_bp.route("/casualmode/<int:deck_id>")
 @login_required
+@log_decorator
 def casual_mode(deck_id):
     return render_template("study_bp/casualmode.html", title="Casual Mode", deck=deck_id)   

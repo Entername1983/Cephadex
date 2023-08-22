@@ -1,7 +1,7 @@
 from datetime import datetime
 from models.association_tables import skills_category_skill
 
-from models.extensions import db
+from run.extensions import db
 
 
 class Skills_Category(db.Model):

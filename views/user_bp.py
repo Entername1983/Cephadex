@@ -5,7 +5,6 @@ import time
 from bleach import clean
 import stripe
 import uuid
-import logging
 from werkzeug.utils import secure_filename
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -29,7 +28,8 @@ from models.forms.forms import (
 from config.settings import AUTH2_CLIENT_ID
 from run.extensions import db
 from models.user.stripe_config import STRIPE_PLANS
-logger = logging.getLogger("flask_app")
+
+from models.helpers.log_decorators import log_decorator
 
 user_bp = Blueprint(
     'user_bp', 
@@ -41,123 +41,113 @@ user_bp = Blueprint(
 endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
 
 @user_bp.route("/googleSignIn", methods=["POST"])
+@log_decorator
 def googleSignIn():
     #Security validation
     form = TryOut()
-    logger.debug("entered google sign in")
     csrf_token_cookie = request.cookies.get('g_csrf_token')
     print("csrf_token_cookie: ", csrf_token_cookie)
     if not csrf_token_cookie:
-        logger.debug('No CSRF token in Cookie.')
         return jsonify({'error': 'No CSRF token in Cookie'}), 400
     csrf_token_body = request.form.get('g_csrf_token')
     if not csrf_token_body:
-        logger.debug('No CSRF token in post body.')
         return jsonify({'error': 'No CSRF token in post body.'}), 400
     if csrf_token_cookie != csrf_token_body:
-        logger.debug('Failed to verify double submit cookie.')
         return jsonify({'error': 'Failed to verify double submit cookie.'}), 400
+    #encrypted credential
+    credential = request.form.get('credential')
+    print(credential)
+    # Decrypt credential, third parameter comes from google API console client ID
     try:
-        #encrypted credential
-        credential = request.form.get('credential')
-        print(credential)
-        # Decrypt credential, third parameter comes from google API console client ID
-        try:
-            idinfo = id_token.verify_oauth2_token(credential,
-                                                requests.Request(), AUTH2_CLIENT_ID)
-        except ValueError as e:
-            # Invalid token
-            logger.error('Invalid token. Error: %s', e)
-            return jsonify({'error': 'Invalid token'}), 400
-        # ID token is valid. Get the user's Google Account ID from the decoded token.
-        print(idinfo)
-        #  (UniqueID to use for login)
-        userid = idinfo['sub']
-        print(userid)
-        user = User.query.filter_by(external_id=userid).first()
-        if user:
-            print("found user")
-            login_user(user)
+        idinfo = id_token.verify_oauth2_token(credential,
+                                            requests.Request(), AUTH2_CLIENT_ID)
+    except ValueError as e:
+        # Invalid token
+        return jsonify({'error': 'Invalid token'}), 400
+    # ID token is valid. Get the user's Google Account ID from the decoded token.
+    print(idinfo)
+    #  (UniqueID to use for login)
+    userid = idinfo['sub']
+    print(userid)
+    user = User.query.filter_by(external_id=userid).first()
+    if user:
+        print("found user")
+        login_user(user)
+        game_id = session.get('game_id')
+        print("game id is", game_id)
+        if 'shared_deck_id' in session:
+            print("shared deck id is", session['shared_deck_id'])
+            shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
+            new_deck = Deck(user_id = current_user.id,
+                    name=shared_deck.name,
+                    description=shared_deck.description,
+                    time_created=dt.datetime.now(dt.timezone.utc))
+            db.session.add(new_deck)
+            for card in shared_deck.cards:
+                new_card = Card(term=card.term,
+                    content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
+                    boc_4=card.boc_4,img=card.img, sound=card.sound,
+                    subject=card.subject, topic=card.topic,
+                    category=card.category,
+                    prompt_option=card.prompt_option,
+                    prompt_option2=card.prompt_option2,
+                    trans_option=card.trans_option, len_option=card.len_option,
+                    qmin_option=card.qmin_option,
+                    qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+                new_deck.cards.user_bpend(new_card)
+            del session['shared_deck_id']
+            db.session.commit()
+            flash("You have been logged in and the deck has been added to your decks", "success")
+            return redirect(url_for('deck_bp.viewdecks'))
+        if 'game_id' in session:
             game_id = session.get('game_id')
             print("game id is", game_id)
-            if 'shared_deck_id' in session:
-                print("shared deck id is", session['shared_deck_id'])
-                shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
-                new_deck = Deck(user_id = current_user.id,
-                        name=shared_deck.name,
-                        description=shared_deck.description,
-                        time_created=dt.datetime.now(dt.timezone.utc))
-                db.session.add(new_deck)
-                for card in shared_deck.cards:
-                    new_card = Card(term=card.term,
-                        content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
-                        boc_4=card.boc_4,img=card.img, sound=card.sound,
-                        subject=card.subject, topic=card.topic,
-                        category=card.category,
-                        prompt_option=card.prompt_option,
-                        prompt_option2=card.prompt_option2,
-                        trans_option=card.trans_option, len_option=card.len_option,
-                        qmin_option=card.qmin_option,
-                        qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-                    new_deck.cards.user_bpend(new_card)
-                del session['shared_deck_id']
-                db.session.commit()
-                flash("You have been logged in and the deck has been added to your decks", "success")
-                return redirect(url_for('deck_bp.viewdecks'))
-            if 'game_id' in session:
-                game_id = session.get('game_id')
-                print("game id is", game_id)
-                if user.username:
-                    username = user.username
-                else:
-                    username  = user.email
-                player = PlayerGame(player_id = user.id, game_id = game_id, username = username)
-                db.session.add(player)
-                db.session.commit()
-                del session['game_id']
-                return redirect(url_for('game_bp.game_lobby', game_id=game_id))
-            if 'shared_test_id' in session:
-                print("recognized share_test_id")
-                shared_test_id = session.get('shared_test_id')
-                print("shared test id is", shared_test_id)
-                print("user id is", user.id)
-                del session['shared_test_id']
-                return redirect(url_for('take_test_2',
-                    share_id=shared_test_id, user_id = user.id))
-            flash('You have been logged in!', 'success')
-            event_tracker(user.id, "login", "google")
-            return redirect(url_for('deck_bp.viewdecks'))
-        
-        else:
-            logger.debug("entered not user, preparing to register")
-            session['google_id_token'] = idinfo['sub']
-            if idinfo.get('email'):
-                session['google_email'] = idinfo['email']
-            else: 
-                session['google_email'] = "n/a"
-            if idinfo.get('given_name'):
-                session['given_name'] = idinfo['given_name']
-            else: 
-                session['given_name'] = "Anonymous"
-            logger.debug(session['given_name'])
-            if idinfo.get('family_name'):
-                session['family_name'] = idinfo['family_name']
-            else: 
-                session['family_name'] = "Anonymous"
-            logger.debug(session['family_name'])
-            return redirect(url_for('user_bp.register'))
+            if user.username:
+                username = user.username
+            else:
+                username  = user.email
+            player = PlayerGame(player_id = user.id, game_id = game_id, username = username)
+            db.session.add(player)
+            db.session.commit()
+            del session['game_id']
+            return redirect(url_for('game_bp.game_lobby', game_id=game_id))
+        if 'shared_test_id' in session:
+            print("recognized share_test_id")
+            shared_test_id = session.get('shared_test_id')
+            print("shared test id is", shared_test_id)
+            print("user id is", user.id)
+            del session['shared_test_id']
+            return redirect(url_for('take_test_2',
+                share_id=shared_test_id, user_id = user.id))
+        flash('You have been logged in!', 'success')
+        event_tracker(user.id, "login", "google")
+        return redirect(url_for('deck_bp.viewdecks'))
     
-    except ValueError as ve:
-        logger.debug(f"google sign in value error: {str(ve)}")
-        pass
-    return render_template('index.html', title='Index', form = form)
+    else:
+        session['google_id_token'] = idinfo['sub']
+        if idinfo.get('email'):
+            session['google_email'] = idinfo['email']
+        else: 
+            session['google_email'] = "n/a"
+        if idinfo.get('given_name'):
+            session['given_name'] = idinfo['given_name']
+        else: 
+            session['given_name'] = "Anonymous"
+        if idinfo.get('family_name'):
+            session['family_name'] = idinfo['family_name']
+        else: 
+            session['family_name'] = "Anonymous"
+        return redirect(url_for('user_bp.register'))
+
 
 @user_bp.route("/accountsettings", methods = ["GET", "POST"])
 @login_required
+@log_decorator
 def account_settings():
     return render_template("accountsettings.html", title="Account Settings")
 
 @user_bp.route("/feedback", methods=["GET", "POST"])
+@log_decorator
 def feedback():
     form = FeedbackForm()
     if form.validate_on_submit():
@@ -173,8 +163,10 @@ def feedback():
             errors.append(f"{field}: {msg}")
     return jsonify(status="error", errors=errors)
 
-@login_required
+
 @user_bp.route("/delete_account", methods=["GET", "POST"])
+@login_required
+@log_decorator
 def delete_account():
     form = DeleteAccountForm()
     if form.validate_on_submit():
@@ -203,6 +195,7 @@ def delete_account():
     return render_template('user_bp/delete_account.html', form_del=form)
 
 @user_bp.route('/login', methods=['GET', 'POST'])
+@log_decorator
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('deck_bp.viewdecks'))
@@ -210,6 +203,7 @@ def login():
         return redirect(url_for('index'))
 
 @user_bp.route('/check_username/<username>', methods=["GET", "POST"])
+@log_decorator
 def check_username(username):
     user = User.query.filter_by(username=username).first()
     # Check if username already exists
@@ -224,11 +218,12 @@ def check_username(username):
         return response
     
 @user_bp.route("/register", methods=["GET", "POST"])
+@log_decorator
 def register():
+    error_occured = False
     try:
         form = RegisterForm()
         if request.method == 'POST':
-            logger.debug("entered register post request")
             # Get the user's name and password from the form data
             username = request.form['username']
             ##timezone = request.form['password']
@@ -321,59 +316,57 @@ def register():
             return redirect(url_for('deck_bp.viewdecks'))
         return render_template('user_bp.register.html', title='Register', form = form)
     except Exception as e:
-        logger.debug(e)
-        logger.debug("error registering user")
-        return "An error occurred during registration", 500
+        error_occured = True
+        raise e
+    finally:
+        if error_occured:
+            return "An error occurred during registration", 500
 
 @user_bp.route('/subscribe', methods=['GET', 'POST'])
+@log_decorator
 def subscribe():
-    try:
-        subscribe_form = RegSub()
-        if subscribe_form.validate_on_submit():
-            subscriber = Subscriber(email=subscribe_form.email.data,
-                                    first_name=subscribe_form.first_name.data,
-                                    last_name=subscribe_form.last_name.data,
-                                    timestamp = dt.datetime.now(dt.timezone.utc))
-            db.session.add(subscriber)
-            db.session.commit()
-            flash('You are now subscribed to our newsletter!')
+    subscribe_form = RegSub()
+    if subscribe_form.validate_on_submit():
+        subscriber = Subscriber(email=subscribe_form.email.data,
+                                first_name=subscribe_form.first_name.data,
+                                last_name=subscribe_form.last_name.data,
+                                timestamp = dt.datetime.now(dt.timezone.utc))
+        db.session.add(subscriber)
+        db.session.commit()
+        flash('You are now subscribed to our newsletter!')
 
-        return render_template('user_bp/subscribe.html', title='Subscribe', form=subscribe_form)
-    except Exception as e:
-        logger.debug(e)
-        logger.debug("error subscribing user")
+    return render_template('user_bp/subscribe.html', title='Subscribe', form=subscribe_form)
+
 
 @user_bp.route('/subscribe2', methods=['GET', 'POST'])
+@log_decorator
 def subscribe2():
-    try:
-        data = request.json
-        first_name = clean(data['first-name'])
-        last_name = clean(data['last-name'])
-        email = data['email']
-        existing_subscriber = Subscriber.query.filter_by(email=email).first()
-        if existing_subscriber and existing_subscriber is not None:
-            flash("You are already subscribed!")
-            return jsonify({'status': 'failure', 'message': 'You are already subscribed!'})
-        else:
-            logger.debug(email)
-            logger.debug("not subscribed, subscribing")
-            subscriber = Subscriber(email=email, first_name=first_name,
-                        last_name=last_name, timestamp = dt.datetime.now(dt.timezone.utc))
-            db.session.add(subscriber)
-            db.session.commit()
-            flash("Thanks for subscribing!")
-            return jsonify({'status': 'success', 'message': 'Subscription successful!'})
-    except Exception as e:
-        logger.debug(e)
-        logger.debug("error subscribing user")
+    data = request.json
+    first_name = clean(data['first-name'])
+    last_name = clean(data['last-name'])
+    email = data['email']
+    existing_subscriber = Subscriber.query.filter_by(email=email).first()
+    if existing_subscriber and existing_subscriber is not None:
+        flash("You are already subscribed!")
+        return jsonify({'status': 'failure', 'message': 'You are already subscribed!'})
+    else:
+        subscriber = Subscriber(email=email, first_name=first_name,
+                    last_name=last_name, timestamp = dt.datetime.now(dt.timezone.utc))
+        db.session.add(subscriber)
+        db.session.commit()
+        flash("Thanks for subscribing!")
+        return jsonify({'status': 'success', 'message': 'Subscription successful!'})
+
 @user_bp.route('/logout', methods=['GET', 'POST'])
 @login_required
+@log_decorator
 def logout():
     logout_user()
     flash('You have been logged out!')
     return redirect(url_for('index'))
 
 @user_bp.route("/unsubscribe", methods=["GET", "POST"])
+@log_decorator
 def unsubscribe():
     form = Unsubscribe()
     if request.method == 'POST':
@@ -397,7 +390,9 @@ def unsubscribe():
 
 @user_bp.route("/account", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def account():
+    error_occured = False
     form = AccountForm()
     user = User.query.filter_by(id=current_user.id).first()
     subscriber = Subscriber.query.filter_by(email=user.email).first()
@@ -412,7 +407,6 @@ def account():
                 user.gender = form.gender.data
             if form.role.data != "":
                 user.role = form.role.data
-            print(form.timezone.data)
             if form.timezone.data != "":
                 user.timezone = form.timezone.data
             user.timezone = form.timezone.data
@@ -439,18 +433,20 @@ def account():
                                 form_del = form_del, form = form,
                                 user = user, subscriber = subscriber, form2 = form2)
     except Exception as e:
-        logger.debug(e)
-        flash("There was an error updating your account")
-        return redirect(url_for('account'))
+        error_occured = True
+        raise e
+    finally:
+        if error_occured:
+            flash("There was an error updating your account")
+            return redirect(url_for('account'))
 
 @user_bp.route('/update_profile_pic', methods=['POST'])
 @login_required
+@log_decorator
 def update_profile_pic():
     form = UpdateProfilePicForm()
     if form.validate_on_submit():
-        logger.debug("form validated")
         if profile_picture := form.profile_pic.data:
-            logger.debug("recognized file")
             # Generate a random and secure filename
             filename = secure_filename(profile_picture.filename)
             # Save the file to our server
@@ -469,40 +465,35 @@ def update_profile_pic():
 
 @user_bp.route("/new_user_settings_tests", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def new_user_settings_tests():
     print("entered new user settings tests")
-    logger.debug("entered new user settings")
     data = request.get_json()
     if data.get('checked'):
-        logger.debug("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user_tests = False
-        logger.debug(user_settings.new_user_tests)
         db.session.add(user_settings)
         db.session.commit()
     return jsonify({'success': True})
 
 @user_bp.route("/new_user_settings", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def new_user_settings():
-    logger.debug("entered new user settings")
     data = request.get_json()
     if data.get('checked'):
-        logger.debug("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user_study = False
-        logger.debug(user_settings.new_user_study)
         db.session.add(user_settings)
         db.session.commit()
     return jsonify({'success': True})
 
 @user_bp.route("/new_user_settings_create", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def new_user_settings_create():
-    logger.debug("entered new user settings")
     data = request.get_json()
     if data.get('checked'):
-        logger.debug("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user = False
         db.session.add(user_settings)
@@ -511,11 +502,10 @@ def new_user_settings_create():
 
 @user_bp.route("/new_user_settings_viewdecks", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def new_user_settings_viewdecks():
-    logger.debug("entered new user settings")
     data = request.get_json()
     if data.get('checked'):
-        logger.debug("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user_decks = False
         db.session.add(user_settings)
@@ -524,11 +514,10 @@ def new_user_settings_viewdecks():
 
 @user_bp.route("/new_user_settings_cards", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def new_user_settings_cards():
-    logger.debug("entered new user settings")
     data = request.get_json()
     if data.get('checked'):
-        logger.debug("option is checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user_cards = False
         db.session.add(user_settings)
@@ -536,11 +525,13 @@ def new_user_settings_cards():
     return jsonify({'success': True})
 
 @user_bp.route("/check_credit", methods=["GET", "POST"])
+@log_decorator
 def check_credit():
     form = UploadFileForm()
     return render_template("/user_bp/check_credit.html", title="Check Credit", form = form)
 
 @user_bp.route('/upgrade', methods=['GET', 'POST'])
+@log_decorator
 def upgrade():
     if not current_user.is_authenticated:
         flash('You must first have an account and be logged in'
@@ -550,12 +541,11 @@ def upgrade():
 
 counter = 0
 @user_bp.route("/stripe_webhook", methods=['POST'])
+@log_decorator
 def stripe_webhook():
-    logger.debug("entered webhook")
     valid_events = ['checkout.session.completed','customer.updated']
     global counter
     counter += 1
-    logger.debug(f"Webhook call #{counter}")
     payload = request.data.decode('utf-8')
     sig_header = request.headers.get('stripe-signature')
     event = None
@@ -563,69 +553,64 @@ def stripe_webhook():
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
-    except ValueError as e:
-        # Invalid payload
-        logger.exception("An exception occurred in stribe_webhook() route): %s", e)
-        return 'Invalid payload', 401
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        logger.debug(f"Signature verification error: {str(e)}")
-        logger.error("An exception occurred in stribe_webhook() route): %s", e)
+    except Exception as e:
+        raise e
+    # except ValueError as e:
+    #     # Invalid payload
+    #     logger.exception("An exception occurred in stribe_webhook() route): %s", e)
+    #     return 'Invalid payload', 401
+    # except stripe.error.SignatureVerificationError as e:
+    #     # Invalid signature
+    #     logger.debug(f"Signature verification error: {str(e)}")
+    #     logger.error("An exception occurred in stribe_webhook() route): %s", e)
 
-        return 'Invalid signature', 402
+    #     return 'Invalid signature', 402
     # Handle the checkout.session.completed event
     if event['type'] in valid_events:
         # Fulfill the purchase...
         process_event_in_background(event)
     else:
         # Unknown event type
-        logger.debug("unused event type %s", event['type'])
         return 'Unused event type', 200
     return 'Success', 200
 
 def process_event_in_background(event):
-    try:
-        logger.debug('entered process_event_in_background')
-        logger.debug("event type: %s", event['type'])
-        stripe_event_id = event['id']
-        event_type = event['type']
-        event_data = json.dumps(event)
-        created_at = dt.datetime.now(dt.timezone.utc)
-        if event['type'] == 'checkout.session.completed':
-            user_id = event['data']['object']['client_reference_id']
-        else:
-            user_id = None
-        if event['type'] != 'customer.updated':
-            stripe_customer_id = event['data']['object']['customer']
-            logger.debug("CUSTOMER ID %s", event['data']['object']['customer'])
-        else:
-            stripe_customer_id = None
-        stripe_event = StripeEvents(
-            stripe_event_id=stripe_event_id,
-            event_type=event_type,
-            event_data=event_data,
-            event_created=created_at,
-            user_id=user_id,
-            stripe_customer_id=stripe_customer_id,
-        )
-        db.session.add(stripe_event)
-        db.session.commit()
-    except Exception as e:
-        logger.error("Exception in process_event_background function):%s", e)
+    stripe_event_id = event['id']
+    event_type = event['type']
+    event_data = json.dumps(event)
+    created_at = dt.datetime.now(dt.timezone.utc)
+    if event['type'] == 'checkout.session.completed':
+        user_id = event['data']['object']['client_reference_id']
+    else:
+        user_id = None
+    if event['type'] != 'customer.updated':
+        stripe_customer_id = event['data']['object']['customer']
+    else:
+        stripe_customer_id = None
+    stripe_event = StripeEvents(
+        stripe_event_id=stripe_event_id,
+        event_type=event_type,
+        event_data=event_data,
+        event_created=created_at,
+        user_id=user_id,
+        stripe_customer_id=stripe_customer_id,
+    )
+    db.session.add(stripe_event)
+    db.session.commit()
+
     if event['type'] == 'checkout.session.completed':
         associate_stripe_customer_with_user(event)
         # Add a small delay to give the webhook function enough time to return a response
         time.sleep(1)
         # Store the event data in the StripeEvents table
-        logger.debug("unused event type: %s", event['type'])
         stripe_event_id = event['id']
         event_type = event['type']
         event_data = json.dumps(event)
         created_at = dt.datetime.now(dt.timezone.utc)
         user_id = event['data']['object']['client_reference_id']
         stripe_customer_id = event['data']['object']['customer']
-        logger.debug("CLIENT REF ID %s", event['data']['object']['client_reference_id'])
-        logger.debug("CUSTOMER ID %s", event['data']['object']['customer'])
+        # logger.debug("CLIENT REF ID %s", event['data']['object']['client_reference_id'])
+        # logger.debug("CUSTOMER ID %s", event['data']['object']['customer'])
         stripe_event = StripeEvents(
             stripe_event_id=stripe_event_id,
             event_type=event_type,
@@ -648,6 +633,7 @@ def process_event_in_background(event):
             stripe_event.error_message = str(e)
             current_user.logger.error('Exception in process_event_background'
                                     'function):%s', e)
+            raise e
 
         finally:
             db.session.commit()
@@ -658,7 +644,6 @@ def process_event_in_background(event):
 def associate_stripe_customer_with_user(event):
     try:
         idempo = str(uuid.uuid4())
-        logger.debug("associating stripe customer with user")
         user_id = event['data']['object']['client_reference_id']
         stripe_customer_id = event['data']['object']['customer']
         ## modify user entry in DB
@@ -672,46 +657,36 @@ def associate_stripe_customer_with_user(event):
             )
         db.session.commit()
     except Exception as e:
-        logger.debug("error associating stripe customer with user %s", e)
-        raise
+        raise e
 
 def handle_checkout_session(event):
-    logger.debug('entered handle_checkout_session')
 
     # Extract customer ID and subscription ID from the invoice object
     customer_id = event['data']['object']['customer']
-    logger.debug("recognized customer id as %s", customer_id)
     ##subscription_id = event['data']['object']['subscription']
     checkout_session_id = event['data']['object']['id']
     line_items = stripe.checkout.Session.list_line_items(checkout_session_id)
     # Look up the user in your database using the customer ID
     user = User.query.filter_by(stripe_customer_id=customer_id).first()
-    logger.debug('user is:  %s', user)
     if line_items.data:
-        logger.debug("entered line_items.data")
         # Assuming there is only one line item
         item = line_items.data[0]
         product_id = item['price']['product']        
         price_id = item['price']['id']
-        logger.debug(price_id)
-        logger.debug("product_id %s",product_id)
         # Retrieve the product details from Stripe API
         product = stripe.Product.retrieve(product_id)
         product_name = product['name']
-        logger.debug("product_name %s",product_name)
         plan = STRIPE_PLANS[price_id]
-        logger.debug(plan)
     try:
         if user:
             update_plan(user, plan)
     except Exception as e:
-            ## log user not found error
-            logger.debug("user not found")
-            logger.error(f"Exception occurred in handle_checkout_session: {str(e)}") 
+            # ## log user not found error
+            # logger.debug("user not found")
+            # logger.error(f"Exception occurred in handle_checkout_session: {str(e)}") 
             raise e
 
 def update_plan(user,plan):
-    logger.debug('entered update_plan')
     try:
         if plan == 'standard_yearly':
             user.subscription_plan = 6
@@ -756,12 +731,13 @@ def update_plan(user,plan):
             if user.contacted_email is True:
                 send_email(user.email, user.first_name, 'upgrade')
         else:
-            logger.debug("plan not found")
-        logger.debug("%s, %s", user.id, user.subscription_plan)
+            pass
+        #     logger.debug("plan not found")
+        # logger.debug("%s, %s", user.id, user.subscription_plan)
         db.session.commit()
     except Exception as e:
-        logger.debug(e)
-        logger.debug("error updating plan")
+        # logger.debug(e)
+        # logger.debug("error updating plan")
         raise e
 
 def set_usage_limit(user, n):

@@ -1,6 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from run.extensions import db
-
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from models.models_ import Deck
 
 class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -42,11 +44,11 @@ class Card(db.Model):
             "content": self.content,               
         }
         
-    def update_srs_interval(self, value):
+    def update_srs_interval(self, value: float):
         self.srs_interval = self.srs_interval * value
         db.session.commit()
         
-    def edit_card(self, term, content):
+    def edit_card(self, term: str, content: str):
         self.term = term
         self.content = content
         db.session.commit()
@@ -58,7 +60,7 @@ class Card(db.Model):
     def regen_def(self, prompt = None):
         pass
     
-    def copy_card(self, deck):
+    def copy_card(self, deck: 'Deck'):
         new_card = Card(term=self.term, content=self.content)
         deck.cards.append(new_card)
         db.session.add(new_card)            

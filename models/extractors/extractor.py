@@ -1,50 +1,52 @@
 import pathlib
-from pdf2image import convert_from_path
-from pdfminer.high_level import extract_pages
-import openai
-from pptx import Presentation
-import docx2txt
-import json
-from pydub import AudioSegment
-import os
-import math
-from youtube_transcript_api import YouTubeTranscriptApi
-import tiktoken
-from bs4 import BeautifulSoup
 import requests
 import re
 import codecs
-import logging
-from datetime import datetime
 import random
-from pytesseract import image_to_string
-from models.decks.deck import Deck
-from models.decks.deck_files import DeckFiles
-from tools.lists import DECK_NAMES
+import json
+import os
+import math
+import datetime as dt
+
+from werkzeug.utils import secure_filename
 from flask import session
 from flask_login import current_user
-import datetime as dt
+
+from pdf2image import convert_from_path
+from pdfminer.high_level import extract_pages
+from pptx import Presentation
+import docx2txt
+from pydub import AudioSegment
+from youtube_transcript_api import YouTubeTranscriptApi
+from bs4 import BeautifulSoup
 from pydub.utils import mediainfo
+from pytesseract import image_to_string
+
+import openai
+import tiktoken
+
+from models.models_ import Deck, Job, JobNotification, DeckFiles
+from tools.lists import DECK_NAMES
 from models.helpers.helpers import count_tokens, split_text
-from models.decks.job import Job
-from models.decks.job_notification import JobNotification
 from models.exceptions.exceptions import YoutubeError, UnsupportedFileError, AudioError
-from werkzeug.utils import secure_filename
+
 from models.extractors.extractor_config import PAGES_PER_MIN, TOKENS_PER_PAGE
 
+from typing import TYPE_CHECKING, Any, Optional, Union, IO
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session  # Or whatever the correct import path is for your db_session
+    from flask_wtf import FlaskForm
 
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 encoding = tiktoken.get_encoding("cl100k_base")
-logger = logging.getLogger("extractors")
-logger.setLevel(logging.DEBUG)
 
 UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
 
 class Extractor:
-    def __init__(self, db_session, form=None, slug=None, **kwargs):
-        self.db_session = db_session
+    def __init__(self, db_session: 'Session', form: 'Optional[FlaskForm]' =None, slug: str =None, **kwargs: Any):
+        self.db_session: 'Session' = db_session
         options = {
             'main_opt': kwargs.get('prompt', None),
             'subject_opt': kwargs.get('subject', None),
@@ -71,12 +73,12 @@ class Extractor:
             options['custom_term'] = form.custom_term.data
             options['custom_content'] = form.custom_content.data
 
-        self.prompt_options = options
+        self.prompt_options: dict = options
 
         self.description = kwargs.get('description', None)
         deck = kwargs.get('deck_list', None)
         if deck is not None:
-            self.deck = deck
+            self.deck: Deck = deck
         else:
             if not kwargs.get('name', None):
                 chosen_name = random.choice(DECK_NAMES)
@@ -89,17 +91,17 @@ class Extractor:
             self.deck = deck
 
         if form is not None:
-            self.file_data = form.file.data or kwargs.get('file', None)
-            self.text_data = form.text_input.data or kwargs.get('text_input', None)
-            self.link_data = form.link_input.data or kwargs.get('link_input', None)
+            self.file_data: Optional[str] = form.file.data or kwargs.get('file', None)
+            self.text_data: Optional[str] = form.text_input.data or kwargs.get('text_input', None)
+            self.link_data: Optional[str] = form.link_input.data or kwargs.get('link_input', None)
         else:
-            self.file_data = kwargs.get('file', None)
-            self.text_data = kwargs.get('text_input', None)
-            self.link_data = kwargs.get('link_input', None)
-        self.slug = slug or str(current_user.id) + dt.datetime.now(dt.timezone.utc).isoformat()
-        self.extension = None
-        self.text = None
-        self.tokens = None
+            self.file_data: Optional[str] = kwargs.get('file', None)
+            self.text_data: Optional[str] = kwargs.get('text_input', None)
+            self.link_data: Optional[str] = kwargs.get('link_input', None)
+        self.slug: str = slug or str(current_user.id) + dt.datetime.now(dt.timezone.utc).isoformat()
+        self.extension: str = None
+        self.text: str = None
+        self.tokens: int = None
 
     def __repr__(self):
         return (f"Extractor(prompt_options={self.prompt_options}, "
@@ -110,22 +112,19 @@ class Extractor:
                 f"link_data={repr(self.link_data)}, "
                 f"slug={repr(self.slug)})")
 
-    def get_deck(self, form):
+    def get_deck(self, form: 'FlaskForm') -> tuple['Deck', bool]:
         if form.deck_list.data:
             self.deck = form.deck_list.data
             return form.deck_list.data, False
         else:
-            if not form.name.data:
-                chosen_name = random.choice(DECK_NAMES)
-            else:
-                chosen_name = form.name.data
+            chosen_name = form.name.data if form.name.data else random.choice(DECK_NAMES)
             deck = Deck(name=chosen_name, user_id=current_user.id,
                             description=self.description)
             self.deck = deck
             return deck, True
 
 
-    def get_content(self):
+    def get_content(self) -> str:
         print("Getting content")
         print(self)
         ## if file is audio returns size of audio, otherwise the text
@@ -157,7 +156,7 @@ class Extractor:
             self.text, self.type = extract_from_url(self.link_data)
         return self.text
 
-    def quantity_tokens(self):
+    def quantity_tokens(self) -> int:
         print("Getting quantity tokens")
         try:
             if self.extension in ['.wav', '.mp3']:
@@ -172,7 +171,7 @@ class Extractor:
             print(f"Error occurred while counting tokens: {str(e)}")
 
 
-    def save_source_text(self):
+    def save_source_text(self) -> None:
         if self.type not in ['.wav', '.mp3']:
             name = f"{self.deck.name}_source"
             file_storage = DeckFiles(file_name=name,
@@ -182,7 +181,7 @@ class Extractor:
             self.deck.deck_files.append(file_storage)
             self.db_session.commit()
 
-    def create_jobs(self):
+    def create_jobs(self) -> None:
         if self.extension in ['.wav', '.mp3']:
             self.audio_job_creator()
         else:
@@ -204,7 +203,7 @@ class Extractor:
             self.job_creator('Summarize')
             self.notification_creator()
 
-    def audio_job_creator(self):
+    def audio_job_creator(self) -> None:
         upload_folder = UPLOAD_FOLDER
         random_string = ''.join(random.choices('0123456789', k=5))
         original_filename = self.file_data.filename
@@ -217,19 +216,14 @@ class Extractor:
         self.file_data = None
         self.extract_audio(file_path)
 
-    def job_creator(self, prompt):
+    def job_creator(self, prompt: str) -> None:
         print("Creating jobs", prompt)
         prompt_options = self.prompt_options
         prompt_options['main_opt'] = prompt
-        print(type(self.text))
         counter = 0
-
         for text in self.text:
-            print(text)
             total_len = len(self.text)
-            print(total_len)
             counter = counter + 1
-            print(counter)
             payload_dict = {'deck': self.deck.id, 'text': text,
                 'prompt_options': prompt_options, 'task_type': 'standard'}
             payload = json.dumps(payload_dict)
@@ -240,11 +234,9 @@ class Extractor:
             if counter == total_len:
                 session['slug'] = self.slug
                 self.db_session.add(data)
-                print(data)
-                print(self.db_session)
                 self.db_session.commit()
 
-    def notification_creator(self):
+    def notification_creator(self) -> None:
         job_notification = JobNotification(user_id=current_user.id,
             slug = self.slug,  cost = self.tokens, date_created = dt.datetime.now(dt.timezone.utc),
               input_details=self.type)
@@ -256,9 +248,8 @@ class Extractor:
 
 
     ## AUDIO EXTRACTORS
-    def extract_audio(self, file):
+    def extract_audio(self, file: str) -> None:
         print("Entered extract audio function")
-        print(file)
         # Create the "audio_segments" folder if it doesn't exist
         folder_path = "audio_segments"
         if not os.path.exists(folder_path):
@@ -279,7 +270,7 @@ class Extractor:
             print(f"Error occurred while deleting file {file}: {str(e)}")
 
 
-    def create_audio_job(self, segment, item_number, item_quantity):
+    def create_audio_job(self, segment: str, item_number: int, item_quantity: int) -> None:
         payload = {"prompt_options": self.prompt_options,
                     "segment": segment, 'deck': self.deck.id, 'task_type': 'audio'}
         payload_string = json.dumps(payload)
@@ -291,7 +282,7 @@ class Extractor:
         self.db_session.commit()
 
 
-def tokens_general(form):
+def tokens_general(form: 'FlaskForm') -> int:
         print(form)
         ## if file is audio returns size of audio, otherwise the text
         if form.file.data:
@@ -327,7 +318,7 @@ def tokens_general(form):
 
 
 
-def save_file_to_upload_folder(file):
+def save_file_to_upload_folder(file: str) -> str:
     upload_folder = UPLOAD_FOLDER
     random_string = ''.join(random.choices('0123456789', k=5))
     original_filename = file.filename
@@ -340,16 +331,14 @@ def save_file_to_upload_folder(file):
     return file_path
 
 
-def get_audio_content(file_data, name):
-    print("entered audio function")
-    print(file_data)
+def get_audio_content(file_data: str, name: str) -> float:
+    print("Calling get audio content...")
     duration = get_duration(file_data, name)
     file_data.seek(0)
     return duration
 
-def extract_from_pdf(file_data):
-    n=3
-    print(file_data)
+def extract_from_pdf(file_data: str, n: int = 3) -> str:
+    print("Calling extract from pdf...")
     try:
         text = []
         # Using pdfminer.six to extract pages from PDF
@@ -383,7 +372,7 @@ def extract_from_pdf(file_data):
         return None
  
 
-def extract_from_pptx(file_data):
+def extract_from_pptx(file_data: str) -> Optional[str]:
     print("entered pptx function")
     print(file_data)
     try:
@@ -398,12 +387,12 @@ def extract_from_pptx(file_data):
                     text_runs.append(cleaned_text)
         return " ".join(text_runs)
     except FileNotFoundError as e:
-        print("File not found. Exception message:", str(e))
+        print("File not found. Exception message:", e)
     except Exception as e:
         print("An error occurred:", e)
     return None
     
-def extract_from_docx(file_data):
+def extract_from_docx(file_data: str) -> Optional[str]:
     print("entered docx function")
     try:
         text = docx2txt.process(file_data)
@@ -415,13 +404,12 @@ def extract_from_docx(file_data):
         print("An error occurred:", e)
     return None
 
-def extract_from_txt(file_data):
+def extract_from_txt(file_data: str) -> str:
     return pathlib.Path(file_data).read_text()    
 
 
-def extract_from_url(link_data):
+def extract_from_url(link_data: str) -> tuple[str, str]:
     print("entered url function")
-    print(link_data)
     text = None
     if "wikipedia" in link_data:
         link_type = 'wiki'
@@ -442,14 +430,11 @@ def extract_from_url(link_data):
                 part = extract_from_youtube(link)
                 text = part if text is None else text + part
         else:
-            print("no commas")
             link = get_video_id(link_data)
-            print(link)
             text = extract_from_youtube(link)
-            print(text)
     return text, link_type
 
-def extract_from_wiki(wiki_url):
+def extract_from_wiki(wiki_url: str) -> str:
     try:
         print("entered wiki function")
         content = make_request(wiki_url)
@@ -460,7 +445,7 @@ def extract_from_wiki(wiki_url):
         print("An error occurred:", e)
         return None
 
-def extract_from_youtube(youtube_url):
+def extract_from_youtube(youtube_url: str) -> str:
     try:
         full_text = None
         transcripts = YouTubeTranscriptApi.list_transcripts(youtube_url)
@@ -488,18 +473,16 @@ def extract_from_youtube(youtube_url):
             else:
                 full_text += x
         return full_text
-
     except Exception as e:
         print("An error occurred:", e)
         raise YoutubeError
     
 
 ## remove unecessary elements of youtube link
-def get_video_id(link):
+def get_video_id(link: Union[str, list[str]]) -> Optional[str]:
     # Remove any whitespace from the link
     link = ''.join(link)
     link = link.strip()
-
     # Define regular expression patterns for different YouTube video URL formats
     patterns = [
         r"youtu\.be/([^/]+)",
@@ -508,23 +491,18 @@ def get_video_id(link):
         r"youtube\.com/v/([^/]+)",
         r"youtube\.googleapis\.com/v/([^/]+)"
     ]
-
     # Try to match the link to one of the patterns
     for pattern in patterns:
         if match := re.search(pattern, link):
             return match[1]
-    # If the link does not match any of the patterns, return None
-    return None
 
 
-def check_comma_list(string):
-    if "," in string:
-        return True
-    else:
-        return False
+
+def check_comma_list(string: str) -> bool:
+    return "," in string
     
 
-def clean_text(text):
+def clean_text(text: str) -> str:
     # Decode Unicode escape sequences into actual characters
     text = codecs.decode(text, 'unicode_escape')
     # Replace newline characters with spaces
@@ -532,20 +510,20 @@ def clean_text(text):
     pattern = r"[^\w\s.,;:?!-’'\"()]+"
     return re.sub(pattern, "", text)
 
-def make_request(wiki_url):
+def make_request(wiki_url: str) -> 'bytes':
     # Replace the URL with the mobile version
     wiki_url = re.sub(r"https://(..).wikipedia.org", r"https://\1.m.wikipedia.org", wiki_url)
     page = requests.get(wiki_url)
     page.raise_for_status()  # Check for any HTTP request errors
     return page.content
 
-def process_soup(content):
+def process_soup(content: str) -> str:
     soup = BeautifulSoup(content, 'html.parser')
     # Remove unwanted HTML elements
     remove_elements(soup)
     return extract_content(soup)
 
-def remove_elements(soup):
+def remove_elements(soup: BeautifulSoup):
     unwanted_tags = ['script', 'style', 'table', 'noscript', 'nav', 'header', 'footer', 'sup', 'div', 'h2', 'li', 'a']
     unwanted_class_types = ['reference', 'toc', 'thumbcaption', 'reflist', 'navbox', 'section-heading', 'references']
     unwanted_selectors = ['.portalbox-entry', '.firstHeading', '#footer-info-lastmod', '#footer-info-copyright', '#footer-places-privacy', '#footer-places-about', '#footer-places-disclaimers', '#footer-places-contact', '#footer-places-terms-use', '#footer-places-desktop-toggle', '#footer-places-developers', '#footer-places-statslink', '#footer-places-cookiestatement']
@@ -571,7 +549,7 @@ def remove_elements(soup):
         if li.find('a'):
             li.extract()
 
-def extract_content(soup):
+def extract_content(soup: BeautifulSoup) -> str:
     wanted_tags = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'td']
     extracted_content = []
     for tag in wanted_tags:
@@ -580,9 +558,9 @@ def extract_content(soup):
     return "\n\n".join(extracted_content)
 
 ## returns duration in seconds
-def get_duration(file, name):
+def get_duration(file, name: str) -> float:
     file_data = file.read()
-    temp_filename = "temp_audio_file" + name
+    temp_filename = f"temp_audio_file{name}"
     with open(temp_filename, "wb") as temp_file:
         temp_file.write(file_data)
     info = mediainfo(temp_filename)
@@ -590,20 +568,20 @@ def get_duration(file, name):
         duration = float(info["duration"])
     except Exception as e:
         print("An error occurred:", e)
-        raise AudioError
+        raise AudioError from e
     time_base = float(info["time_base"].split("/")[1])
     duration = float(info['duration_ts']) / time_base
     os.remove(temp_filename)
     return duration
 
 
-def convert_time_to_tokens(time):
+def convert_time_to_tokens(time: float) -> float:
     logger.info("converting time to tokens")
     tokens = ((time / 60)/PAGES_PER_MIN) * TOKENS_PER_PAGE
     logger.info("tokens %s", tokens)
     return tokens
 
-def divide_audio(input_file, segment_length=25):
+def divide_audio(input_file: 'Union[str, IO[bytes]]', segment_length: int =25) -> list[str]:
     try:
         # Open the audio file
         random_string = ''.join(random.choices('0123456789', k=5))
@@ -623,7 +601,6 @@ def divide_audio(input_file, segment_length=25):
             output_file = os.path.join(os.path.dirname(input_file), f"{random_string}segment_{i}.mp3")
             # Export the segment as an MP3 file
             segment.export(output_file, format="mp3")
-            print(output_file)
             # Add the output file path to the list of segment paths
             segment_paths.append(output_file)
         return segment_paths
@@ -631,6 +608,5 @@ def divide_audio(input_file, segment_length=25):
     except FileNotFoundError:
         print("File not found.")
     except Exception as e:
-        print("An error occurred:", str(e))
+        print("An error occurred:", e)
 
-    return None

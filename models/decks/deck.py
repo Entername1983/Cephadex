@@ -2,7 +2,7 @@ from datetime import datetime
 from models.association_tables import cards, source_files, deck_relationships
 from flask import jsonify
 from run.extensions import db
-from sqlalchemy.orm import relationship
+import json
 
 class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -41,7 +41,7 @@ class Deck(db.Model):
                     backref=db.backref("parents", lazy="dynamic"),
                     lazy="dynamic")
 
-    def correct_incorrect(self):
+    def correct_incorrect(self) -> list[int]:
         correct = 0
         incorrect = 0
         for card in self.cards:
@@ -53,7 +53,8 @@ class Deck(db.Model):
                     # handle invalid values here
                     pass
         return correct, incorrect
-    def total_answered(self):
+    
+    def total_answered(self) -> int:
         total = 0
         for card in self.cards:
             if card.times_asked is not None:
@@ -73,7 +74,7 @@ class Deck(db.Model):
 
 
 
-    def force_study(self):
+    def force_study(self) -> json:
         due_cards = []
         current_time = datetime.utcnow()
         for card in self.cards:
@@ -94,7 +95,7 @@ class Deck(db.Model):
         return jsonify(due_cards)
      
         
-    def get_due_cards(self, n=20):
+    def get_due_cards(self, n: int =20) -> json:
         due_cards = []
         current_time = datetime.utcnow()
         new_card_counter = 0
@@ -134,7 +135,8 @@ class Deck(db.Model):
             return jsonify({'info': 'No due cards found'}), 204
         return jsonify(due_cards)
     
-    def cards_due(self):
+    def cards_due(self) -> int:
+        """ both functions do the same thing? """
         due_cards = 0
         current_time = datetime.utcnow()
         for card in self.cards:
@@ -143,7 +145,7 @@ class Deck(db.Model):
                 due_cards = due_cards + 1
         return due_cards
     
-    def qty_cards_due(self):
+    def qty_cards_due(self) -> int:
         current_time = datetime.utcnow()
         qty = 0
         for card in self.cards:
@@ -155,7 +157,7 @@ class Deck(db.Model):
                     qty = qty + 1
         return qty
 
-    def check_cat(self):
+    def check_cat(self) -> str:
         Mcq = 0
         Cloze = 0
         Definitions = 0
@@ -200,7 +202,7 @@ class Deck(db.Model):
             db.session.commit()
             return "Mixed"
         
-    def to_json(self):
+    def to_json(self) -> json:
         return {
             "id": self.id,
             "name": self.name,
@@ -209,7 +211,7 @@ class Deck(db.Model):
             "cards": [card.to_json() for card in self.cards]
         }
         
-    def quantity_cards(self):
+    def quantity_cards(self) -> int:
         return len(self.cards)
     
     def add_card(self, card):

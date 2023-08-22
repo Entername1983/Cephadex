@@ -7,6 +7,7 @@ from models.user.subscription_plan import SubscriptionPlan
 from models.association_tables import user_group_association, distribution, source_files
 from models.user.usage_record import UsageRecord
 from run.extensions import db
+from typing import Optional
 
 
 class User(db.Model, UserMixin):
@@ -41,19 +42,19 @@ class User(db.Model, UserMixin):
     stripe_customer_id = db.Column(db.String(255), nullable=True)
     guest = db.Column(db.Boolean, default=False)
 
-    def member_since(self):
+    def member_since(self) -> str:
         return self.time_created.strftime('%b %Y')
     
-    def quantity_decks(self):
+    def quantity_decks(self) -> int:
         return len(self.decks)
     
-    def quantity_cards(self):
+    def quantity_cards(self) -> int:
         return sum(len(deck.cards) for deck in self.decks)
     
-    def quantity_tests(self):
+    def quantity_tests(self) -> int:
         return Test.query.filter_by(creator=self.id).count()
 
-    def quantity_files(self):
+    def quantity_files(self) -> int:
         return (
             Deck.query.join(source_files)
             .filter(source_files.c.deck_id == Deck.id)
@@ -61,13 +62,13 @@ class User(db.Model, UserMixin):
             .count()
         )
     
-    def quantity_groups(self):
+    def quantity_groups(self) -> int:
         return Group.query.filter_by(creator_id=self.id).count()
     
-    def quantity_decks_public(self):
+    def quantity_decks_public(self) -> int:
         return Deck.query.filter_by(user_id=self.id, public=True).count()
 
-    def quantity_cards_mastered(self):
+    def quantity_cards_mastered(self) -> int:
         counter = 0
         for deck in self.decks:
             for card in deck.cards:
@@ -75,7 +76,7 @@ class User(db.Model, UserMixin):
                     counter += 1
         return counter
 
-    def quantity_cards_learning(self):
+    def quantity_cards_learning(self) -> int:
         counter = 0
         for deck in self.decks:
             for card in deck.cards:
@@ -83,7 +84,7 @@ class User(db.Model, UserMixin):
                     counter += 1
         return counter
     
-    def quantity_cards_new(self):
+    def quantity_cards_new(self) -> int:
         counter = 0
         for deck in self.decks:
             for card in deck.cards:
@@ -91,7 +92,7 @@ class User(db.Model, UserMixin):
                     counter += 1
         return counter
         
-    def remaining_credit(self):
+    def remaining_credit(self) -> float:
         if usage_record := (
             UsageRecord.query.filter_by(user_id=self.id)
             .order_by(UsageRecord.date.desc())
@@ -112,7 +113,7 @@ class User(db.Model, UserMixin):
         db.session.commit()
         return round(new_record.remaining_count/682)
     
-    def roll_over_date(self):
+    def roll_over_date(self) -> str:
         if self.latest_roll_over:
             next_roll_over = self.latest_roll_over + timedelta(days=31)
         else:
@@ -120,7 +121,7 @@ class User(db.Model, UserMixin):
         return next_roll_over.strftime('%b %d, %Y')
     
 
-    def perform_operation(self, operation_type, n, operation_details=None):
+    def perform_operation(self, operation_type: str, n: int, operation_details: str=None) -> 'Optional[bool]':
     # Check the user's remaining count for this time period
         usage_record = (
                 UsageRecord.query
@@ -150,7 +151,7 @@ class User(db.Model, UserMixin):
             new_record.remaining_count = usage_record.remaining_count - n
         db.session.add(new_record)
 
-    def check_subscription_plan(self):
+    def check_subscription_plan(self) -> 'SubscriptionPlan':
         subscription_plan = (
             SubscriptionPlan.query
             .filter_by(id=self.subscription_plan).first()

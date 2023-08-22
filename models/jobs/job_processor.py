@@ -1,21 +1,24 @@
 import os
 import json
 from sqlalchemy import select
-from models.decks.deck import Deck
-from models.decks.job import Job
+from models.models_ import Deck, Job
 from models.creators.creator import AiCaller
 from models.decks.card_factory import CardFactory
+from typing import TYPE_CHECKING
+from typing import Dict, Union
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 class JobProcessor():
-    def __init__(self, job, session):
-        self.session = session
-        self.job = job
-        self.slug = job.slug
-        self.payload = json.loads(job.payload)
-        self.text =self.payload.get('text', None)
-        self.segment = self.payload.get('segment', None)
-        self.openai_caller = AiCaller()
+    def __init__(self, job: Job, session: AsyncSession):
+        self.session: AsyncSession = session 
+        self.job: Job = job 
+        self.slug: str = job.slug 
+        self.payload: Dict[str, Union[str, None]] = json.loads(job.payload)
+        self.text: Union[str, None] = self.payload.get('text', None)
+        self.segment: Union[str, None] = self.payload.get('segment', None)
+        self.openai_caller: AiCaller = AiCaller()
 
     async def process(self):
         print("Processing job...")
@@ -33,7 +36,7 @@ class JobProcessor():
                 if attempt == max_attempts:  # Check if it's the last attempt
                     return "Failed"
 
-    async def process_audio_job(self):
+    async def process_audio_job(self) -> None:
         print("Processing audio job...")
         segment = self.payload['segment']
         text = await  self.openai_caller.transcribe_whisper(segment)
@@ -56,7 +59,7 @@ class JobProcessor():
         self.session.add(new_job)
         await self.session.commit()
         
-    async def process_standard_job(self):
+    async def process_standard_job(self) -> None:
         print("Processing standard job...")
         if self.payload['prompt_options']['main_opt'] in ["Transcribe", "Turn2notes", "Summarize"]:
             await self.handle_long_form()
@@ -65,7 +68,7 @@ class JobProcessor():
         if self.payload['prompt_options']['images_opt']:
             await self.handle_images()
 
-    async def handle_long_form(self):
+    async def handle_long_form(self) -> None:
         print("Handling long form...")
         if self.payload['prompt_options']['main_opt'] == "Transcribe":
             print("Transcribing...")
@@ -81,15 +84,22 @@ class JobProcessor():
         await self.session.commit()
 
 
-    async def handle_extract_terms(self):
+    async def handle_extract_terms(self) -> None:
         print("Handling extract terms...")
-        response = await self.openai_caller.extract_terms(self.text, self.payload['prompt_options'])
-        result = await self.session.execute(select(Deck).filter_by(id=self.payload['deck']))
-        deck = result.scalar_one()
-        card_factory = CardFactory(self.session, deck)
-        await card_factory.async_create_cards(response, self.payload['prompt_options']['main_opt'])
-        self.job.qty_cards_created = card_factory.card_counter
-        await self.session.commit()
+        try:
+            response = await self.openai_caller.extract_terms(self.text, self.payload['prompt_options'])
+            result = await self.session.execute(select(Deck).filter_by(id=self.payload['deck']))
+            deck = result.scalar_one()
+            card_factory = CardFactory(self.session, deck)
+            
+            await card_factory.async_create_cards(response, self.payload['prompt_options']['main_opt'])
 
-    async def handle_images(self):
+            self.job.processed_content = str(response)
+            self.job.qty_cards_created = card_factory.card_counter
+            await self.session.commit()
+        except Exception as e:
+            print(f"Error occurred while creating cards: {str(e)}")
+            raise e
+
+    async def handle_images(self) -> None:
         pass

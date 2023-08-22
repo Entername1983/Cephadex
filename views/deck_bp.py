@@ -1,7 +1,4 @@
 import uuid
-import logging
-import logging.handlers
-import logging.config
 import datetime as dt
 
 from flask import (
@@ -35,8 +32,8 @@ from models.qr_code import create_qr_code
 from config.settings import APP_URL
 from run.extensions import db
 
+from models.helpers.log_decorators import log_decorator
 
-logger = logging.getLogger('flask_app')  # Logs to 'app.log'
 
 deck_bp = Blueprint(
     'deck_bp', 
@@ -47,12 +44,12 @@ deck_bp = Blueprint(
 
 @deck_bp.route("/viewdecks", methods = ["GET", "POST"])
 @login_required
+@log_decorator
 def viewdecks():
     """ main view once logged in"""
     share_form = Share()
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings is None:
-        logger.debug("user settings not found")
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
@@ -93,12 +90,14 @@ def viewdecks():
 
 @deck_bp.route("/createdeck", methods = ["GET", "POST"])
 @login_required
+@log_decorator
 def create_deck():
     """ deprecated route """
     return render_template("deck_bp/createdeck.html", title="Create Deck")
 
 @deck_bp.route("/delete/<int:id>", methods=["DELETE"])
 @login_required
+@log_decorator
 def delete(id):
     deck_to_delete = Deck.query.get_or_404(id)
     if current_user.id != deck_to_delete.user_id:
@@ -109,6 +108,7 @@ def delete(id):
 
 @deck_bp.route("/rename_deck/<int:id>/<string:new_name>", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def rename_deck(id, new_name):
     c_id = id
     c_new_name = clean(new_name)
@@ -121,6 +121,7 @@ def rename_deck(id, new_name):
 
 @deck_bp.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST"])
 @login_required
+@log_decorator
 def deletecard(deck_id, card_id):
     c_deck_id = deck_id
     c_card_id = card_id
@@ -137,17 +138,15 @@ def deletecard(deck_id, card_id):
 
 @deck_bp.route("/downloadascsv/<int:deck_id>", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def downloadascsv(deck_id):
     c_deck_id = deck_id
     event_tracker(current_user.id, "downloadascsv")
-    logger.debug("entered download as csv")
     deck = Deck.query.filter_by(id=c_deck_id).first()
     if(current_user.id != deck.user_id):
        return jsonify({'error': 'Deck not assigned to user'}), 403
     termsstrings = []
     for card in deck.cards:
-        logger.debug("entered cards")
-        logger.debug(card.term)
         if card.boc_2 is None:
             card.boc_2 = "null"
         if card.boc_3 is None:
@@ -164,6 +163,7 @@ def downloadascsv(deck_id):
 
 @deck_bp.route("/regenerate_def", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def regenerate_def():
     event_tracker(current_user.id, "regenerate_def")
     card_id = clean(request.form["id"])
@@ -175,11 +175,8 @@ def regenerate_def():
     card.content = content
     try:
         db.session.commit()
-        logger.debug("card updated succesfully")
-        logger.debug(card.id)
-        logger.debug(card.content)
     except Exception as e:
-        logger.debug("An error occurred while updating the card %s", e)      
+        raise e
     return jsonify({'content': content})
 
 def process_prompt_options_regen(card):
@@ -202,6 +199,7 @@ def create_parent_child_relationship(parent_deck_id, child_deck_id):
 
 @deck_bp.route("/add_card/<int:deck_id>", methods=["POST"])
 @login_required
+@log_decorator
 def add_card(deck_id):
     form = DeckOrg(request.form)
     print("entered add new card")
@@ -224,6 +222,7 @@ def add_card(deck_id):
 
 @deck_bp.route("/edit_card_new", methods=["POST"])
 @login_required
+@log_decorator
 def edit_card_new():
     print("entered edit card")
     data = request.get_json()
@@ -254,6 +253,7 @@ def edit_card_new():
 
 @deck_bp.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
 @login_required
+@log_decorator
 def carousel(deck_id):
     c_deck_id = deck_id
     deck = Deck.query.filter_by(id=c_deck_id, user_id=current_user.id).first()
@@ -305,8 +305,8 @@ def carousel(deck_id):
 
 @deck_bp.route("/edit_card", methods=["POST"])
 @login_required
+@log_decorator
 def edit_card():
-    logger.debug("edit_card")
     form = DeckOrg(request.form)
     if form.validate():
         id = form.id.data
@@ -329,9 +329,9 @@ def edit_card():
 
 @deck_bp.route("/import_public_deck/<int:deck_id>", methods = ["GET", "POST"])
 @login_required
+@log_decorator
 def import_public_deck(deck_id):
     c_deck_id = deck_id
-    logger.debug("entered public decks")
     deck = Deck.query.filter_by(id=c_deck_id, public=True).first()
     if deck is None:
         return apology("Deck not found", 404)
@@ -355,7 +355,6 @@ def import_public_deck(deck_id):
                             diff_lvl=card.diff_lvl)
             shared_deck.cards.deck_bpend(new_card)
         db.session.commit()
-        logger.debug(shared_deck)
     return jsonify({"success": True})
 
 
@@ -363,6 +362,7 @@ def import_public_deck(deck_id):
 
 @deck_bp.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def sea_dox(deck_id):
     form = UpdateFileNameForm()
     search_and_sort_form = SearchAndSortForm()
@@ -376,7 +376,6 @@ def sea_dox(deck_id):
     ##files = DeckFiles.query.filter(DeckFiles.decks.any(id=deck_id)).order_by
     # (DeckFiles.file_name.desc()).all()
     if request.method == 'GET':
-        logger.debug("entered get request")
         search_query = None
         sort_method = search_and_sort_form.sort.data
         search_query = request.args.get('search', '')
@@ -438,6 +437,7 @@ def sea_dox(deck_id):
 
 @deck_bp.route("/source_file/<int:file_id>", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def source_file(file_id):
     c_file_id = file_id
     file = DeckFiles.query.get_or_404(c_file_id)
@@ -445,6 +445,7 @@ def source_file(file_id):
 
 @deck_bp.route("/download_source/<int:file_id>", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def download_source(file_id):
     ## GET FILE
     c_file_id = file_id
@@ -458,10 +459,10 @@ def download_source(file_id):
 
 @deck_bp.route("/delete_file/<int:deck_id>/<int:file_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def delete_file(deck_id, file_id):
     c_deck_id = deck_id
     c_file_id = file_id
-    logger.debug("entered delete file")
     event_tracker(current_user.id, "delete_file", c_file_id)
     file = DeckFiles.query.get_or_404(c_file_id)
     deck = Deck.query.get_or_404(c_deck_id)
@@ -471,17 +472,16 @@ def delete_file(deck_id, file_id):
 
 @deck_bp.route('/generate_link/<int:deck_id>', methods=['GET'])
 @login_required
+@log_decorator
 def generate_link(deck_id):
     print("entered generate link")
     # create a share_id for the deck and store it in the database
     deck = Deck.query.get(deck_id)
-
     if deck.share_id:
         print("deck already has share_id")
 
         link = f'{APP_URL}deck_bp/shared_deck_view/{deck.share_id}'
         img_str = create_qr_code(link)
-
         return jsonify(
             {
                 'share_link': f'{APP_URL}deck_bp/shared_deck_view/{deck.share_id}',
@@ -507,8 +507,8 @@ def generate_link(deck_id):
         )
 
 
-
 @deck_bp.route('/shared_deck_view/<string:share_id>', methods=['GET'])
+@log_decorator
 def shared_deck_view(share_id):
     deck = Deck.query.filter_by(share_id=share_id).first_or_404()
     session['shared_deck_id'] = share_id
@@ -518,8 +518,8 @@ def shared_deck_view(share_id):
 
 @deck_bp.route("/share_deck/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def share_deck(deck_id):
-
     c_deck_id = deck_id
     share_form = Share()
     sender_id = current_user.id
@@ -573,6 +573,7 @@ def share_deck(deck_id):
     
 @deck_bp.route("/approve_shared/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def appprove_shared(deck_id):
     c_deck_id = deck_id
     event_tracker(current_user.id, "appprove_shared", c_deck_id)
@@ -602,6 +603,7 @@ def appprove_shared(deck_id):
 
 @deck_bp.route("/save_shared_deck/<share_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def save_shared_deck(share_id):
     event_tracker(current_user.id, "deck_bprove_shared", share_id)
     shared_deck = Deck.query.filter_by(share_id=share_id).first_or_404()
@@ -628,10 +630,10 @@ def save_shared_deck(share_id):
 
 @deck_bp.route("/reject_shared/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def reject_shared(deck_id):
     c_deck_id = deck_id
     event_tracker(current_user.id, "reject_shared", c_deck_id)
-    logger.debug("entered reject shared")
     shared_deck = SharedDecks.query.get_or_404(c_deck_id)
     shared_deck.delete()
     db.session.commit()
@@ -641,6 +643,7 @@ def reject_shared(deck_id):
 
 @deck_bp.route("/sea_source/<int:file_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def sea_source(file_id):
     c_file_id = file_id
     source = DeckFiles.query.filter_by(id = c_file_id).first()
@@ -648,6 +651,7 @@ def sea_source(file_id):
 
 @deck_bp.route("/import_deck/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def import_deck():
     return render_template('/deck_bp/import_deck.html')
 
@@ -655,8 +659,8 @@ def import_deck():
 
 @deck_bp.route('/import_anki', methods=['POST'])
 @login_required
+@log_decorator
 def import_anki():
-    logger.debug("entered import_anki")
     data = request.json
     for card in data:
         deck_name = clean(card['deckName'])
@@ -683,12 +687,12 @@ def quote_deck_name_if_needed(deck_name):
 
 @deck_bp.route("/export_deck/<int:deck_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def export_deck(deck_id):
     c_deck_id = deck_id
     try:
         request_anki_permission()
     except Exception as e:
-        logger.debug("anki permission NOT GRANTED %s", e)
         return apology("Anki did not grant permission")
     if check_anki_connect() == True:
         deck = Deck.query.get_or_404(c_deck_id)
@@ -700,7 +704,6 @@ def export_deck(deck_id):
         for card in cards:
             query = card.term
             notes = find_notes(query)
-            logger.debug(notes)
             if notes == False:
                 srs_interval = str(int(card.srs_interval/1440))
                 anki_create_card(deck.name, card.term, card.content)
@@ -716,9 +719,9 @@ def export_deck(deck_id):
 
 @deck_bp.route('/get_deck_data/<int:deck_id>', methods=['GET'])
 @login_required
+@log_decorator
 def get_deck_data(deck_id):
     c_deck_id = deck_id
-    logger.debug("entered get_deck_data")
     deck_name = Deck.query.get_or_404(c_deck_id).name
     cards = Deck.query.get_or_404(c_deck_id).cards
     card_list = []
@@ -739,6 +742,7 @@ def get_deck_data(deck_id):
 
 @deck_bp.route("/latest_deck", methods=["POST", "GET"])
 @login_required
+@log_decorator
 def latest_deck():
     if not current_user.is_authenticated:
         return "User is not authenticated. Please log in to continue."
@@ -756,6 +760,7 @@ def latest_deck():
 
 @deck_bp.route("/public_cards/<int:deck_id>/", methods=['GET', 'POST'])
 @login_required
+@log_decorator
 def public_cards(deck_id):
     c_deck_id = deck_id
     deck = Deck.query.filter_by(id=c_deck_id).first()
@@ -770,6 +775,7 @@ def public_cards(deck_id):
 
 @deck_bp.route("/public_decks", methods = ['GET', 'POST'])
 @login_required
+@log_decorator
 def public_decks():
     form = SearchAndSortForm()
     decks = Deck.query.filter_by(public=True).all()
@@ -802,6 +808,7 @@ def public_decks():
 
 @deck_bp.route("/deck_manager/<int:deck_id>", methods=['GET', 'POST'])
 @login_required
+@log_decorator
 def deck_manager(deck_id):
     settings = UserSettings.query.filter_by(user=current_user.id).first()
     form = DeckOrg()
@@ -842,6 +849,7 @@ def deck_manager(deck_id):
 
 @deck_bp.route("/explain_further/<int:card_id>/", methods=['GET', 'POST'])
 @login_required
+@log_decorator
 def explain_further(card_id):
     c_card_id = card_id
     card = Card.query.filter_by(id=c_card_id).first()
@@ -856,6 +864,7 @@ def explain_further(card_id):
 
 @deck_bp.route("/why_wrong/<int:card_id>/", methods=['GET', 'POST'])
 @login_required
+@log_decorator
 def why_wrong(card_id):
     c_card_id = card_id
     card = Card.query.filter_by(id=c_card_id).first()
@@ -882,9 +891,9 @@ def why_wrong_builder(card_id):
 
 @deck_bp.route("/send_question/<int:card_id>/", methods=['GET', 'POST'])
 @login_required
+@log_decorator
 def send_question(card_id):
     c_card_id = card_id
-    logger.debug("send question")
     card = Card.query.filter_by(id=c_card_id).first()
     latest_paragraph = clean(request.form.get('latest_paragraph'))
     question = clean(request.form.get('question'))

@@ -1,7 +1,4 @@
 
-import logging
-import logging.handlers
-import logging.config
 from flask import (
     Blueprint, render_template, flash,
     redirect, session, url_for, jsonify
@@ -18,7 +15,9 @@ from models.forms.forms import UploadFileForm
 from models.exceptions.exceptions import YoutubeError, AudioError
 from run.extensions import db
 
-logger = logging.getLogger("flask_app")
+from models.helpers.log_decorators import log_decorator
+
+
 
 extract_bp = Blueprint(
     'extract_bp', 
@@ -29,8 +28,8 @@ extract_bp = Blueprint(
 
 @extract_bp.route("/extract", methods = ["GET", "POST"])
 @login_required
+@log_decorator
 def extract():
-    logger.debug("entered extract")
     user_settings = initialize_user_settings()
     ## plan level requried for genereting images
     form = UploadFileForm()
@@ -59,18 +58,23 @@ def extract():
             extract_obj.create_jobs()
         except AudioError as e:
             handle_audio_error(e)
+            raise e
         except YoutubeError as e:
             handle_youtube_error(e)
+            raise e
         except FileNotFoundError as e:
             handle_file_not_found_error(e)
+            raise e
         except Exception as e:
             handle_unknown_error(e)
+            raise e
         return redirect('/deck_bp/viewdecks')
     return render_template("extract_bp/extract.html", title="Extract", form=form,
                             settings = user_settings)
 
 
 @extract_bp.route("/call_credit_counter", methods = ["POST"])
+@log_decorator
 def call_credit_counter():
     form = UploadFileForm()  
     print("entered call credit counter")
@@ -78,23 +82,24 @@ def call_credit_counter():
         credit = round(tokens_to_credit(tokens_general(form)), 1)
         print("credit: ", credit)
         return jsonify(credit)
+
     except YoutubeError:
         raise YoutubeError
     except FileNotFoundError as e:
         flash("File not found. Please try again.")
-        logger.error(f"File not found {e}")
         redirect(url_for('extract'))
+        raise e
     except Exception as e:
-        logger.error(e)
-    return credit
+        print("general exception", e)
+        raise e
 
 def tokens_to_credit(tokens):
     return tokens / 341
 
+
 def initialize_user_settings():
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
     if user_settings is None:
-        logger.debug("user settings not found")
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()

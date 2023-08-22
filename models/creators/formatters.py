@@ -11,7 +11,7 @@ from pylatexenc.latex2text import LatexNodes2Text
 import re
 import codecs
 import logging
-
+from typing import List
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 encoding = tiktoken.get_encoding("cl100k_base")
@@ -20,73 +20,62 @@ logger.setLevel(logging.DEBUG)
 
 
 ## TOKEN HANDLERS
-def count_tokens(text):
+def count_tokens(text: str) -> int:
     text = encoding.encode(text)
     print("token count:", len(text))
     return len(text)
 
-def token_encoding(text):
+def token_encoding(text: str) -> str:
     return encoding.encode(text)
 
-def token_decoding(text):
+def token_decoding(text: str) -> str:
     return encoding.decode(text)
 
-## split list of tokens into chunks of n tokens
-def split_tokens(tokens, n):
+def split_tokens(tokens: List[str], n: int) -> List[List[str]]:
     return [tokens[i:i+n] for i in range(0, len(tokens), n)]
 
 
-def remove_html_tags(text):
+def remove_html_tags(text: str):
     clean = re.compile('<.*?>')
     return re.sub(clean, '', text)
 
 ## MISC FORMATTERS
-def add_period(s):
-    if not s:
-        return s
-    else:
+def add_period(s: str) -> str:
+    if s:
         if s[-1] != ".":
             s += "."
-        return s
+    return s
 
-def check_comma_list(string):
-    if "," in string:
-        return True
-    else:
-        return False
+def check_comma_list(string: str) -> bool:
+    return "," in string
     
-def add_underscores(string):
-    if "_" in string:
-        string = string.replace("_", "_" * 8, 1)
+def add_underscores(string: str) -> str:
+    if "_" not in string:
+        string = string.replace(" ", "_")
     return string
-
 ## turn string of comma separated terms into list of terms
-def comma_list_to_list(string):
+def comma_list_to_list(string: str) -> List[str]:
     return string.split(",")
 
-def clean_text(text):
+def clean_text(text: str) -> str:
     # Decode Unicode escape sequences into actual characters
     text = codecs.decode(text, 'unicode_escape')
     # Replace newline characters with spaces
     # This pattern matches any character that is not a letter, digit, whitespace, or regular punctuation.
     pattern = r"[^\w\s.,;:?!-’'\"()]+"
-    cleaned_text = re.sub(pattern, "", text)
-    return cleaned_text
+    return re.sub(pattern, "", text)
 
-def get_replacement_value(value, prefix='', suffix=''):
-    if value:
-        return prefix + value + suffix
-    return ''
+def get_replacement_value(value: str, prefix: str='', suffix: str='') -> str:
+    return prefix + value + suffix if value else ''
 
 
 
 
 
-def render_latex(latex_code):
-    unicode_str = LatexNodes2Text().latex_to_text(latex_code)
-    return unicode_str
+def render_latex(latex_code: str) -> str:
+    return LatexNodes2Text().latex_to_text(latex_code)
 
-def double_backslashes(s):
+def double_backslashes(s: str) -> str:
     result = ''
     pattern = r'\\\[.*?\\\]|\\\(.*?\\\)|(?<!\\)\$.+?(?<!\\)\$'
     # Match LaTeX formulas delimited by \[...\] or \(...\), or inline formulas delimited by $...$
@@ -100,7 +89,7 @@ def double_backslashes(s):
     result += s[last_end:]
     return result
 
-def decode_latex_in_string(string):
+def decode_latex_in_string(string: str) -> str:
     # Define a regular expression pattern to match LaTeX formulas
     pattern = r'(\$[^\$]*\$|\\\([^\)]*\\\))'
     # Use the pattern to find all LaTeX formulas in the string
@@ -113,7 +102,7 @@ def decode_latex_in_string(string):
     return string
 
 
-def fix_json(s):
+def fix_json(s: str) -> json:
     try:
         json.loads(s)
         return s
@@ -122,17 +111,18 @@ def fix_json(s):
         # We can attempt to fix the error by removing any trailing commas or fixing the quotes
         s = s[:e.pos] + s[e.pos:].replace(',', '')
         s = s.replace("'", "\"")
-        print("--------------------------------------------fixing json ------------------------------------------------------------")
+        print("--------------------------------------------fixing json ------------------------------------------")
 
         try:
-            print("--------------------------------------------fixed json ------------------------------------------------------------")
+            print("--------------------------------------------fixed json --------------------------------------")
             json.loads(s)
             return s
-        except:
-            raise ValueError("Unable to fix JSON string")
+        except json.JSONDecodeError as e:
+            print("unable to fix json string")
+            raise ValueError("Unable to fix JSON string") from e
         
         
-def create_pdf(string):
+def create_pdf(string: str) -> BytesIO:
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer)
     # Define the width and height of the canvas

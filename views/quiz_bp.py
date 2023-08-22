@@ -3,7 +3,6 @@ from datetime import datetime
 import datetime as dt
 from urllib.parse import unquote
 import difflib
-import logging
 from io import BytesIO
 import requests as req
 from urllib.parse import urljoin
@@ -35,7 +34,7 @@ from run.extensions import db
 from tools.lists import TEST_NAMES
 from config.settings import APP_URL
 
-logger = logging.getLogger("flask_app")
+from models.helpers.log_decorators import log_decorator
 
 quiz_bp = Blueprint(
     'quiz_bp', 
@@ -46,6 +45,7 @@ quiz_bp = Blueprint(
 
 @quiz_bp.route('/update_card', methods=['POST'])
 @login_required
+@log_decorator
 def update_card():
     print("entered update card")
     data = request.get_json()
@@ -60,7 +60,6 @@ def update_card():
             question.term = clean(data['answer'])
         if data['answer'] != '':
             question.content = clean(data['answer'])
-        logger.debug(data['answer'])
         if data['points'] != '':
             question.points = data['points']
         # Handle multiple choice options
@@ -75,11 +74,14 @@ def update_card():
         db.session.commit()
         return jsonify(success=True)
     except Exception as e:
-        logger.debug("Error while updating the question:", e)
-        return jsonify(success=False, error=str(e))
+        raise e
+    ## TO DO how to handle htis, was it necessary?
+    # finally:
+    #     return jsonify(success=False, error=str(e))
 
 @quiz_bp.route("/download/<int:test_id>")
 @login_required
+@log_decorator
 def download(test_id):
     # Get HTML content
     test_url = url_for('test_print', test_id=test_id, _external=True)
@@ -108,6 +110,7 @@ def download(test_id):
 
 @quiz_bp.route("/delete_question/<int:test_id>/<int:question_id>", methods=["POST", "GET"])
 @login_required
+@log_decorator
 def delete_question(test_id, question_id):
     c_test_id = test_id
     c_question_id = question_id
@@ -122,6 +125,7 @@ def delete_question(test_id, question_id):
 
 @quiz_bp.route("/delete_test/<int:test_id>/", methods = ["POST", "GET"])
 @login_required
+@log_decorator
 def delete_test(test_id):
     c_test_id = test_id
     test_to_delete = Test.query.get_or_404(c_test_id)
@@ -131,6 +135,7 @@ def delete_test(test_id):
     return redirect('/quiz_bp/test_results_overview/')
 
 @quiz_bp.route("/build_test/<int:deck_id>", methods=["GET", "POST"])
+@log_decorator
 def build_test(deck_id):
     settings = UserSettings.query.filter_by(user=current_user.id).first()
     c_deck_id = deck_id
@@ -150,10 +155,7 @@ def build_test(deck_id):
         new_test.name = name
         jeopardyMode = form_data.get('jeopardyMode')
         print("jeopardyMode: ", jeopardyMode)
-        logger.debug(new_test.name)
         for question in test_questions:
-            logger.debug("Entering question in test questions")
-            logger.debug(question)
             card = Card.query.get_or_404(question)
             question = Question()
             db.session.add(question)
@@ -171,15 +173,11 @@ def build_test(deck_id):
                 question.question = card.term
                 question.q_type = "cloze"
             elif card.category == "Explain":
-                print("card is explain")
                 question.question = card.term
                 question.q_type = "explain"
             elif card.category == "Formulas":
-                print("entered formulas")
                 question.question = card.term
                 question.term = card.formula
-                print(card.formula)
-                print(question.term)
                 question.q_type = "formulas"
             elif card.category == "Discuss":
                 question.question = card.term
@@ -205,7 +203,9 @@ def build_test(deck_id):
     return render_template('build_test.html',
                 title='Test Builder', deck=deck, creator=creator, settings = settings)
 
+## TO DO: rework this so it doesn't throw an exception when it doesn't find a user, bad practice
 @quiz_bp.route("/assign_test/<int:test_id>", methods=["GET", "POST"])
+@log_decorator
 def assign_test(test_id):
     settings = UserSettings.query.filter_by(user=current_user.id).first()
     c_test_id = test_id
@@ -215,9 +215,7 @@ def assign_test(test_id):
         event_tracker(current_user.id, "assign_test", c_test_id)
     
         test = Test.query.get_or_404(c_test_id)
-        logger.debug(request.form)
         if request.method == 'POST' and 'name' in request.form:
-            logger.debug("entered post request3")
             test.name = form.name.data
             test.creator = current_user.id
             due_date = request.form['due_date']
@@ -251,15 +249,15 @@ def assign_test(test_id):
         return render_template('assign_test.html', title='Assign test',
                             test=test, form = form, update_card_form = update_card_form)
     except Exception as e:
-        logger.info(e)
-        
+        raise e        
         ##flash("At this moment you can only assign tests to other users.  We are working on allowing you to assign tests to non-users")
-        return render_template('/quiz_bp/assign_test.html', title='Assign test',
-                test=test, form = form, update_card_form = update_card_form,
-                settings = settings)
+        # return render_template('/quiz_bp/assign_test.html', title='Assign test',
+        #         test=test, form = form, update_card_form = update_card_form,
+        #         settings = settings)
 
 
 @quiz_bp.route('/shared_test_view/<string:share_id>', methods=['GET'])
+@log_decorator
 def shared_test_view(share_id):
     test = Test.query.filter_by(share_id=share_id).first_or_404()
     session['shared_test_id'] = share_id
@@ -268,6 +266,7 @@ def shared_test_view(share_id):
 
 @quiz_bp.route('/generate_link_test/<int:test_id>', methods=['GET'])
 @login_required
+@log_decorator
 def generate_link_test(test_id):
     test = Test.query.get(test_id)
     if test.share_id:
@@ -294,6 +293,7 @@ def generate_link_test(test_id):
 
 
 @quiz_bp.route("/assign/<int:test_id>/<string:user_email>/", methods=["GET", "POST"])
+@log_decorator
 @login_required
 def assign(test_id, user_email):
     c_test_id = test_id
@@ -303,7 +303,6 @@ def assign(test_id, user_email):
     test.sum_points()
     not_users = []
     if check_comma_list(c_user_email):
-        logger.debug(user_email)
         users_emails = user_email.split(",")
         for email in users_emails:
             email = unquote(email).strip()
@@ -333,6 +332,7 @@ def assign(test_id, user_email):
 
 @quiz_bp.route("/take_test_2/<share_id>/<int:user_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def take_test_2(share_id, user_id):
 
     event_tracker(current_user.id, "take_test", share_id)
@@ -376,6 +376,7 @@ def take_test_2(share_id, user_id):
         
 @quiz_bp.route("/take_test/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def take_test(test_id, user_id):
     c_test_id = test_id
     c_user_id = user_id
@@ -418,8 +419,8 @@ def take_test(test_id, user_id):
           ##  return redirect('/test_results_overview/')
 
 @quiz_bp.route('/reject_test/<int:test_id>/<int:user_id>', methods=['DELETE'])
+@log_decorator
 def reject_test(test_id, user_id):
-    logger.debug("entered reject test")
     distribution_entry = distribution.delete().where(
         (distribution.c.test_id == test_id) & (distribution.c.taker_id == user_id)
     )
@@ -429,6 +430,7 @@ def reject_test(test_id, user_id):
 
 @quiz_bp.route("/test_results/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def test_results(test_id, user_id): 
     c_test_id = test_id
     c_user_id = user_id      
@@ -475,6 +477,7 @@ def test_results(test_id, user_id):
                             taker=taker, results=test_result)    
 
 @quiz_bp.route("/test_results_overview/", methods=["GET", "POST"])
+@log_decorator
 # sourcery skip: no-loop-in-tests
 def test_results_overview():
     tests_created = Test.query.filter_by(creator = current_user.id).all()
@@ -499,6 +502,7 @@ def test_results_overview():
                             created = tests_created,tests=tests)
 
 @quiz_bp.route("/test_result_details/<int:test_id>/", methods=["GET", "POST"])
+@log_decorator
 def test_result_details(test_id):
     c_test_id = test_id
     results = TestResult.query.filter_by(test_id = c_test_id).all()
@@ -512,6 +516,7 @@ def test_result_details(test_id):
                         results = results, test = test, takers = takers)
 
 @quiz_bp.route("/test_created/<int:test_id>/", methods=["GET", "POST"])
+@log_decorator
 def test_created(test_id):
     c_test_id = test_id
     test = Test.query.get_or_404(c_test_id)
@@ -543,6 +548,7 @@ def test_created(test_id):
     return render_template('quiz_bp/test_created.html', test=test)
    
 @quiz_bp.route("/test_result/<int:result_id>/", methods=["GET", "POST"])
+@log_decorator
 def test_result(result_id):
     c_result_id = result_id
     result = TestResult.query.filter_by(id = c_result_id, taker = current_user.id).first()
@@ -550,6 +556,7 @@ def test_result(result_id):
     return render_template('quiz_bp/test_result.html', result=result, test=test)
 
 @quiz_bp.route("/test_answers/<int:test_id>/<int:taker_id>/", methods=["GET", "POST"])
+@log_decorator
 def test_answers(test_id, taker_id):#
     c_test_id = test_id
     c_taker_id = taker_id
@@ -584,6 +591,7 @@ def test_answers(test_id, taker_id):#
     
 @quiz_bp.route("/answer_key/<int:test_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def test_print(test_id):
     c_test_id = test_id
     test = Test.query.filter_by(id = c_test_id).first()
@@ -591,6 +599,7 @@ def test_print(test_id):
 
 @quiz_bp.route("/test_print/<int:test_id>/", methods=["GET", "POST"])
 @login_required
+@log_decorator
 def answer_key(test_id):
     c_test_id = test_id
     test = Test.query.filter_by(id = c_test_id).first()

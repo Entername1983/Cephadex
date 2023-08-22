@@ -1,12 +1,62 @@
 import logging
 import logging.handlers
+from logging.handlers import RotatingFileHandler
+import sys
+import os
 
 def setup_app_logger():
     logger = logging.getLogger('flask_app')
-    # Configuration for the Flask app logger...
+    logger.setLevel(logging.DEBUG)  # You can set the logging level as needed
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.DEBUG)  # Set the level for this handler
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    stdout_handler.setFormatter(formatter)
+
+    logger.addHandler(stdout_handler)
+
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+
+    file_handler = RotatingFileHandler('logs/flask_app.log', maxBytes=10*1024*1024, backupCount=5)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    error_file_handler = RotatingFileHandler('logs/flask_app_errors.log', maxBytes=10*1024*1024, backupCount=5)
+    error_file_handler.setLevel(logging.ERROR) 
+    error_file_handler.setFormatter(formatter) 
+
+    logger.addHandler(error_file_handler)
+
+
     return logger
 
 def setup_processing_logger():
-    processing_logger = logging.getLogger('processing')
-    # Configuration for the background task logger...
+    processing_logger = logging.getLogger('job_processing')
+    processing_logger.setLevel(logging.DEBUG)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    stdout_handler.setFormatter(formatter)
+
+    processing_logger.addHandler(stdout_handler)
+    
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+
+    file_handler = RotatingFileHandler('logs/job_processing.log', maxBytes=10*1024*1024, backupCount=5)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+    processing_logger.addHandler(file_handler)
+
+    error_file_handler = RotatingFileHandler('logs/job_processing_errors.log', maxBytes=10*1024*1024, backupCount=5)
+    error_file_handler.setLevel(logging.ERROR)  
+    error_file_handler.setFormatter(formatter) 
+    processing_logger.addHandler(error_file_handler)
+
     return processing_logger
+

@@ -1,17 +1,16 @@
 class MyBaseError(Exception):
     """Base class for all custom exceptions."""
-    def __init__(self, message="An error has occurred."):
-        self.message = message
+    def __init__(self, message: str ="An error has occurred."):
+        self.message: str = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 class YoutubeError(MyBaseError):
     """Exception raised when unable to retrieve video transcript from YouTube."""
     def __init__(self, message="Unable to retrieve video transcript from YouTube."):
         super().__init__(message)
-
 
 class UnsupportedFileError(MyBaseError):
     """Exception raised when an unsupported file type is uploaded."""

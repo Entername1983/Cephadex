@@ -1,10 +1,12 @@
 from .card_config import CARD_MAPPING
+from typing import Any
+
 
 class CardPreProcessor:
     def __init__(self):
-        self.mapping = CARD_MAPPING
+        self.mapping: dict[str, Any] = CARD_MAPPING
 
-    def preprocess(self, terms, card_type):
+    def preprocess(self, terms: list[dict[str, Any]], card_type: str) -> list[dict[str, Any]]:
         if card_type == 'Mcq':
             return self.preprocess_mcq(terms)
         elif card_type == 'Formulas':
@@ -14,7 +16,7 @@ class CardPreProcessor:
         else:
             return self.preprocess_default(terms, card_type)
 
-    def preprocess_default(self, terms, card_type):
+    def preprocess_default(self, terms: list[dict[str, Any]], card_type: str) -> list[dict[str, Any]]:
         x, y = self.mapping.get(card_type, ("A", "B"))
         processed_terms = []
         for item in terms:
@@ -27,7 +29,7 @@ class CardPreProcessor:
             processed_terms.append({term:{"content": content}})
         return processed_terms
     
-    def preprocess_mcq(self, terms):
+    def preprocess_mcq(self, terms: list[dict[str, Any]]) -> list[dict[str, Any]]:
         v, w, x, y, z = self.mapping.get("Mcq", ("A", "B", "C", "D", "E"))
         processed_terms = []
         for item in terms:
@@ -46,12 +48,12 @@ class CardPreProcessor:
             boc_4 = item.get(z)
             boc_4 = ' '.join(boc_4) if isinstance(boc_4, list) else boc_4
             boc_4 = boc_4 or None 
-        processed_terms.append({term:{"content": content, "boc_2": boc_2,
+            processed_terms.append({term:{"content": content, "boc_2": boc_2,
                                        "boc_3": boc_3, "boc_4": boc_4}})
         return processed_terms
 
-    def preprocess_formulas(self, terms):
-        x, y, z = self.mapping.get("Formulas", ("A", "B", "C")) + (None,) * (3 - len(self.mapping.get("Formulas", ("A", "B", "C"))))
+    def preprocess_formulas(self, terms: list[dict[str, Any]]) -> list[dict[str, Any]]:  # noqa: E501
+        x, y, z = self.mapping.get("Formulas", ("A", "B", "C")) + (None,) * (3 - len(self.mapping.get("Formulas", ("A", "B", "C")))) # noqa: E501
         processed_terms = []
         for item in terms:
             term = item.get(x)
@@ -66,8 +68,8 @@ class CardPreProcessor:
             processed_terms.append({term:{"formula": formula, "content": content}})
         return processed_terms
     
-    def preprocess_discuss(self, terms):
-        x, y, z = self.mapping.get("Discuss", ("A", "B", "C")) + (None,) * (3 - len(self.mapping.get("Discuss", ("A", "B", "C"))))
+    def preprocess_discuss(self, terms: list[dict[str, Any]]) -> list[dict[str, Any]]:  # noqa: E501
+        x, y, z = self.mapping.get("Discuss", ("A", "B", "C")) + (None,) * (3 - len(self.mapping.get("Discuss", ("A", "B", "C"))))  # noqa: E501
         processed_terms = []
         for item in terms:
             term = item.get(x)
@@ -83,3 +85,4 @@ class CardPreProcessor:
                 side_2 = ' '.join(side_2) if isinstance(side_2, list) else side_2
                 side_2 = side_2 or None
             processed_terms.append({term: {"side_1": side_1, "side_2": side_2}})
+        return processed_terms
