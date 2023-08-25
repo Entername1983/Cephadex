@@ -1,0 +1,189 @@
+2023-08-24 16:06:36,825 - job_processing - INFO - Entering function process_jobs
+2023-08-24 16:06:36,826 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 16:09:58,445 - job_processing - INFO - Entering function process_jobs
+2023-08-24 16:09:58,445 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 16:11:20,946 - job_processing - INFO - Entering function process_jobs
+2023-08-24 16:11:20,946 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 16:12:16,710 - job_processing - INFO - Entering function process_jobs
+2023-08-24 16:12:16,711 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 16:12:16,764 - job_processing - INFO - Entering function process
+2023-08-24 16:12:16,765 - job_processing - INFO - Exiting function process
+2023-08-24 16:13:55,071 - job_processing - INFO - Entering function process_jobs
+2023-08-24 16:13:55,072 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 16:13:55,128 - job_processing - INFO - Entering function process
+2023-08-24 16:13:55,129 - job_processing - INFO - Exiting function process
+2023-08-24 16:16:54,158 - job_processing - INFO - Entering function process_jobs
+2023-08-24 16:16:54,159 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 16:16:54,218 - job_processing - INFO - Entering function process
+2023-08-24 16:16:54,218 - job_processing - INFO - Exiting function process
+2023-08-24 17:25:01,135 - job_processing - INFO - Entering function process_jobs
+2023-08-24 17:25:01,136 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 17:25:21,248 - job_processing - INFO - Entering function process
+2023-08-24 17:25:21,249 - job_processing - INFO - Exiting function process
+2023-08-24 17:31:50,483 - job_processing - INFO - Entering function process_jobs
+2023-08-24 17:31:50,483 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 17:32:00,585 - job_processing - INFO - Entering function process
+2023-08-24 17:32:00,586 - job_processing - INFO - Exiting function process
+2023-08-24 17:32:15,635 - job_processing - INFO - Entering function process
+2023-08-24 17:32:15,635 - job_processing - INFO - Exiting function process
+2023-08-24 17:37:35,630 - job_processing - INFO - Entering function process_jobs
+2023-08-24 17:37:35,632 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 17:37:50,770 - job_processing - INFO - Entering function process
+2023-08-24 17:37:50,771 - job_processing - INFO - Exiting function process
+2023-08-24 17:38:05,829 - job_processing - INFO - Entering function process
+2023-08-24 17:38:05,829 - job_processing - INFO - Exiting function process
+2023-08-24 17:45:33,720 - job_processing - INFO - Entering function process_jobs
+2023-08-24 17:45:33,720 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 17:45:53,858 - job_processing - INFO - Entering function process
+2023-08-24 17:45:53,858 - job_processing - INFO - Exiting function process
+2023-08-24 17:46:08,896 - job_processing - INFO - Entering function process
+2023-08-24 17:46:08,896 - job_processing - INFO - Exiting function process
+2023-08-24 17:48:21,373 - job_processing - INFO - Entering function process_jobs
+2023-08-24 17:48:21,374 - job_processing - INFO - Exiting function process_jobs
+2023-08-24 17:48:36,476 - job_processing - INFO - Entering function process
+2023-08-24 17:48:36,476 - job_processing - INFO - Exiting function process
+2023-08-24 17:48:51,531 - job_processing - INFO - Entering function process
+2023-08-24 17:48:51,531 - job_processing - INFO - Exiting function process
+2023-08-25 17:43:48,116 - job_processing - INFO - Entering function process_jobs
+2023-08-25 17:43:48,167 - job_processing - INFO - Entering function process
+2023-08-25 17:43:48,175 - job_processing - INFO - Entering function process
+2023-08-25 17:44:02,007 - job_processing - INFO - Exiting function process
+2023-08-25 17:44:04,683 - job_processing - INFO - Exiting function process
+2023-08-25 17:57:20,310 - job_processing - INFO - Entering function process_jobs
+2023-08-25 17:57:20,368 - job_processing - INFO - Entering function process
+2023-08-25 17:57:20,375 - job_processing - INFO - Entering function process
+2023-08-25 17:57:42,719 - job_processing - INFO - Exiting function process
+2023-08-25 18:00:20,984 - job_processing - INFO - Entering function process
+2023-08-25 18:00:20,986 - job_processing - INFO - Entering function process
+2023-08-25 18:00:31,844 - job_processing - INFO - Exiting function process
+2023-08-25 18:00:46,997 - job_processing - INFO - Entering function process_jobs
+2023-08-25 18:00:47,049 - job_processing - INFO - Entering function process
+2023-08-25 18:00:47,055 - job_processing - INFO - Entering function process
+2023-08-25 18:01:02,290 - job_processing - INFO - Exiting function process
+2023-08-25 18:01:02,298 - job_processing - ERROR - Error handling completion: No row was found when one was required
+2023-08-25 18:07:23,471 - job_processing - INFO - Entering function process
+2023-08-25 18:07:23,475 - job_processing - INFO - Entering function process
+2023-08-25 18:07:37,680 - job_processing - INFO - Entering function process_jobs
+2023-08-25 18:07:37,726 - job_processing - INFO - Entering function process
+2023-08-25 18:07:37,733 - job_processing - INFO - Entering function process
+2023-08-25 18:07:48,211 - job_processing - INFO - Exiting function process
+2023-08-25 18:07:48,217 - job_processing - ERROR - Error handling completion: No row was found when one was required
+2023-08-25 18:09:06,635 - job_processing - INFO - Entering function process_jobs
+2023-08-25 18:09:06,686 - job_processing - INFO - Entering function process
+2023-08-25 18:09:06,693 - job_processing - INFO - Entering function process
+2023-08-25 18:09:50,949 - job_processing - INFO - Exiting function process
+2023-08-25 18:18:42,168 - job_processing - INFO - Entering function process_jobs
+2023-08-25 18:18:42,241 - job_processing - INFO - Entering function process
+2023-08-25 18:18:42,241 - job_processing - INFO - Entering function process_job_with_semaphore
+2023-08-25 18:18:42,248 - job_processing - INFO - Entering function process
+2023-08-25 18:18:54,009 - job_processing - INFO - Exiting function process
+2023-08-25 18:18:54,014 - job_processing - INFO - Exiting function process_job_with_semaphore
+2023-08-25 18:18:54,014 - job_processing - INFO - Entering function handle_completion
+2023-08-25 18:20:27,211 - job_processing - INFO - Entering function process_jobs
+2023-08-25 18:20:27,264 - job_processing - INFO - Entering function process
+2023-08-25 18:20:27,265 - job_processing - INFO - Entering function process_job_with_semaphore
+2023-08-25 18:20:27,270 - job_processing - INFO - Entering function process
+2023-08-25 18:20:40,460 - job_processing - INFO - Exiting function process
+2023-08-25 18:20:40,464 - job_processing - INFO - Exiting function process_job_with_semaphore
+2023-08-25 18:20:40,465 - job_processing - INFO - Entering function handle_completion
+2023-08-25 18:27:18,197 - job_processing - INFO - Entering function process_jobs
+2023-08-25 18:27:18,263 - job_processing - INFO - Entering function process
+2023-08-25 18:27:18,264 - job_processing - INFO - Entering function process_job_with_semaphore
+2023-08-25 18:27:18,273 - job_processing - INFO - Entering function process
+2023-08-25 18:27:50,051 - job_processing - INFO - Exiting function process
+2023-08-25 18:27:50,055 - job_processing - INFO - Exiting function process_job_with_semaphore
+2023-08-25 18:27:50,056 - job_processing - INFO - Entering function handle_completion
+2023-08-25 18:27:50,058 - job_processing - ERROR - Exception occurred in function handle_completion. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 89, in handle_completion
+    job_notification = await JobFinder.find_pending_notification(session, self.slug)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_finder.py", line 28, in find_pending_notification
+    return result.scalar_one()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 1208, in scalar_one
+    return self._only_one_row(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 562, in _only_one_row
+    raise exc.NoResultFound(
+sqlalchemy.exc.NoResultFound: No row was found when one was required
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 105, in handle_completion
+    raise ProcessingCompletionError(e) from e
+models.exceptions.exceptions.ProcessingCompletionError: <exception str() failed>
+2023-08-25 18:27:50,062 - job_processing - ERROR - Exception occurred in function process. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 89, in handle_completion
+    job_notification = await JobFinder.find_pending_notification(session, self.slug)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_finder.py", line 28, in find_pending_notification
+    return result.scalar_one()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 1208, in scalar_one
+    return self._only_one_row(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 562, in _only_one_row
+    raise exc.NoResultFound(
+sqlalchemy.exc.NoResultFound: No row was found when one was required
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 58, in process
+    await self.handle_completion()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 43, in wrapper
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 105, in handle_completion
+    raise ProcessingCompletionError(e) from e
+models.exceptions.exceptions.ProcessingCompletionError: <exception str() failed>
+2023-08-25 18:30:58,193 - job_processing - INFO - Entering function process_jobs
+2023-08-25 18:30:58,243 - job_processing - INFO - Entering function process
+2023-08-25 18:30:58,249 - job_processing - INFO - Entering function process
+2023-08-25 18:31:17,241 - job_processing - INFO - Exiting function process
+2023-08-25 18:31:17,248 - job_processing - ERROR - Error handling completion: No row was found when one was required
+2023-08-25 18:31:17,249 - job_processing - ERROR - Exception occurred in function process. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 87, in handle_completion
+    job_notification = await JobFinder.find_pending_notification(session, self.slug)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_finder.py", line 28, in find_pending_notification
+    return result.scalar_one()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 1208, in scalar_one
+    return self._only_one_row(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 562, in _only_one_row
+    raise exc.NoResultFound(
+sqlalchemy.exc.NoResultFound: No row was found when one was required
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 58, in process
+    await self.handle_completion()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 103, in handle_completion
+    raise ProcessingCompletionError(e) from e
+models.exceptions.exceptions.ProcessingCompletionError: <exception str() failed>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 60, in process
+    processing_logger.error(f"Error processing job batch: {e}")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: __str__ returned non-string (type NoResultFound)

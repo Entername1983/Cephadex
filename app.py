@@ -1,8 +1,5 @@
 
 
-import logging
-import logging.handlers
-import logging.config
 import datetime as dt
 import random
 from flask import g, redirect, render_template, request, session
@@ -16,7 +13,6 @@ from models.send_email import send_email
 from flask_wtf.csrf import generate_csrf
 from factory import create_app
 from run.extensions import db, login_manager, socketio
-from models.helpers.log_decorators import log_decorator
 
 app = create_app()
 app.config['EXPLAIN_TEMPLATE_LOADING'] = True
@@ -65,7 +61,6 @@ def sitemap():
     return send_file('static/sitemap.xml')
 
 @app.route("/", methods=["GET", "POST"])
-@log_decorator
 def index():
     """Home page"""
     form = TryOut()
@@ -75,13 +70,11 @@ def index():
     return redirect(url_for("deck_bp.viewdecks")+'?v=' + str(cache_buster))
 
 @app.route('/testing1', methods = ['GET', 'POST'])
-@log_decorator
 def testing1():
     """test page"""
     return render_template('testing1.html')
         
 @app.route('/update_sidebar_state', methods=['POST'])
-@log_decorator
 def update_sidebar_state():
     """Toggle side bar state"""
     is_collapsed = request.form.get('sidebar-collapsed') == 'true'
@@ -89,7 +82,6 @@ def update_sidebar_state():
     return '', 204  # return 204 No Content response
 
 @app.route("/landingpage", methods = ["GET", "POST"])
-@log_decorator
 def landingpage():
     """ landing page, deprecated"""
     return render_template("landingpage.html", title="Landing Page")
@@ -108,26 +100,26 @@ def notify(user_id):
             db.session.commit()
     return True
 
-def find_unnotified_jobs(user_id):
+def find_unnotified_jobs(user_id: int) -> list[JobNotification]:
     return JobNotification.query.filter_by(user_id=user_id,complete=True, notified=False).all()
 
 ## Look through Job Notification, find items that are not completed for each user
-def find_non_complete_job_notifs(user_id):
+def find_non_complete_job_notifs(user_id: int) -> list[JobNotification]:
     return JobNotification.query.filter_by(user_id=user_id, complete=False).all()
 ## If not complete 
 
 ## Look through jobs for that notification and check if jobs are completed
-def find_jobs_by_slug(slug):
+def find_jobs_by_slug(slug: str):
     return Job.query.filter_by(slug=slug).order_by(Job.id.asc()).all()
 
-def check_jobs_complete(jobs):
+def check_jobs_complete(jobs: list[Job]) -> bool:
     counter = 0
     for job in jobs:
         if job.state == "completed":
             counter = counter + 1
     return counter == len(jobs)
 
-def job_error_checker(slug):
+def job_error_checker(slug: str) -> bool:
     print(slug)
     error_ratio = check_for_errors(slug)
     print("error ratio", error_ratio)
@@ -147,7 +139,7 @@ def job_error_checker(slug):
         return False
 
 
-def check_for_errors(slug):
+def check_for_errors(slug: str) -> float:
     jobs = find_jobs_by_slug(slug)
     print(f"jobs {jobs}, slug {slug}")
     error_count = 0
@@ -174,7 +166,6 @@ def check_for_errors(slug):
   ##  return jsonify({"success": True})
 
 @app.route("/query", methods=["POST"])
-@log_decorator
 @login_required
 def query():
     progress = 0
@@ -201,7 +192,6 @@ def query():
 
 @app.route("/notification_complete", methods=["POST"])
 @login_required
-@log_decorator
 def notification_complete():
     print("entered notification")
     slug_id= request.form["id"]
@@ -227,7 +217,7 @@ def notification_complete():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
     socketio.run(app)
 
 else:

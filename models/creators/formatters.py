@@ -22,7 +22,6 @@ logger.setLevel(logging.DEBUG)
 ## TOKEN HANDLERS
 def count_tokens(text: str) -> int:
     text = encoding.encode(text)
-    print("token count:", len(text))
     return len(text)
 
 def token_encoding(text: str) -> str:

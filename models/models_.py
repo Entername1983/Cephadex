@@ -50,3 +50,4 @@ from models.user.user import User
 ##  Gamification --> Need to fix names and remove underscores :/
 from models.gamification import Skill, Skills_Category, User_Skill, Badge, Goal
 
+from models.stripe_events import StripeEvents

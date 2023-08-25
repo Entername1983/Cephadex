@@ -1,0 +1,232 @@
+2023-08-23 14:42:23,505 - subrollover - INFO - Entering function roll_over
+2023-08-23 14:42:23,530 - subrollover - ERROR - Exception occurred in function roll_over
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1008, in __call__
+    return self.registry[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: <greenlet.greenlet object at 0x0000021A114E6800 (otid=0x0000021A134987B0) current active started main>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 55, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\scheduled_tasks\subrollover.py", line 41, in roll_over
+    subscriptions = User.query.filter_by(account_status='active').all()
+                    ^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 552, in __get__
+    return type.query_class(mapper, session=self.sa.session())
+                                            ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 47, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1010, in __call__
+    return self.registry.setdefault(key, self.createfunc())
+                                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4274, in __call__
+    return self.class_(**local_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 174, in __init__
+    self.app = app = db.get_app()
+                     ^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 1042, in get_app
+    raise RuntimeError(
+RuntimeError: No application found. Either work inside a view function or push an application context. See http://flask-sqlalchemy.pocoo.org/contexts/.
+2023-08-23 14:42:23,530 - subrollover - ERROR - Exception occurred in function roll_over
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1008, in __call__
+    return self.registry[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: <greenlet.greenlet object at 0x0000021A114E6800 (otid=0x0000021A134987B0) current active started main>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 55, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\scheduled_tasks\subrollover.py", line 41, in roll_over
+    subscriptions = User.query.filter_by(account_status='active').all()
+                    ^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 552, in __get__
+    return type.query_class(mapper, session=self.sa.session())
+                                            ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 47, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1010, in __call__
+    return self.registry.setdefault(key, self.createfunc())
+                                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4274, in __call__
+    return self.class_(**local_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 174, in __init__
+    self.app = app = db.get_app()
+                     ^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 1042, in get_app
+    raise RuntimeError(
+RuntimeError: No application found. Either work inside a view function or push an application context. See http://flask-sqlalchemy.pocoo.org/contexts/.
+2023-08-23 14:42:44,480 - subrollover - INFO - Entering function roll_over
+2023-08-23 14:42:44,510 - subrollover - ERROR - Exception occurred in function roll_over
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1008, in __call__
+    return self.registry[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: <greenlet.greenlet object at 0x000002E783C82000 (otid=0x000002E785A287B0) current active started main>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 55, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\scheduled_tasks\subrollover.py", line 41, in roll_over
+    subscriptions = User.query.filter_by(account_status='active').all()
+                    ^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 552, in __get__
+    return type.query_class(mapper, session=self.sa.session())
+                                            ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 47, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1010, in __call__
+    return self.registry.setdefault(key, self.createfunc())
+                                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4274, in __call__
+    return self.class_(**local_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 174, in __init__
+    self.app = app = db.get_app()
+                     ^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 1042, in get_app
+    raise RuntimeError(
+RuntimeError: No application found. Either work inside a view function or push an application context. See http://flask-sqlalchemy.pocoo.org/contexts/.
+2023-08-23 14:42:44,510 - subrollover - ERROR - Exception occurred in function roll_over
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1008, in __call__
+    return self.registry[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: <greenlet.greenlet object at 0x000002E783C82000 (otid=0x000002E785A287B0) current active started main>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 55, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\scheduled_tasks\subrollover.py", line 41, in roll_over
+    subscriptions = User.query.filter_by(account_status='active').all()
+                    ^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 552, in __get__
+    return type.query_class(mapper, session=self.sa.session())
+                                            ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 47, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1010, in __call__
+    return self.registry.setdefault(key, self.createfunc())
+                                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4274, in __call__
+    return self.class_(**local_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 174, in __init__
+    self.app = app = db.get_app()
+                     ^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 1042, in get_app
+    raise RuntimeError(
+RuntimeError: No application found. Either work inside a view function or push an application context. See http://flask-sqlalchemy.pocoo.org/contexts/.
+2023-08-23 14:46:35,061 - subrollover - INFO - Entering function roll_over
+2023-08-23 14:46:35,085 - subrollover - ERROR - Exception occurred in function roll_over
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1008, in __call__
+    return self.registry[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: <greenlet.greenlet object at 0x000002145DEC5100 (otid=0x000002145FC287B0) current active started main>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 55, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\scheduled_tasks\subrollover.py", line 41, in roll_over
+    subscriptions = User.query.filter_by(account_status='active').all()
+                    ^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 552, in __get__
+    return type.query_class(mapper, session=self.sa.session())
+                                            ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 47, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1010, in __call__
+    return self.registry.setdefault(key, self.createfunc())
+                                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4274, in __call__
+    return self.class_(**local_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 174, in __init__
+    self.app = app = db.get_app()
+                     ^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 1042, in get_app
+    raise RuntimeError(
+RuntimeError: No application found. Either work inside a view function or push an application context. See http://flask-sqlalchemy.pocoo.org/contexts/.
+2023-08-23 14:46:35,085 - subrollover - ERROR - Exception occurred in function roll_over
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1008, in __call__
+    return self.registry[key]
+           ~~~~~~~~~~~~~^^^^^
+KeyError: <greenlet.greenlet object at 0x000002145DEC5100 (otid=0x000002145FC287B0) current active started main>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 55, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\scheduled_tasks\subrollover.py", line 41, in roll_over
+    subscriptions = User.query.filter_by(account_status='active').all()
+                    ^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 552, in __get__
+    return type.query_class(mapper, session=self.sa.session())
+                                            ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 47, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\util\_collections.py", line 1010, in __call__
+    return self.registry.setdefault(key, self.createfunc())
+                                         ^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4274, in __call__
+    return self.class_(**local_kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 174, in __init__
+    self.app = app = db.get_app()
+                     ^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask_sqlalchemy\__init__.py", line 1042, in get_app
+    raise RuntimeError(
+RuntimeError: No application found. Either work inside a view function or push an application context. See http://flask-sqlalchemy.pocoo.org/contexts/.
+2023-08-24 12:25:07,989 - subrollover - INFO - Entering function roll_over
+2023-08-24 12:25:08,228 - subrollover - ERROR - Exception occurred in function roll_over
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 55, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\scheduled_tasks\subrollover.py", line 44, in roll_over
+    if subscription.latest_roll_over + timedelta(days=30) <= datetime.now(
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: can't compare offset-naive and offset-aware datetimes
+2023-08-24 12:25:08,228 - subrollover - ERROR - Exception occurred in function roll_over
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 55, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\scheduled_tasks\subrollover.py", line 44, in roll_over
+    if subscription.latest_roll_over + timedelta(days=30) <= datetime.now(
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: can't compare offset-naive and offset-aware datetimes
+2023-08-24 12:32:40,585 - subrollover - INFO - Entering function roll_over
+2023-08-24 12:32:40,757 - subrollover - INFO - Exiting function roll_over
+2023-08-24 12:32:40,757 - subrollover - INFO - Entering function delete_accounts
+2023-08-24 12:32:40,759 - subrollover - INFO - Exiting function delete_accounts
+2023-08-24 12:32:40,759 - subrollover - INFO - Entering function create_report
+2023-08-24 12:32:42,804 - subrollover - INFO - Exiting function create_report

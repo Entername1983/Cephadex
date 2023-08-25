@@ -1,0 +1,92 @@
+2023-08-25 18:01:02,298 - job_processing - ERROR - Error handling completion: No row was found when one was required
+2023-08-25 18:07:48,217 - job_processing - ERROR - Error handling completion: No row was found when one was required
+2023-08-25 18:27:50,058 - job_processing - ERROR - Exception occurred in function handle_completion. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 89, in handle_completion
+    job_notification = await JobFinder.find_pending_notification(session, self.slug)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_finder.py", line 28, in find_pending_notification
+    return result.scalar_one()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 1208, in scalar_one
+    return self._only_one_row(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 562, in _only_one_row
+    raise exc.NoResultFound(
+sqlalchemy.exc.NoResultFound: No row was found when one was required
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 105, in handle_completion
+    raise ProcessingCompletionError(e) from e
+models.exceptions.exceptions.ProcessingCompletionError: <exception str() failed>
+2023-08-25 18:27:50,062 - job_processing - ERROR - Exception occurred in function process. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 89, in handle_completion
+    job_notification = await JobFinder.find_pending_notification(session, self.slug)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_finder.py", line 28, in find_pending_notification
+    return result.scalar_one()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 1208, in scalar_one
+    return self._only_one_row(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 562, in _only_one_row
+    raise exc.NoResultFound(
+sqlalchemy.exc.NoResultFound: No row was found when one was required
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 58, in process
+    await self.handle_completion()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 43, in wrapper
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 105, in handle_completion
+    raise ProcessingCompletionError(e) from e
+models.exceptions.exceptions.ProcessingCompletionError: <exception str() failed>
+2023-08-25 18:31:17,248 - job_processing - ERROR - Error handling completion: No row was found when one was required
+2023-08-25 18:31:17,249 - job_processing - ERROR - Exception occurred in function process. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 87, in handle_completion
+    job_notification = await JobFinder.find_pending_notification(session, self.slug)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_finder.py", line 28, in find_pending_notification
+    return result.scalar_one()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 1208, in scalar_one
+    return self._only_one_row(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\engine\result.py", line 562, in _only_one_row
+    raise exc.NoResultFound(
+sqlalchemy.exc.NoResultFound: No row was found when one was required
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 58, in process
+    await self.handle_completion()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 103, in handle_completion
+    raise ProcessingCompletionError(e) from e
+models.exceptions.exceptions.ProcessingCompletionError: <exception str() failed>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\jobs\job_batch.py", line 60, in process
+    processing_logger.error(f"Error processing job batch: {e}")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: __str__ returned non-string (type NoResultFound)

@@ -47,9 +47,7 @@ quiz_bp = Blueprint(
 @login_required
 @log_decorator
 def update_card():
-    print("entered update card")
     data = request.get_json()
-    print(data)
     form = UpdateCardForm(data=data)
     question_id = data['question-id']
     question = Question.query.filter_by(id=question_id).first_or_404()
@@ -144,7 +142,6 @@ def build_test(deck_id):
     creator = current_user
     if request.method == "POST":
         form_data = request.form.to_dict()
-        print(request.form.to_dict())
         test_questions = request.form.getlist('selected_cards[]')
         name = f"{deck.name} Test " + datetime.now().strftime("%Y-%m-%d %H:%M")
         chosen_name = random.choice(TEST_NAMES)
@@ -154,7 +151,6 @@ def build_test(deck_id):
         db.session.add(new_test)
         new_test.name = name
         jeopardyMode = form_data.get('jeopardyMode')
-        print("jeopardyMode: ", jeopardyMode)
         for question in test_questions:
             card = Card.query.get_or_404(question)
             question = Question()
@@ -196,7 +192,7 @@ def build_test(deck_id):
                 question.question = card.term
                 question.q_type = "other"
             db.session.add(question)
-            new_test.questions.quiz_bpend(question)
+            new_test.questions.append(question)
 
         db.session.commit()
         return redirect('/quiz_bp/assign_test/{test.id}'.format(test=new_test))
@@ -228,8 +224,6 @@ def assign_test(test_id):
             test.description = form.description.data
             time_limit = form.time_limit.data
             if time_limit != '' and time_limit is not None:
-                print("entered time limit")
-                print(time_limit)
                 time_limit = int(time_limit)
                 test.time_limit = time_limit
             
@@ -261,7 +255,6 @@ def assign_test(test_id):
 def shared_test_view(share_id):
     test = Test.query.filter_by(share_id=share_id).first_or_404()
     session['shared_test_id'] = share_id
-    print(session['shared_test_id'])
     return render_template('/quiz_bp/shared_test_view.html', test=test)
 
 @quiz_bp.route('/generate_link_test/<int:test_id>', methods=['GET'])
@@ -308,17 +301,17 @@ def assign(test_id, user_email):
             email = unquote(email).strip()
             taker = User.query.filter_by(email=email).first()
             if taker is None:
-                not_users.quiz_bpend(email)
+                not_users.append(email)
             else:
-                test.taker.quiz_bpend(taker)
+                test.taker.append(taker)
     else:
         email = unquote(c_user_email)
         taker = User.query.filter_by(email=email).first()
         if taker is None:
-            not_users.quiz_bpend(email)
+            not_users.append(email)
 
         else:
-            test.taker.quiz_bpend(taker)
+            test.taker.append(taker)
     db.session.commit()
     if not not_users:
         flash('Test assigned!', 'success')
@@ -334,7 +327,6 @@ def assign(test_id, user_email):
 @login_required
 @log_decorator
 def take_test_2(share_id, user_id):
-
     event_tracker(current_user.id, "take_test", share_id)
     test = Test.query.filter_by(share_id=share_id).first_or_404()
     test_result = TestResult.query.filter_by(test_id = test.id, taker = user_id).first()

@@ -21,3 +21,24 @@ class AudioError(MyBaseError):
     """Exception raised when an unsupported file type is uploaded."""
     def __init__(self, message="Audio error."):
         super().__init__(message)
+
+class ExtractionError(MyBaseError):
+    """Exception raised when unable to extract text from input file"""
+    def __init__(self, message="Extraction error."):
+        super().__init__(message)
+
+class ExtractionWikiError(MyBaseError):
+    """Exception raised when unable to extract text from wikipedia"""
+    def __init__(self, message="Extraction error from wikipedia."):
+        super().__init__(message)
+
+
+class ProcessingJobError(MyBaseError):
+    """Exception raised when a job fails to process."""
+    def __init__(self, message="Processing job error."):
+        super().__init__(message)
+
+class ProcessingCompletionError(MyBaseError):
+    """Exception raised when a job fails to process."""
+    def __init__(self, message="Processing completion error."):
+        super().__init__(message)

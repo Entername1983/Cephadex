@@ -76,15 +76,15 @@ def extract():
 @extract_bp.route("/call_credit_counter", methods = ["POST"])
 @log_decorator
 def call_credit_counter():
-    form = UploadFileForm()  
+    form = UploadFileForm()
     print("entered call credit counter")
     try:
         credit = round(tokens_to_credit(tokens_general(form)), 1)
         print("credit: ", credit)
         return jsonify(credit)
 
-    except YoutubeError:
-        raise YoutubeError
+    except YoutubeError as e:
+        raise YoutubeError from e
     except FileNotFoundError as e:
         flash("File not found. Please try again.")
         redirect(url_for('extract'))

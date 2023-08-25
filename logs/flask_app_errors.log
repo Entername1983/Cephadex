@@ -1,0 +1,188 @@
+2023-08-24 13:07:10,852 - flask_app - ERROR - Exception occurred in function on_join. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\game_bp.py", line 267, in on_join
+    players_list.game_bpend({'user_id': player.player_id, 'username': player.username})
+    ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'game_bpend'
+2023-08-24 13:07:21,231 - flask_app - ERROR - Exception occurred in function game_play. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\game_bp.py", line 151, in game_play
+    players.game_bpend(player)
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'game_bpend'
+2023-08-24 13:18:07,579 - flask_app - ERROR - Exception occurred in function why_wrong. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 874, in why_wrong
+    ww_prompt = open_ai_caller.why_wrong_builder(c_card_id)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AiCaller' object has no attribute 'why_wrong_builder'
+2023-08-24 13:18:09,773 - flask_app - ERROR - Exception occurred in function why_wrong. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 874, in why_wrong
+    ww_prompt = open_ai_caller.why_wrong_builder(c_card_id)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AiCaller' object has no attribute 'why_wrong_builder'
+2023-08-24 14:02:09,961 - flask_app - ERROR - Exception occurred in function call_credit_counter. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 94, in call_credit_counter
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 82, in call_credit_counter
+    credit = round(tokens_to_credit(tokens_general(form)), 1)
+                                    ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 294, in tokens_general
+    return convert_time_to_tokens(duration)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 579, in convert_time_to_tokens
+    logger.info("converting time to tokens")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2023-08-24 14:03:34,707 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:03:34,710 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 139, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:06:24,609 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:06:24,616 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:10:18,156 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:10:18,162 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:12:53,513 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:12:53,517 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:13:55,813 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:13:55,818 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:14:52,215 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:14:52,219 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:15:36,665 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:15:36,669 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:17:10,909 - flask_app - ERROR - 'Extractor' object has no attribute 'type'
+2023-08-24 14:17:10,914 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 57, in extract
+    extract_obj.save_source_text()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 179, in save_source_text
+    if self.type not in ['.wav', '.mp3']:
+       ^^^^^^^^^
+AttributeError: 'Extractor' object has no attribute 'type'
+2023-08-24 14:25:15,564 - flask_app - ERROR - 'Extractor' object has no attribute 'type'
+2023-08-24 14:25:15,568 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 58, in extract
+    extract_obj.create_jobs()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 208, in create_jobs
+    self.notification_creator()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 246, in notification_creator
+    input_details=self.type)
+                  ^^^^^^^^^
+AttributeError: 'Extractor' object has no attribute 'type'

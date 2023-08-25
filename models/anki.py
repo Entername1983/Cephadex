@@ -104,7 +104,8 @@ def check_anki_connect() -> bool:
         else:
             raise ValueError('Anki Connect server returned non-200 status: {}'.format(response.status))
     except Exception as e:
-        print("Error: {}".format(e))
+        ## TO DO implement better error handling here
+        print(f"Error: {e}")
         return False
 
 
@@ -145,10 +146,7 @@ def anki_import_deck(deck_name: str) -> str:
 
 
 def quote_deck_name_if_needed(deck_name: str) -> str:
-    if ' ' in deck_name:
-        return '"{}"'.format(deck_name)
-    else:
-        return deck_name
+    return f'"{deck_name}"' if ' ' in deck_name else deck_name
 
 
 
@@ -214,6 +212,7 @@ def request_anki(payload: bytes) -> Optional[dict[str, Any]]:
             )
         )
     except Exception as e:
+        ## TO DO implement better error handling here
         print(f"Error: {e}")
         return None
 

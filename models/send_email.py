@@ -1,21 +1,16 @@
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import os
-import logging
-import logging.handlers
+from models.helpers.log_decorators import log_decorator
 
-
-
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
-
+@log_decorator
 def send_email( recipients, first_name, template_name,
                 subject = None, text_body = None,
-                html_body = None, sender = None, payload = None, link = None):
-    
+                html_body = None, sender = None, payload = None, link = None, api_key = None):
+    SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
+
+    if SEND_GRID_KEY is None:
+        SEND_GRID_KEY = api_key
     email_template = {
         'deck_ready': 'd-29696fa7e9e84eb7a81d04491e24e212',
         'welcome': 'd-35f9b384cd83460eac6601895e36a645',
@@ -43,11 +38,14 @@ def send_email( recipients, first_name, template_name,
         response = sg.send(message)
         print(response.status_code)
     except Exception as e:
-        logging.error("Error sending email %s", e)
         print(e.message)
 
+@log_decorator
+def send_email_report(recipient, body, api_key = None):
+    SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
 
-def send_email_report(recipient, body):
+    if SEND_GRID_KEY is None:
+        SEND_GRID_KEY = api_key
     message = Mail(
         from_email='cephadex@cephadex.com',
         to_emails=recipient,
@@ -58,5 +56,5 @@ def send_email_report(recipient, body):
         response = sg.send(message)
         print(response.status_code)
     except Exception as e:
-        logging.error("Error sending email %s", e)
-        print(e.message)
+        print(SEND_GRID_KEY)
+        print(e)

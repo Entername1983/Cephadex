@@ -60,7 +60,7 @@ def create_group():
         new_group = Group(name=name, description=description,
                         group_type=group_type, is_private=private, creator_id=user_id)
         db.session.add(new_group)
-        new_group.users.group_bpend(current_user)
+        new_group.users.append(current_user)
         db.session.commit()
         update_member_permissions(new_group.id, user_id, "write")
         db.session.commit()
@@ -87,7 +87,7 @@ def invite_group():
             already_invited = GroupInvite().query.filter_by(user_id=user.id,
                                                             group_id=group_id).first()
             if user is None:
-                not_users.group_bpend(email)
+                not_users.append(email)
             elif already_invited is None:
                 if user not in group.users:
                     new_invite = GroupInvite(name = group.name,
@@ -103,7 +103,7 @@ def invite_group():
     else:
         user = User.query.filter_by(email=user_email).first()
         if user is None:
-            not_users.group_bpend(user_email)
+            not_users.append(user_email)
         else:
             new_invite = GroupInvite(name = group.name,
                         invited_by_email=current_user.email,
@@ -311,7 +311,7 @@ def add_deck_to_group():
             trans_option=card.trans_option, len_option=card.len_option,
             qmin_option=card.qmin_option, qmax_option=card.qmax_option,
             diff_lvl=card.diff_lvl)
-        new_deck.cards.group_bpend(new_card)
+        new_deck.cards.append(new_card)
     db.session.commit()
     return jsonify({"status": "success"})
 
@@ -364,7 +364,7 @@ def import_from_group(deck_id, group_id):
             prompt_option2=card.prompt_option2, trans_option=card.trans_option,
             len_option=card.len_option, qmin_option=card.qmin_option,
             qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-        new_deck.cards.group_bpend(new_card)
+        new_deck.cards.append(new_card)
     db.session.add(new_deck)
     return jsonify({"message": "Deck imported successfully", "status": "success"})
 

@@ -2578,3 +2578,1397 @@ NameError: name 'DeckFiles' is not defined
 2023-08-22 17:05:32,461 - flask_app - INFO - Exiting function query
 2023-08-22 17:05:32,461 - flask_app - INFO - Entering function after_request
 2023-08-22 17:05:32,462 - flask_app - INFO - Exiting function after_request
+2023-08-23 16:49:49,272 - flask_app - INFO - Entering function send_email_report
+2023-08-23 16:49:50,572 - flask_app - INFO - Exiting function send_email_report
+2023-08-24 12:32:40,865 - flask_app - INFO - Entering function send_email_report
+2023-08-24 12:32:42,803 - flask_app - INFO - Exiting function send_email_report
+2023-08-24 13:06:20,469 - flask_app - INFO - Entering function index
+2023-08-24 13:06:20,637 - flask_app - INFO - Exiting function index
+2023-08-24 13:06:27,790 - flask_app - INFO - Entering function googleSignIn
+2023-08-24 13:06:28,081 - flask_app - INFO - Exiting function googleSignIn
+2023-08-24 13:06:28,100 - flask_app - INFO - Entering function viewdecks
+2023-08-24 13:06:30,227 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 13:06:31,141 - flask_app - INFO - Entering function query
+2023-08-24 13:06:31,190 - flask_app - INFO - Entering function query
+2023-08-24 13:06:31,385 - flask_app - INFO - Exiting function query
+2023-08-24 13:06:31,385 - flask_app - INFO - Exiting function query
+2023-08-24 13:06:55,620 - flask_app - INFO - Entering function viewdecks
+2023-08-24 13:06:57,528 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 13:06:58,169 - flask_app - INFO - Entering function query
+2023-08-24 13:06:58,169 - flask_app - INFO - Entering function query
+2023-08-24 13:06:58,189 - flask_app - INFO - Exiting function query
+2023-08-24 13:06:58,189 - flask_app - INFO - Exiting function query
+2023-08-24 13:07:00,565 - flask_app - INFO - Entering function query
+2023-08-24 13:07:00,587 - flask_app - INFO - Exiting function query
+2023-08-24 13:07:05,696 - flask_app - INFO - Entering function query
+2023-08-24 13:07:05,715 - flask_app - INFO - Exiting function query
+2023-08-24 13:07:09,876 - flask_app - INFO - Entering function game_lobby
+2023-08-24 13:07:09,932 - flask_app - INFO - Exiting function game_lobby
+2023-08-24 13:07:10,575 - flask_app - INFO - Entering function query
+2023-08-24 13:07:10,604 - flask_app - INFO - Exiting function query
+2023-08-24 13:07:10,837 - flask_app - INFO - Entering function on_join
+2023-08-24 13:07:10,852 - flask_app - ERROR - Exception occurred in function on_join. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\game_bp.py", line 267, in on_join
+    players_list.append({'user_id': player.player_id, 'username': player.username})
+    ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'game_bpend'
+2023-08-24 13:07:15,642 - flask_app - INFO - Entering function query
+2023-08-24 13:07:15,661 - flask_app - INFO - Exiting function query
+2023-08-24 13:07:20,657 - flask_app - INFO - Entering function query
+2023-08-24 13:07:20,678 - flask_app - INFO - Exiting function query
+2023-08-24 13:07:20,905 - flask_app - INFO - Entering function start_game
+2023-08-24 13:07:20,917 - flask_app - INFO - Exiting function start_game
+2023-08-24 13:07:21,227 - flask_app - INFO - Entering function game_play
+2023-08-24 13:07:21,231 - flask_app - ERROR - Exception occurred in function game_play. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\game_bp.py", line 151, in game_play
+    players.game_bpend(player)
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'game_bpend'
+2023-08-24 13:12:18,110 - flask_app - INFO - Entering function query
+2023-08-24 13:12:18,167 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:19,319 - flask_app - INFO - Entering function viewdecks
+2023-08-24 13:12:21,708 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 13:12:22,067 - flask_app - INFO - Entering function index
+2023-08-24 13:12:22,070 - flask_app - INFO - Exiting function index
+2023-08-24 13:12:22,438 - flask_app - INFO - Entering function viewdecks
+2023-08-24 13:12:22,568 - flask_app - INFO - Entering function query
+2023-08-24 13:12:22,569 - flask_app - INFO - Entering function query
+2023-08-24 13:12:22,740 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:22,741 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:23,979 - flask_app - INFO - Entering function query
+2023-08-24 13:12:24,019 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:25,422 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 13:12:29,051 - flask_app - INFO - Entering function query
+2023-08-24 13:12:29,073 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:31,542 - flask_app - INFO - Entering function game_lobby
+2023-08-24 13:12:31,574 - flask_app - INFO - Exiting function game_lobby
+2023-08-24 13:12:32,232 - flask_app - INFO - Entering function query
+2023-08-24 13:12:32,263 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:32,475 - flask_app - INFO - Entering function on_join
+2023-08-24 13:12:32,485 - flask_app - INFO - Exiting function on_join
+2023-08-24 13:12:34,057 - flask_app - INFO - Entering function start_game
+2023-08-24 13:12:34,069 - flask_app - INFO - Exiting function start_game
+2023-08-24 13:12:34,384 - flask_app - INFO - Entering function game_play
+2023-08-24 13:12:34,405 - flask_app - INFO - Exiting function game_play
+2023-08-24 13:12:34,960 - flask_app - INFO - Entering function query
+2023-08-24 13:12:34,992 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:35,036 - flask_app - INFO - Entering function on_join
+2023-08-24 13:12:35,049 - flask_app - INFO - Exiting function on_join
+2023-08-24 13:12:40,050 - flask_app - INFO - Entering function query
+2023-08-24 13:12:40,073 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:45,060 - flask_app - INFO - Entering function query
+2023-08-24 13:12:45,081 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:48,241 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:12:48,277 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:12:49,762 - flask_app - INFO - Entering function query
+2023-08-24 13:12:49,780 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:54,495 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 13:12:54,522 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 13:12:54,804 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 13:12:54,810 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 13:12:55,084 - flask_app - INFO - Entering function query
+2023-08-24 13:12:55,104 - flask_app - INFO - Exiting function query
+2023-08-24 13:12:55,132 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:12:55,135 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:13:00,026 - flask_app - INFO - Entering function submit_vote
+2023-08-24 13:13:00,052 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 13:13:00,087 - flask_app - INFO - Entering function query
+2023-08-24 13:13:00,110 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:00,334 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 13:13:00,341 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 13:13:00,660 - flask_app - INFO - Entering function count_votes
+2023-08-24 13:13:00,678 - flask_app - INFO - Exiting function count_votes
+2023-08-24 13:13:00,906 - flask_app - INFO - Entering function update_scores
+2023-08-24 13:13:00,910 - flask_app - INFO - Exiting function update_scores
+2023-08-24 13:13:04,727 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:13:04,745 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:13:05,097 - flask_app - INFO - Entering function query
+2023-08-24 13:13:05,120 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:09,785 - flask_app - INFO - Entering function query
+2023-08-24 13:13:09,805 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:11,501 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 13:13:11,516 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 13:13:11,814 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 13:13:11,819 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 13:13:12,127 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:13:12,129 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:13:14,800 - flask_app - INFO - Entering function query
+2023-08-24 13:13:14,820 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:15,824 - flask_app - INFO - Entering function submit_vote
+2023-08-24 13:13:15,839 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 13:13:16,137 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 13:13:16,142 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 13:13:16,448 - flask_app - INFO - Entering function count_votes
+2023-08-24 13:13:16,459 - flask_app - INFO - Exiting function count_votes
+2023-08-24 13:13:16,714 - flask_app - INFO - Entering function update_scores
+2023-08-24 13:13:16,720 - flask_app - INFO - Exiting function update_scores
+2023-08-24 13:13:20,115 - flask_app - INFO - Entering function query
+2023-08-24 13:13:20,135 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:25,113 - flask_app - INFO - Entering function query
+2023-08-24 13:13:25,134 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:29,146 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:13:29,162 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:13:29,810 - flask_app - INFO - Entering function query
+2023-08-24 13:13:29,832 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:35,118 - flask_app - INFO - Entering function query
+2023-08-24 13:13:35,136 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:35,291 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 13:13:35,307 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 13:13:35,600 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 13:13:35,605 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 13:13:35,912 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:13:35,916 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:13:39,812 - flask_app - INFO - Entering function query
+2023-08-24 13:13:39,833 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:45,137 - flask_app - INFO - Entering function query
+2023-08-24 13:13:45,155 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:46,828 - flask_app - INFO - Entering function submit_vote
+2023-08-24 13:13:46,845 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 13:13:47,136 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 13:13:47,141 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 13:13:47,449 - flask_app - INFO - Entering function count_votes
+2023-08-24 13:13:47,460 - flask_app - INFO - Exiting function count_votes
+2023-08-24 13:13:47,712 - flask_app - INFO - Entering function update_scores
+2023-08-24 13:13:47,718 - flask_app - INFO - Exiting function update_scores
+2023-08-24 13:13:50,135 - flask_app - INFO - Entering function query
+2023-08-24 13:13:50,155 - flask_app - INFO - Exiting function query
+2023-08-24 13:13:52,057 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:13:52,080 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:13:52,958 - flask_app - INFO - Entering function end_game
+2023-08-24 13:13:52,959 - flask_app - INFO - Exiting function end_game
+2023-08-24 13:13:54,829 - flask_app - INFO - Entering function query
+2023-08-24 13:13:54,848 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:00,142 - flask_app - INFO - Entering function query
+2023-08-24 13:14:00,163 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:03,487 - flask_app - INFO - Entering function test_results_overview
+2023-08-24 13:14:03,532 - flask_app - INFO - Exiting function test_results_overview
+2023-08-24 13:14:04,065 - flask_app - INFO - Entering function query
+2023-08-24 13:14:04,096 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:05,913 - flask_app - INFO - Entering function my_groups
+2023-08-24 13:14:05,955 - flask_app - INFO - Exiting function my_groups
+2023-08-24 13:14:06,299 - flask_app - INFO - Entering function query
+2023-08-24 13:14:06,324 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:08,119 - flask_app - INFO - Entering function public_decks
+2023-08-24 13:14:08,141 - flask_app - INFO - Exiting function public_decks
+2023-08-24 13:14:08,472 - flask_app - INFO - Entering function query
+2023-08-24 13:14:08,498 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:10,181 - flask_app - INFO - Entering function query
+2023-08-24 13:14:10,209 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:10,397 - flask_app - INFO - Entering function study_select
+2023-08-24 13:14:10,428 - flask_app - INFO - Exiting function study_select
+2023-08-24 13:14:10,746 - flask_app - INFO - Entering function query
+2023-08-24 13:14:10,766 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:11,967 - flask_app - INFO - Entering function query
+2023-08-24 13:14:12,008 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:17,076 - flask_app - INFO - Entering function query
+2023-08-24 13:14:17,095 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:21,773 - flask_app - INFO - Entering function query
+2023-08-24 13:14:21,793 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:27,090 - flask_app - INFO - Entering function query
+2023-08-24 13:14:27,109 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:31,794 - flask_app - INFO - Entering function query
+2023-08-24 13:14:31,812 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:33,652 - flask_app - INFO - Entering function extract
+2023-08-24 13:14:33,693 - flask_app - INFO - Exiting function extract
+2023-08-24 13:14:34,038 - flask_app - INFO - Entering function query
+2023-08-24 13:14:34,066 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:34,986 - flask_app - INFO - Entering function viewdecks
+2023-08-24 13:14:35,925 - flask_app - INFO - Entering function study_select
+2023-08-24 13:14:35,964 - flask_app - INFO - Exiting function study_select
+2023-08-24 13:14:36,303 - flask_app - INFO - Entering function query
+2023-08-24 13:14:36,334 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:37,302 - flask_app - INFO - Entering function query
+2023-08-24 13:14:37,347 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:38,148 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 13:14:39,811 - flask_app - INFO - Entering function test_results_overview
+2023-08-24 13:14:39,830 - flask_app - INFO - Exiting function test_results_overview
+2023-08-24 13:14:40,162 - flask_app - INFO - Entering function query
+2023-08-24 13:14:40,187 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:40,588 - flask_app - INFO - Entering function my_groups
+2023-08-24 13:14:40,600 - flask_app - INFO - Exiting function my_groups
+2023-08-24 13:14:40,923 - flask_app - INFO - Entering function query
+2023-08-24 13:14:40,948 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:42,215 - flask_app - INFO - Entering function query
+2023-08-24 13:14:42,243 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:42,433 - flask_app - INFO - Entering function study_select
+2023-08-24 13:14:42,456 - flask_app - INFO - Exiting function study_select
+2023-08-24 13:14:42,865 - flask_app - INFO - Entering function query
+2023-08-24 13:14:42,903 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:43,867 - flask_app - INFO - Entering function test_results_overview
+2023-08-24 13:14:43,890 - flask_app - INFO - Exiting function test_results_overview
+2023-08-24 13:14:44,232 - flask_app - INFO - Entering function query
+2023-08-24 13:14:44,258 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:45,443 - flask_app - INFO - Entering function query
+2023-08-24 13:14:45,476 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:50,515 - flask_app - INFO - Entering function query
+2023-08-24 13:14:50,537 - flask_app - INFO - Exiting function query
+2023-08-24 13:14:55,213 - flask_app - INFO - Entering function query
+2023-08-24 13:14:55,247 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:00,526 - flask_app - INFO - Entering function query
+2023-08-24 13:15:00,548 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:05,222 - flask_app - INFO - Entering function query
+2023-08-24 13:15:05,247 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:10,547 - flask_app - INFO - Entering function query
+2023-08-24 13:15:10,567 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:14,882 - flask_app - INFO - Entering function game_lobby
+2023-08-24 13:15:14,893 - flask_app - INFO - Exiting function game_lobby
+2023-08-24 13:15:15,533 - flask_app - INFO - Entering function query
+2023-08-24 13:15:15,558 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:15,846 - flask_app - INFO - Entering function on_join
+2023-08-24 13:15:15,858 - flask_app - INFO - Exiting function on_join
+2023-08-24 13:15:18,948 - flask_app - INFO - Entering function start_game
+2023-08-24 13:15:18,956 - flask_app - INFO - Exiting function start_game
+2023-08-24 13:15:19,272 - flask_app - INFO - Entering function game_play
+2023-08-24 13:15:19,281 - flask_app - INFO - Exiting function game_play
+2023-08-24 13:15:19,605 - flask_app - INFO - Entering function query
+2023-08-24 13:15:19,630 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:19,915 - flask_app - INFO - Entering function on_join
+2023-08-24 13:15:19,922 - flask_app - INFO - Exiting function on_join
+2023-08-24 13:15:23,646 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:15:23,671 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:15:24,610 - flask_app - INFO - Entering function query
+2023-08-24 13:15:24,628 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:29,935 - flask_app - INFO - Entering function query
+2023-08-24 13:15:29,953 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:34,941 - flask_app - INFO - Entering function query
+2023-08-24 13:15:34,960 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:39,939 - flask_app - INFO - Entering function query
+2023-08-24 13:15:39,958 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:41,755 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 13:15:41,770 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 13:15:42,065 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 13:15:42,071 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 13:15:42,391 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:15:42,394 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:15:44,940 - flask_app - INFO - Entering function query
+2023-08-24 13:15:44,963 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:46,020 - flask_app - INFO - Entering function submit_vote
+2023-08-24 13:15:46,029 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 13:15:46,332 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 13:15:46,336 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 13:15:46,646 - flask_app - INFO - Entering function count_votes
+2023-08-24 13:15:46,658 - flask_app - INFO - Exiting function count_votes
+2023-08-24 13:15:46,906 - flask_app - INFO - Entering function update_scores
+2023-08-24 13:15:46,912 - flask_app - INFO - Exiting function update_scores
+2023-08-24 13:15:49,945 - flask_app - INFO - Entering function query
+2023-08-24 13:15:49,965 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:50,814 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:15:50,841 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:15:54,635 - flask_app - INFO - Entering function query
+2023-08-24 13:15:54,652 - flask_app - INFO - Exiting function query
+2023-08-24 13:15:59,949 - flask_app - INFO - Entering function query
+2023-08-24 13:15:59,968 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:04,951 - flask_app - INFO - Entering function query
+2023-08-24 13:16:04,967 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:09,946 - flask_app - INFO - Entering function query
+2023-08-24 13:16:09,965 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:10,854 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 13:16:10,861 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 13:16:11,157 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 13:16:11,164 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 13:16:11,484 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:16:11,486 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:16:14,643 - flask_app - INFO - Entering function query
+2023-08-24 13:16:14,662 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:16,665 - flask_app - INFO - Entering function submit_vote
+2023-08-24 13:16:16,681 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 13:16:16,977 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 13:16:16,982 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 13:16:17,287 - flask_app - INFO - Entering function count_votes
+2023-08-24 13:16:17,298 - flask_app - INFO - Exiting function count_votes
+2023-08-24 13:16:17,551 - flask_app - INFO - Entering function update_scores
+2023-08-24 13:16:17,556 - flask_app - INFO - Exiting function update_scores
+2023-08-24 13:16:19,959 - flask_app - INFO - Entering function query
+2023-08-24 13:16:19,978 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:22,001 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:16:22,026 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:16:24,658 - flask_app - INFO - Entering function query
+2023-08-24 13:16:24,674 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:29,975 - flask_app - INFO - Entering function query
+2023-08-24 13:16:29,994 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:34,981 - flask_app - INFO - Entering function query
+2023-08-24 13:16:34,998 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:39,975 - flask_app - INFO - Entering function query
+2023-08-24 13:16:39,994 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:40,639 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 13:16:40,649 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 13:16:40,947 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 13:16:40,952 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 13:16:41,260 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:16:41,262 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:16:44,681 - flask_app - INFO - Entering function query
+2023-08-24 13:16:44,700 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:49,993 - flask_app - INFO - Entering function query
+2023-08-24 13:16:50,011 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:55,006 - flask_app - INFO - Entering function query
+2023-08-24 13:16:55,025 - flask_app - INFO - Exiting function query
+2023-08-24 13:16:55,903 - flask_app - INFO - Entering function submit_vote
+2023-08-24 13:16:55,917 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 13:16:56,212 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 13:16:56,216 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 13:16:56,523 - flask_app - INFO - Entering function count_votes
+2023-08-24 13:16:56,560 - flask_app - INFO - Exiting function count_votes
+2023-08-24 13:16:56,785 - flask_app - INFO - Entering function update_scores
+2023-08-24 13:16:56,791 - flask_app - INFO - Exiting function update_scores
+2023-08-24 13:17:00,006 - flask_app - INFO - Entering function query
+2023-08-24 13:17:00,025 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:00,815 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:17:00,817 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:17:04,704 - flask_app - INFO - Entering function query
+2023-08-24 13:17:04,724 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:05,044 - flask_app - INFO - Entering function submit_vote
+2023-08-24 13:17:05,054 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 13:17:05,355 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 13:17:05,359 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 13:17:06,362 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:17:06,365 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:17:07,279 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:17:07,281 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:17:08,353 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:17:08,355 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:17:10,006 - flask_app - INFO - Entering function query
+2023-08-24 13:17:10,027 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:10,037 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:17:10,065 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:17:14,710 - flask_app - INFO - Entering function query
+2023-08-24 13:17:14,728 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:20,022 - flask_app - INFO - Entering function query
+2023-08-24 13:17:20,040 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:25,017 - flask_app - INFO - Entering function query
+2023-08-24 13:17:25,036 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:25,465 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 13:17:25,474 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 13:17:25,776 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 13:17:25,784 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 13:17:26,186 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 13:17:26,190 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 13:17:30,033 - flask_app - INFO - Entering function query
+2023-08-24 13:17:30,050 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:35,024 - flask_app - INFO - Entering function query
+2023-08-24 13:17:35,044 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:37,275 - flask_app - INFO - Entering function submit_vote
+2023-08-24 13:17:37,311 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 13:17:37,589 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 13:17:37,594 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 13:17:37,915 - flask_app - INFO - Entering function count_votes
+2023-08-24 13:17:37,931 - flask_app - INFO - Exiting function count_votes
+2023-08-24 13:17:38,164 - flask_app - INFO - Entering function update_scores
+2023-08-24 13:17:38,170 - flask_app - INFO - Exiting function update_scores
+2023-08-24 13:17:40,031 - flask_app - INFO - Entering function query
+2023-08-24 13:17:40,050 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:41,551 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 13:17:41,576 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 13:17:44,191 - flask_app - INFO - Entering function extract
+2023-08-24 13:17:44,206 - flask_app - INFO - Exiting function extract
+2023-08-24 13:17:44,537 - flask_app - INFO - Entering function query
+2023-08-24 13:17:44,558 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:46,489 - flask_app - INFO - Entering function viewdecks
+2023-08-24 13:17:48,652 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 13:17:49,306 - flask_app - INFO - Entering function query
+2023-08-24 13:17:49,307 - flask_app - INFO - Entering function query
+2023-08-24 13:17:49,329 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:49,333 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:50,087 - flask_app - INFO - Entering function study_select
+2023-08-24 13:17:50,104 - flask_app - INFO - Exiting function study_select
+2023-08-24 13:17:50,468 - flask_app - INFO - Entering function query
+2023-08-24 13:17:50,496 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:52,810 - flask_app - INFO - Entering function study_select
+2023-08-24 13:17:52,827 - flask_app - INFO - Exiting function study_select
+2023-08-24 13:17:52,834 - flask_app - INFO - Entering function study_deck
+2023-08-24 13:17:52,873 - flask_app - INFO - Exiting function study_deck
+2023-08-24 13:17:53,550 - flask_app - INFO - Entering function query
+2023-08-24 13:17:53,551 - flask_app - INFO - Entering function get_due_cards
+2023-08-24 13:17:53,571 - flask_app - INFO - Exiting function get_due_cards
+2023-08-24 13:17:53,587 - flask_app - INFO - Exiting function query
+2023-08-24 13:17:57,803 - flask_app - INFO - Entering function increment
+2023-08-24 13:17:57,818 - flask_app - INFO - Exiting function increment
+2023-08-24 13:17:58,116 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:17:58,125 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:17:58,439 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:17:58,448 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:17:58,608 - flask_app - INFO - Entering function query
+2023-08-24 13:17:58,628 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:00,548 - flask_app - INFO - Entering function increment
+2023-08-24 13:18:00,550 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:18:00,562 - flask_app - INFO - Exiting function increment
+2023-08-24 13:18:00,565 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:18:00,811 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:18:00,819 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:18:02,546 - flask_app - INFO - Entering function increment
+2023-08-24 13:18:02,555 - flask_app - INFO - Exiting function increment
+2023-08-24 13:18:02,856 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:18:02,865 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:18:03,179 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:18:03,188 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:18:03,607 - flask_app - INFO - Entering function query
+2023-08-24 13:18:03,628 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:04,344 - flask_app - INFO - Entering function increment
+2023-08-24 13:18:04,352 - flask_app - INFO - Exiting function increment
+2023-08-24 13:18:04,648 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:18:04,658 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:18:04,974 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:18:04,982 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:18:05,653 - flask_app - INFO - Entering function increment
+2023-08-24 13:18:05,655 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:18:05,667 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:18:05,669 - flask_app - INFO - Exiting function increment
+2023-08-24 13:18:05,896 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:18:05,903 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:18:07,577 - flask_app - INFO - Entering function why_wrong
+2023-08-24 13:18:07,579 - flask_app - ERROR - Exception occurred in function why_wrong. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 874, in why_wrong
+    ww_prompt = open_ai_caller.why_wrong_builder(c_card_id)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AiCaller' object has no attribute 'why_wrong_builder'
+2023-08-24 13:18:08,308 - flask_app - INFO - Entering function query
+2023-08-24 13:18:08,330 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:09,771 - flask_app - INFO - Entering function why_wrong
+2023-08-24 13:18:09,773 - flask_app - ERROR - Exception occurred in function why_wrong. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 874, in why_wrong
+    ww_prompt = open_ai_caller.why_wrong_builder(c_card_id)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AiCaller' object has no attribute 'why_wrong_builder'
+2023-08-24 13:18:13,319 - flask_app - INFO - Entering function query
+2023-08-24 13:18:13,339 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:19,575 - flask_app - INFO - Entering function query
+2023-08-24 13:18:19,595 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:25,258 - flask_app - INFO - Entering function query
+2023-08-24 13:18:25,277 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:31,570 - flask_app - INFO - Entering function query
+2023-08-24 13:18:31,589 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:37,269 - flask_app - INFO - Entering function query
+2023-08-24 13:18:37,288 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:43,569 - flask_app - INFO - Entering function query
+2023-08-24 13:18:43,590 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:49,262 - flask_app - INFO - Entering function query
+2023-08-24 13:18:49,282 - flask_app - INFO - Exiting function query
+2023-08-24 13:18:55,562 - flask_app - INFO - Entering function query
+2023-08-24 13:18:55,583 - flask_app - INFO - Exiting function query
+2023-08-24 13:19:01,269 - flask_app - INFO - Entering function query
+2023-08-24 13:19:01,289 - flask_app - INFO - Exiting function query
+2023-08-24 13:19:07,570 - flask_app - INFO - Entering function query
+2023-08-24 13:19:07,589 - flask_app - INFO - Exiting function query
+2023-08-24 13:19:52,267 - flask_app - INFO - Entering function query
+2023-08-24 13:19:52,285 - flask_app - INFO - Exiting function query
+2023-08-24 13:20:52,568 - flask_app - INFO - Entering function query
+2023-08-24 13:20:52,590 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:22,177 - flask_app - INFO - Entering function query
+2023-08-24 13:21:22,312 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:23,046 - flask_app - INFO - Entering function why_wrong
+2023-08-24 13:21:25,953 - flask_app - INFO - Entering function query
+2023-08-24 13:21:25,977 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:28,561 - flask_app - INFO - Exiting function why_wrong
+2023-08-24 13:21:31,273 - flask_app - INFO - Entering function query
+2023-08-24 13:21:31,295 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:35,963 - flask_app - INFO - Entering function query
+2023-08-24 13:21:35,982 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:41,282 - flask_app - INFO - Entering function query
+2023-08-24 13:21:41,302 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:45,976 - flask_app - INFO - Entering function query
+2023-08-24 13:21:45,994 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:46,795 - flask_app - INFO - Entering function decrement
+2023-08-24 13:21:46,795 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:46,824 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:46,826 - flask_app - INFO - Exiting function decrement
+2023-08-24 13:21:47,059 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:47,065 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:50,588 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:50,626 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:50,895 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:50,902 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:51,218 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:51,225 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:51,292 - flask_app - INFO - Entering function query
+2023-08-24 13:21:51,311 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:52,019 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:52,021 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:52,037 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:52,041 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:52,265 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:52,276 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:52,789 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:52,800 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:53,094 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:53,100 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:53,417 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:53,425 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:53,848 - flask_app - INFO - Entering function study_deck
+2023-08-24 13:21:53,849 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:53,870 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:53,873 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:53,909 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:53,920 - flask_app - INFO - Exiting function study_deck
+2023-08-24 13:21:54,512 - flask_app - INFO - Entering function query
+2023-08-24 13:21:54,513 - flask_app - INFO - Entering function get_due_cards
+2023-08-24 13:21:54,534 - flask_app - INFO - Exiting function get_due_cards
+2023-08-24 13:21:54,536 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:55,736 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:55,752 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:55,758 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:55,767 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:55,772 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:55,781 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:56,358 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:56,360 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:56,375 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:56,379 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:56,617 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:56,626 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:56,697 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:56,709 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:56,974 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:56,981 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:56,988 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:57,093 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:57,645 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:57,646 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:57,657 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:57,659 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:57,907 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:57,914 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:58,093 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:58,101 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:58,405 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:58,414 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:58,732 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:58,737 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:59,274 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:59,284 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:59,537 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:59,547 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:59,597 - flask_app - INFO - Entering function query
+2023-08-24 13:21:59,615 - flask_app - INFO - Exiting function query
+2023-08-24 13:21:59,677 - flask_app - INFO - Entering function increment
+2023-08-24 13:21:59,690 - flask_app - INFO - Exiting function increment
+2023-08-24 13:21:59,956 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:59,963 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:21:59,969 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:21:59,979 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:00,657 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:00,657 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:00,694 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:00,699 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:00,902 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:00,910 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:01,080 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:01,094 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:01,384 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:01,393 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:01,710 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:01,717 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:02,112 - flask_app - INFO - Entering function study_deck
+2023-08-24 13:22:02,114 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:02,132 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:02,135 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:02,149 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:02,150 - flask_app - INFO - Exiting function study_deck
+2023-08-24 13:22:02,732 - flask_app - INFO - Entering function query
+2023-08-24 13:22:02,735 - flask_app - INFO - Entering function get_due_cards
+2023-08-24 13:22:02,750 - flask_app - INFO - Exiting function get_due_cards
+2023-08-24 13:22:02,766 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:03,941 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:03,956 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:03,972 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:03,981 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:03,986 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:03,995 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:04,641 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:04,644 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:04,659 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:04,662 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:04,899 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:04,906 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:05,124 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:05,139 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:05,439 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:05,446 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:05,765 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:05,772 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:06,324 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:06,324 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:06,340 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:06,342 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:06,589 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:06,598 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:06,877 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:06,891 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:07,183 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:07,191 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:07,497 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:07,505 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:07,801 - flask_app - INFO - Entering function query
+2023-08-24 13:22:07,821 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:08,577 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:08,577 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:08,596 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:08,599 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:08,839 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:08,850 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:09,781 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:09,796 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:10,091 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:10,100 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:10,417 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:10,425 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:11,303 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:11,303 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:11,322 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:11,324 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:11,567 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:11,574 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:12,298 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:12,312 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:12,605 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:12,612 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:12,818 - flask_app - INFO - Entering function query
+2023-08-24 13:22:12,834 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:12,929 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:12,935 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:15,268 - flask_app - INFO - Entering function study_deck
+2023-08-24 13:22:15,270 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:15,285 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:15,288 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:15,298 - flask_app - INFO - Exiting function study_deck
+2023-08-24 13:22:15,305 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:15,845 - flask_app - INFO - Entering function query
+2023-08-24 13:22:15,849 - flask_app - INFO - Entering function get_due_cards
+2023-08-24 13:22:15,861 - flask_app - INFO - Exiting function get_due_cards
+2023-08-24 13:22:15,870 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:17,055 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:17,063 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:17,070 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:17,077 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:17,939 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:17,939 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:17,952 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:17,954 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:18,199 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:18,209 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:19,583 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:19,597 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:19,900 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:19,907 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:20,214 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:20,221 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:20,913 - flask_app - INFO - Entering function query
+2023-08-24 13:22:20,931 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:21,610 - flask_app - INFO - Entering function increment
+2023-08-24 13:22:21,626 - flask_app - INFO - Exiting function increment
+2023-08-24 13:22:21,918 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:21,926 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:22,241 - flask_app - INFO - Entering function update_study_data
+2023-08-24 13:22:22,249 - flask_app - INFO - Exiting function update_study_data
+2023-08-24 13:22:25,932 - flask_app - INFO - Entering function query
+2023-08-24 13:22:25,950 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:30,631 - flask_app - INFO - Entering function query
+2023-08-24 13:22:30,649 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:35,948 - flask_app - INFO - Entering function query
+2023-08-24 13:22:35,967 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:40,646 - flask_app - INFO - Entering function query
+2023-08-24 13:22:40,665 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:46,573 - flask_app - INFO - Entering function query
+2023-08-24 13:22:46,593 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:52,265 - flask_app - INFO - Entering function query
+2023-08-24 13:22:52,283 - flask_app - INFO - Exiting function query
+2023-08-24 13:22:58,569 - flask_app - INFO - Entering function query
+2023-08-24 13:22:58,589 - flask_app - INFO - Exiting function query
+2023-08-24 13:23:04,264 - flask_app - INFO - Entering function query
+2023-08-24 13:23:04,284 - flask_app - INFO - Exiting function query
+2023-08-24 13:23:10,574 - flask_app - INFO - Entering function query
+2023-08-24 13:23:10,590 - flask_app - INFO - Exiting function query
+2023-08-24 13:23:16,265 - flask_app - INFO - Entering function query
+2023-08-24 13:23:16,284 - flask_app - INFO - Exiting function query
+2023-08-24 13:23:22,570 - flask_app - INFO - Entering function query
+2023-08-24 13:23:22,588 - flask_app - INFO - Exiting function query
+2023-08-24 13:23:28,262 - flask_app - INFO - Entering function query
+2023-08-24 13:23:28,281 - flask_app - INFO - Exiting function query
+2023-08-24 13:23:34,579 - flask_app - INFO - Entering function query
+2023-08-24 13:23:34,598 - flask_app - INFO - Exiting function query
+2023-08-24 13:23:40,265 - flask_app - INFO - Entering function query
+2023-08-24 13:23:40,284 - flask_app - INFO - Exiting function query
+2023-08-24 13:23:52,574 - flask_app - INFO - Entering function query
+2023-08-24 13:23:52,593 - flask_app - INFO - Exiting function query
+2023-08-24 13:24:52,256 - flask_app - INFO - Entering function query
+2023-08-24 13:24:52,278 - flask_app - INFO - Exiting function query
+2023-08-24 13:25:52,578 - flask_app - INFO - Entering function query
+2023-08-24 13:25:52,597 - flask_app - INFO - Exiting function query
+2023-08-24 13:26:52,262 - flask_app - INFO - Entering function query
+2023-08-24 13:26:52,285 - flask_app - INFO - Exiting function query
+2023-08-24 13:27:52,576 - flask_app - INFO - Entering function query
+2023-08-24 13:27:52,597 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:03,240 - flask_app - INFO - Entering function query
+2023-08-24 13:28:03,271 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:06,669 - flask_app - INFO - Entering function explain_further
+2023-08-24 13:28:08,237 - flask_app - INFO - Entering function query
+2023-08-24 13:28:08,256 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:13,560 - flask_app - INFO - Entering function query
+2023-08-24 13:28:13,580 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:18,563 - flask_app - INFO - Entering function query
+2023-08-24 13:28:18,582 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:24,579 - flask_app - INFO - Entering function query
+2023-08-24 13:28:24,598 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:26,611 - flask_app - INFO - Exiting function explain_further
+2023-08-24 13:28:30,576 - flask_app - INFO - Entering function query
+2023-08-24 13:28:30,596 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:36,260 - flask_app - INFO - Entering function query
+2023-08-24 13:28:36,279 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:41,573 - flask_app - INFO - Entering function query
+2023-08-24 13:28:41,590 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:46,259 - flask_app - INFO - Entering function query
+2023-08-24 13:28:46,278 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:51,576 - flask_app - INFO - Entering function query
+2023-08-24 13:28:51,594 - flask_app - INFO - Exiting function query
+2023-08-24 13:28:56,282 - flask_app - INFO - Entering function query
+2023-08-24 13:28:56,300 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:01,587 - flask_app - INFO - Entering function query
+2023-08-24 13:29:01,606 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:06,285 - flask_app - INFO - Entering function query
+2023-08-24 13:29:06,304 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:11,458 - flask_app - INFO - Entering function import_deck
+2023-08-24 13:29:11,470 - flask_app - INFO - Exiting function import_deck
+2023-08-24 13:29:11,799 - flask_app - INFO - Entering function query
+2023-08-24 13:29:11,859 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:15,359 - flask_app - INFO - Entering function public_decks
+2023-08-24 13:29:15,387 - flask_app - INFO - Exiting function public_decks
+2023-08-24 13:29:15,713 - flask_app - INFO - Entering function query
+2023-08-24 13:29:15,735 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:20,731 - flask_app - INFO - Entering function my_groups
+2023-08-24 13:29:20,760 - flask_app - INFO - Exiting function my_groups
+2023-08-24 13:29:21,090 - flask_app - INFO - Entering function query
+2023-08-24 13:29:21,110 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:22,415 - flask_app - INFO - Entering function public_decks
+2023-08-24 13:29:22,421 - flask_app - INFO - Exiting function public_decks
+2023-08-24 13:29:22,752 - flask_app - INFO - Entering function query
+2023-08-24 13:29:22,779 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:28,573 - flask_app - INFO - Entering function query
+2023-08-24 13:29:28,593 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:34,265 - flask_app - INFO - Entering function query
+2023-08-24 13:29:34,288 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:40,579 - flask_app - INFO - Entering function query
+2023-08-24 13:29:40,599 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:46,257 - flask_app - INFO - Entering function query
+2023-08-24 13:29:46,274 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:52,574 - flask_app - INFO - Entering function query
+2023-08-24 13:29:52,594 - flask_app - INFO - Exiting function query
+2023-08-24 13:29:58,263 - flask_app - INFO - Entering function query
+2023-08-24 13:29:58,281 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:04,576 - flask_app - INFO - Entering function query
+2023-08-24 13:30:04,594 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:10,269 - flask_app - INFO - Entering function query
+2023-08-24 13:30:10,288 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:15,595 - flask_app - INFO - Entering function query
+2023-08-24 13:30:15,616 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:20,296 - flask_app - INFO - Entering function query
+2023-08-24 13:30:20,316 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:25,603 - flask_app - INFO - Entering function query
+2023-08-24 13:30:25,623 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:30,824 - flask_app - INFO - Entering function query
+2023-08-24 13:30:30,846 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:35,625 - flask_app - INFO - Entering function query
+2023-08-24 13:30:35,645 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:41,264 - flask_app - INFO - Entering function query
+2023-08-24 13:30:41,283 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:47,565 - flask_app - INFO - Entering function query
+2023-08-24 13:30:47,585 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:53,263 - flask_app - INFO - Entering function query
+2023-08-24 13:30:53,283 - flask_app - INFO - Exiting function query
+2023-08-24 13:30:59,565 - flask_app - INFO - Entering function query
+2023-08-24 13:30:59,583 - flask_app - INFO - Exiting function query
+2023-08-24 13:31:05,260 - flask_app - INFO - Entering function query
+2023-08-24 13:31:05,282 - flask_app - INFO - Exiting function query
+2023-08-24 13:31:11,572 - flask_app - INFO - Entering function query
+2023-08-24 13:31:11,588 - flask_app - INFO - Exiting function query
+2023-08-24 13:31:17,255 - flask_app - INFO - Entering function query
+2023-08-24 13:31:17,274 - flask_app - INFO - Exiting function query
+2023-08-24 13:31:23,571 - flask_app - INFO - Entering function query
+2023-08-24 13:31:23,589 - flask_app - INFO - Exiting function query
+2023-08-24 13:31:29,256 - flask_app - INFO - Entering function query
+2023-08-24 13:31:29,275 - flask_app - INFO - Exiting function query
+2023-08-24 13:31:35,576 - flask_app - INFO - Entering function query
+2023-08-24 13:31:35,594 - flask_app - INFO - Exiting function query
+2023-08-24 13:31:52,260 - flask_app - INFO - Entering function query
+2023-08-24 13:31:52,280 - flask_app - INFO - Exiting function query
+2023-08-24 13:32:52,565 - flask_app - INFO - Entering function query
+2023-08-24 13:32:52,585 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:01,262 - flask_app - INFO - Entering function query
+2023-08-24 13:33:01,282 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:07,581 - flask_app - INFO - Entering function query
+2023-08-24 13:33:07,600 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:13,265 - flask_app - INFO - Entering function query
+2023-08-24 13:33:13,285 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:19,568 - flask_app - INFO - Entering function query
+2023-08-24 13:33:19,587 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:25,256 - flask_app - INFO - Entering function query
+2023-08-24 13:33:25,276 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:31,568 - flask_app - INFO - Entering function query
+2023-08-24 13:33:31,585 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:37,264 - flask_app - INFO - Entering function query
+2023-08-24 13:33:37,285 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:43,568 - flask_app - INFO - Entering function query
+2023-08-24 13:33:43,588 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:49,263 - flask_app - INFO - Entering function query
+2023-08-24 13:33:49,282 - flask_app - INFO - Exiting function query
+2023-08-24 13:33:55,569 - flask_app - INFO - Entering function query
+2023-08-24 13:33:55,588 - flask_app - INFO - Exiting function query
+2023-08-24 13:34:01,261 - flask_app - INFO - Entering function query
+2023-08-24 13:34:01,280 - flask_app - INFO - Exiting function query
+2023-08-24 13:34:52,569 - flask_app - INFO - Entering function query
+2023-08-24 13:34:52,588 - flask_app - INFO - Exiting function query
+2023-08-24 13:35:52,268 - flask_app - INFO - Entering function query
+2023-08-24 13:35:52,288 - flask_app - INFO - Exiting function query
+2023-08-24 13:36:52,562 - flask_app - INFO - Entering function query
+2023-08-24 13:36:52,581 - flask_app - INFO - Exiting function query
+2023-08-24 13:37:52,261 - flask_app - INFO - Entering function query
+2023-08-24 13:37:52,276 - flask_app - INFO - Exiting function query
+2023-08-24 13:38:52,576 - flask_app - INFO - Entering function query
+2023-08-24 13:38:52,595 - flask_app - INFO - Exiting function query
+2023-08-24 13:39:52,260 - flask_app - INFO - Entering function query
+2023-08-24 13:39:52,282 - flask_app - INFO - Exiting function query
+2023-08-24 13:40:52,579 - flask_app - INFO - Entering function query
+2023-08-24 13:40:52,598 - flask_app - INFO - Exiting function query
+2023-08-24 13:41:52,559 - flask_app - INFO - Entering function query
+2023-08-24 13:41:52,578 - flask_app - INFO - Exiting function query
+2023-08-24 13:42:52,261 - flask_app - INFO - Entering function query
+2023-08-24 13:42:52,280 - flask_app - INFO - Exiting function query
+2023-08-24 13:43:52,569 - flask_app - INFO - Entering function query
+2023-08-24 13:43:52,589 - flask_app - INFO - Exiting function query
+2023-08-24 13:44:52,256 - flask_app - INFO - Entering function query
+2023-08-24 13:44:52,281 - flask_app - INFO - Exiting function query
+2023-08-24 13:45:52,570 - flask_app - INFO - Entering function query
+2023-08-24 13:45:52,589 - flask_app - INFO - Exiting function query
+2023-08-24 13:46:52,269 - flask_app - INFO - Entering function query
+2023-08-24 13:46:52,288 - flask_app - INFO - Exiting function query
+2023-08-24 13:47:52,573 - flask_app - INFO - Entering function query
+2023-08-24 13:47:52,591 - flask_app - INFO - Exiting function query
+2023-08-24 13:48:52,263 - flask_app - INFO - Entering function query
+2023-08-24 13:48:52,283 - flask_app - INFO - Exiting function query
+2023-08-24 13:49:52,566 - flask_app - INFO - Entering function query
+2023-08-24 13:49:52,584 - flask_app - INFO - Exiting function query
+2023-08-24 13:50:52,270 - flask_app - INFO - Entering function query
+2023-08-24 13:50:52,297 - flask_app - INFO - Exiting function query
+2023-08-24 13:51:52,577 - flask_app - INFO - Entering function query
+2023-08-24 13:51:52,599 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:23,539 - flask_app - INFO - Entering function query
+2023-08-24 13:52:23,561 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:27,049 - flask_app - INFO - Entering function public_decks
+2023-08-24 13:52:27,140 - flask_app - INFO - Exiting function public_decks
+2023-08-24 13:52:27,481 - flask_app - INFO - Entering function query
+2023-08-24 13:52:27,501 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:29,696 - flask_app - INFO - Entering function viewdecks
+2023-08-24 13:52:31,798 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 13:52:32,445 - flask_app - INFO - Entering function query
+2023-08-24 13:52:32,446 - flask_app - INFO - Entering function query
+2023-08-24 13:52:32,478 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:32,479 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:33,695 - flask_app - INFO - Entering function deck_manager
+2023-08-24 13:52:33,753 - flask_app - INFO - Exiting function deck_manager
+2023-08-24 13:52:34,427 - flask_app - INFO - Entering function query
+2023-08-24 13:52:34,451 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:39,257 - flask_app - INFO - Entering function query
+2023-08-24 13:52:39,277 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:43,366 - flask_app - INFO - Entering function deck_manager
+2023-08-24 13:52:43,403 - flask_app - INFO - Exiting function deck_manager
+2023-08-24 13:52:44,054 - flask_app - INFO - Entering function query
+2023-08-24 13:52:44,091 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:47,525 - flask_app - INFO - Entering function public_decks
+2023-08-24 13:52:47,532 - flask_app - INFO - Exiting function public_decks
+2023-08-24 13:52:47,862 - flask_app - INFO - Entering function query
+2023-08-24 13:52:47,887 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:53,566 - flask_app - INFO - Entering function query
+2023-08-24 13:52:53,587 - flask_app - INFO - Exiting function query
+2023-08-24 13:52:58,827 - flask_app - INFO - Entering function query
+2023-08-24 13:52:58,848 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:04,564 - flask_app - INFO - Entering function query
+2023-08-24 13:53:04,584 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:10,269 - flask_app - INFO - Entering function query
+2023-08-24 13:53:10,290 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:16,580 - flask_app - INFO - Entering function query
+2023-08-24 13:53:16,598 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:22,257 - flask_app - INFO - Entering function query
+2023-08-24 13:53:22,278 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:28,569 - flask_app - INFO - Entering function query
+2023-08-24 13:53:28,588 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:34,260 - flask_app - INFO - Entering function query
+2023-08-24 13:53:34,278 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:40,577 - flask_app - INFO - Entering function query
+2023-08-24 13:53:40,596 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:46,261 - flask_app - INFO - Entering function query
+2023-08-24 13:53:46,282 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:52,569 - flask_app - INFO - Entering function query
+2023-08-24 13:53:52,588 - flask_app - INFO - Exiting function query
+2023-08-24 13:53:58,267 - flask_app - INFO - Entering function query
+2023-08-24 13:53:58,287 - flask_app - INFO - Exiting function query
+2023-08-24 13:54:18,386 - flask_app - INFO - Entering function query
+2023-08-24 13:54:18,406 - flask_app - INFO - Exiting function query
+2023-08-24 13:54:23,255 - flask_app - INFO - Entering function query
+2023-08-24 13:54:23,273 - flask_app - INFO - Exiting function query
+2023-08-24 13:54:29,580 - flask_app - INFO - Entering function query
+2023-08-24 13:54:29,600 - flask_app - INFO - Exiting function query
+2023-08-24 13:54:35,270 - flask_app - INFO - Entering function query
+2023-08-24 13:54:35,289 - flask_app - INFO - Exiting function query
+2023-08-24 13:54:41,576 - flask_app - INFO - Entering function query
+2023-08-24 13:54:41,594 - flask_app - INFO - Exiting function query
+2023-08-24 13:56:26,733 - flask_app - INFO - Entering function public_decks
+2023-08-24 13:56:26,778 - flask_app - INFO - Exiting function public_decks
+2023-08-24 13:57:23,494 - flask_app - INFO - Entering function public_decks
+2023-08-24 13:57:23,500 - flask_app - INFO - Exiting function public_decks
+2023-08-24 13:59:37,213 - flask_app - INFO - Entering function public_decks
+2023-08-24 13:59:37,243 - flask_app - INFO - Exiting function public_decks
+2023-08-24 14:00:01,881 - flask_app - INFO - Entering function public_decks
+2023-08-24 14:00:01,932 - flask_app - INFO - Exiting function public_decks
+2023-08-24 14:01:38,434 - flask_app - INFO - Entering function public_decks
+2023-08-24 14:01:38,750 - flask_app - INFO - Exiting function public_decks
+2023-08-24 14:01:51,111 - flask_app - INFO - Entering function public_decks
+2023-08-24 14:01:51,338 - flask_app - INFO - Exiting function public_decks
+2023-08-24 14:01:58,741 - flask_app - INFO - Entering function public_decks
+2023-08-24 14:01:58,855 - flask_app - INFO - Exiting function public_decks
+2023-08-24 14:02:00,048 - flask_app - INFO - Entering function import_deck
+2023-08-24 14:02:00,060 - flask_app - INFO - Exiting function import_deck
+2023-08-24 14:02:01,725 - flask_app - INFO - Entering function viewdecks
+2023-08-24 14:02:03,739 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 14:02:05,129 - flask_app - INFO - Entering function extract
+2023-08-24 14:02:05,165 - flask_app - INFO - Exiting function extract
+2023-08-24 14:02:09,510 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 14:02:09,961 - flask_app - ERROR - Exception occurred in function call_credit_counter. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 94, in call_credit_counter
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 82, in call_credit_counter
+    credit = round(tokens_to_credit(tokens_general(form)), 1)
+                                    ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 294, in tokens_general
+    return convert_time_to_tokens(duration)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 579, in convert_time_to_tokens
+    logger.info("converting time to tokens")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2023-08-24 14:03:25,901 - flask_app - INFO - Entering function extract
+2023-08-24 14:03:25,961 - flask_app - INFO - Exiting function extract
+2023-08-24 14:03:28,197 - flask_app - INFO - Entering function extract
+2023-08-24 14:03:28,214 - flask_app - INFO - Exiting function extract
+2023-08-24 14:03:31,836 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 14:03:31,884 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 14:03:34,615 - flask_app - INFO - Entering function extract
+2023-08-24 14:03:34,707 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:03:34,710 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 139, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:06:19,845 - flask_app - INFO - Entering function extract
+2023-08-24 14:06:19,912 - flask_app - INFO - Exiting function extract
+2023-08-24 14:06:23,777 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 14:06:23,827 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 14:06:24,538 - flask_app - INFO - Entering function extract
+2023-08-24 14:06:24,609 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:06:24,616 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:10:10,981 - flask_app - INFO - Entering function extract
+2023-08-24 14:10:11,052 - flask_app - INFO - Exiting function extract
+2023-08-24 14:10:12,971 - flask_app - INFO - Entering function extract
+2023-08-24 14:10:12,986 - flask_app - INFO - Exiting function extract
+2023-08-24 14:10:17,224 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 14:10:17,275 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 14:10:18,084 - flask_app - INFO - Entering function extract
+2023-08-24 14:10:18,156 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:10:18,162 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:12:48,885 - flask_app - INFO - Entering function extract
+2023-08-24 14:12:48,947 - flask_app - INFO - Exiting function extract
+2023-08-24 14:12:52,719 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 14:12:52,766 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 14:12:53,442 - flask_app - INFO - Entering function extract
+2023-08-24 14:12:53,513 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:12:53,517 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:13:55,718 - flask_app - INFO - Entering function extract
+2023-08-24 14:13:55,813 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:13:55,818 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:14:52,130 - flask_app - INFO - Entering function extract
+2023-08-24 14:14:52,215 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:14:52,219 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:15:36,586 - flask_app - INFO - Entering function extract
+2023-08-24 14:15:36,665 - flask_app - ERROR - unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:15:36,669 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 49, in extract
+    if current_user.perform_operation('extract', extract_obj.tokens) is False:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\user\user.py", line 142, in perform_operation
+    if remaining_count - n <= 0:
+       ~~~~~~~~~~~~~~~~^~~
+TypeError: unsupported operand type(s) for -: 'int' and 'NoneType'
+2023-08-24 14:17:10,838 - flask_app - INFO - Entering function extract
+2023-08-24 14:17:10,909 - flask_app - ERROR - 'Extractor' object has no attribute 'type'
+2023-08-24 14:17:10,914 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 57, in extract
+    extract_obj.save_source_text()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 179, in save_source_text
+    if self.type not in ['.wav', '.mp3']:
+       ^^^^^^^^^
+AttributeError: 'Extractor' object has no attribute 'type'
+2023-08-24 14:17:40,175 - flask_app - INFO - Entering function extract
+2023-08-24 14:17:42,315 - flask_app - INFO - Exiting function extract
+2023-08-24 14:17:42,321 - flask_app - INFO - Entering function viewdecks
+2023-08-24 14:17:44,376 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 14:25:08,744 - flask_app - INFO - Entering function extract
+2023-08-24 14:25:08,798 - flask_app - INFO - Exiting function extract
+2023-08-24 14:25:13,241 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 14:25:13,290 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 14:25:13,728 - flask_app - INFO - Entering function extract
+2023-08-24 14:25:15,564 - flask_app - ERROR - 'Extractor' object has no attribute 'type'
+2023-08-24 14:25:15,568 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 70, in extract
+    raise e
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 58, in extract
+    extract_obj.create_jobs()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 208, in create_jobs
+    self.notification_creator()
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\extractors\extractor.py", line 246, in notification_creator
+    input_details=self.type)
+                  ^^^^^^^^^
+AttributeError: 'Extractor' object has no attribute 'type'
+2023-08-24 14:25:33,679 - flask_app - INFO - Entering function extract
+2023-08-24 14:25:33,695 - flask_app - INFO - Exiting function extract
+2023-08-24 14:25:36,955 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 14:25:37,303 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 14:25:37,729 - flask_app - INFO - Entering function extract
+2023-08-24 14:25:38,129 - flask_app - INFO - Exiting function extract
+2023-08-24 14:25:38,134 - flask_app - INFO - Entering function viewdecks
+2023-08-24 14:25:40,389 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 14:26:10,251 - flask_app - INFO - Entering function extract
+2023-08-24 14:26:10,310 - flask_app - INFO - Exiting function extract
+2023-08-24 14:26:14,778 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 14:26:14,831 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 14:26:15,447 - flask_app - INFO - Entering function extract
+2023-08-24 14:26:17,415 - flask_app - INFO - Exiting function extract
+2023-08-24 14:26:17,726 - flask_app - INFO - Entering function viewdecks
+2023-08-24 14:26:19,916 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 17:25:07,783 - flask_app - INFO - Entering function extract
+2023-08-24 17:25:07,955 - flask_app - INFO - Exiting function extract
+2023-08-24 17:25:17,360 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 17:25:17,415 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 17:25:19,100 - flask_app - INFO - Entering function extract
+2023-08-24 17:25:21,155 - flask_app - INFO - Exiting function extract
+2023-08-24 17:25:21,163 - flask_app - INFO - Entering function viewdecks
+2023-08-24 17:25:23,518 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 17:31:41,613 - flask_app - INFO - Entering function extract
+2023-08-24 17:31:41,674 - flask_app - INFO - Exiting function extract
+2023-08-24 17:31:57,138 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 17:31:57,182 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 17:31:58,273 - flask_app - INFO - Entering function extract
+2023-08-24 17:32:00,153 - flask_app - INFO - Exiting function extract
+2023-08-24 17:32:00,163 - flask_app - INFO - Entering function viewdecks
+2023-08-24 17:32:02,641 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 17:37:41,917 - flask_app - INFO - Entering function extract
+2023-08-24 17:37:41,969 - flask_app - INFO - Exiting function extract
+2023-08-24 17:37:47,239 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 17:37:47,282 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 17:37:47,838 - flask_app - INFO - Entering function extract
+2023-08-24 17:37:49,524 - flask_app - INFO - Exiting function extract
+2023-08-24 17:37:49,530 - flask_app - INFO - Entering function viewdecks
+2023-08-24 17:37:51,746 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 17:38:26,445 - flask_app - INFO - Entering function send_email
+2023-08-24 17:38:26,982 - flask_app - INFO - Exiting function send_email
+2023-08-24 17:38:28,255 - flask_app - INFO - Entering function latest_deck
+2023-08-24 17:38:28,260 - flask_app - INFO - Exiting function latest_deck
+2023-08-24 17:38:28,567 - flask_app - INFO - Entering function deck_manager
+2023-08-24 17:38:28,606 - flask_app - INFO - Exiting function deck_manager
+2023-08-24 17:45:38,631 - flask_app - INFO - Entering function extract
+2023-08-24 17:45:38,684 - flask_app - INFO - Exiting function extract
+2023-08-24 17:45:45,402 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 17:45:45,458 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 17:45:47,248 - flask_app - INFO - Entering function extract
+2023-08-24 17:45:49,050 - flask_app - INFO - Exiting function extract
+2023-08-24 17:45:49,058 - flask_app - INFO - Entering function viewdecks
+2023-08-24 17:45:51,387 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 17:46:27,861 - flask_app - INFO - Entering function send_email
+2023-08-24 17:46:28,292 - flask_app - INFO - Exiting function send_email
+2023-08-24 17:46:53,751 - flask_app - INFO - Entering function latest_deck
+2023-08-24 17:46:53,755 - flask_app - INFO - Exiting function latest_deck
+2023-08-24 17:46:53,845 - flask_app - INFO - Entering function deck_manager
+2023-08-24 17:46:53,885 - flask_app - INFO - Exiting function deck_manager
+2023-08-24 17:48:24,560 - flask_app - INFO - Entering function extract
+2023-08-24 17:48:24,612 - flask_app - INFO - Exiting function extract
+2023-08-24 17:48:29,288 - flask_app - INFO - Entering function call_credit_counter
+2023-08-24 17:48:29,336 - flask_app - INFO - Exiting function call_credit_counter
+2023-08-24 17:48:30,374 - flask_app - INFO - Entering function extract
+2023-08-24 17:48:32,064 - flask_app - INFO - Exiting function extract
+2023-08-24 17:48:32,070 - flask_app - INFO - Entering function viewdecks
+2023-08-24 17:48:34,295 - flask_app - INFO - Exiting function viewdecks
+2023-08-24 17:49:00,315 - flask_app - INFO - Entering function game_lobby
+2023-08-24 17:49:00,337 - flask_app - INFO - Exiting function game_lobby
+2023-08-24 17:49:01,241 - flask_app - INFO - Entering function on_join
+2023-08-24 17:49:01,255 - flask_app - INFO - Exiting function on_join
+2023-08-24 17:49:02,742 - flask_app - INFO - Entering function start_game
+2023-08-24 17:49:02,754 - flask_app - INFO - Exiting function start_game
+2023-08-24 17:49:03,068 - flask_app - INFO - Entering function game_play
+2023-08-24 17:49:03,085 - flask_app - INFO - Exiting function game_play
+2023-08-24 17:49:03,717 - flask_app - INFO - Entering function on_join
+2023-08-24 17:49:03,725 - flask_app - INFO - Exiting function on_join
+2023-08-24 17:51:30,944 - flask_app - INFO - Entering function on_join
+2023-08-24 17:51:30,959 - flask_app - INFO - Exiting function on_join
+2023-08-24 17:51:32,695 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 17:51:32,724 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 17:51:52,143 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 17:51:52,166 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 17:51:52,453 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 17:51:52,457 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 17:51:52,766 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 17:51:52,768 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 17:52:01,766 - flask_app - INFO - Entering function submit_vote
+2023-08-24 17:52:01,783 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 17:52:02,078 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 17:52:02,083 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 17:52:02,392 - flask_app - INFO - Entering function count_votes
+2023-08-24 17:52:02,409 - flask_app - INFO - Exiting function count_votes
+2023-08-24 17:52:02,660 - flask_app - INFO - Entering function update_scores
+2023-08-24 17:52:02,666 - flask_app - INFO - Exiting function update_scores
+2023-08-24 17:52:06,487 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 17:52:06,511 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 17:52:21,765 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 17:52:21,800 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 17:52:22,072 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 17:52:22,078 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 17:52:22,398 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 17:52:22,402 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 17:52:27,847 - flask_app - INFO - Entering function submit_vote
+2023-08-24 17:52:27,861 - flask_app - INFO - Exiting function submit_vote
+2023-08-24 17:52:28,159 - flask_app - INFO - Entering function check_all_votes_are_in
+2023-08-24 17:52:28,164 - flask_app - INFO - Exiting function check_all_votes_are_in
+2023-08-24 17:52:28,484 - flask_app - INFO - Entering function count_votes
+2023-08-24 17:52:28,496 - flask_app - INFO - Exiting function count_votes
+2023-08-24 17:52:28,733 - flask_app - INFO - Entering function update_scores
+2023-08-24 17:52:28,739 - flask_app - INFO - Exiting function update_scores
+2023-08-24 17:52:33,437 - flask_app - INFO - Entering function handle_start_round
+2023-08-24 17:52:33,460 - flask_app - INFO - Exiting function handle_start_round
+2023-08-24 17:52:52,348 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-24 17:52:52,356 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-24 17:52:52,659 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-24 17:52:52,664 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-24 17:52:52,974 - flask_app - INFO - Entering function reveal_answers
+2023-08-24 17:52:52,977 - flask_app - INFO - Exiting function reveal_answers
+2023-08-24 18:22:03,471 - flask_app - INFO - Entering function on_join
+2023-08-24 18:22:03,486 - flask_app - INFO - Exiting function on_join
+2023-08-24 20:16:40,351 - flask_app - INFO - Entering function on_join
+2023-08-24 20:16:40,368 - flask_app - INFO - Exiting function on_join
+2023-08-24 22:45:13,036 - flask_app - INFO - Entering function on_join
+2023-08-24 22:45:13,062 - flask_app - INFO - Exiting function on_join
+2023-08-25 12:31:36,104 - flask_app - INFO - Entering function on_join
+2023-08-25 12:31:36,124 - flask_app - INFO - Exiting function on_join
+2023-08-25 12:31:39,412 - flask_app - INFO - Entering function on_join
+2023-08-25 12:31:39,422 - flask_app - INFO - Exiting function on_join
+2023-08-25 12:59:27,676 - flask_app - INFO - Entering function on_join
+2023-08-25 12:59:27,878 - flask_app - INFO - Exiting function on_join
+2023-08-25 12:59:48,312 - flask_app - INFO - Entering function extract
+2023-08-25 12:59:48,312 - flask_app - INFO - Entering function handle_custom_disconnect
+2023-08-25 12:59:48,316 - flask_app - INFO - Exiting function handle_custom_disconnect
+2023-08-25 12:59:48,486 - flask_app - INFO - Exiting function extract
+2023-08-25 12:59:57,148 - flask_app - INFO - Entering function game_lobby
+2023-08-25 12:59:57,198 - flask_app - INFO - Exiting function game_lobby
+2023-08-25 12:59:57,846 - flask_app - INFO - Entering function on_join
+2023-08-25 12:59:57,855 - flask_app - INFO - Exiting function on_join
+2023-08-25 12:59:58,592 - flask_app - INFO - Entering function start_game
+2023-08-25 12:59:58,597 - flask_app - INFO - Exiting function start_game
+2023-08-25 12:59:58,825 - flask_app - INFO - Entering function game_play
+2023-08-25 12:59:58,867 - flask_app - INFO - Exiting function game_play
+2023-08-25 12:59:59,504 - flask_app - INFO - Entering function on_join
+2023-08-25 12:59:59,511 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:00:05,305 - flask_app - INFO - Entering function handle_start_round
+2023-08-25 13:00:05,348 - flask_app - INFO - Exiting function handle_start_round
+2023-08-25 13:16:10,966 - flask_app - INFO - Entering function viewdecks
+2023-08-25 13:16:13,286 - flask_app - INFO - Exiting function viewdecks
+2023-08-25 13:47:48,342 - flask_app - INFO - Entering function handle_submit_answer
+2023-08-25 13:47:48,381 - flask_app - INFO - Exiting function handle_submit_answer
+2023-08-25 13:47:48,650 - flask_app - INFO - Entering function check_if_all_answers_submitted
+2023-08-25 13:47:48,657 - flask_app - INFO - Exiting function check_if_all_answers_submitted
+2023-08-25 13:47:48,969 - flask_app - INFO - Entering function reveal_answers
+2023-08-25 13:47:48,971 - flask_app - INFO - Exiting function reveal_answers
+2023-08-25 13:49:36,969 - flask_app - INFO - Entering function on_join
+2023-08-25 13:49:37,157 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:53:40,141 - flask_app - INFO - Entering function on_join
+2023-08-25 13:53:40,274 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:54:09,658 - flask_app - INFO - Entering function on_join
+2023-08-25 13:54:09,770 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:54:56,364 - flask_app - INFO - Entering function on_join
+2023-08-25 13:54:56,474 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:55:10,668 - flask_app - INFO - Entering function on_join
+2023-08-25 13:55:10,784 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:55:40,051 - flask_app - INFO - Entering function on_join
+2023-08-25 13:55:40,247 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:56:12,510 - flask_app - INFO - Entering function on_join
+2023-08-25 13:56:12,632 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:57:08,596 - flask_app - INFO - Entering function on_join
+2023-08-25 13:57:08,721 - flask_app - INFO - Exiting function on_join
+2023-08-25 13:58:46,208 - flask_app - INFO - Entering function on_join
+2023-08-25 13:58:46,390 - flask_app - INFO - Exiting function on_join
+2023-08-25 14:01:05,961 - flask_app - INFO - Entering function on_join
+2023-08-25 14:01:06,083 - flask_app - INFO - Exiting function on_join
+2023-08-25 14:07:04,282 - flask_app - INFO - Entering function on_join
+2023-08-25 14:07:04,411 - flask_app - INFO - Exiting function on_join
+2023-08-25 14:08:26,436 - flask_app - INFO - Entering function on_join
+2023-08-25 14:08:26,552 - flask_app - INFO - Exiting function on_join
+2023-08-25 14:16:33,808 - flask_app - INFO - Entering function on_join
+2023-08-25 14:16:33,939 - flask_app - INFO - Exiting function on_join
+2023-08-25 14:17:12,646 - flask_app - INFO - Entering function on_join
+2023-08-25 14:17:12,769 - flask_app - INFO - Exiting function on_join
+2023-08-25 14:18:46,988 - flask_app - INFO - Entering function on_join
+2023-08-25 14:18:47,112 - flask_app - INFO - Exiting function on_join
+2023-08-25 17:38:44,666 - flask_app - INFO - Entering function on_join
+2023-08-25 17:38:44,889 - flask_app - INFO - Exiting function on_join
+2023-08-25 17:43:18,968 - flask_app - INFO - Entering function on_join
+2023-08-25 17:43:19,085 - flask_app - INFO - Exiting function on_join
+2023-08-25 17:44:48,701 - flask_app - INFO - Entering function send_email
+2023-08-25 17:44:48,719 - flask_app - INFO - Entering function send_email
+2023-08-25 17:44:49,657 - flask_app - INFO - Exiting function send_email
+2023-08-25 17:44:49,661 - flask_app - INFO - Exiting function send_email
+2023-08-25 17:57:11,508 - flask_app - INFO - Entering function on_join
+2023-08-25 17:57:11,628 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:00:29,950 - flask_app - INFO - Entering function on_join
+2023-08-25 18:00:30,069 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:07:13,629 - flask_app - INFO - Entering function on_join
+2023-08-25 18:07:13,752 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:08:56,284 - flask_app - INFO - Entering function on_join
+2023-08-25 18:08:56,419 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:18:07,254 - flask_app - INFO - Entering function on_join
+2023-08-25 18:18:07,378 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:18:27,667 - flask_app - INFO - Entering function on_join
+2023-08-25 18:18:27,792 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:20:13,523 - flask_app - INFO - Entering function on_join
+2023-08-25 18:20:13,636 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:21:31,068 - flask_app - INFO - Entering function on_join
+2023-08-25 18:21:31,180 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:26:54,009 - flask_app - INFO - Entering function on_join
+2023-08-25 18:26:54,142 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:27:21,660 - flask_app - INFO - Entering function on_join
+2023-08-25 18:27:21,768 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:29:44,920 - flask_app - INFO - Entering function on_join
+2023-08-25 18:29:45,031 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:30:39,701 - flask_app - INFO - Entering function on_join
+2023-08-25 18:30:39,830 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:32:12,571 - flask_app - INFO - Entering function on_join
+2023-08-25 18:32:12,710 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:32:25,662 - flask_app - INFO - Entering function on_join
+2023-08-25 18:32:25,795 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:32:40,228 - flask_app - INFO - Entering function on_join
+2023-08-25 18:32:40,350 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:37:37,389 - flask_app - INFO - Entering function on_join
+2023-08-25 18:37:37,500 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:37:44,668 - flask_app - INFO - Entering function on_join
+2023-08-25 18:37:44,775 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:39:57,398 - flask_app - INFO - Entering function on_join
+2023-08-25 18:39:57,508 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:40:49,017 - flask_app - INFO - Entering function on_join
+2023-08-25 18:40:49,025 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:47:41,779 - flask_app - INFO - Entering function on_join
+2023-08-25 18:47:41,924 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:48:53,768 - flask_app - INFO - Entering function on_join
+2023-08-25 18:48:53,901 - flask_app - INFO - Exiting function on_join
+2023-08-25 18:50:30,579 - flask_app - INFO - Entering function on_join
+2023-08-25 18:50:30,713 - flask_app - INFO - Exiting function on_join

@@ -1,17 +1,20 @@
 import os
 import json
+import logging 
 from sqlalchemy import select
 from models.models_ import Deck, Job
 from models.creators.creator import AiCaller
 from models.decks.card_factory import CardFactory
 from typing import TYPE_CHECKING
 from typing import Dict, Union
+from models.helpers.log_decorators import job_log_decorator
+processing_logger = logging.getLogger("job_processing")
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 class JobProcessor():
-    def __init__(self, job: Job, session: AsyncSession):
+    def __init__(self, job: Job, session: 'AsyncSession'):
         self.session: AsyncSession = session 
         self.job: Job = job 
         self.slug: str = job.slug 
@@ -20,35 +23,32 @@ class JobProcessor():
         self.segment: Union[str, None] = self.payload.get('segment', None)
         self.openai_caller: AiCaller = AiCaller()
 
+    @job_log_decorator
     async def process(self):
-        print("Processing job...")
         max_attempts = 3
-        print(self.session)
         for attempt in range(1, max_attempts + 1):
             try:  
                 if self.payload['task_type'] == 'audio':
                     await self.process_audio_job()
                 elif self.payload['task_type'] == 'standard':
                     await self.process_standard_job()
-                break  # Exit the loop if successful
+                break  
             except Exception as e:
-                print(f"Attempt {attempt} failed: {str(e)}")
-                if attempt == max_attempts:  # Check if it's the last attempt
-                    return "Failed"
+                processing_logger.exception(f"Error occurred while in attempt {attempt} JobProcessor.process, slug:{self.job.slug}: {str(e)}")  # noqa: E501
+                if attempt == max_attempts: 
+                    raise e
 
     async def process_audio_job(self) -> None:
-        print("Processing audio job...")
         segment = self.payload['segment']
-        text = await  self.openai_caller.transcribe_whisper(segment)
+        text = await self.openai_caller.transcribe_whisper(segment)
         self.text = text
         try:
             os.remove(segment)
-            print(f"File '{segment}' has been successfully deleted.")
         except OSError as e:
-            print(f"Error occurred while deleting the file '{segment}': {str(e)}")
+            processing_logger.exception(f"Error occurred while deleting the file '{segment}': {str(e)}")
         new_payload = {'deck': self.payload['deck'], 'text': text,
-                                'prompt_options': self.payload['prompt_options']}
-        new_job = Job(slug=self.slug, user = self.payload['user'], task_type="standard",
+                                'prompt_options': self.payload['prompt_options'], 'task_type': "standard"}
+        new_job = Job(slug=self.slug, task_type="standard",
             payload = json.dumps(new_payload), state="queued",
             item_number = self.job.item_number, item_quantity = self.job.item_quantity,
             deck_id = self.payload['deck'], processed_content = text
@@ -60,7 +60,6 @@ class JobProcessor():
         await self.session.commit()
         
     async def process_standard_job(self) -> None:
-        print("Processing standard job...")
         if self.payload['prompt_options']['main_opt'] in ["Transcribe", "Turn2notes", "Summarize"]:
             await self.handle_long_form()
         else:
@@ -69,15 +68,11 @@ class JobProcessor():
             await self.handle_images()
 
     async def handle_long_form(self) -> None:
-        print("Handling long form...")
         if self.payload['prompt_options']['main_opt'] == "Transcribe":
-            print("Transcribing...")
             response = await self.openai_caller.transcribe_whisper(self.text)
         elif self.payload['prompt_options']['main_opt'] == "Turn2notes":
-            print("Turning to notes...")
             response = await self.openai_caller.turn_to_notes(self.text)
         elif self.payload['prompt_options']['main_opt'] == "Summarize":
-            print("Summarizing...")
             response = await self.openai_caller.summarize(self.text)
         if response:
             self.job.processed_content = response
@@ -85,20 +80,17 @@ class JobProcessor():
 
 
     async def handle_extract_terms(self) -> None:
-        print("Handling extract terms...")
         try:
             response = await self.openai_caller.extract_terms(self.text, self.payload['prompt_options'])
             result = await self.session.execute(select(Deck).filter_by(id=self.payload['deck']))
             deck = result.scalar_one()
             card_factory = CardFactory(self.session, deck)
-            
             await card_factory.async_create_cards(response, self.payload['prompt_options']['main_opt'])
-
             self.job.processed_content = str(response)
             self.job.qty_cards_created = card_factory.card_counter
             await self.session.commit()
         except Exception as e:
-            print(f"Error occurred while creating cards: {str(e)}")
+            processing_logger.exception(f"Error occurred while creating cards: {str(e)}")
             raise e
 
     async def handle_images(self) -> None:

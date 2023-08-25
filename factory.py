@@ -11,6 +11,8 @@ from views.quiz_bp import quiz_bp
 from views.study_bp import study_bp
 from views.user_bp import user_bp
 from views.group_bp import group_bp
+import logging
+
 
 def create_app():
     app = Flask(__name__)
@@ -23,6 +25,7 @@ def create_app():
     app.register_blueprint(study_bp, url_prefix='/study_bp')
     app.register_blueprint(user_bp, url_prefix='/user_bp')
     app.register_blueprint(group_bp, url_prefix='/group_bp')
+    app.logger.setLevel(logging.WARNING)
 
     configure_app(app)
     setup_app_logger()

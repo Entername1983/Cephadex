@@ -1,7 +1,7 @@
 import csv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import User, Subscriber
+from models.models_ import User, Subscriber
 import json
 import os
 

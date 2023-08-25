@@ -7,21 +7,19 @@ from prompts.prompts import prompt_choices, prompt_choices2, lang_choices, len_c
 from prompts.prompts import  regen_choices, prompt_from_scratch
 import requests
 import asyncify
-import logging
 from models.creators.formatters import remove_html_tags, add_period, add_underscores
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union, Any
 if TYPE_CHECKING:
     from models.models_ import DeckAttributes
 
 
 encoding = tiktoken.get_encoding("cl100k_base")
-logger = logging.getLogger("extractors")
-logger.setLevel(logging.DEBUG)
+
 
 
 class AiCaller:
-    def __init__(self):
-        self.api_key: str = os.getenv('OPENAI_API_KEY')
+    def __init__(self, api_key: str = None):
+        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
         openai.api_key = self.api_key
         
     async def call_ai_terms(self, sys_instruct, user_prompt) -> str:
@@ -37,33 +35,49 @@ class AiCaller:
             print(e)
         return response
  
-    async def add_more_cards(self, attributes: 'DeckAttributes', extract_type: str ="Mcq") -> json:
-        print("entered add more cards")
-        sys_instruct = "You are an excellent teacher, knowledgeable on all subjects who is an expert at making detailed content, you only return data in JSON format" # noqa: E501
+    async def add_more_cards(self, attributes: 'DeckAttributes', extract_type: str ="Mcq") -> Union[dict[str, Any], None]:
+        sys_instruct = "You are an excellent teacher..."  # Keep your instruction here
         prompt = self.build_add_more_cards_prompt(
                     attributes.subject, attributes.topic,
                     attributes.concepts, attributes.grade,
                     attributes.language)
-        response = await self.call_ai_terms(sys_instruct, prompt)
-        response_ = response['choices'][0]['message']['content'].strip()
+
+        try:
+            response = await self.call_ai_terms(sys_instruct, prompt)
+        except Exception as e:
+            raise RuntimeError(f"Failed to call AI service: {e}") from e
+
+        if not response or 'choices' not in response:
+            raise RuntimeError("Invalid response from AI service")
+
+        response_content = response['choices'][0]['message']['content'].strip()
+
         if extract_type == "Cloze":
-            response_ = add_underscores(response_)
-        byte_string = response_.encode('utf-8')
-        x = byte_string.decode('utf-8')
-        json_start = x.find('[')
-        if json_start != -1:
-            json_end = x.rfind(']')  # Find the position of the last closing bracket in the string
-            if json_end != -1:
-                json_part = x[json_start:json_end+1] 
-        else:
-            print("No valid JSON found")
+            response_content = add_underscores(response_content)
+
+        json_part = self.extract_json_from_string(response_content)
+
+        if json_part is None:
+            raise ValueError("No valid JSON found")
 
         try:
             data = json.loads(json_part)
         except json.JSONDecodeError as e:
-            print(f"Could not parse as JSON: {json_part}")
-            print(f"Error details: {e}")
+            raise ValueError(f"Failed to decode JSON: {e}") from e
+
         return data
+  
+    @staticmethod
+    def extract_json_from_string(s: str) -> Union[str, None]:
+        json_start = s.find('[')
+        if json_start == -1:
+            return None
+
+        json_end = s.rfind(']')
+        if json_end == -1:
+            return None
+
+        return s[json_start:json_end+1]
 
 
     def build_add_more_cards_prompt(self, subject: str,
@@ -82,11 +96,8 @@ class AiCaller:
         sys_instruct = "You are an expert at education and classification of content by subject, topic and level of difficulty as well as language. You are diligent and think about things carefully and only return content in JSON format" # noqa: E501
         user_prompt = 'Identify the main subject, topic, concepts and level of difficulty as well as language of the following text, the levels of difficulty should be based upon the educational level at which one would be expected to encounter the identified concepts, either primary school, middle school, high school, college or post-graduate level.  Return your response as a JSON object only in the following format: {"subject": "main subject identified", "topic": "main topic identified", "concepts": ["concept1", "concept2", ...], "difficulty": "difficulty level", "language": "identified language of text"}\n  The passage: \n {text}'# noqa: E501
         user_prompt = user_prompt.replace('{text}', text)
-        try:
-            response = await self.call_ai_terms(sys_instruct, user_prompt)
-        except Exception as e:
-            print(e)
-        print("after call ai terms")
+        response = await self.call_ai_terms(sys_instruct, user_prompt)
+
         response_ = response['choices'][0]['message']['content'].strip()
         
         byte_string = response_.encode('utf-8')
@@ -97,31 +108,23 @@ class AiCaller:
 
     async def extract_terms(self, text: str, prompt_options: dict) -> json:
         text = remove_html_tags(text)
-        print("calling extract terms")
         main_opt = prompt_options['main_opt']
-        print(main_opt)
         prompt = self.build_prompt(prompt_options)
-        print("prompt built")
-        try:
-            sys_instruct = f"You are a helpful teacher who wants to help students learn {prompt_options['subject_opt']}." # noqa: E501
-            user_prompt = (prompt + text + 'The JSON object: \n')
-            response = await self.call_ai_terms(sys_instruct, user_prompt)
-            response_ = response['choices'][0]['message']['content'].strip()
+        sys_instruct = f"You are a helpful teacher who wants to help students learn {prompt_options['subject_opt']}." # noqa: E501
+        user_prompt = (prompt + text + 'The JSON object: \n')
+        response = await self.call_ai_terms(sys_instruct, user_prompt)
+        response_ = response['choices'][0]['message']['content'].strip()
+        if main_opt == "Cloze":
+            response_ = add_underscores(response_)
+        byte_string = response_.encode('utf-8')
+        x = byte_string.decode('utf-8')
+        x = json.loads(x)
+        return x
 
-            if main_opt == "Cloze":
-                response_ = add_underscores(response_)
-            byte_string = response_.encode('utf-8')
-            x = byte_string.decode('utf-8')
-            x = json.loads(x)
-            return x
-        except Exception as e:
-            print(f"Error calling ai terms: {e}.")
 
 
     def build_prompt(self, prompt_options: dict) -> str:
-        print("entered build prompt function")
         if prompt_options['main_opt'] not in prompt_choices:
-            print("Invalid prompt option")
             raise ValueError("Invalid prompt option")
         else:
             prompt = prompt_choices[prompt_options['main_opt']]
@@ -164,7 +167,6 @@ class AiCaller:
 
     async def process_text(self, instruction: str, task:str, items: str) -> str:
         items = remove_html_tags(items)
-        print(f"entered {task} function")
         option_1 = f"You are an expert at {instruction}"
         option_2 = f"{task} the following passage and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate, ignore table of contents and indexes {items}" # noqa: E501
         response = await self.call_ai_terms(option_1, option_2)
@@ -179,14 +181,11 @@ class AiCaller:
     async def turn_to_notes(self, items: str, prompt_options: dict = None) -> str:
         return await self.process_text("turning text into study notes", "Turn into notes", items)
     
-
-
     async def transcribe_and_translate(self, items: str, prompt_options: dict) -> str:
         items = remove_html_tags(items)
         language = prompt_options['trans_opt']
-        print(f"language: {language}")
         option_1 = f"You are a helpful {language} translator"
-        option_2 = f"translate the following passage to {language}  return it with html formatting, use paragraph and header tags as appropriate: {items}" # noqa: E501
+        option_2 = f"translate the following passage to {language} return it with html formatting, use paragraph and header tags as appropriate: {items}" # noqa: E501
         response = await self.call_ai_terms(option_1, option_2)
         response = response['choices'][0]['message']['content']
         byte_string = response.encode('utf-8')
@@ -194,7 +193,6 @@ class AiCaller:
         return response
     
     async def transcribe_whisper(self, audio_file) -> str:
-        print("entered transcribe function")
         audio_file= open(audio_file, "rb")
         transcript = await asyncify(openai.Audio.transcribe)("whisper-1", audio_file)
         transcript = transcript["text"]
@@ -214,9 +212,7 @@ class AiCaller:
         retries = 0
 
         prompt = self.build_prompt_regen(term, prompt_options)
-        print("entered regenerate_def function")
         while retries < 3:
-            print("attempt:", retries)
             try:
                 sys_instruct = "You are a helpful teacher who wants to help students learn."
                 user_prompt = prompt
@@ -235,12 +231,13 @@ class AiCaller:
             except Exception as e:
                 retries += 1
                 print(f"Error: {e}. Retrying ({retries}/3)")
+                if retries == 3:
+                    raise e
 
 
     
     def build_prompt_regen(self, term: str, prompt_options: dict) -> str:
         if prompt_options['main_opt'] not in regen_choices:
-            print("Invalid prompt option")
             raise ValueError("Invalid prompt option")
         else:
             prompt = regen_choices[prompt_options['main_opt']]
@@ -260,19 +257,13 @@ class AiCaller:
                 trans_opt = prompt_options['trans_opt']
             else:
                 trans_opt = ""
-
             prompt = prompt.replace('{length}', detail).replace('{lang}', lang).replace('{trans}', trans_opt).replace('{term}', term).replace('{subject}', subject) # noqa: E501
-            print("prompt built")
-    
         return prompt
     
-
     def explain_more(self, term: str, subject: str = None, content:str = None) -> str:
-        print("entered explain more function")
         retries = 0
         prompt = self.build_prompt_explain_more(term, subject, content)
         while retries < 3:
-            print("attempt:", retries)
             try:
                 sys_instruct = "You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."
                 response = self.call_ai_terms_non_async(sys_instruct, prompt)
@@ -280,9 +271,10 @@ class AiCaller:
             except Exception as e:
                 retries += 1
                 print(f"Error: {e}. Retrying ({retries}/3)")
+                if retries == 3:
+                    raise e
             
     def build_prompt_explain_more(self, term: str, subject: str = None, content: str = None) -> str:
-        print("entered build prompt explain more function")
         prompt = "You are a helpful teacher who wants to help students learn {subject_opt}. You are explaining the concept of {term} to a student. The student asks you to explain {term} in a lot of detail, providing not just explanations but where possible examples and analogies. You respond: " # noqa: E501
         prompt = prompt.replace('{term}', term)
         if subject is not None:
@@ -291,11 +283,9 @@ class AiCaller:
 
 
     def why_wrong_generator(self, ww_prompt: str) -> str:
-        print("entered why wrong function")
         retries = 0
         prompt = self.build_prompt_why_wrong(ww_prompt)
         while retries < 3:
-            print("attempt:", retries)
             try:
                 sys_instruct = "You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help." # noqa: E501
                 response = self.call_ai_terms_non_async(sys_instruct, prompt)
@@ -303,8 +293,10 @@ class AiCaller:
             except Exception as e:
                 retries += 1
                 print(f"Error: {e}. Retrying ({retries}/3)")
+                if retries == 3:
+                    raise e
                 
-    def build_prompt_why_wrong(self, ww_prompt: str) -> str:
+    def build_prompt_why_wrong(self, ww_prompt: dict) -> str:
         subject = ww_prompt['subject']
         term = ww_prompt['term']
         content = ww_prompt['content']
@@ -331,12 +323,10 @@ class AiCaller:
                 prompt = prompt.replace('{subject_opt}', subject)
             else:
                 prompt = prompt.replace('{subject_opt}', "")
-                
         return prompt
 
 
     def send_question_generator(self, term: str, content: str, latest_paragraph: str, question: str) -> str:
-        print("entered send question generator function")
         retries = 0
         prompt = self.question_prompt_builder(self, term, content, latest_paragraph, question)
         while retries < 3:
@@ -347,10 +337,11 @@ class AiCaller:
             except Exception as e:
                 retries += 1
                 print(f"Error: {e}. Retrying ({retries}/3)")
+                if retries == 3:
+                    raise e
                 
 
     def question_prompt_builder(self, term: str, content: str, latest_paragraph: str, question: str) -> str:
-        print("entered question prompt builder function")
         prompt = "You have previously interacted with the student and have helped them learn {term} {content} {paragraph}. The student has asked you a question: {question}. You respond:"  # noqa: E501
         prompt = prompt.replace('{term}', term)
         prompt = prompt.replace('{content}', content)
@@ -378,8 +369,8 @@ class AiCaller:
                 f.write(r.content)
             return img_path
         except (openai.error.InvalidRequestError, requests.exceptions.RequestException) as e:
-            print(f"Error creating image for term '{term}': {e}")
-            return None
+            raise e
+
         
     async def insert_paragraph(self, text:str) -> str:
         prompt = "Go through the following block of text and insert '&-&-&' where you think a paragraph break should be. \n  block of text: \n" + text + "\n The JSON object: \n"

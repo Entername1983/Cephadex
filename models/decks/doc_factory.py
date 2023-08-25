@@ -18,7 +18,6 @@ class DocFactory:
         self.deck: int = deck_id
 
     def create_doc(self, content:list) -> str:
-        print("entered create doc...")
         deck = self.session.query(Deck).filter_by(id=self.deck).first()
         full_text = "".join(job.processed_content for job in content)
         task_type = content[0].task_type
@@ -32,7 +31,6 @@ class DocFactory:
         return full_text
 
     def save_transcript(self, content:list) -> None:
-        print("entered save transcript...")
         deck = self.session.query(Deck).filter_by(id=self.deck).first()
         full_text = "".join(job.processed_content for job in content)
         chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)} - Audio Transcript {random.randint(1, 99)}"
@@ -46,11 +44,9 @@ class DocFactory:
         ## creates a deck attribute row
         ## assigns relevant attributes to deck if missing, if not just stores the row
         ## One deck can be associated with many attributes
-        print("entered create deck attributes...")
         deck = self.session.query(Deck).filter_by(id=self.deck).first()
         open_ai_caller = AiCaller()
         response = open_ai_caller.extract_deck_attributes(text)
-        print(response)
         subject = response['subject']
         topic = response['topic']
         concepts = ", ".join(response['concepts'])
@@ -65,8 +61,6 @@ class DocFactory:
         return attributes
 
     def assign_attributes_to_deck(self, deck: 'Deck', deck_attributes: 'DeckAttributes') -> None:
-        print("entered assign attributes to deck")
-        print("deck is ", deck)
         if deck.subject is None:
             deck.subject = deck_attributes.subject
         if deck.topic is None:    
@@ -76,54 +70,43 @@ class DocFactory:
         self.session.commit()
 
     async def async_create_doc(self, content:list) -> str:
-        print("entered async create doc...")
-        print(content)
-        print(content[0].task_type)
+        result = await self.session.execute(
+            select(Deck).filter_by(id=self.deck).options(selectinload(Deck.deck_files))
+        )
+        
+        # Retrieve the object correctly
+        deck = result.scalars().one()
+        full_text = "".join(job.processed_content for job in content)
+        task_type = content[0].task_type
+        chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)} - {task_type}"
+        file_storage = DeckFiles(file_name=chosen_name, text_string=full_text,
+                                create_type=task_type,
+                                time_created=dt.datetime.now(dt.timezone.utc))
+        self.session.add(file_storage) ## needed?
+        await self.session.flush() 
+        deck.deck_files.append(file_storage)
+        await self.session.commit()
+        return full_text
 
-        print(content[0].processed_content)
-        try:
-            result = await self.session.execute(
-                select(Deck).filter_by(id=self.deck).options(selectinload(Deck.deck_files))
-            )
-            
-            # Retrieve the object correctly
-            deck = result.scalars().one()
-            print("deck is ", deck)
-            
-            full_text = "".join(job.processed_content for job in content)
-            print("full text is ", full_text)
-            task_type = content[0].task_type
-            chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)} - {task_type}"
-            file_storage = DeckFiles(file_name=chosen_name, text_string=full_text,
-                                    create_type=task_type,
-                                    time_created=dt.datetime.now(dt.timezone.utc))
-            self.session.add(file_storage) ## needed?
-            await self.session.flush() 
-            deck.deck_files.append(file_storage)
-            await self.session.commit()
-            return full_text
-        except Exception as e:
-            print(e)
-            return ""
-
+        
     async def async_save_transcript(self, content:list) -> None:
-        print("entered async save transcript...")
         deck = await self.session.execute(select(Deck).filter_by(id=self.deck))
+        deck = deck.scalar_one()
         full_text = "".join(job.processed_content for job in content)
         chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)} - Audio Transcript {random.randint(1, 99)}"
         file_storage = DeckFiles(file_name=chosen_name, text_string=full_text, create_type="Audio Transcript",
                                  time_created=dt.datetime.now(dt.timezone.utc))
         self.session.add(file_storage)
+        await self.session.flush() 
+
         deck.deck_files.append(file_storage)
         await self.session.commit()
 
     async def async_create_deck_attributes(self, text: str) -> 'DeckAttributes':
-        print("entered async create deck attributes...")
         result = await self.session.execute(select(Deck).filter_by(id=self.deck))
         deck = result.scalar_one()
         open_ai_caller = AiCaller()
         response = await open_ai_caller.extract_deck_attributes(text)
-        print(response)
         subject = response['subject']
         topic = response['topic']
         concepts = ", ".join(response['concepts'])
@@ -138,14 +121,12 @@ class DocFactory:
         return attributes
 
     async def async_assign_attributes_to_deck(self, deck: str, deck_attributes: 'DeckAttributes') -> None:
-        print("entered async assign attributes to deck")
-        print("deck is ", deck)
         if deck.subject is None:
             deck.subject = deck_attributes.subject
         if deck.topic is None:
             deck.topic = deck_attributes.topic
         if deck.description is None:
-            deck.description = deck_attributes.concepts
+            deck.description = deck_attributes.concepts[:255]
         await self.session.commit()
 
 

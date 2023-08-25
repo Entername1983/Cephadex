@@ -13,8 +13,6 @@ class CardFactory:
         self.card_counter: int = 0
 
     def create_cards(self, content: str, type: str) -> None:
-        print(content)
-        print("entered create cards...")
         if type == "Mcq":
             self.create_mcq(content)
         elif type == "Formulas":
@@ -25,8 +23,6 @@ class CardFactory:
             self.create_default(content, type)
         
     async def async_create_cards(self, content: str, type: str) -> None:
-        print(content)
-        print("entered async create cards...")
         if type == "Mcq":
             await self.async_create_mcq(content)
         elif type == "Formulas":
@@ -37,8 +33,6 @@ class CardFactory:
             await self.async_create_default(content, type)
         
     def create_default(self, content: str, type: str) -> None:
-        print("entered create default...")
-        print(self.session)
         for item in content:
             key = item['A']
             value = item['B']
@@ -50,8 +44,6 @@ class CardFactory:
                 self.card_counter += 1
 
     def create_mcq(self, content: str) -> None:
-        print("entered create mcq...")
-        print("content: ", content)
         for item in content:
             key = item['A']
             value = item['B']
@@ -65,7 +57,6 @@ class CardFactory:
                 self.card_counter += 1
 
     def create_formulas(self, content: str) -> None:
-        print("entered create formulas...")
         for item in content:
             key = item['A']
             value = item['B']
@@ -77,7 +68,6 @@ class CardFactory:
                 self.card_counter += 1
 
     def create_discuss(self, content: str) -> None:
-        print("entered create discuss...")
         for item in content:
             key = item['A']
             value = item['B']
@@ -98,7 +88,6 @@ class CardFactory:
         return False
 
     async def async_create_default(self, content: str, type: str) -> None:
-        print("entered async create default...")
         for item in content:
             key = item['A']
             value = item['B']
@@ -110,8 +99,6 @@ class CardFactory:
                 self.card_counter += 1
 
     async def async_create_mcq(self, content: str) -> None:
-        print("entered async create mcq...")
-        print(f"content, {content}")
         for item in content:
             question = item['A']
             content = item['B']
@@ -128,7 +115,6 @@ class CardFactory:
                 self.card_counter += 1
 
     async def async_create_formulas(self, content: str) -> None:
-        print("entered async create formulas...")
         for item in content:
             key = item['A']
             value = item['B']
@@ -140,7 +126,6 @@ class CardFactory:
                 self.card_counter += 1
 
     async def async_create_discuss(self, content: str) -> None:
-        print("entered async create discuss...")
         for item in content:
             key = item['A']
             value = item['B']

@@ -46,7 +46,6 @@ def googleSignIn():
     #Security validation
     form = TryOut()
     csrf_token_cookie = request.cookies.get('g_csrf_token')
-    print("csrf_token_cookie: ", csrf_token_cookie)
     if not csrf_token_cookie:
         return jsonify({'error': 'No CSRF token in Cookie'}), 400
     csrf_token_body = request.form.get('g_csrf_token')
@@ -56,7 +55,6 @@ def googleSignIn():
         return jsonify({'error': 'Failed to verify double submit cookie.'}), 400
     #encrypted credential
     credential = request.form.get('credential')
-    print(credential)
     # Decrypt credential, third parameter comes from google API console client ID
     try:
         idinfo = id_token.verify_oauth2_token(credential,
@@ -65,18 +63,13 @@ def googleSignIn():
         # Invalid token
         return jsonify({'error': 'Invalid token'}), 400
     # ID token is valid. Get the user's Google Account ID from the decoded token.
-    print(idinfo)
     #  (UniqueID to use for login)
     userid = idinfo['sub']
-    print(userid)
     user = User.query.filter_by(external_id=userid).first()
     if user:
-        print("found user")
         login_user(user)
         game_id = session.get('game_id')
-        print("game id is", game_id)
         if 'shared_deck_id' in session:
-            print("shared deck id is", session['shared_deck_id'])
             shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
             new_deck = Deck(user_id = current_user.id,
                     name=shared_deck.name,
@@ -94,14 +87,13 @@ def googleSignIn():
                     trans_option=card.trans_option, len_option=card.len_option,
                     qmin_option=card.qmin_option,
                     qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-                new_deck.cards.user_bpend(new_card)
+                new_deck.cards.append(new_card)
             del session['shared_deck_id']
             db.session.commit()
             flash("You have been logged in and the deck has been added to your decks", "success")
             return redirect(url_for('deck_bp.viewdecks'))
         if 'game_id' in session:
             game_id = session.get('game_id')
-            print("game id is", game_id)
             if user.username:
                 username = user.username
             else:
@@ -112,17 +104,13 @@ def googleSignIn():
             del session['game_id']
             return redirect(url_for('game_bp.game_lobby', game_id=game_id))
         if 'shared_test_id' in session:
-            print("recognized share_test_id")
             shared_test_id = session.get('shared_test_id')
-            print("shared test id is", shared_test_id)
-            print("user id is", user.id)
             del session['shared_test_id']
             return redirect(url_for('take_test_2',
                 share_id=shared_test_id, user_id = user.id))
         flash('You have been logged in!', 'success')
         event_tracker(user.id, "login", "google")
         return redirect(url_for('deck_bp.viewdecks'))
-    
     else:
         session['google_id_token'] = idinfo['sub']
         if idinfo.get('email'):
@@ -187,11 +175,9 @@ def delete_account():
                     reason_details = details)
             db.session.add(deleted_entry)
             db.session.commit()
-
             flash('We are sorry to see you go. Your account is now inactive and will be'
                   'permanently deleted within 48 hours.')
             return redirect(url_for('user_bp.logout'))
-
     return render_template('user_bp/delete_account.html', form_del=form)
 
 @user_bp.route('/login', methods=['GET', 'POST'])
@@ -277,13 +263,11 @@ def register():
             login_user(user)
             game_id = session.get('next_game_id')
             if 'shared_test_id' in session:
-                print("shared test id is", session['shared_test_id'])
                 shared_test_id = session['shared_test_id']
                 del session['shared_test_id']
                 return redirect(url_for('take_test_2',
                     share_id=shared_test_id, user_id = user.id))
             if 'shared_deck_id' in session:
-                print("shared deck id is", session['shared_deck_id'])
                 shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
                 new_deck = Deck(user_id = current_user.id,
                         name=shared_deck.name,
@@ -301,14 +285,14 @@ def register():
                         trans_option=card.trans_option, len_option=card.len_option,
                         qmin_option=card.qmin_option,
                         qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-                    new_deck.cards.user_bpend(new_card)
+                    new_deck.cards.append(new_card)
                 del session['shared_deck_id']
                 db.session.commit()
                 flash("You have been registered and logged in!", "success")
                 return redirect(url_for('deck_bp.viewdecks'))
             if game_id is not None:
                 game = Game.query.get(game_id)
-                game.players.user_bpend(current_user)
+                game.players.append(current_user)
                 db.session.commit()
                 del session['game_id']
                 return redirect(url_for('game_bp.game_lobby', game_id=game_id))
@@ -375,13 +359,10 @@ def unsubscribe():
         contacted = request.form.get('contacted')
         subscriber = Subscriber.query.filter_by(email=email).first()
         user = User.query.filter_by(email=email).first()
-        print(email, contacted, newsletter)
         if contacted == 'y':
-            print("contacted yes")
             user.contacted_email = False
             flash("You will no longer receive emails from us regarding your account")
         if subscriber and newsletter == 'y':
-            print("newsletter yes")
             db.session.delete(subscriber)
             flash("You will no longer receive our newsletter")
         db.session.commit()
@@ -467,7 +448,6 @@ def update_profile_pic():
 @login_required
 @log_decorator
 def new_user_settings_tests():
-    print("entered new user settings tests")
     data = request.get_json()
     if data.get('checked'):
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()

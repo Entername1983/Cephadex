@@ -128,10 +128,13 @@ class User(db.Model, UserMixin):
                 .filter_by(user_id=self.id)
                 .order_by(UsageRecord.date.desc()).first()
         )
+        print(usage_record)
+        print(usage_record.remaining_count)
         subscription_plan = (
                 SubscriptionPlan.query
                 .filter_by(id=self.subscription_plan).first() 
         ) 
+        print(subscription_plan)
         if usage_record is None:
             remaining_count = subscription_plan.limit_count
         else:

@@ -157,7 +157,7 @@ def downloadascsv(deck_id):
         fields = [card.term, card.content, card.boc_2,
                 card.boc_3, card.boc_4, card.category]
         string = ",".join(field.replace(",", ";") for field in fields) + "\n"
-        termsstrings.deck_bpend(string)
+        termsstrings.append(string)
     csvstring = "".join(termsstrings)
     return Response(csvstring, mimetype="text/csv")
 
@@ -215,7 +215,7 @@ def add_card(deck_id):
         )
         deck = Deck.query.filter_by(id=deck_id, user_id=current_user.id).first()
         if deck:
-            deck.cards.deck_bpend(entry)
+            deck.cards.append(entry)
             db.session.commit()
             return jsonify(success=True)
     return jsonify(success=False)
@@ -353,7 +353,7 @@ def import_public_deck(deck_id):
                             qmin_option=card.qmin_option,
                             qmax_option=card.qmax_option,
                             diff_lvl=card.diff_lvl)
-            shared_deck.cards.deck_bpend(new_card)
+            shared_deck.cards.append(new_card)
         db.session.commit()
     return jsonify({"success": True})
 
@@ -560,7 +560,7 @@ def share_deck(deck_id):
                                     qmin_option=card.qmin_option,
                                     qmax_option=card.qmax_option,
                                     diff_lvl=card.diff_lvl)
-                    shared_deck.cards.deck_bpend(new_card)
+                    shared_deck.cards.append(new_card)
                 db.session.commit()
             else:
                 share_link = APP_URL + 'deck_bp/shared_deck_view/' + deck_to_copy.share_id
@@ -595,7 +595,7 @@ def appprove_shared(deck_id):
                         trans_option=card.trans_option, len_option=card.len_option,
                         qmin_option=card.qmin_option,
                         qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-        new_deck.cards.deck_bpend(new_card)
+        new_deck.cards.append(new_card)
     shared_deck.delete()
     db.session.commit()
     success = True
@@ -623,7 +623,7 @@ def save_shared_deck(share_id):
                         trans_option=card.trans_option, len_option=card.len_option,
                         qmin_option=card.qmin_option,
                         qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-        new_deck.cards.deck_bpend(new_card)
+        new_deck.cards.append(new_card)
     db.session.commit()
     success = True
     return redirect(url_for('deck_bp.deck_manager', deck_id=new_deck.id))
@@ -674,7 +674,7 @@ def import_anki():
         card_O = Card(term=card_front, content=card_back,
                        srs_interval=card['interval']*1440, category="anki")
         db.session.add(card_O)
-        deck.cards.deck_bpend(card_O)
+        deck.cards.append(card_O)
         db.session.commit()
     flash('Anki deck imported', 'success')
     return jsonify({"success": True})
@@ -726,7 +726,7 @@ def get_deck_data(deck_id):
     cards = Deck.query.get_or_404(c_deck_id).cards
     card_list = []
     for card in cards:
-        card_list.deck_bpend({
+        card_list.append({
             'id': card.id,
             'front': card.term,
             'back': card.content,
@@ -779,10 +779,11 @@ def public_cards(deck_id):
 def public_decks():
     form = SearchAndSortForm()
     decks = Deck.query.filter_by(public=True).all()
+    print(decks)
     search_query= form.search.data
     sort_method = form.sort.data
     # Start building the query
-    query = Deck.query.filter(Deck.public is True)
+    query = Deck.query.filter(Deck.public == True)  # noqa: E712
     # Apply search filters if search_query is present
     if search_query:
         query = query.filter(
@@ -804,6 +805,7 @@ def public_decks():
 
     # Execute the query and fetch all the decks
     decks = query.all()
+    print(decks)
     return render_template('deck_bp/public_decks.html', decks=decks, form = form)
 
 @deck_bp.route("/deck_manager/<int:deck_id>", methods=['GET', 'POST'])
@@ -871,7 +873,7 @@ def why_wrong(card_id):
     open_ai_caller = AiCaller()
     if card is None:
         return render_template('404.html')
-    ww_prompt = open_ai_caller.why_wrong_builder(c_card_id)
+    ww_prompt = why_wrong_builder(c_card_id)
     response = open_ai_caller.why_wrong_generator(ww_prompt)
     return {"response": response}    
     
