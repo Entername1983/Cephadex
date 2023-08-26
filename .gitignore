@@ -25,4 +25,11 @@ loggers.txt
 mydatabase.db
 subscibers.csv
 backup.sql
+/logs
+/migrations
+/.vscode
+package-lock.json
+package.json
+/flask_session
+.gitignore
 ```
