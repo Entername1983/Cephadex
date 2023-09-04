@@ -16,7 +16,7 @@ import logging
 
 def create_app():
     app = Flask(__name__)
-
+    configure_app(app)
     app.register_blueprint(deck_bp, url_prefix='/deck_bp')
     app.register_blueprint(extract_bp, url_prefix='/extract_bp')
     app.register_blueprint(game_bp, url_prefix='/game_bp')
@@ -27,7 +27,7 @@ def create_app():
     app.register_blueprint(group_bp, url_prefix='/group_bp')
     app.logger.setLevel(logging.WARNING)
 
-    configure_app(app)
+
     setup_app_logger()
     init_extensions(app)
 
