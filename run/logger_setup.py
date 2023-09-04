@@ -4,6 +4,16 @@ from logging.handlers import RotatingFileHandler
 import sys
 import os
 
+# class SafeStreamHandler(logging.StreamHandler):
+#     def emit(self, record):
+#         try:
+#             super().emit(record)
+#         except UnicodeEncodeError:
+#             # Handle the error as needed, or replace the problematic character
+#             record.msg = record.msg.encode('utf-8', 'replace').decode('utf-8')
+#             super().emit(record)
+
+
 def setup_app_logger():
     logger = logging.getLogger('flask_app')
     logger.setLevel(logging.DEBUG)  # You can set the logging level as needed

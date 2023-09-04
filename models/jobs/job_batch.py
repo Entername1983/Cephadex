@@ -57,9 +57,9 @@ class JobBatch():
             await asyncio.gather(*tasks)
             await self.handle_completion()
         except Exception as e:
-             processing_logger.error(f"Error processing job batch: {e}")            
-             raise e
-        
+             processing_logger.critical(f"Error processing job batch: {e}")      
+
+    @job_log_decorator  
     async def process_job_with_semaphore(self, job: 'Job') -> None:
         async with semaphore:
             async with session_factory() as session:
@@ -77,10 +77,11 @@ class JobBatch():
                 except Exception as e:
                     processing_logger.error(f"Error processing job with semaphore: {e}")
                     self.failed_jobs.append(merged_job)
-                    merged_job.state = "error"
+                    merged_job.state = "failed"
                     await session.commit()
                     raise ProcessingJobError(e) from e
-    
+                
+    @job_log_decorator
     async def handle_completion(self) -> None:
         async with session_factory() as session:
             try:
@@ -105,10 +106,11 @@ class JobBatch():
     async def check_for_errors(self) -> None:
         error_ratio = len(self.failed_jobs) / len(self.jobs)
         self.error_ratio = error_ratio
-
+    
+    @job_log_decorator
     async def reassemble_long_form(self) -> None:
         if long_form_jobs := [
-            job for job in self.jobs if job.task_type in LONG_FORM_JOBS
+            job for job in self.jobs if json.loads(job.payload)['prompt_options']['main_opt'] in LONG_FORM_JOBS
         ]:  
             self.text = await self.doc_creator.async_create_doc(long_form_jobs)
 
@@ -121,6 +123,7 @@ class JobBatch():
         if audio_jobs:
             await self.doc_creator.async_save_transcript(audio_jobs)
 
+    @job_log_decorator
     async def create_deck_attributes(self) -> None:
         if self.text is None:
             self.text = json.loads(self.jobs[0].payload)['text']
@@ -132,6 +135,7 @@ class JobBatch():
         if self.card_created < self.job_notification.cost / DENOMINATOR_CHECK_FLASHCARDS:
             self.sufficient_cards = False
 
+    @job_log_decorator
     async def add_more_cards(self) -> None:
         open_ai_caller = AiCaller()
         await open_ai_caller.add_more_cards(self.attributes)

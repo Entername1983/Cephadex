@@ -10,24 +10,25 @@ from reportlab.lib.pagesizes import letter
 from pylatexenc.latex2text import LatexNodes2Text
 import re
 import codecs
-import logging
 from typing import List
-openai.api_key = os.environ.get("OPENAI_API_KEY")
 
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 encoding = tiktoken.get_encoding("cl100k_base")
-logger = logging.getLogger("extractors")
-logger.setLevel(logging.DEBUG)
+
 
 
 ## TOKEN HANDLERS
 def count_tokens(text: str) -> int:
+    """ standard token counter"""
     text = encoding.encode(text)
     return len(text)
 
 def token_encoding(text: str) -> str:
+    """ encodes a string into tokens """
     return encoding.encode(text)
 
 def token_decoding(text: str) -> str:
+    """ decodes a string from tokens """
     return encoding.decode(text)
 
 def split_tokens(tokens: List[str], n: int) -> List[List[str]]:
@@ -35,6 +36,7 @@ def split_tokens(tokens: List[str], n: int) -> List[List[str]]:
 
 
 def remove_html_tags(text: str):
+    """ removes html tags from a string"""
     clean = re.compile('<.*?>')
     return re.sub(clean, '', text)
 
@@ -49,15 +51,16 @@ def check_comma_list(string: str) -> bool:
     return "," in string
     
 def add_underscores(string: str) -> str:
-    if "_" not in string:
-        string = string.replace(" ", "_")
+    if "_" in string:
+        string = string.replace("_", "___")
     return string
 ## turn string of comma separated terms into list of terms
 def comma_list_to_list(string: str) -> List[str]:
+    """ turns a comma seperated string into a list """
     return string.split(",")
 
 def clean_text(text: str) -> str:
-    # Decode Unicode escape sequences into actual characters
+    """#Decode Unicode escape sequences into actual characters""" 
     text = codecs.decode(text, 'unicode_escape')
     # Replace newline characters with spaces
     # This pattern matches any character that is not a letter, digit, whitespace, or regular punctuation.
@@ -75,6 +78,7 @@ def render_latex(latex_code: str) -> str:
     return LatexNodes2Text().latex_to_text(latex_code)
 
 def double_backslashes(s: str) -> str:
+    """ Helps format latex formulas by adding backslahes"""
     result = ''
     pattern = r'\\\[.*?\\\]|\\\(.*?\\\)|(?<!\\)\$.+?(?<!\\)\$'
     # Match LaTeX formulas delimited by \[...\] or \(...\), or inline formulas delimited by $...$

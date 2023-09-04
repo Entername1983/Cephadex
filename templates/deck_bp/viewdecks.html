@@ -463,7 +463,7 @@ function shareDeck(deckId) {
               event.preventDefault();
               $.ajax({
                 type: "GET",
-                url: "/approve_shared/" + deckId,
+                url: "/deck_bp/approve_shared/" + deckId,
                 success: function () {
                   // Refresh the content of the modal
                   console.log("approve shared deck")
@@ -476,7 +476,7 @@ function shareDeck(deckId) {
               if (confirm('Are you sure you want to reject this shared deck?')) {
                 $.ajax({
                   type: "GET",
-                  url: "/reject_shared/" + deckId,
+                  url: "/deck_bp/reject_shared/" + deckId,
                   success: function () {
                     // Refresh the content of the modal
                     refreshSharedDecksModal();
@@ -577,7 +577,7 @@ function shareDeck(deckId) {
   }
   async function exportDeckToAnki(deckId) {
     // Replace this with the actual URL that returns the deck name and cards from your backend
-    const backendUrl = `/get_deck_data/` + deckId;
+    const backendUrl = `/deck_bp/get_deck_data/` + deckId;
     console.log(backendUrl)
     try {
       const response = await fetch(backendUrl);

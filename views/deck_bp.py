@@ -11,7 +11,7 @@ from bleach import clean
 
 from models.models_ import (
     Card, Deck, DeckFiles, SharedDecks,
-    Test, UserSettings, User, deck_relationships
+    Test, UserSettings, User, deck_relationships, DeckAttributes, Game
 )
 ####from cardcreator import create_image, creator
 from models.creators.formatters import create_pdf 
@@ -100,8 +100,14 @@ def create_deck():
 @log_decorator
 def delete(id):
     deck_to_delete = Deck.query.get_or_404(id)
+    deck_attributes = DeckAttributes.query.filter_by(deck_id = id ).all()
+    games_to_delete = Game.query.filter_by(deck_id = id).all()
     if current_user.id != deck_to_delete.user_id:
         return jsonify({'error': 'Deck not assigned to user'}), 403
+    for attribute in deck_attributes:
+        db.session.delete(attribute)
+    for game in games_to_delete:
+        db.session.delete(game)
     db.session.delete(deck_to_delete)
     db.session.commit()
     return jsonify({'message': 'Deck deleted successfully'})

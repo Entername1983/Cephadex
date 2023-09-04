@@ -1,6 +1,7 @@
 from datetime import datetime
 from run.extensions import db
 
+## TO DO what happens to group if creator deletes account
 class Group(db.Model):
     __tablename__ = "group"
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=no-member

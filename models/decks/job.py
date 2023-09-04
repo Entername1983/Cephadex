@@ -4,7 +4,7 @@ from run.extensions import db
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'),
+    user = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'),
                       nullable=True)
     slug = db.Column(db.String(64), nullable=False)
     task_type = db.Column(db.String(64), nullable=True)
@@ -22,7 +22,7 @@ class Job(db.Model):
     item_number = db.Column(db.Integer, nullable=True)
     item_quantity = db.Column(db.Integer, nullable=True)
     processed_content = db.Column(db.Text, nullable=True)
-    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id', ondelete='SET NULL'),
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id', ondelete='CASCADE'),
                          nullable=True)
     save_source = db.Column(db.Boolean, default=False)
     qty_cards_created = db.Column(db.Integer, default=0)

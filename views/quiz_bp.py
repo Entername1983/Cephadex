@@ -196,7 +196,7 @@ def build_test(deck_id):
 
         db.session.commit()
         return redirect('/quiz_bp/assign_test/{test.id}'.format(test=new_test))
-    return render_template('build_test.html',
+    return render_template('/quiz_bp/build_test.html',
                 title='Test Builder', deck=deck, creator=creator, settings = settings)
 
 ## TO DO: rework this so it doesn't throw an exception when it doesn't find a user, bad practice
@@ -240,8 +240,8 @@ def assign_test(test_id):
             test.sum_points()
             db.session.commit()
             flash(f'Test: "{test.name}" has been updated!', 'success')
-        return render_template('assign_test.html', title='Assign test',
-                            test=test, form = form, update_card_form = update_card_form)
+        return render_template('/quiz_bp/assign_test.html', title='Assign test',
+                            test=test, form = form, update_card_form = update_card_form, settings = settings)
     except Exception as e:
         raise e        
         ##flash("At this moment you can only assign tests to other users.  We are working on allowing you to assign tests to non-users")
@@ -317,7 +317,7 @@ def assign(test_id, user_email):
         flash('Test assigned!', 'success')
     else:
         flash(f"Could not locate the following users: {not_users}.  Currently you can only assign to other users", "danger")  # noqa: E501
-    return redirect('quiz_bp//assign_test/{test_id}'.format(test_id = c_test_id))
+    return redirect('/quiz_bp/assign_test/{test_id}'.format(test_id = c_test_id))
 
 
 
@@ -346,7 +346,7 @@ def take_test_2(share_id, user_id):
         end_time = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S.%fZ')
         test_result.end_time = end_time
         db.session.commit()
-        return redirect('quiz_bp/test_results/{test_id}/{user_id}'.format
+        return redirect('/quiz_bp/test_results/{test_id}/{user_id}'.format
                         (test_id = test.id, user_id = user_id))
 
     else:
@@ -361,10 +361,14 @@ def take_test_2(share_id, user_id):
             return render_template('quiz_bp/take_test.html',
                             test=test, taker=taker, start_time = start_time)
         else:
-            test.taker.remove(current_user)
-            db.session.commit()
+            ## TO DO - RESOLVE THE ISSUE OF NOT BEING ABLE TO REMOVE THE CURRENT USER
+            try:
+                test.taker.remove(current_user)
+                db.session.commit()
+            except:
+                print("could not remove user from test")
             flash('you have already taken this test', 'danger')
-            return redirect('quiz_bp/test_results_overview/')
+            return redirect('/quiz_bp/test_results_overview/')
         
 @quiz_bp.route("/take_test/<int:test_id>/<int:user_id>/", methods=["GET", "POST"])
 @login_required

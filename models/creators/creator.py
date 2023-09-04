@@ -3,6 +3,7 @@ import openai
 import json
 import os
 import tiktoken
+import logging
 from prompts.prompts import prompt_choices, prompt_choices2, lang_choices, len_choices
 from prompts.prompts import  regen_choices, prompt_from_scratch
 import requests
@@ -12,6 +13,7 @@ from typing import TYPE_CHECKING, Union, Any
 if TYPE_CHECKING:
     from models.models_ import DeckAttributes
 
+processing_logger = logging.getLogger("job_processing")
 
 encoding = tiktoken.get_encoding("cl100k_base")
 
@@ -23,49 +25,43 @@ class AiCaller:
         openai.api_key = self.api_key
         
     async def call_ai_terms(self, sys_instruct, user_prompt) -> str:
-        try:
-            response = await asyncify(openai.ChatCompletion.create)(
-                model="gpt-3.5-turbo",
-                messages=[
-                        {"role": "system", "content": sys_instruct},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                )
-        except Exception as e:
-            print(e)
-        return response
+        return await asyncify(openai.ChatCompletion.create)(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": sys_instruct},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
  
-    async def add_more_cards(self, attributes: 'DeckAttributes', extract_type: str ="Mcq") -> Union[dict[str, Any], None]:
-        sys_instruct = "You are an excellent teacher..."  # Keep your instruction here
+    async def add_more_cards(self, attributes: 'DeckAttributes',
+                              extract_type: str ="Mcq") -> Union[dict[str, Any], None]:
+
+        sys_instruct = "You are an excellent teacher, you respond to all questions in a JSON object like string, do not answer with anything outside of the JSON object"  
         prompt = self.build_add_more_cards_prompt(
                     attributes.subject, attributes.topic,
                     attributes.concepts, attributes.grade,
                     attributes.language)
+        response_ = None
+        max_attempts = 3
+        for attempt in range(1, max_attempts + 1):
+            try:
+                response = await self.call_ai_terms(sys_instruct, prompt)
+                if not response or 'choices' not in response:
+                    raise RuntimeError("Invalid response from AI service")
+                response_ = response['choices'][0]['message']['content'].strip()
+                if extract_type == "Cloze":
+                    response_ = add_underscores(response_)
+                byte_string = response_.encode('utf-8')
+                x = byte_string.decode('utf-8')
+                x = self.extract_json_from_string(x)
+                x = json.loads(x)
+                return x
+            except Exception as e:
+                processing_logger.exception(f"Error occurred while in attempt {attempt} add more cards {str(e)}. AI content response is {response_}")  # noqa: E501
+                if attempt == max_attempts:
+                    raise e
+                continue
 
-        try:
-            response = await self.call_ai_terms(sys_instruct, prompt)
-        except Exception as e:
-            raise RuntimeError(f"Failed to call AI service: {e}") from e
-
-        if not response or 'choices' not in response:
-            raise RuntimeError("Invalid response from AI service")
-
-        response_content = response['choices'][0]['message']['content'].strip()
-
-        if extract_type == "Cloze":
-            response_content = add_underscores(response_content)
-
-        json_part = self.extract_json_from_string(response_content)
-
-        if json_part is None:
-            raise ValueError("No valid JSON found")
-
-        try:
-            data = json.loads(json_part)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Failed to decode JSON: {e}") from e
-
-        return data
   
     @staticmethod
     def extract_json_from_string(s: str) -> Union[str, None]:
@@ -92,7 +88,6 @@ class AiCaller:
         return prompt
     
     async def extract_deck_attributes(self, text: str) -> json:
-        print("entered extract deck attributes function")
         sys_instruct = "You are an expert at education and classification of content by subject, topic and level of difficulty as well as language. You are diligent and think about things carefully and only return content in JSON format" # noqa: E501
         user_prompt = 'Identify the main subject, topic, concepts and level of difficulty as well as language of the following text, the levels of difficulty should be based upon the educational level at which one would be expected to encounter the identified concepts, either primary school, middle school, high school, college or post-graduate level.  Return your response as a JSON object only in the following format: {"subject": "main subject identified", "topic": "main topic identified", "concepts": ["concept1", "concept2", ...], "difficulty": "difficulty level", "language": "identified language of text"}\n  The passage: \n {text}'# noqa: E501
         user_prompt = user_prompt.replace('{text}', text)
@@ -382,3 +377,9 @@ class AiCaller:
                     ],
                 )
         return response['choices'][0]['message']['content']
+    
+def isolate_json_string(json_string: str) -> str:
+    # Isolate JSON-like object
+    start_index = json_string.find('[')
+    end_index = json_string.rfind(']')
+    return json_string[start_index:end_index+1]

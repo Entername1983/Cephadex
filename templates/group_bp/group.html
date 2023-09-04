@@ -287,7 +287,7 @@
         search: search,
       };
 
-      fetch(`/search_public_decks`, {
+      fetch(`/group_bp/search_public_decks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -340,7 +340,7 @@
                 group_id: "{{group.id}}",
               };
 
-              fetch("/add_deck_to_group", {
+              fetch("/group_bp/add_deck_to_group", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -402,7 +402,7 @@
       group_id: "{{group.id}}",
     };
 
-    fetch("/add_deck_to_group", {
+    fetch("/group_bp/add_deck_to_group", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -447,7 +447,7 @@
         new_permissions: newPermissions,
       };
 
-      fetch(`/group/${group_id}/update_member_permissions`, {
+      fetch(`/group_bp/group/${group_id}/update_member_permissions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

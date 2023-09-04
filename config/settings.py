@@ -14,7 +14,7 @@ DEBUG = os.environ.get("DEBUG")
 SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
 SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
 ALLOWED_EXTENSIONS = os.environ.get("ALLOWED_EXTENSIONS")
-FLASK_DEBUG = os.environ.get("FLASKDEBUG")
+# = os.environ.get("FLASKDEBUG")
 MAX_CONTENT = os.environ.get("MAX_CONTENT")
 ENVIRONMENT = os.environ.get('ENVIRONMENT')
 APP_URL = os.environ.get('APP_URL')
@@ -41,5 +41,5 @@ if MAX_CONTENT is not None:
     MAX_CONTENT = int(MAX_CONTENT)
 
 
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
+##ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx', 'pptx', 'wav', 'mp3'}
 ALLOWED_IMAGES = {'png', 'jpg', 'jpeg', 'gif', 'svg'}

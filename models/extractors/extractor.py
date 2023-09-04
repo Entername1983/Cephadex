@@ -24,6 +24,7 @@ from pytesseract import image_to_string
 
 import openai
 import tiktoken
+from models.jobs.jobs_config import LONG_FORM_JOBS
 
 from models.models_ import Deck, Job, JobNotification, DeckFiles
 from tools.lists import DECK_NAMES
@@ -145,13 +146,17 @@ class Extractor:
             elif extension in ['.pdf']:
                 file_path = save_file_to_upload_folder(self.file_data)
                 self.text = clean_text(extract_from_pdf(file_path))
+                self.type = 'pdf'
                 os.remove(file_path)
             elif extension in ['.pptx']:
                 self.text = clean_text(extract_from_pptx(self.file_data))
+                self.type = 'pptx'
             elif extension in ['.docx']:
                 self.text = clean_text(extract_from_docx(self.file_data))
+                self.type = 'docx'
             elif extension in ['.txt']:
                 self.text = self.extract_from_txt()
+                self.type = 'txt'
             else:
                 raise UnsupportedFileError
         elif self.text_data:
@@ -172,7 +177,7 @@ class Extractor:
     def save_source_text(self) -> None:
         """ Saves the source text as a deckfile object to be stored in the db"""
         if self.extension not in ['.wav', '.mp3']:
-            name = f"{self.deck.name}_source"
+            name = f"{self.deck.name}_source_content"
             file_storage = DeckFiles(file_name=name,
                     text_string=self.text, create_type = "source",
                     time_created = dt.datetime.now(dt.timezone.utc))
@@ -198,7 +203,8 @@ class Extractor:
             else:
                 prompt = self.prompt_options['main_opt']
                 self.job_creator(prompt)
-            self.job_creator('Summarize')
+            if self.prompt_options['main_opt'] not in LONG_FORM_JOBS:
+                self.job_creator('Summarize')
         self.notification_creator()
 
     def audio_job_creator(self) -> None:
@@ -226,7 +232,7 @@ class Extractor:
                 'prompt_options': prompt_options, 'task_type': 'standard'}
             payload = json.dumps(payload_dict)
             data = Job(slug=self.slug, user = current_user.id,
-                       task_type = prompt, payload = payload,
+                       task_type = "standard", payload = payload,
                        item_number = counter, deck_id = self.deck.id,
                        item_quantity = total_len)
             if counter == total_len:
@@ -300,7 +306,9 @@ def tokens_general(form: 'FlaskForm') -> int:
     elif form.text_input.data:
         text = form.text_input.data
     elif form.link_input.data:
+        print("recognized link")
         text, link_type = extract_from_url(form.link_input.data)
+        print(text)
     return count_tokens(text)
 
 
@@ -398,6 +406,7 @@ def extract_from_url(link_data: str) -> tuple[str, str]:
     text = None
     try:
         if "wikipedia" in link_data:
+            print("recognized wiki")
             link_type = 'wiki'
             if check_comma_list(link_data):
                 links = link_data.split(";")
@@ -406,7 +415,8 @@ def extract_from_url(link_data: str) -> tuple[str, str]:
                     text = part if text is None else text + part
             else:
                 text = extract_from_wiki(link_data)
-        else:
+        elif "youtube" in link_data:
+            print("recognized youtube") 
             link_type = 'youtube'
             if check_comma_list(link_data):
                 links = link_data.split(";")
@@ -417,9 +427,33 @@ def extract_from_url(link_data: str) -> tuple[str, str]:
             else:
                 link = get_video_id(link_data)
                 text = extract_from_youtube(link)
+        else:
+            print("recognized other url")
+            link_type = 'url'
+            if check_comma_list(link_data):
+                links = link_data.split(";")
+                for link in links:
+                    part = extract_from_other_url(link)
+            else:
+                text = extract_from_other_url(link_data)
         return text, link_type
     except Exception as e:
         raise ExtractionError(f"Failed to extract data: {e}") from e
+
+def extract_from_other_url(link: str) -> str:
+    print("entered extract from other url")
+    response = requests.get(link)
+    text = ""
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        for paragraph in soup.find_all('p'):
+            text = text + paragraph.text
+        return text
+    else:
+        print(f"Failed to retrieve the URL. Status code: {response.status_code}")
+        raise ExtractionError(f"Failed to retrieve the URL. Status code: {response.status_code}")
+
+
 
 def extract_from_wiki(wiki_url: str) -> str:
     """ extract from wikilinks"""

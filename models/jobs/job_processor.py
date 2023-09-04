@@ -5,6 +5,7 @@ from sqlalchemy import select
 from models.models_ import Deck, Job
 from models.creators.creator import AiCaller
 from models.decks.card_factory import CardFactory
+from models.jobs.jobs_config import LONG_FORM_JOBS
 from typing import TYPE_CHECKING
 from typing import Dict, Union
 from models.helpers.log_decorators import job_log_decorator
@@ -34,10 +35,11 @@ class JobProcessor():
                     await self.process_standard_job()
                 break  
             except Exception as e:
-                processing_logger.exception(f"Error occurred while in attempt {attempt} JobProcessor.process, slug:{self.job.slug}: {str(e)}")  # noqa: E501
+                processing_logger.error(f"Error occurred while in attempt {attempt} JobProcessor.process, slug:{self.job.slug}: {str(e)}")  # noqa: E501
                 if attempt == max_attempts: 
                     raise e
-
+                
+    @job_log_decorator
     async def process_audio_job(self) -> None:
         segment = self.payload['segment']
         text = await self.openai_caller.transcribe_whisper(segment)
@@ -53,6 +55,16 @@ class JobProcessor():
             item_number = self.job.item_number, item_quantity = self.job.item_quantity,
             deck_id = self.payload['deck'], processed_content = text
         )
+        if self.payload['prompt_options']['main_opt'] not in LONG_FORM_JOBS:
+            prompt_options = self.payload['prompt_options'].copy()
+            prompt_options['prompt_options']['main_opt'] = "Summarize"
+            summary_payload = {'deck': self.payload['deck'], 'text': text,
+                                'prompt_options': prompt_options, 'task_type': "standard"}
+            new_job = Job(slug=self.slug, task_type="standard",
+                payload = json.dumps(summary_payload), state="queued",
+                item_number = self.job.item_number, item_quantity = self.job.item_quantity,
+                deck_id = self.payload['deck']
+            )
         self.job.state = "completed"
         self.job.processed_content = text
         self.job.save_source = True
@@ -67,30 +79,37 @@ class JobProcessor():
         if self.payload['prompt_options']['images_opt']:
             await self.handle_images()
 
+    @job_log_decorator
     async def handle_long_form(self) -> None:
         if self.payload['prompt_options']['main_opt'] == "Transcribe":
             response = await self.openai_caller.transcribe_whisper(self.text)
         elif self.payload['prompt_options']['main_opt'] == "Turn2notes":
             response = await self.openai_caller.turn_to_notes(self.text)
         elif self.payload['prompt_options']['main_opt'] == "Summarize":
+            print("entered summarize")
             response = await self.openai_caller.summarize(self.text)
         if response:
             self.job.processed_content = response
         await self.session.commit()
 
-
+    @job_log_decorator
     async def handle_extract_terms(self) -> None:
         try:
             response = await self.openai_caller.extract_terms(self.text, self.payload['prompt_options'])
+        except Exception as e:
+            processing_logger.error(f"Error occurred while extracting terms: {str(e)}")
+            raise e
+        try:
             result = await self.session.execute(select(Deck).filter_by(id=self.payload['deck']))
             deck = result.scalar_one()
             card_factory = CardFactory(self.session, deck)
             await card_factory.async_create_cards(response, self.payload['prompt_options']['main_opt'])
             self.job.processed_content = str(response)
             self.job.qty_cards_created = card_factory.card_counter
+            print(self.payload['prompt_options']['main_opt'], self.job.processed_content)
             await self.session.commit()
         except Exception as e:
-            processing_logger.exception(f"Error occurred while creating cards: {str(e)}")
+            processing_logger.error(f"Error occurred while creating cards: {str(e)}")
             raise e
 
     async def handle_images(self) -> None:

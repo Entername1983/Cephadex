@@ -3,7 +3,7 @@ from run.extensions import db
 
 class JobNotification(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'),
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'),
                          nullable=True)
     slug = db.Column(db.String(128), nullable=False)
     state = db.Column(db.String(10), nullable=False, default="queued")

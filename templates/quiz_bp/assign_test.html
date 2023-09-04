@@ -119,7 +119,7 @@ main_0 %}
             $('#test-form').on('input', function () {
                 event.preventDefault();
                 $.ajax({
-                    url: "{{ url_for('assign_test', test_id=test.id) }}",
+                    url: "{{ url_for('quiz_bp.assign_test', test_id=test.id) }}",
                     method: "POST",
                     data: $('#test-form').serialize(),
                     success: function (data) {

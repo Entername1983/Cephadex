@@ -224,8 +224,8 @@ def create_playa(game_id, user_id):
 @socketio.on('join_game')
 @log_decorator
 def on_join(data):
-    game_id = data['game_id']
-    players_in_game = PlayerGame.query.filter_by(game_id=game_id).first()
+    #game_id = data['game_id']
+    #players_in_game = PlayerGame.query.filter_by(game_id=game_id).first()
     user_id = data['user_id']
     game_id = data['game_id']
     create_playa(int(game_id), int(user_id))

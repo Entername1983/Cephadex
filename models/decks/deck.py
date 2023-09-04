@@ -32,7 +32,7 @@ class Deck(db.Model):
     source = db.Column(db.String(1000), nullable=True)
     share_date = db.Column(db.DateTime, default=datetime.utcnow)
     share_id = db.Column(db.String(36), nullable=True, unique=True)
-    group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
+    group_id = db.Column(db.Integer, db.ForeignKey("group.id")) ## obsolete?
     group = db.relationship("Group", back_populates="decks")
     children = db.relationship("Deck",
                     secondary=deck_relationships,

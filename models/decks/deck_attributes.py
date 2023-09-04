@@ -3,7 +3,7 @@ from run.extensions import db
 
 class DeckAttributes(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id'))
+    deck_id = db.Column(db.Integer, db.ForeignKey('deck.id', ondelete='CASCADE'),)
     subject = db.Column(db.String(100))
     grade = db.Column(db.String(100))
     topic = db.Column(db.String(100))

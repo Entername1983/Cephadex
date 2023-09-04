@@ -6,6 +6,7 @@ from io import BytesIO
 
 
 def create_qr_code(link: str) -> str:
+    """ Creates a qr code used for sharing decks"""
     qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
     qr.add_data(link)
     qr.make(fit=True)

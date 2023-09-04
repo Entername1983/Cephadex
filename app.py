@@ -13,9 +13,12 @@ from models.send_email import send_email
 from flask_wtf.csrf import generate_csrf
 from factory import create_app
 from run.extensions import db, login_manager, socketio
+from config.settings import DEBUG
+
+
 
 app = create_app()
-app.config['EXPLAIN_TEMPLATE_LOADING'] = True
+##app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 
 
 @app.before_request
@@ -48,7 +51,7 @@ def after_request(response):
 @app.before_request
 def before_request():
     """Addressing bug with import anki and feedback form"""
-    g.feedback_form = None if request.path == '/import_anki' else FeedbackForm()
+    g.feedback_form = None if request.path == '/deck_bp/import_anki' else FeedbackForm()
 
 @app.route('/robots.txt')
 def robots():
@@ -217,7 +220,7 @@ def notification_complete():
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=DEBUG)
     socketio.run(app)
 
 else:
