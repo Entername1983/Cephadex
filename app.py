@@ -14,20 +14,20 @@ from flask_wtf.csrf import generate_csrf
 from factory import create_app
 from run.extensions import db, login_manager, socketio
 from config.settings import DEBUG
-
+from run.bp_register import register_blueprints
 
 
 app = create_app()
 ##app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 
 
-# @app.before_request
-# def redirect_to_https():
+@app.before_request
+def redirect_to_https():
 
-#     """Redirect HTTP to HTTPS"""
-#     if not app.debug and request.headers.get('X-Forwarded-Proto', 'http') == 'http':
-#         url = request.url.replace('http://', 'https://', 1)
-#         return redirect(url, code=301)
+     """Redirect HTTP to HTTPS"""
+     if not app.debug and request.headers.get('X-Forwarded-Proto', 'http') == 'http':
+         url = request.url.replace('http://', 'https://', 1)
+         return redirect(url, code=301)
 
 @app.context_processor
 def inject_csrf_token():
@@ -38,7 +38,6 @@ def inject_csrf_token():
 def load_user(user_id):
     """Load user from database"""
     return User.query.get(int(user_id))
-
 
 @app.after_request
 def after_request(response):
@@ -53,6 +52,9 @@ def after_request(response):
 def before_request():
     """Addressing bug with import anki and feedback form"""
     g.feedback_form = None if request.path == '/deck_bp/import_anki' else FeedbackForm()
+
+register_blueprints(app)
+
 
 @app.route('/robots.txt')
 def robots():

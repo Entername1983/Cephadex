@@ -177,7 +177,7 @@ class Extractor:
     def save_source_text(self) -> None:
         """ Saves the source text as a deckfile object to be stored in the db"""
         if self.extension not in ['.wav', '.mp3']:
-            name = f"{self.deck.name}_source_content"
+            name = f"{self.deck.name}_Source_Content"
             file_storage = DeckFiles(file_name=name,
                     text_string=self.text, create_type = "source",
                     time_created = dt.datetime.now(dt.timezone.utc))
