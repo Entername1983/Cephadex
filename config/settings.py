@@ -18,7 +18,7 @@ ALLOWED_EXTENSIONS = os.environ.get("ALLOWED_EXTENSIONS")
 MAX_CONTENT = os.environ.get("MAX_CONTENT")
 ENVIRONMENT = os.environ.get('ENVIRONMENT')
 APP_URL = os.environ.get('APP_URL')
-
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 ALLOWED_TAGS = [    'a', 'abbr', 'acronym', 'b', 'br', 'code', 'em', 'i', 'li',    'ol', 'strong', 'ul', 'p', 'pre', 'blockquote', 'hr', 'img',    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'div',    'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 ALLOWED_ATTRIBUTES = {
