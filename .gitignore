@@ -2,7 +2,6 @@
 creds.py
 api.txt
 __pycache__/*
-config.py
 database1.db
 dump.sql
 static/files/*
