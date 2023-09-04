@@ -21,12 +21,13 @@ app = create_app()
 ##app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 
 
-@app.before_request
-def redirect_to_https():
-    """Redirect HTTP to HTTPS"""
-    if not app.debug and request.headers.get('X-Forwarded-Proto', 'http') == 'http':
-        url = request.url.replace('http://', 'https://', 1)
-        return redirect(url, code=301)
+# @app.before_request
+# def redirect_to_https():
+
+#     """Redirect HTTP to HTTPS"""
+#     if not app.debug and request.headers.get('X-Forwarded-Proto', 'http') == 'http':
+#         url = request.url.replace('http://', 'https://', 1)
+#         return redirect(url, code=301)
 
 @app.context_processor
 def inject_csrf_token():
