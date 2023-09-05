@@ -109,7 +109,7 @@ def game_join(game_id):
     session['game_id'] = game.id
     ## if user is logged in add them to the game
     if current_user.is_authenticated:
-        return redirect(url_for('game_lobby', game_id=game.id))
+        return redirect(url_for('game_bp.game_lobby', game_id=game.id))
     if request.method == "POST":
         email = request.form.get('email')
         user = User.query.filter_by(email=email).first()
@@ -120,7 +120,7 @@ def game_join(game_id):
             login_user(player)
             if 'game_id' in session:
                 del session['game_id']
-            return redirect(url_for('game_lobby', game_id=game.id))
+            return redirect(url_for('game_bp.game_lobby', game_id=game.id))
         else:
             flash("It looks like that email is already associated with an account.  Please log in to join the game.")
             return redirect(url_for('game_login', game_id=game.id))
