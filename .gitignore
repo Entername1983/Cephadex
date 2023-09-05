@@ -31,4 +31,5 @@ package-lock.json
 package.json
 /flask_session
 .gitignore
+/logs
 ```

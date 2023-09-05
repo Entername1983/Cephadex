@@ -8,7 +8,7 @@ config_name = os.environ.get('ENVIRONMENT')
 
 def configure_app(app) -> None:
 
-    app.config['MAX_CONTENT_LENGTH'] = int(os.environ.get("MAX_CONTENT"))
+    app.config['MAX_CONTENT_LENGTH'] = 104857600
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("SQLALCHEMY_DATABASE_URI")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY")
