@@ -92,7 +92,7 @@ const ENVIRONMENT = "{{ environment }}";
 let socketAddress = 'http://localhost:5000';
 
 if (ENVIRONMENT === 'production') {
-    socketAddress = 'https://cephadex.heroku.com';
+    socketAddress = 'https://cephadex.herokuapp.com';
 }
 console.log(socketAddress);
 

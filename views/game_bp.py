@@ -151,7 +151,7 @@ def game_play(game_id):
             usernames[player.player_id] = User.query.get(player.player_id).email
 
     return render_template('/game_bp/game_play.html',
-            game=game, players = players, usernames=usernames)
+            game=game, players = players, usernames=usernames, environment=ENVIRONMENT)
 
 
 
