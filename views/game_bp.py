@@ -21,7 +21,8 @@ from models.models_ import (
 from config.settings import ENVIRONMENT
 from run.extensions import db, socketio
 from models.helpers.log_decorators import log_decorator
-
+import logging
+logger = logging.getLogger("flask_app")
 
 game_bp = Blueprint(
     'game_bp', 
@@ -59,7 +60,7 @@ def game_new():
                         game_id = new_game.id, username=current_user.username)
             db.session.add(player)
             db.session.commit()
-        
+        logging.info(f"player is {player}, deck is {deck}, rounds are {rounds}")
         return redirect(url_for('game_bp.game_lobby', game_id=new_game.id))
     return render_template('/game_bp/game_new.html', decks = decks, form = form)
 
@@ -67,6 +68,7 @@ def game_new():
 @game_bp.route('/game_lobby/<int:game_id>', methods=['GET', 'POST'])
 @log_decorator
 def game_lobby(game_id):
+    logging.info("entered game_lobby")
     game = Game.query.get(game_id)
     join_game_url = url_for('game_bp.game_join', game_id=game.id, _external=True)
     ##players = game.players
