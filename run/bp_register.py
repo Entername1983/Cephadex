@@ -7,7 +7,7 @@ from views.study_bp import study_bp
 from views.user_bp import user_bp
 from views.group_bp import group_bp
 
-def register_blueprints(app)
+def register_blueprints(app):
     app.register_blueprint(deck_bp, url_prefix='/deck_bp')
     app.register_blueprint(extract_bp, url_prefix='/extract_bp')
     app.register_blueprint(game_bp, url_prefix='/game_bp')

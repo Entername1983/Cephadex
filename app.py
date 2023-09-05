@@ -15,7 +15,9 @@ from factory import create_app
 from run.extensions import db, login_manager, socketio
 from config.settings import DEBUG
 from run.bp_register import register_blueprints
+import logging
 
+logger = logging.getLogger("flask_app")
 
 app = create_app()
 ##app.config['EXPLAIN_TEMPLATE_LOADING'] = True
@@ -23,12 +25,13 @@ app = create_app()
 
 @app.before_request
 def redirect_to_https():
-
-     """Redirect HTTP to HTTPS"""
-     if not app.debug and request.headers.get('X-Forwarded-Proto', 'http') == 'http':
-         url = request.url.replace('http://', 'https://', 1)
-         return redirect(url, code=301)
-
+    """Redirect HTTP to HTTPS"""
+    x_forwarded_proto = request.headers.get('X-Forwarded-Proto')
+    if x_forwarded_proto:
+        if not app.debug and x_forwarded_proto == 'http':
+            url = request.url.replace('http://', 'https://', 1)
+            return redirect(url, code=301)
+        
 @app.context_processor
 def inject_csrf_token():
     """Inject CSRF token into templates"""
@@ -53,8 +56,8 @@ def before_request():
     """Addressing bug with import anki and feedback form"""
     g.feedback_form = None if request.path == '/deck_bp/import_anki' else FeedbackForm()
 
+###  REGISTERING BLUEPRINTS AFTER REQUESTS
 register_blueprints(app)
-
 
 @app.route('/robots.txt')
 def robots():
@@ -96,7 +99,6 @@ def landingpage():
 def notify(user_id):
 ## find unnotified jobs  
     if jobs := find_unnotified_jobs(user_id):
-        print("unnotified jobs", jobs)
 ## send notification
         for job in jobs:
             if current_user.contacted_email is True: # type: ignore
@@ -126,11 +128,8 @@ def check_jobs_complete(jobs: list[Job]) -> bool:
     return counter == len(jobs)
 
 def job_error_checker(slug: str) -> bool:
-    print(slug)
     error_ratio = check_for_errors(slug)
-    print("error ratio", error_ratio)
     if error_ratio > 0:
-        print("Recognized error")
         job_notification = JobNotification.query.filter_by(slug=slug).first()
         credit = current_user.remaining_credit() * 341 + job_notification.cost + 3410
         new_usage_record = UsageRecord(user_id=job_notification.user_id,
@@ -147,29 +146,14 @@ def job_error_checker(slug: str) -> bool:
 
 def check_for_errors(slug: str) -> float:
     jobs = find_jobs_by_slug(slug)
-    print(f"jobs {jobs}, slug {slug}")
     error_count = 0
     for job in jobs:
         if job.error_type == "error":
             error_count = error_count + 1
             job.error_type = "error_returned"
-            
-            print("error found")
         db.session.commit()
     return error_count / len(jobs)
 
-## if not wait
-## if they are completed check if need to be reassembled and turned into a file
-## if not change each jobs result to 1
-## if so reassemble and turn into file
-## after assembling into a file change job result to 1
-## if all jobs are complete and have result of 1, then change notification to complete
-
-##def file_assembler(user_id):
-  ##  print("entered file assembler route")
- ##   job_finisher(user_id)
-  ##  notify(user_id)
-  ##  return jsonify({"success": True})
 
 @app.route("/query", methods=["POST"])
 @login_required
@@ -181,10 +165,8 @@ def query():
     num_completed = Job.query.filter_by(slug=job_id, state="completed").count()
     num_total = Job.query.filter_by(slug=job_id).count()
     slug = JobNotification.query.filter_by(slug=job_id).first()
-
     if num_total != 0:
         progress = int(num_completed/num_total*95)
-           
     if data is None:
         return jsonify({"state": None, "progress": None, "result": None})
     return jsonify(
@@ -199,28 +181,19 @@ def query():
 @app.route("/notification_complete", methods=["POST"])
 @login_required
 def notification_complete():
-    print("entered notification")
     slug_id= request.form["id"]
     slug = JobNotification.query.filter_by(slug=slug_id).first()
-    print("state is", slug.state)
     if job_error_checker(slug.slug):
-            print("entered error checker")
             session.pop('slug', None)
             db.session.commit()
             return jsonify("error")
     if slug.state == 'ready':
-        print("job notification complete is true")
-
         send_email(current_user.email, current_user.first_name,'deck_ready')
-
         session.pop('slug', None)
         slug.state = 'notified'
         db.session.commit()
         return jsonify("success")
  
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=DEBUG)
@@ -240,130 +213,3 @@ else:
   ##  objgraph.show_growth()
 
    ## return response
-
-    """
-def assemble_file(total_jobs):
-    print("entered assemble file route")
-    try:
-        deck = Deck.query.get_or_404(total_jobs[0].deck_id)
-        task_type = total_jobs[0].task_type
-        full_text = ""
-        for job in total_jobs:
-            full_text += job.processed_content
-        if task_type == "Turn2notes":
-            chosen_name = f"{random.choice(NOTES_FILE_NAMES)} {task_type}"
-        elif task_type == "Transcribe":
-            chosen_name = f"{random.choice(TRANSCRIPTION_FILE_NAMES)} {task_type}"
-        elif task_type == "Summarize":
-            chosen_name = f"{random.choice(SUMMARY_FILE_NAMES)} {task_type}"
-        else:
-            chosen_name = f"{random.choice(SOURCE_FILE_NAMES)} {task_type}"
-        rand_int = random.randint(1, 99)
-        name = f"{chosen_name}_{rand_int}"
-        existing_file = DeckFiles.query.filter_by(file_name=name).first()
-        print(f"File already exists {existing_file}")
-        if not existing_file:
-            print("no existing file, creating one")
-
-            name = chosen_name
-            file_storage = DeckFiles(file_name=name, text_string=full_text,
-                                    create_type = task_type,
-                                    time_created = dt.datetime.now(dt.timezone.utc))
-            db.session.add(file_storage)
-            deck.deck_files.append(file_storage)
-            db.session.commit()
-    except Exception as e:
-        logger.debug("error assembling file %s", e)
-        raise e
-"""
-
-
-"""
-def job_finisher(user_id):
-    if not (incomplete_jobs_notifs := find_non_complete_job_notifs(user_id)):
-        return
-    print("incomplete jobs notifs", incomplete_jobs_notifs)
-    for incomplete_job_notif in incomplete_jobs_notifs:
-        jobs = find_jobs_by_slug(incomplete_job_notif.slug)
-        print(jobs)
-        if check_jobs_complete(jobs):
-            print("jobs complete")
-            assembly_jobs = []
-            audio_transcript = []
-            for job in jobs:
-                print(job)
-                if job.task_type == "audio" and job.save_source is True:
-                    audio_transcript.append(job)
-                if job.task_type in ["Turn2notes", "Transcribe", "Summarize"]:
-                    assembly_jobs.append(job)
-                job.result = 1
-            if assembly_jobs:
-                assemble_file(assembly_jobs)
-            if audio_transcript:
-                assemble_file(audio_transcript)
-            db.session.commit()
-            incomplete_job_notif.complete = True
-            db.session.commit()
-"""
-
-
-"""
-if form.validate_on_submit():
-    
-    logger.debug("form validated")
-    text = clean(form.select_text.data)
-    prompt_options = {
-        'main_opt': clean(form.prompt.data) or None,
-        'trans_opt': clean(form.languages.data) or None,
-        'lang_opt': None,
-        'detail_lvl_opt': "long",
-        'min_opt':  None,
-        'max_opt':  None,
-        'images_opt':  None,
-        'save_text_opt':  None,
-        'subject_opt':  None,
-        'custom_term':  clean(form.custom_term.data) or None,
-        'custom_content': clean(form.custom_content.data) or None,
-    }
-    logger.debug(prompt_options)
-    
-    response = creator(text, prompt_options)
-    terms = response[0]
-    for item in terms:
-        logger.debug(item['A'])
-        logger.debug(item['B'])
-    event_tracker(None, "tryout", json.dumps(prompt_options), json.dumps(terms))
-    return render_template('index.html', form = form,
-                            terms = terms, option = prompt_options['main_opt'])
-"""
-"""
-@app.route('/generate_img/<int:deck_id>', methods=['GET', 'POST'])
-@login_required
-def generate_img(deck_id):
-    c_deck_id = deck_id
-    event_tracker(current_user.id, "generate_img", c_deck_id)
-    deck = Deck.query.get(c_deck_id)
-    if(current_user.id != deck.user_id):
-         return apology('Deck not assigned to user', 403)
-    if deck is None:
-        return apology('Deck not found', 404)
-    for card in deck.cards:
-        try:
-            card.img = create_image(card.term)
-            db.session.commit()
-        except:
-            pass
-    return redirect(("/currentdeck/{deck}").format(deck=deck_id))
-"""       
-"""
-def is_valid_audio(file_storage):
-    try:
-        # Attempt to load audio file
-        audio = AudioSegment.from_file(file_storage, format=file_storage.filename.split('.')[-1])
-        logging.info("Valid audio file")
-        return True
-    except Exception as e:
-        logging.info("Invalid audio file %s", e)
-        return False
-
-"""
