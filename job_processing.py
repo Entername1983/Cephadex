@@ -41,17 +41,17 @@ async def process_jobs() -> None:
             except Exception as find_exc:
                 processing_logger.error(f"Error finding pending jobs: {find_exc}")
             batched_jobs = {}
-            for job in jobs:
-                job.state = 'pending'
-                slug = job.slug
-                if slug not in batched_jobs:
-                    batched_jobs[slug] = JobBatch(slug)
-                batched_jobs[slug].add_job(job)
-            try:
-                await session.commit()
-            except Exception as commit_exc:
-                processing_logger.error(f"Failed to commit JobBatch to db: {commit_exc}")
-                continue  
+            if jobs:
+                for job in jobs:
+                    job.state = 'pending'
+                    slug = job.slug
+                    if slug not in batched_jobs:
+                        batched_jobs[slug] = JobBatch(slug)
+                    batched_jobs[slug].add_job(job)
+                try:
+                    await session.commit()
+                except Exception as commit_exc:
+                    processing_logger.error(f"Failed to commit JobBatch to db: {commit_exc}")
         for batch in batched_jobs.values():
             asyncio.create_task(batch.process())
         await asyncio.sleep(SLEEP_TIME) 
