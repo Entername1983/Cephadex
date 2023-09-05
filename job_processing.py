@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from models.jobs.job_batch import JobBatch
 from models.jobs.job_finder import JobFinder
 from models.jobs.jobs_config import (
-    ASYNC_SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS
+    ASYNC_SQLALCHEMY_DATABASE_URI, ASYNC_SQLALCHEMY_ENGINE_OPTIONS
     )
 from run.logger_setup import setup_processing_logger
 from models.helpers.log_decorators import job_log_decorator
@@ -21,7 +21,7 @@ processing_logger = setup_processing_logger()
 
 SLEEP_TIME = int(os.environ.get('SLEEP_TIME', 5))
 
-engine = create_async_engine(ASYNC_SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS)
+engine = create_async_engine(ASYNC_SQLALCHEMY_DATABASE_URI, **ASYNC_SQLALCHEMY_ENGINE_OPTIONS)
 session_factory = sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -39,9 +39,10 @@ async def process_jobs() -> None:
             try:
                 jobs = await JobFinder.find_pending_jobs(session)
             except Exception as find_exc:
-                processing_logger.error(f"Error finding pending jobs: {find_exc}")
+                processing_logger.error(f"Error finding pending jobs: {find_exc}, {ASYNC_SQLALCHEMY_DATABASE_URI}")
             batched_jobs = {}
-            if jobs := []:
+            jobs = []
+            if jobs:
                 for job in jobs:
                     job.state = 'pending'
                     slug = job.slug
