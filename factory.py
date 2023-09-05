@@ -3,7 +3,6 @@ from flask import Flask
 from run.logger_setup import setup_app_logger
 from run.config import configure_app
 from run.extensions import init_extensions
-from views.deck_bp import deck_bp
 
 import logging
 
