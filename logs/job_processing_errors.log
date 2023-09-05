@@ -510,3 +510,14 @@ Traceback (most recent call last):
     processing_logger.critical(f"Error processing job batch: {e}")
                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: __str__ returned non-string (type TypeError)
+2023-09-05 17:17:07,669 - job_processing - ERROR - Exception occurred in function process_jobs. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\job_processing.py", line 58, in process_jobs
+    await asyncio.sleep(SLEEP_TIME)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\asyncio\tasks.py", line 629, in sleep
+    if delay <= 0:
+       ^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'str' and 'int'

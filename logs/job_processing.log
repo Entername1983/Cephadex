@@ -3518,3 +3518,42 @@ TypeError: __str__ returned non-string (type TypeError)
 2023-09-02 13:02:55,798 - job_processing - INFO - Exiting function add_more_cards
 2023-09-02 13:02:55,807 - job_processing - INFO - Exiting function handle_completion
 2023-09-02 13:02:55,808 - job_processing - INFO - Exiting function process
+2023-09-05 17:17:07,524 - job_processing - INFO - Entering function process_jobs
+2023-09-05 17:17:07,669 - job_processing - ERROR - Exception occurred in function process_jobs. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 37, in wrapper
+    result = await f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\job_processing.py", line 58, in process_jobs
+    await asyncio.sleep(SLEEP_TIME)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\asyncio\tasks.py", line 629, in sleep
+    if delay <= 0:
+       ^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'str' and 'int'
+2023-09-05 17:17:29,221 - job_processing - INFO - Entering function process_jobs
+2023-09-05 17:18:14,416 - job_processing - INFO - Entering function process
+2023-09-05 17:18:14,416 - job_processing - INFO - Entering function process_job_with_semaphore
+2023-09-05 17:18:14,419 - job_processing - INFO - Entering function process_job_with_semaphore
+2023-09-05 17:18:14,420 - job_processing - INFO - Entering function process_job_with_semaphore
+2023-09-05 17:18:14,427 - job_processing - INFO - Entering function process
+2023-09-05 17:18:14,428 - job_processing - INFO - Entering function handle_extract_terms
+2023-09-05 17:18:14,430 - job_processing - INFO - Entering function process
+2023-09-05 17:18:14,430 - job_processing - INFO - Entering function handle_extract_terms
+2023-09-05 17:18:14,433 - job_processing - INFO - Entering function process
+2023-09-05 17:18:14,434 - job_processing - INFO - Entering function handle_long_form
+2023-09-05 17:18:30,482 - job_processing - INFO - Exiting function handle_extract_terms
+2023-09-05 17:18:30,483 - job_processing - INFO - Exiting function process
+2023-09-05 17:18:30,488 - job_processing - INFO - Exiting function process_job_with_semaphore
+2023-09-05 17:18:38,602 - job_processing - INFO - Exiting function handle_long_form
+2023-09-05 17:18:38,603 - job_processing - INFO - Exiting function process
+2023-09-05 17:18:38,606 - job_processing - INFO - Exiting function process_job_with_semaphore
+2023-09-05 17:19:04,351 - job_processing - INFO - Exiting function handle_extract_terms
+2023-09-05 17:19:04,351 - job_processing - INFO - Exiting function process
+2023-09-05 17:19:04,357 - job_processing - INFO - Exiting function process_job_with_semaphore
+2023-09-05 17:19:04,357 - job_processing - INFO - Entering function handle_completion
+2023-09-05 17:19:04,361 - job_processing - INFO - Entering function reassemble_long_form
+2023-09-05 17:19:04,380 - job_processing - INFO - Exiting function reassemble_long_form
+2023-09-05 17:19:04,381 - job_processing - INFO - Entering function create_deck_attributes
+2023-09-05 17:19:08,580 - job_processing - INFO - Exiting function create_deck_attributes
+2023-09-05 17:19:08,584 - job_processing - INFO - Exiting function handle_completion
+2023-09-05 17:19:08,585 - job_processing - INFO - Exiting function process

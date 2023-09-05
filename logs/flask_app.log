@@ -15820,3 +15820,19 @@ ValueError: list.remove(x): x not in list
 2023-09-05 11:58:15,471 - flask_app - WARNING - request.path: /query, g.feedback_form: <models.forms.forms.FeedbackForm object at 0x00000201B0977590>
 2023-09-05 11:59:15,483 - flask_app - WARNING - request.path: /query, g.feedback_form: <models.forms.forms.FeedbackForm object at 0x00000201B0967190>
 2023-09-05 11:59:15,483 - flask_app - WARNING - request.path: /query, g.feedback_form: <models.forms.forms.FeedbackForm object at 0x00000201B09A3050>
+2023-09-05 17:18:03,828 - flask_app - INFO - Entering function viewdecks
+2023-09-05 17:18:04,992 - flask_app - INFO - Exiting function viewdecks
+2023-09-05 17:18:06,720 - flask_app - INFO - Entering function extract
+2023-09-05 17:18:06,743 - flask_app - INFO - Exiting function extract
+2023-09-05 17:18:11,058 - flask_app - INFO - Entering function call_credit_counter
+2023-09-05 17:18:11,279 - flask_app - INFO - Exiting function call_credit_counter
+2023-09-05 17:18:12,491 - flask_app - INFO - Entering function extract
+2023-09-05 17:18:12,726 - flask_app - INFO - Exiting function extract
+2023-09-05 17:18:12,735 - flask_app - INFO - Entering function viewdecks
+2023-09-05 17:18:13,590 - flask_app - INFO - Exiting function viewdecks
+2023-09-05 17:19:14,512 - flask_app - INFO - Entering function send_email
+2023-09-05 17:19:15,207 - flask_app - INFO - Exiting function send_email
+2023-09-05 17:19:47,724 - flask_app - INFO - Entering function latest_deck
+2023-09-05 17:19:47,728 - flask_app - INFO - Exiting function latest_deck
+2023-09-05 17:19:47,835 - flask_app - INFO - Entering function deck_manager
+2023-09-05 17:19:47,906 - flask_app - INFO - Exiting function deck_manager

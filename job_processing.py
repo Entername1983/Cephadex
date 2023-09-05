@@ -19,7 +19,7 @@ load_dotenv()
 
 processing_logger = setup_processing_logger()
 
-SLEEP_TIME = os.environ.get('SLEEP_TIME', 5)
+SLEEP_TIME = int(os.environ.get('SLEEP_TIME', 5))
 
 engine = create_async_engine(ASYNC_SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS)
 session_factory = sessionmaker(
@@ -52,8 +52,9 @@ async def process_jobs() -> None:
                     await session.commit()
                 except Exception as commit_exc:
                     processing_logger.error(f"Failed to commit JobBatch to db: {commit_exc}")
-        for batch in batched_jobs.values():
-            asyncio.create_task(batch.process())
+        if batched_jobs:
+            for batch in batched_jobs.values():
+                asyncio.create_task(batch.process())
         await asyncio.sleep(SLEEP_TIME) 
 
 if __name__ == "__main__":
