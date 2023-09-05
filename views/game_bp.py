@@ -123,7 +123,7 @@ def game_join(game_id):
             return redirect(url_for('game_bp.game_lobby', game_id=game.id))
         else:
             flash("It looks like that email is already associated with an account.  Please log in to join the game.")
-            return redirect(url_for('game_login', game_id=game.id))
+            return redirect(url_for('game_bp.game_login', game_id=game.id))
 
     return render_template('/game_bp/game_join.html', game_id=game_id)
 
