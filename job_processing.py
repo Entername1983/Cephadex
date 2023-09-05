@@ -41,7 +41,7 @@ async def process_jobs() -> None:
             except Exception as find_exc:
                 processing_logger.error(f"Error finding pending jobs: {find_exc}")
             batched_jobs = {}
-            if jobs:
+            if jobs := []:
                 for job in jobs:
                     job.state = 'pending'
                     slug = job.slug
