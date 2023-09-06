@@ -50,7 +50,7 @@ const ENVIRONMENT = "{{ environment }}";
 let socketAddress = 'http://localhost:5000';
 
 if (ENVIRONMENT === 'production') {
-    socketAddress = 'https://cephadex.herokuapp.com';
+    socketAddress = window.location.origin;
 }
 console.log(socketAddress);
 const userId = '{{ current_user.id }}';
