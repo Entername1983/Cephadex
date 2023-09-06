@@ -53,7 +53,7 @@ def extract():
                 'Please upgrade your account to continue.')
                 event_tracker(current_user.id, 'extract_start',
                             'fail', "limit_reached")
-                return redirect(url_for('upgrade'))
+                return redirect(url_for('user_bp.upgrade'))
             extract_obj.save_source_text()
             extract_obj.create_jobs()
         except AudioError as e:
@@ -87,7 +87,7 @@ def call_credit_counter():
         raise YoutubeError from e
     except FileNotFoundError as e:
         flash("File not found. Please try again.")
-        redirect(url_for('extract'))
+        redirect(url_for('extract_bp.extract'))
         raise e
     except Exception as e:
         print("general exception", e)
