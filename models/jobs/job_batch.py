@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from models.jobs.job_processor import JobProcessor
 from models.jobs.job_finder import JobFinder
 from models.jobs.jobs_config import (MAX_CONCURRENT_TASKS,
-    ASYNC_SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS,
+    ASYNC_SQLALCHEMY_DATABASE_URI, ASYNC_SQLALCHEMY_ENGINE_OPTIONS,
     LONG_FORM_JOBS, DENOMINATOR_CHECK_FLASHCARDS)
 
 from typing import TYPE_CHECKING
@@ -26,7 +26,7 @@ processing_logger = logging.getLogger("job_processing")
 
 load_dotenv()
 semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
-engine = create_async_engine(ASYNC_SQLALCHEMY_DATABASE_URI, **SQLALCHEMY_ENGINE_OPTIONS)
+engine = create_async_engine(ASYNC_SQLALCHEMY_DATABASE_URI, **ASYNC_SQLALCHEMY_ENGINE_OPTIONS)
 session_factory = sessionmaker(
     bind=engine,
     class_=AsyncSession,
