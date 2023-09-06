@@ -36,12 +36,12 @@ async def process_jobs() -> None:
     """
     while True:
         async with session_factory() as session:
+            jobs = []
             try:
                 jobs = await JobFinder.find_pending_jobs(session)
             except Exception as find_exc:
                 processing_logger.error(f"Error finding pending jobs: {find_exc}, {ASYNC_SQLALCHEMY_DATABASE_URI}")
             batched_jobs = {}
-            jobs = []
             if jobs:
                 for job in jobs:
                     job.state = 'pending'
