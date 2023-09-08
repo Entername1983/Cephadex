@@ -487,11 +487,11 @@ def generate_link(deck_id):
     if deck.share_id:
         print("deck already has share_id")
 
-        link = f'{APP_URL}deck_bp/shared_deck_view/{deck.share_id}'
+        link = f'{APP_URL}/deck_bp/shared_deck_view/{deck.share_id}'
         img_str = create_qr_code(link)
         return jsonify(
             {
-                'share_link': f'{APP_URL}deck_bp/shared_deck_view/{deck.share_id}',
+                'share_link': f'{APP_URL}/deck_bp/shared_deck_view/{deck.share_id}',
                 'qr_code': img_str,
             }
         )
@@ -502,13 +502,13 @@ def generate_link(deck_id):
         db.session.commit()
 
         # generate a QR code
-        link = f'{APP_URL}deck_bp/shared_deck_view/{share_id}'
+        link = f'{APP_URL}/deck_bp/shared_deck_view/{share_id}'
         img_str = create_qr_code(link)
 
         # return the shared link and QR code
         return jsonify(
             {
-                'share_link': f'{APP_URL}deck_bp/shared_deck_view/{share_id}',
+                'share_link': f'{APP_URL}/deck_bp/shared_deck_view/{share_id}',
                 'qr_code': img_str,
             }
         )
@@ -570,7 +570,7 @@ def share_deck(deck_id):
                     shared_deck.cards.append(new_card)
                 db.session.commit()
             else:
-                share_link = APP_URL + 'deck_bp/shared_deck_view/' + deck_to_copy.share_id
+                share_link = APP_URL + '/deck_bp/shared_deck_view/' + deck_to_copy.share_id
                 print("sending email to", email)
                 send_email(email, None, 'deck_shared', 'Someone sent you a deck', link=share_link)
                 pass
