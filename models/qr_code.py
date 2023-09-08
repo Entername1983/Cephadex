@@ -2,7 +2,7 @@ from PIL import Image
 import base64
 import qrcode
 from io import BytesIO
-
+import os
 
 
 def create_qr_code(link: str) -> str:
@@ -11,9 +11,10 @@ def create_qr_code(link: str) -> str:
     qr.add_data(link)
     qr.make(fit=True)
     img_qr = qr.make_image(fill_color="black", back_color="#efe8ff")
+    image_path = os.path.join('static', 'Cephadex-logo-6.png')
 
     # Load your background image
-    background = Image.open("static\Cephadex-logo-6.png")
+    background = Image.open(image_path)
 
     # Make background image the same size as the QR code
     background = background.resize(img_qr.size, Image.ANTIALIAS)
