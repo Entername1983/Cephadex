@@ -215,6 +215,7 @@ class Extractor:
                     self.job_creator('Summarize')
                 elif self.prompt_options['create_notes_opt'] is True:
                     self.job_creator('Turn2notes')
+        print("ready to create notification")
         self.notification_creator()
 
     def audio_job_creator(self) -> None:
@@ -235,6 +236,7 @@ class Extractor:
         prompt_options = self.prompt_options
         prompt_options['main_opt'] = prompt
         counter = 0
+        print(type(self.text))
         for text in self.text:
             total_len = len(self.text)
             counter = counter + 1
@@ -245,9 +247,10 @@ class Extractor:
                        task_type = "standard", payload = payload,
                        item_number = counter, deck_id = self.deck.id,
                        item_quantity = total_len)
+            self.db_session.add(data)
             if counter == total_len:
                 session['slug'] = self.slug
-                self.db_session.add(data)
+                
                 self.db_session.commit()
 
     def notification_creator(self) -> None:
@@ -264,13 +267,16 @@ class Extractor:
     ## AUDIO EXTRACTORS
     def extract_audio(self, file: str) -> None:
         """ Divides up audio if necessary into segments and stores them, then creating individual jobs"""
+        print("entered extract audio")
         folder_path = "audio_segments"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         try:
             segments = divide_audio(file)
             item_quantity = len(segments)
+            print(type(segments))
             for segment in segments:
+                print(segment)
                 item_number = segments.index(segment) + 1
                 self.create_audio_job(segment, item_number, item_quantity)
             os.remove(file)
@@ -614,19 +620,25 @@ def convert_time_to_tokens(time: float) -> float:
     return ((time / 60)/PAGES_PER_MIN) * TOKENS_PER_PAGE
 
 def divide_audio(input_file: 'Union[str, IO[bytes]]', segment_length: int =25) -> list[str]:
+    print("entered divide audio")
     """ divides audio into segments of a length of at most segment_length mb (defautls to 25)"""
     try:
         # Open the audio file
         random_string = ''.join(random.choices('0123456789', k=5))
+        print(input_file)
         audio = AudioSegment.from_file(input_file)
+        print("1")
         # Calculate the segment size in bytes
         segment_size = segment_length * 1024 * 1024
+        print("2")
         # Calculate the total number of segments
         num_segments = math.ceil(len(audio) / segment_size)
+        print("3")
         # Create a list to hold the file paths for the audio segments
         segment_paths = []
         # Split the audio file into segments and save each segment as an MP3 file
         for i in range(num_segments):
+            print(i, num_segments)
             start = i * segment_size
             end = min((i + 1) * segment_size, len(audio))
             segment = audio[start:end]
@@ -640,5 +652,7 @@ def divide_audio(input_file: 'Union[str, IO[bytes]]', segment_length: int =25) -
 
     except FileNotFoundError as e:
         raise e from e
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
