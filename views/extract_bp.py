@@ -34,11 +34,8 @@ def extract():
     ## plan level requried for genereting images
     form = UploadFileForm()
     if form.validate_on_submit():
-        print(form.file)
-
         extract_obj = Extractor(db.session, form)
         session['slug'] = extract_obj.slug
-        print(session['slug'])
         try:
             extract_obj.get_content()
             deck, new_deck_created = extract_obj.get_deck(form)
@@ -77,10 +74,8 @@ def extract():
 @log_decorator
 def call_credit_counter():
     form = UploadFileForm()
-    print("entered call credit counter")
     try:
         credit = round(tokens_to_credit(tokens_general(form)), 1)
-        print("credit: ", credit)
         return jsonify(credit)
 
     except YoutubeError as e:

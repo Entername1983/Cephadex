@@ -66,6 +66,8 @@ class Extractor:
             'save_text_opt': kwargs.get('save_text', None),
             'custom_term': kwargs.get('custom_term', None),
             'custom_content': kwargs.get('custom_content', None),
+            'create_summary_opt': kwargs.get('create_summary', None),
+            'create_notes_opt': kwargs.get('create_notes', None),
         }
         if form is not None:
             options['main_opt'] = form.prompt.data
@@ -79,6 +81,8 @@ class Extractor:
             options['save_text_opt'] = form.save_text.data
             options['custom_term'] = form.custom_term.data
             options['custom_content'] = form.custom_content.data
+            options['create_summary_opt'] = form.create_summary.data
+            options['create_notes_opt'] = form.create_notes.data
 
         self.prompt_options: dict = options
 
@@ -176,7 +180,7 @@ class Extractor:
 
     def save_source_text(self) -> None:
         """ Saves the source text as a deckfile object to be stored in the db"""
-        if self.extension not in ['.wav', '.mp3']:
+        if self.prompt_options['save_text_opt'] is True and self.extension not in ['.wav', '.mp3']:
             name = f"{self.deck.name}_Source_Content"
             file_storage = DeckFiles(file_name=name,
                     text_string=self.text, create_type = "source",
@@ -200,11 +204,17 @@ class Extractor:
                 self.job_creator(prompt)
                 prompt = 'Mcq'
                 self.job_creator(prompt)
+                if self.prompt_options['create_notes_opt'] is True:
+                    self.job_creator('Turn2notes')
+                else:
+                    self.job_creator('Summarize')
             else:
                 prompt = self.prompt_options['main_opt']
                 self.job_creator(prompt)
-            if self.prompt_options['main_opt'] not in LONG_FORM_JOBS:
-                self.job_creator('Summarize')
+                if self.prompt_options['create_summary_opt'] is True:
+                    self.job_creator('Summarize')
+                elif self.prompt_options['create_notes_opt'] is True:
+                    self.job_creator('Turn2notes')
         self.notification_creator()
 
     def audio_job_creator(self) -> None:

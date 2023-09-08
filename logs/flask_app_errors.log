@@ -9432,3 +9432,1330 @@ Traceback (most recent call last):
   File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sqlalchemy\orm\collections.py", line 1179, in remove
     fn(self, value)
 ValueError: list.remove(x): x not in list
+2023-09-07 09:55:24,841 - flask_app - ERROR - Exception occurred in function carousel. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 274, in carousel
+    return render_template("carousel.html", title="Carousel",
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 1081, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 1010, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 969, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 64, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 98, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: carousel.html
+2023-09-07 09:57:00,660 - flask_app - ERROR - Exception occurred in function carousel. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 274, in carousel
+    return render_template("/deck_bp/carousel.html", title="Carousel",
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\deck_bp\carousel.html", line 1, in top-level template code
+    {% extends "layout.html" %} {% block title %} AI Flashcard Editor {% endblock %} {% block head
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\layout.html", line 427, in top-level template code
+    {% block main_0 %}
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\deck_bp\carousel.html", line 75, in block 'main_0'
+    url: "{{ url_for('deck_bp.add_card', deck_id=" + deck_id + ") }}",
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\app.py", line 1686, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\werkzeug\routing\map.py", line 945, in build
+    rv = self._partial_build(endpoint, values, method, append_unknown)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\werkzeug\routing\map.py", line 837, in _partial_build
+    build_rv = rule.build(values, append_unknown)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\werkzeug\routing\rules.py", line 835, in build
+    return self._build_unknown(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<werkzeug routing>", line 1, in <builder:'/deck_bp/add_card/<int:deck_id>'>
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\werkzeug\routing\converters.py", line 172, in to_url
+    value = str(self.num_convert(value))
+                ^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ' + deck_id + '
+2023-09-07 10:01:49,807 - flask_app - ERROR - Exception occurred in function carousel. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 274, in carousel
+    return render_template("/deck_bp/carousel.html", title="Carousel",
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\deck_bp\carousel.html", line 1, in top-level template code
+    {% extends "layout.html" %} {% block title %} AI Flashcard Editor {% endblock %} {% block head
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\layout.html", line 427, in top-level template code
+    {% block main_0 %}
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\deck_bp\carousel.html", line 398, in block 'main_0'
+    url: "{{ url_for('deck_bp.update_card') }}",
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\app.py", line 1697, in url_for
+    return self.handle_url_build_error(error, endpoint, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\app.py", line 1686, in url_for
+    rv = url_adapter.build(  # type: ignore[union-attr]
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\werkzeug\routing\map.py", line 947, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'deck_bp.update_card'. Did you mean 'deck_bp.deletecard' instead?
+2023-09-07 11:22:49,426 - flask_app - ERROR - Exception occurred in function generate_link_test. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\quiz_bp.py", line 278, in generate_link_test
+    img_str = create_qr_code(link)
+                             ^^^^
+UnboundLocalError: cannot access local variable 'link' where it is not associated with a value
+2023-09-07 11:43:21,292 - flask_app - ERROR - Exception occurred in function share_deck. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 553, in share_deck
+    shared_id = deck_to_copy.shared_id)
+                ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Deck' object has no attribute 'shared_id'
+2023-09-07 11:49:44,212 - flask_app - ERROR - Exception occurred in function share_deck. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 553, in share_deck
+    share_id = deck_to_copy.shared_id)
+               ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Deck' object has no attribute 'shared_id'
+2023-09-07 11:50:13,094 - flask_app - ERROR - Exception occurred in function share_deck. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 553, in share_deck
+    share_id = deck_to_copy.shared_id)
+               ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Deck' object has no attribute 'shared_id'
+2023-09-07 11:50:43,783 - flask_app - ERROR - Exception occurred in function share_deck. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\deck_bp.py", line 553, in share_deck
+    share_id = deck_to_copy.shared_id)
+               ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Deck' object has no attribute 'shared_id'
+2023-09-07 13:12:16,796 - flask_app - ERROR - Exception occurred in function game_lobby. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\game_bp.py", line 88, in game_lobby
+    return render_template('/game_bp/game_lobby.html', game=game,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\game_bp\game_lobby.html", line 1, in top-level template code
+    {% extends "layout.html" %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\layout.html", line 427, in top-level template code
+    {% block main_0 %}
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\game_bp\game_lobby.html", line 45, in block 'main_0'
+    <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit', '{{test.id}}')" role="button"
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 485, in getattr
+    return getattr(obj, attribute)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'test' is undefined
+2023-09-07 17:56:55,136 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 6.015 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-07 18:16:58,138 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 5.100 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 11:51:21,912 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 6.022 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 11:51:22,863 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 5.000 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 12:35:50,884 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 5.004 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 12:42:10,614 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 6.042 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 12:42:14,030 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 5.144 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 12:54:06,888 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 6.025 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 13:00:48,601 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 5.003 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 13:00:48,631 - flask_app - ERROR - Exception occurred in function send_email. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 456, in resolve
+    return _proxy.query(name, rdtype, raise_on_no_answer=raises,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 412, in query
+    return end()
+           ^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 391, in end
+    raise result[1]
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 372, in step
+    a = fun(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1262, in query
+    return self.resolve(
+           ^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 1204, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\dns\resolver.py", line 988, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 6.032 seconds: Server 100.64.100.1 UDP port 53 answered The DNS operation timed out.; Server 10.87.0.1 UDP port 53 answered The DNS operation timed out.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1283, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1329, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1278, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1038, in _send_output
+    self.send(msg)
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 976, in send
+    self.connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1448, in connect
+    super().connect()
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 942, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\green\socket.py", line 44, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 549, in getaddrinfo
+    qname, addrs = _getaddrinfo_lookup(host, family, flags)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 522, in _getaddrinfo_lookup
+    raise err
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 511, in _getaddrinfo_lookup
+    answer = resolve(host, qfamily, False, use_network=use_network)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\eventlet\support\greendns.py", line 464, in resolve
+    raise EAI_EAGAIN_ERROR
+socket.gaierror: [Errno 11002] Lookup timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 38, in send_email
+    response = sg.send(message)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\sendgrid\base_interface.py", line 62, in send
+    return self.client.mail.send.post(request_body=message)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 277, in http_request
+    self._make_request(opener, request, timeout=timeout)
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\python_http_client\client.py", line 176, in _make_request
+    return opener.open(request, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 11002] Lookup timed out>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\send_email.py", line 41, in send_email
+    print(e.message)
+          ^^^^^^^^^
+AttributeError: 'URLError' object has no attribute 'message'
+2023-09-08 13:04:56,429 - flask_app - ERROR - Exception occurred in function extract. Extra info: No extra info provided.
+Traceback (most recent call last):
+  File "C:\Users\kevin\Documents\Cephadex\cards\models\helpers\log_decorators.py", line 17, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\views\extract_bp.py", line 72, in extract
+    return render_template("extract_bp/extract.html", title="Extract", form=form,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\extract_bp\extract.html", line 1, in top-level template code
+    {% extends "layout.html" %} {% block title %} Creating Study Materials with AI {% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\layout.html", line 427, in top-level template code
+    {% block main_0 %}
+  File "C:\Users\kevin\Documents\Cephadex\cards\templates\extract_bp\extract.html", line 354, in block 'main_0'
+    {{ form.create_study_notes(id="create_study_notes", class="") }}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevin\Documents\Cephadex\.venv\Lib\site-packages\jinja2\utils.py", line 83, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'models.forms.forms.UploadFileForm object' has no attribute 'create_study_notes'

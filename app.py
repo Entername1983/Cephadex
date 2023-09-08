@@ -1,5 +1,8 @@
 
 
+import eventlet
+eventlet.monkey_patch()
+
 import datetime as dt
 import random
 from flask import g, redirect, render_template, request, session

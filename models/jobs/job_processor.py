@@ -42,6 +42,8 @@ class JobProcessor():
     @job_log_decorator
     async def process_audio_job(self) -> None:
         segment = self.payload['segment']
+        if not os.path.exists(segment):
+            processing_logger.exception(f"The file '{segment}' does not exist.")
         text = await self.openai_caller.transcribe_whisper(segment)
         self.text = text
         try:
@@ -56,18 +58,25 @@ class JobProcessor():
             deck_id = self.payload['deck'], processed_content = text
         )
         if self.payload['prompt_options']['main_opt'] not in LONG_FORM_JOBS:
-            prompt_options = self.payload['prompt_options'].copy()
-            prompt_options['prompt_options']['main_opt'] = "Summarize"
-            summary_payload = {'deck': self.payload['deck'], 'text': text,
-                                'prompt_options': prompt_options, 'task_type': "standard"}
-            new_job = Job(slug=self.slug, task_type="standard",
-                payload = json.dumps(summary_payload), state="queued",
-                item_number = self.job.item_number, item_quantity = self.job.item_quantity,
-                deck_id = self.payload['deck']
-            )
+            task = None
+            if self.payload['prompt_options']['create_summary_opt'] is True:
+                task = "Summarize"
+            elif self.payload['prompt_options']['create_notes_opt'] is True:
+                task = "Turn2notes"
+            if task:
+                prompt_options = self.payload['prompt_options'].copy()
+                prompt_options['main_opt'] = task
+                summary_payload = {'deck': self.payload['deck'], 'text': text,
+                                    'prompt_options': prompt_options, 'task_type': "standard"}
+                long_form_job = Job(slug=self.slug, task_type="standard",
+                    payload = json.dumps(summary_payload), state="queued",
+                    item_number = self.job.item_number, item_quantity = self.job.item_quantity,
+                    deck_id = self.payload['deck']
+                )
+                self.session.add(long_form_job)
         self.job.state = "completed"
         self.job.processed_content = text
-        self.job.save_source = True
+        ##self.job.save_source = self.payload['prompt_options']['save_text_opt']
         self.session.add(new_job)
         await self.session.commit()
         
@@ -86,7 +95,6 @@ class JobProcessor():
         elif self.payload['prompt_options']['main_opt'] == "Turn2notes":
             response = await self.openai_caller.turn_to_notes(self.text)
         elif self.payload['prompt_options']['main_opt'] == "Summarize":
-            print("entered summarize")
             response = await self.openai_caller.summarize(self.text)
         if response:
             self.job.processed_content = response
@@ -106,7 +114,6 @@ class JobProcessor():
             await card_factory.async_create_cards(response, self.payload['prompt_options']['main_opt'])
             self.job.processed_content = str(response)
             self.job.qty_cards_created = card_factory.card_counter
-            print(self.payload['prompt_options']['main_opt'], self.job.processed_content)
             await self.session.commit()
         except Exception as e:
             processing_logger.error(f"Error occurred while creating cards: {str(e)}")

@@ -581,11 +581,63 @@ main_0 %}
 
                 </form>
             </div>
-
+            <div class = "modal-footer d-flex justify-content-center">
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('twitter', '{{test.id}}')" role="button"
+                target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit', '{{test.id}}')" role="button"
+                target="_blank"><i class="fab fa-reddit fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('whatsapp', '{{test.id}}')" role="button"
+                target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('linkedin', '{{test.id}}')" role="button"
+                target="_blank"><i class="fab fa-linkedin fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('facebook', '{{test.id}}')" role="button"
+                target="_blank"><i class="fab fa-facebook fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('telegram', '{{test.id}}')" role="button"
+                target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
+              </div>      
         </div>
     </div>
 </div>
 </div>
+<script>
+    function shareToSocialMedia(platform, test_id) {
+      let share_link;  // Declare share_link outside of the AJAX call
+    
+      $.ajax({
+        url: '/quiz_bp/generate_link_test/' + test_id,
+        type: 'GET',
+        success: function(data) {
+          share_link = data['share_link'];  // Set share_link within the callback
+          
+          // Generate the social media sharing URL based on the platform
+          let url;
+          if (platform === 'twitter') {
+          url = `https://twitter.com/intent/tweet?text=Check+out+this+awesome+quiz!&hashtags=QuizTime,StudyWithCephadex&url=${encodeURIComponent(share_link)}`;
+        } else if (platform === 'facebook') {
+          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(share_link)}`;
+        } else if (platform === 'whatsapp') {
+          url = `https://wa.me/?text=${encodeURIComponent(share_link)}`;
+        } else if (platform === 'linkedin') {
+          url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(share_link)}`;
+        } else if (platform === 'reddit') {
+          url = `https://reddit.com/submit?url=${encodeURIComponent(share_link)}&title=Check+out+this+awesome+quiz!`;
+        } else if (platform === 'telegram') {
+          url = `https://t.me/share/url?url=${encodeURIComponent(share_link)}&text=Check+out+this+awesome+quiz!`;
+        }
+    
+          // Open a new window
+          window.open(url, '_blank').focus();
+        },
+        error: function(error) {
+          console.log(error);
+        }
+      });
+    }
+    </script>
+
+
+
+
 <script>
     function generateLink(test_id) {
         console.log("generate link")

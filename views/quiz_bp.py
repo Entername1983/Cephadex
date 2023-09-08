@@ -275,6 +275,8 @@ def generate_link_test(test_id):
         share_id = str(uuid.uuid4())
         test.share_id = share_id
         db.session.commit()
+        link = f'{APP_URL}quiz_bp/shared_test_view/{test.share_id}'
+
         img_str = create_qr_code(link)
 
         return jsonify(

@@ -288,12 +288,53 @@
 
 
  
-
+<script>
+    function shareToSocialMedia(platform, deck_id) {
+      let share_link;  // Declare share_link outside of the AJAX call
+    
+      $.ajax({
+        url: '/deck_bp/generate_link/' + deck_id,
+        type: 'GET',
+        success: function(data) {
+          share_link = data['share_link'];  // Set share_link within the callback
+          
+          // Generate the social media sharing URL based on the platform
+          let url;
+          if (platform === 'twitter') {
+          url = `https://twitter.com/intent/tweet?text=Check+out+this+awesome+deck!&hashtags=AwesomeDeck,StudyWithCephadex&url=${encodeURIComponent(share_link)}`;
+        } else if (platform === 'facebook') {
+          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(share_link)}`;
+        } else if (platform === 'whatsapp') {
+          url = `https://wa.me/?text=${encodeURIComponent(share_link)}`;
+        } else if (platform === 'linkedin') {
+          url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(share_link)}`;
+        } else if (platform === 'reddit') {
+          url = `https://reddit.com/submit?url=${encodeURIComponent(share_link)}&title=Check+out+this+awesome+deck!`;
+        } else if (platform === 'telegram') {
+          url = `https://t.me/share/url?url=${encodeURIComponent(share_link)}&text=Check+out+this+awesome+deck!`;
+        }
+    
+          // Open a new window
+          window.open(url, '_blank').focus();
+        },
+        error: function(error) {
+          console.log(error);
+        }
+      });
+    }
+    </script>
 
 
 <script>
     function shareDeck(deckId) {
         var email = document.getElementById('email' + deckId).value;
+        const errorMessage = document.getElementById('email-error' + deckId);
+        if (email.trim() === "") {
+            errorMessage.style.display = "block";
+            return;
+        } else {
+            errorMessage.style.display = "none";
+        }
         var encodedEmail = encodeURIComponent(email);
         var form = document.getElementById('share-form' + deckId);
         var formData = new FormData(form);
@@ -462,6 +503,8 @@
                             placeholder="Type receiver's email here")|safe }}
                             <label for="email{{deck.id}}">Email</label>
                         </div>
+                        <small id="email-error{{deck.id}}" class="form-text text-danger" style="display:none;">Please enter at least one email address.</small>
+
                         <div class = mt-2>
                         <p id="share-link{{deck.id}}" readonly style="display:none"></p>
                         <img id="qr_code_image{{deck.id}}" src="" alt="QR Code" width="100" height="100" style="display:none">
@@ -472,6 +515,20 @@
                     <button type="button" class="btn btn-generate" onclick="shareDeck('{{ deck.id }}')">Share</button>
                 </form>
             </div>
+            <div class = "modal-footer d-flex justify-content-center">
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('twitter', '{{deck.id}}')" role="button"
+                target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit', '{{deck.id}}')" role="button"
+                target="_blank"><i class="fab fa-reddit fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('whatsapp', '{{deck.id}}')" role="button"
+                target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('linkedin', '{{deck.id}}')" role="button"
+                target="_blank"><i class="fab fa-linkedin fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('facebook', '{{deck.id}}')" role="button"
+                target="_blank"><i class="fab fa-facebook fa-lg"></i></a>
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('telegram', '{{deck.id}}')" role="button"
+                target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
+              </div>
         </div>
     </div>
 </div>

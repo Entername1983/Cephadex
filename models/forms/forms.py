@@ -164,6 +164,8 @@ class UploadFileForm(FlaskForm):
                                            ('Turn2notes', 'Turn to notes'), ('Custom', 'Custom')], default='Mix')
     generate_images = BooleanField('Generate_images')
     save_text = BooleanField('Save_text')
+    create_summary = BooleanField('Create_summary')
+    create_notes = BooleanField('Create_notes')
     languages = SelectField('Languages', choices=[("", "Choose a language"), ("English",  "English"), ("Arabic", "Arabic"), ("Bulgarian", "Bulgarian"), ("Chinese", "Chinese"), ("Croatian",  "Croatian"), 
                                                   ("Czech",  "Czech"), ("Dutch", "Dutch"), ("Dothraki",  "Dothraki"), ("Elvish", "Elvish"), ("English",  "English"), 
                                                   ("Estonian", "Estonian"), ("Farsi", "Farsi"), ("French",  "French"), ("German", "German"), ("Greek",  "Greek"),

@@ -10,21 +10,7 @@
 
 {% endblock %}
 {% block main_0 %}
-<!----
-<div class="fab-container">
-  <div class="fab-options">
 
-    <button onclick="document.location='/extract'" class="btn btn-primary fab-option">Create</button>
-    <button onclick="document.location='/public_decks'" class="btn btn-primary fab-option">Public Decks</button>
-    <button onclick="document.location='/import_deck'" class="btn btn-primary fab-option">Import from Anki</button>
-
-  </div>
-
-
-  <button class=" fab-main">+</button>
-
-</div>
---->
 
 
 
@@ -311,6 +297,14 @@
   <script>
 function shareDeck(deckId) {
   var email = document.getElementById('email' + deckId).value;
+  const errorMessage = document.getElementById('email-error' + deckId);
+
+  if (email.trim() === "") {
+    errorMessage.style.display = "block";
+    return;
+  } else {
+    errorMessage.style.display = "none";
+  }
   var encodedEmail = encodeURIComponent(email);
   var form = document.getElementById('share-form' + deckId);
   var formData = new FormData(form);
@@ -346,6 +340,8 @@ function shareDeck(deckId) {
                             placeholder="Type receiver's email here")|safe }}
                             <label for="email{{deck.id}}">Email</label>
                         </div>
+                        <small id="email-error{{deck.id}}" class="form-text text-danger" style="display:none;">Please enter at least one email address.</small>
+
                         <div class = mt-2>
                           <img id="qr_code_image{{deck.id}}" src="" alt="QR Code" width="100" height="100"style="display:none" >
 
@@ -355,7 +351,24 @@ function shareDeck(deckId) {
                     <button type="button" class="btn-generate" onclick="generateLink('{{ deck.id }}')">Generate Link and QR Code</button>
 
                     <button type="button" class="btn-generate" onclick="shareDeck('{{ deck.id }}')">Share</button>
+                    
+
+
                 </form>
+            </div>
+            <div class = "modal-footer d-flex justify-content-center">
+              <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('twitter', '{{deck.id}}')" role="button"
+              target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
+              <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit', '{{deck.id}}')" role="button"
+              target="_blank"><i class="fab fa-reddit fa-lg"></i></a>
+              <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('whatsapp', '{{deck.id}}')" role="button"
+              target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
+              <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('linkedin', '{{deck.id}}')" role="button"
+              target="_blank"><i class="fab fa-linkedin fa-lg"></i></a>
+              <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('facebook', '{{deck.id}}')" role="button"
+              target="_blank"><i class="fab fa-facebook fa-lg"></i></a>
+              <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('telegram', '{{deck.id}}')" role="button"
+              target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
             </div>
         </div>
     </div>
@@ -364,7 +377,7 @@ function shareDeck(deckId) {
     function generateLink(deck_id) {
         console.log("generate link")
         $.ajax({
-            url: '/generate_link/' + deck_id,
+            url: '/deck_bp/generate_link/' + deck_id,
             type: 'GET',
             success: function(data) {
               console.log(data);
@@ -379,55 +392,43 @@ function shareDeck(deckId) {
         });
     }
     </script>
+<script>
+function shareToSocialMedia(platform, deck_id) {
+  let share_link;  // Declare share_link outside of the AJAX call
 
+  $.ajax({
+    url: '/deck_bp/generate_link/' + deck_id,
+    type: 'GET',
+    success: function(data) {
+      share_link = data['share_link'];  // Set share_link within the callback
+      
+      // Generate the social media sharing URL based on the platform
+      let url;
+      if (platform === 'twitter') {
+      url = `https://twitter.com/intent/tweet?text=Check+out+this+awesome+deck!&hashtags=AwesomeDeck,StudyWithCephadex&url=${encodeURIComponent(share_link)}`;
+    } else if (platform === 'facebook') {
+      url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(share_link)}`;
+    } else if (platform === 'whatsapp') {
+      url = `https://wa.me/?text=${encodeURIComponent(share_link)}`;
+    } else if (platform === 'linkedin') {
+      url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(share_link)}`;
+    } else if (platform === 'reddit') {
+      url = `https://reddit.com/submit?url=${encodeURIComponent(share_link)}&title=Check+out+this+awesome+deck!`;
+    } else if (platform === 'telegram') {
+      url = `https://t.me/share/url?url=${encodeURIComponent(share_link)}&text=Check+out+this+awesome+deck!`;
+    }
+
+      // Open a new window
+      window.open(url, '_blank').focus();
+    },
+    error: function(error) {
+      console.log(error);
+    }
+  });
+}
+</script>
 </div>
-<!----- INFO MODAL OBSOLETE--
-<div class="modal fade" id="infoDecksModal{{deck.id}}" tabindex="-1" aria-labelledby="#infoDecksModalLabel{{deck.id}}"
-  aria-hidden="true">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header modal-header-style p-4">
-        <h5 class="modal-title" id="infoDecksModalLabel{{deck.id}}" >Deck details:</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row box_study mt-1">
-          <li class="list-group-item">Deck name:
-            <h5>{{deck.name}}</h5>
-          </li>
-          <li class="list-group-item">Deck creator:
-            <h5>{{deck.creator}}</h5>
-          </li>
-          <li class="list-group-item">Deck description:
-            <h5>{{deck.description}}</h5>
-          </li>
-          <li class="list-group-item">Times accessed:
-            <h5>{{deck.times_accessed}}</h5>
-          </li>
-          <li class="list-group-item">Subject:
-            <h5>{{deck.subject}}</h5>
-          </li>
-          <li class="list-group-item">Deck topic:
-            <h5>{{deck.topic}}</h5>
-          </li>
-          <li class="list-group-item">Date created:
-            <h5>{{deck.time_created}}</h5>
-          </li>
-          <li class="list-group-item">Last access time:
-            <h5>{{deck.time_updated}}</h5>
-          </li>
-          <li class="list-group-item">Creation method:
-            <h5>{{deck.create_method}}</h5>
-          </li>
-          <li class="list-group-item">Shared:
-            <h5>{{deck.shared}}</h5>
-          </li>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
------>
+
 {% endfor %}
 <!---- SHARED DECKS MODAL----->
 <div class="modal fade" id="SharedDecksModal" tabindex="-1" aria-labelledby="#SharedDecksModalLabel" aria-hidden="true">

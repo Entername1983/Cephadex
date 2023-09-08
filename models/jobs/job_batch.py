@@ -81,6 +81,7 @@ class JobBatch():
                     await session.commit()
                     raise ProcessingJobError(e) from e
                 
+    ## Disabling add more cards for now            
     @job_log_decorator
     async def handle_completion(self) -> None:
         async with session_factory() as session:
@@ -94,9 +95,9 @@ class JobBatch():
                 else:
                     await self.reassemble_long_form()
                     await self.create_deck_attributes()
-                    await self.check_sufficient_cards_created()
-                    if self.sufficient_cards is False:
-                        await self.add_more_cards()
+                    ##await self.check_sufficient_cards_created()
+                    ##if self.sufficient_cards is False:
+                        ##await self.add_more_cards()
                     await self.change_notification_to_ready(session)
                     await self.cache_results(session)
             except Exception as e:

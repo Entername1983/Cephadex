@@ -259,11 +259,11 @@
                         
                         <div class="form-floating">
                             {{form.link_input(id="link-input", class="form-control form-control-lg")}}
-                            <label for="link-input" class="form-label">Insert wikipedia or youtube link</label>
+                            <label for="link-input" class="form-label">Insert a wikipedia, youtube or other URL</label>
 
                         </div>
                         <div id="fileinputhelp" class="form-text d-md-block d-none" style = "font-size: 12px">
-                            Wikipedia and YouTube links are accepted. If you would like to insert more than one link,
+                            YouTube videos, Wikipedia pages and most regular webpages are accepted. If you would like to insert more than one link,
                             separate them
                             semi-colon ";".
                         </div>
@@ -330,17 +330,37 @@
                                 style="max-width: 200px">More
                                 options</button>
                         
+                            
+                                <div class="form-group mt-2">
+                                    <!-- First row -->
+                                    <div class="row">
+                                      <div class="col-md-6">
+                                        {{ form.generate_images(id="gen-images", class="", disabled = "disabled") }}
+                                        <label for="gen-images">Generate images <small class="text-muted">(premium)</small></label>
+                                      </div>
+                                      <div class="col-md-6">
+                                        {{ form.save_text(id="save-text", class="") }}
+                                        <label for="save-text">Save text</label>
+                                      </div>
+                                    </div>
+                                  
+                                    <!-- Second row -->
+                                    <div class="row">
+                                      <div class="col-md-6">
+                                        {{ form.create_summary(id="create_summary", class="") }}
+                                        <label for="create_summary">Create summary</label>
+                                      </div>
+                                      <div class="col-md-6">
+                                        {{ form.create_notes(id="create_study_notes", class="") }}
+                                        <label for="create_study_notes">Create study notes</label>
+                                      </div>
+                                    </div>
+                                    <div id="warning-message" class="alert alert-warning" style="display: none;">
+                                        Please select only one option between "Create summary" and "Create study notes".
+                                      </div>
+                                  </div>
+                                  
 
-                            <div class="form-group mt-2">
-
-                                {{ form.generate_images(id="gen-images", class="", disabled = "disabled") }}
-                                <label for="gen-images">Generate images <small class="text-muted">(premium
-                                        members)</small></label>
-
-
-                                {{ form.save_text (id = "save-text", class="")}}
-                                <label for="save-text">Save text</label>
-                            </div>
                         </div>
 
 
@@ -405,7 +425,25 @@
 </form>
 </div>
 
-
+<script>
+    // Get checkboxes by their ID
+    const createSummaryCheckbox = document.getElementById('create_summary');
+    const createStudyNotesCheckbox = document.getElementById('create_study_notes');
+    const warningMessage = document.getElementById('warning-message');
+  
+    // Add event listeners for 'change' event
+    createSummaryCheckbox.addEventListener('change', toggleWarningMessage);
+    createStudyNotesCheckbox.addEventListener('change', toggleWarningMessage);
+  
+    // Function to toggle the warning message
+    function toggleWarningMessage() {
+      if (createSummaryCheckbox.checked && createStudyNotesCheckbox.checked) {
+        warningMessage.style.display = 'block';
+      } else {
+        warningMessage.style.display = 'none';
+      }
+    }
+  </script>
 <script>
     $(document).ready(function() {
         var fileInput = $('#file-input')[0];

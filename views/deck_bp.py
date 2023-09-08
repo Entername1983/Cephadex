@@ -271,7 +271,7 @@ def carousel(deck_id):
     )
     if(current_user.id != deck.user_id):
          return apology('Deck not assigned to user', 403)
-    return render_template("carousel.html", title="Carousel",
+    return render_template("/deck_bp/carousel.html", title="Carousel",
                             deck=deck, cards=cards, form=form)
 """
     if form.validate_on_submit():
@@ -342,11 +342,12 @@ def import_public_deck(deck_id):
     if deck is None:
         return apology("Deck not found", 404)
     else:
-        shared_deck = SharedDecks(name="Copy of " + deck.name,
-                                description=deck.description,
-                                time_created=dt.datetime.now(dt.timezone.utc),
-                                receiver=current_user.id)
-        db.session.add(shared_deck)
+        new_deck = Deck(user_id = current_user.id,
+                    name="Copy of " + deck.name,
+                    description=deck.description,
+                    shared=True,
+                    time_created=dt.datetime.now(dt.timezone.utc))
+        db.session.add(new_deck)
         for card in deck.cards:
             new_card = Card(term=card.term, content=card.content,
                             boc_2=card.boc_2, boc_3=card.boc_3, boc_4=card.boc_4,
@@ -359,7 +360,7 @@ def import_public_deck(deck_id):
                             qmin_option=card.qmin_option,
                             qmax_option=card.qmax_option,
                             diff_lvl=card.diff_lvl)
-            shared_deck.cards.append(new_card)
+            new_deck.cards.append(new_card)
         db.session.commit()
     return jsonify({"success": True})
 
@@ -550,7 +551,7 @@ def share_deck(deck_id):
                                             sender=sender_id,
                                             time_created=dt.datetime.now(dt.timezone.utc),
                                             receiver=user.id,
-                                              shared_id = deck_to_copy.shared_id)
+                                              share_id = deck_to_copy.share_id)
                 db.session.add(shared_deck)
 
                 for card in deck_to_copy.cards:

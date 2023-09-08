@@ -30,7 +30,9 @@ class AiCaller:
             messages=[
                 {"role": "system", "content": sys_instruct},
                 {"role": "user", "content": user_prompt},
+            
             ],
+            temperature=0.2,
         )
  
     async def add_more_cards(self, attributes: 'DeckAttributes',

@@ -1,0 +1,2 @@
+Date,User Accounts Created,Deleted Accounts,Stripe Events,Usage Records,Cards Created,Decks Created,Deck Files,Feedback,Tests Created,Event Types
+2023-09-08 11,{'accounts_created': 0},{'deleted_accounts': {}},{'stripe_events': {}},{'usage_records': {'extract': 18}},{'cards_created': 255},{'decks_created': {None: 9}},{'deck_files': {None: 24}},{'feedback': []},{'tests_created': 1},"{'event_types': {'share_deck': 7, 'build_test': 2, 'assign_test': 3, 'reject_shared': 1}}"
