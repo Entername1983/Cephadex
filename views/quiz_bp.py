@@ -263,11 +263,11 @@ def shared_test_view(share_id):
 def generate_link_test(test_id):
     test = Test.query.get(test_id)
     if test.share_id:
-        link = f'{APP_URL}quiz_bp/shared_test_view/{test.share_id}'
+        link = f'{APP_URL}/quiz_bp/shared_test_view/{test.share_id}'
         img_str = create_qr_code(link)
         return jsonify(
             {
-                'share_link': f'{APP_URL}quiz_bp/shared_test_view/{test.share_id}',
+                'share_link': f'{APP_URL}/quiz_bp/shared_test_view/{test.share_id}',
                 'qr_code': img_str,
             }
         )
@@ -275,13 +275,13 @@ def generate_link_test(test_id):
         share_id = str(uuid.uuid4())
         test.share_id = share_id
         db.session.commit()
-        link = f'{APP_URL}quiz_bp/shared_test_view/{test.share_id}'
+        link = f'{APP_URL}/quiz_bp/shared_test_view/{test.share_id}'
 
         img_str = create_qr_code(link)
 
         return jsonify(
             {
-                'share_link': f'{APP_URL}quiz_bp/shared_test_view/{share_id}',
+                'share_link': f'{APP_URL}/quiz_bp/shared_test_view/{share_id}',
                 'qr_code': img_str,
             }
         )
