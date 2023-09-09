@@ -99,7 +99,12 @@ class AiCaller:
         
         byte_string = response_.encode('utf-8')
         x = byte_string.decode('utf-8')
-        x = json.loads(x)
+        try:
+            x = json.loads(x)        
+        except json.JSONDecodeError as e:
+            processing_logger.error(f"Failed to decode JSON: {e}")
+            processing_logger.error("First 100 characters:", x[:100])
+            processing_logger.error("Last 100 characters:", x[-100:])
         return x
     
 
@@ -115,7 +120,12 @@ class AiCaller:
             response_ = add_underscores(response_)
         byte_string = response_.encode('utf-8')
         x = byte_string.decode('utf-8')
-        x = json.loads(x)
+        try:
+            x = json.loads(x)        
+        except json.JSONDecodeError as e:
+            processing_logger.error(f"Failed to decode JSON: {e}")
+            processing_logger.error("First 100 characters:", x[:100])
+            processing_logger.error("Last 100 characters:", x[-100:])
         return x
 
 

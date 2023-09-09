@@ -165,7 +165,7 @@ def query():
     job_id = request.form["id"]
     # Now we can ask database about the state of that request
     data = Job.query.filter_by(slug=job_id).first()
-    num_completed = Job.query.filter_by(slug=job_id, state="completed").count()
+    num_completed = Job.query.filter_by(slug=job_id).filter(Job.state.in_(["completed", "failed"])).count()
     num_total = Job.query.filter_by(slug=job_id).count()
     slug = JobNotification.query.filter_by(slug=job_id).first()
     if num_total != 0:
