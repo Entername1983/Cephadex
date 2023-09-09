@@ -43,6 +43,7 @@ endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
 @user_bp.route("/googleSignIn", methods=["POST"])
 @log_decorator
 def googleSignIn():
+    print("entered google sign in")
     #Security validation
     form = TryOut()
     csrf_token_cookie = request.cookies.get('g_csrf_token')
@@ -112,6 +113,7 @@ def googleSignIn():
         event_tracker(user.id, "login", "google")
         return redirect(url_for('deck_bp.viewdecks'))
     else:
+        print("recognized not user")
         session['google_id_token'] = idinfo['sub']
         if idinfo.get('email'):
             session['google_email'] = idinfo['email']
@@ -125,6 +127,7 @@ def googleSignIn():
             session['family_name'] = idinfo['family_name']
         else: 
             session['family_name'] = "Anonymous"
+        print("about to redirect")
         return redirect(url_for('user_bp.register'))
 
 
@@ -238,7 +241,7 @@ def register():
                 existing_user.timezone = timezone
                 db.session.commit()
                 user = existing_user
-                return redirect(url_for('viewdecks'))
+                return redirect(url_for('deck_bp.viewdecks'))
             else: 
                 user = User(email=email, first_name=given_name, account_type = account_type,
                             last_name=family_name,external_id=userid,
@@ -265,7 +268,7 @@ def register():
             if 'shared_test_id' in session:
                 shared_test_id = session['shared_test_id']
                 del session['shared_test_id']
-                return redirect(url_for('take_test_2',
+                return redirect(url_for('quiz_bp.take_test_2',
                     share_id=shared_test_id, user_id = user.id))
             if 'shared_deck_id' in session:
                 shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
@@ -298,9 +301,10 @@ def register():
                 return redirect(url_for('game_bp.game_lobby', game_id=game_id))
             flash("You have been registered and logged in!", "success")
             return redirect(url_for('deck_bp.viewdecks'))
-        return render_template('user_bp.register.html', title='Register', form = form)
+        return render_template('/user_bp/register.html', title='Register', form = form)
     except Exception as e:
         error_occured = True
+        print(e)
         raise e
     finally:
         if error_occured:
@@ -419,7 +423,7 @@ def account():
     finally:
         if error_occured:
             flash("There was an error updating your account")
-            return redirect(url_for('account'))
+            return redirect(url_for('user_bp.account'))
 
 @user_bp.route('/update_profile_pic', methods=['POST'])
 @login_required
@@ -442,7 +446,7 @@ def update_profile_pic():
     else:
         for error in form.profile_pic.errors:
             flash(error)
-    return redirect(url_for('account'))
+    return redirect(url_for('user_bp.account'))
 
 @user_bp.route("/new_user_settings_tests", methods = ["POST", "GET"])
 @login_required
