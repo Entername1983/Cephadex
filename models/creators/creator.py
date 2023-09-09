@@ -162,10 +162,10 @@ class AiCaller:
     
 
 
-    async def process_text(self, instruction: str, task:str, items: str) -> str:
+    async def process_text(self, instruction: str, task:str, extra_info: str, items: str) -> str:
         items = remove_html_tags(items)
         option_1 = f"You are an expert at {instruction}"
-        option_2 = f"{task} the following passage and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate, ignore table of contents and indexes {items}" # noqa: E501
+        option_2 = f"{task} the following passage and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate, {extra_info} ignore table of contents and indexes, {items}" # noqa: E501
         response = await self.call_ai_terms(option_1, option_2)
         response = response['choices'][0]['message']['content']
         byte_string = response.encode('utf-8')
@@ -173,10 +173,10 @@ class AiCaller:
         return response
 
     async def summarize(self, items: str, prompt_options:dict = None) -> str:
-        return await self.process_text("summarizing key points in a passage", "Summarize", items)
+        return await self.process_text("summarizing key points in a passage", "Summarize", "headers should refer to the content or topic of the passage, avoid headers such as summary or key points, your summary should get straight to the point and not include content such as 'in this passage'", items)
 
     async def turn_to_notes(self, items: str, prompt_options: dict = None) -> str:
-        return await self.process_text("turning text into study notes", "Turn into notes", items)
+        return await self.process_text("turning text into study notes", "Turn into notes", "headers should refer to the content or topic of the passage, avoid headers such as summary or key points, your summary should get straight to the point and not include content such as 'in this passage'", items)
     
     async def transcribe_and_translate(self, items: str, prompt_options: dict) -> str:
         items = remove_html_tags(items)

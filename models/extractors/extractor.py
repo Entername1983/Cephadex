@@ -272,7 +272,7 @@ class Extractor:
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         try:
-            segments = divide_audio(file)
+            segments = divide_audio(file, self.duration)
             item_quantity = len(segments)
             print(type(segments))
             for segment in segments:
@@ -619,7 +619,74 @@ def convert_time_to_tokens(time: float) -> float:
     """ converts time to tokens"""
     return ((time / 60)/PAGES_PER_MIN) * TOKENS_PER_PAGE
 
-def divide_audio(input_file: 'Union[str, IO[bytes]]', segment_length: int =25) -> list[str]:
+def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment_size_MB: int = 20) -> list[str]:
+    print("entered divide audio")
+    min_segment_size_MB = 0.1
+    try:
+        file_size_bytes = os.path.getsize(input_file)
+        max_segment_size_bytes = max_segment_size_MB * 1024 * 1024
+        num_segments = math.ceil(file_size_bytes / max_segment_size_bytes)
+        # Generate a random string for file naming
+        random_string = ''.join(random.choices('0123456789', k=5))
+        # Detect the audio format based on file extension
+        file_extension = os.path.splitext(input_file)[-1].replace(".", "")
+        audio = AudioSegment.from_file(input_file, format=file_extension)
+        segment_length_ms = duration // num_segments
+        # Initialize time pointers in milliseconds
+        start_time = 0
+        end_time = segment_length_ms * 1000  # milliseconds in segment_length seconds
+        total_length = len(audio)
+        segment_paths = []
+        while start_time < total_length:
+            segment = audio[start_time:end_time]
+            output_file = os.path.join(os.path.dirname(input_file), f"{random_string}_segment_{start_time}.mp3")
+            segment.export(output_file, format="mp3")
+            if os.path.getsize(output_file) > min_segment_size_MB * 1024 * 1024:
+                segment_paths.append(output_file)
+            else:
+                os.remove(output_file)
+            start_time += segment_length_ms * 1000 
+            end_time += segment_length_ms * 1000
+        return segment_paths
+    
+    except FileNotFoundError as e:
+        print(f"File not found: {e}")
+        raise e from e
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise e from e
+
+# Sample call
+# Assuming your input_file is "example.mp3" and you want each segment to be 25 seconds long
+
+
+
+def divide_audio1(input_file_path, segment_length=25):
+    print("entered divide audio")
+    segment_paths = []
+    random_string = ''.join(random.choices('0123456789', k=5))
+    ##segment_size = segment_length * 1024 * 1024  # size in bytes
+
+    start_ms = 0  # start time in milliseconds
+    end_ms = segment_length * 1000  # end time in milliseconds
+    print("1")
+    audio = AudioSegment.from_mp3(input_file_path)
+    print("2")
+    total_length = len(audio)
+
+    while start_ms < total_length:
+        segment = audio[start_ms:end_ms]
+        output_file = os.path.join(os.path.dirname(input_file_path), f"{random_string}_segment_{start_ms}.mp3")
+        segment.export(output_file, format="mp3")
+        segment_paths.append(output_file)
+        
+        # move to next segment
+        start_ms += segment_length * 1000
+        end_ms += segment_length * 1000
+
+    return segment_paths
+
+def divide_audio2(input_file: 'Union[str, IO[bytes]]', segment_length: int =25) -> list[str]:
     print("entered divide audio")
     """ divides audio into segments of a length of at most segment_length mb (defautls to 25)"""
     try:
