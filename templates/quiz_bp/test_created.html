@@ -11,7 +11,7 @@
                 const formData = new FormData(form);
                 const cardId = form.getAttribute('question-id');
 
-                fetch('/update_card', {
+                fetch('/quiz_bp/update_card', {
                     method: 'POST',
                     body: formData
                 })

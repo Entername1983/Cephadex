@@ -727,7 +727,7 @@
 
   checkbox.addEventListener('change', function () {
     if (this.checked) {
-      fetch('/new_user_settings', {
+      fetch('/user_bp/new_user_settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -736,7 +736,7 @@
       })
         .catch(error => console.error('Error:', error));
     } else {
-      fetch('/new_user_settings', {
+      fetch('/user_bp/new_user_settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

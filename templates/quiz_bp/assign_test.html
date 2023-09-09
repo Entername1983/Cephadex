@@ -57,7 +57,7 @@ main_0 %}
     }).start();
       });
 
-      fetch('/new_user_settings_tests', {
+      fetch('/user_bp/new_user_settings_tests', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -93,7 +93,7 @@ main_0 %}
                 data['question-id'] = cardId; // Add 'question-id' to the JSON payload
                 console.log("JSON Payload:", data);
 
-                fetch('/update_card', {
+                fetch('/quiz_bp/update_card', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

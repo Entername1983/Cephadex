@@ -55,7 +55,7 @@
     }).start();
       });
 
-      fetch('/new_user_settings_create', {
+      fetch('/user_bp/new_user_settings_create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -74,7 +74,7 @@
         console.log(checkbox.checked)
         if (this.checked) {
             newuserdiv.style.display = "none";
-            fetch('/new_user_settings_create', {
+            fetch('/user_bp/new_user_settings_create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -83,7 +83,7 @@
             })
 
         } else {
-            fetch('/new_user_settings', {
+            fetch('/user_bp/new_user_settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

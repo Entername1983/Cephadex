@@ -707,7 +707,7 @@ checkbox.addEventListener( 'change', function() {
   console.log(checkbox.checked)
   if(this.checked) {
     newuserdiv.style.display = "none";
-    fetch('/new_user_settings', {
+    fetch('/user_bp/new_user_settings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -716,7 +716,7 @@ checkbox.addEventListener( 'change', function() {
     })
 
   } else {
-    fetch('/new_user_settings', {
+    fetch('/user_bp/new_user_settings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
