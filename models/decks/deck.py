@@ -167,6 +167,7 @@ class Deck(db.Model):
         Rhyme = 0
         Translate = 0
         People = 0
+
         ## check if all cards have same category
         for card in self.cards:
             if card.category == "Mcq":
@@ -200,6 +201,7 @@ class Deck(db.Model):
         else:
             self.category = "Mixed"
             db.session.commit()
+
             return "Mixed"
         
     def to_json(self) -> json:

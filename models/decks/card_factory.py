@@ -23,6 +23,7 @@ class CardFactory:
             self.create_default(content, type)
         
     async def async_create_cards(self, content: str, type: str) -> None:
+        print(f"creating card for content {content}")
         if type == "Mcq":
             await self.async_create_mcq(content)
         elif type == "Formulas":
@@ -54,6 +55,7 @@ class CardFactory:
                 self.deck.cards.append(card)
                 self.session.add(card)
                 self.session.commit()
+                print(card.term)
                 self.card_counter += 1
 
     def create_formulas(self, content: str) -> None:

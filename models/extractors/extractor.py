@@ -85,21 +85,22 @@ class Extractor:
             options['create_notes_opt'] = form.create_notes.data
 
         self.prompt_options: dict = options
-
-        self.description = kwargs.get('description', None)
-        deck = kwargs.get('deck_list', None)
-        if deck is not None:
-            self.deck: Deck = deck
-        else:
-            if not kwargs.get('name', None):
-                chosen_name = random.choice(DECK_NAMES)
-            else:
-                chosen_name = kwargs.get('name')
-            deck = Deck(name=chosen_name, user_id=current_user.id,
-                        description=self.description)
-            db_session.add(deck)
-            db_session.commit()
-            self.deck = deck
+        # self.description = kwargs.get('description', None)
+        # deck = kwargs.get('deck_list', None)
+        # if deck is not None:
+        #     print(f"recognized deck not none {deck}")
+        #     self.deck: Deck = deck
+        # else:
+        #     print("deck is none, creating deck")
+        #     if not kwargs.get('name', None):
+        #         chosen_name = random.choice(DECK_NAMES)
+        #     else:
+        #         chosen_name = kwargs.get('name')
+        #     deck = Deck(name=chosen_name, user_id=current_user.id,
+        #                 description=self.description)
+        #     db_session.add(deck)
+        #     db_session.commit()
+        #     self.deck = deck
 
         if form is not None:
             self.file_data: Optional[str] = form.file.data or kwargs.get('file', None)
@@ -124,14 +125,18 @@ class Extractor:
                 f"slug={repr(self.slug)})")
 
     def get_deck(self, form: 'FlaskForm') -> tuple['Deck', bool]:
+        print("entered get_deck")
         """ Retrieves the deck object and a boolean to determine whether a new deck was created """
         if form.deck_list.data:
+            print("recognized deck_list.data", form.deck_list.data)
             self.deck = form.deck_list.data
             return form.deck_list.data, False
         else:
-            chosen_name = form.name.data if form.name.data else random.choice(DECK_NAMES)
+            print("recognized no deck")
+            chosen_name = form.name.data or random.choice(DECK_NAMES)
+            description = form.description.data or None
             deck = Deck(name=chosen_name, user_id=current_user.id,
-                            description=self.description)
+                            description=description)
             self.deck = deck
             return deck, True
 
@@ -168,7 +173,6 @@ class Extractor:
             self.type = 'text'
         elif self.link_data:
             self.text, self.type = extract_from_url(self.link_data)
-        print("text is", self.text)
         return self.text
 
     def quantity_tokens(self) -> int:
@@ -240,7 +244,6 @@ class Extractor:
         for text in self.text:
             total_len = len(self.text)
             counter = counter + 1
-            print("Text before payload is ", text)
             payload_dict = {'deck': self.deck.id, 'text': text,
                 'prompt_options': prompt_options, 'task_type': 'standard'}
             payload = json.dumps(payload_dict, ensure_ascii=False)
@@ -248,7 +251,6 @@ class Extractor:
                        task_type = "standard", payload = payload,
                        item_number = counter, deck_id = self.deck.id,
                        item_quantity = total_len)
-            print(f" payload is {data.payload}")
             self.db_session.add(data)
             if counter == total_len:
                 session['slug'] = self.slug
@@ -269,16 +271,13 @@ class Extractor:
     ## AUDIO EXTRACTORS
     def extract_audio(self, file: str) -> None:
         """ Divides up audio if necessary into segments and stores them, then creating individual jobs"""
-        print("entered extract audio")
         folder_path = "audio_segments"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         try:
             segments = divide_audio(file, self.duration)
             item_quantity = len(segments)
-            print(type(segments))
             for segment in segments:
-                print(segment)
                 item_number = segments.index(segment) + 1
                 self.create_audio_job(segment, item_number, item_quantity)
             os.remove(file)
@@ -325,7 +324,6 @@ def tokens_general(form: 'FlaskForm') -> int:
         text = form.text_input.data
     elif form.link_input.data:
         text, link_type = extract_from_url(form.link_input.data)
-    print(text)
     return count_tokens(text)
 
 
@@ -363,7 +361,6 @@ def extract_from_pdf(file_data: str, n: int = 3) -> str:
                     current_page_text += element.get_text()
             if len(current_page_text.strip()) < n: # Threshold check
                 # If the text is less than n, then use OCR
-                print(f"Using OCR for page {i}")
                 try:
                     # Convert page to image
                     images = convert_from_path(file_data, first_page=i, last_page=i)
@@ -391,7 +388,6 @@ def extract_from_pptx(file_data: str) -> Optional[str]:
             for shape in slide.shapes:
                 if hasattr(shape, "text"):
                     cleaned_text = clean_text(shape.text)
-                    print(cleaned_text)
                     text_runs.append(cleaned_text)
         return " ".join(text_runs)
     except FileNotFoundError as e:
@@ -423,7 +419,6 @@ def extract_from_url(link_data: str) -> tuple[str, str]:
     text = None
     try:
         if "wikipedia" in link_data:
-            print("recognized wiki")
             link_type = 'wiki'
             if check_comma_list(link_data):
                 links = link_data.split(";")
@@ -433,7 +428,6 @@ def extract_from_url(link_data: str) -> tuple[str, str]:
             else:
                 text = extract_from_wiki(link_data)
         elif "youtube" in link_data:
-            print("recognized youtube") 
             link_type = 'youtube'
             if check_comma_list(link_data):
                 links = link_data.split(";")
@@ -445,7 +439,6 @@ def extract_from_url(link_data: str) -> tuple[str, str]:
                 link = get_video_id(link_data)
                 text = extract_from_youtube(link)
         else:
-            print("recognized other url")
             link_type = 'url'
             if check_comma_list(link_data):
                 links = link_data.split(";")
@@ -458,7 +451,6 @@ def extract_from_url(link_data: str) -> tuple[str, str]:
         raise ExtractionError(f"Failed to extract data: {e}") from e
 
 def extract_from_other_url(link: str) -> str:
-    print("entered extract from other url")
     response = requests.get(link)
     text = ""
     if response.status_code == 200:
@@ -670,9 +662,7 @@ def divide_audio1(input_file_path, segment_length=25):
 
     start_ms = 0  # start time in milliseconds
     end_ms = segment_length * 1000  # end time in milliseconds
-    print("1")
     audio = AudioSegment.from_mp3(input_file_path)
-    print("2")
     total_length = len(audio)
 
     while start_ms < total_length:
@@ -693,20 +683,15 @@ def divide_audio2(input_file: 'Union[str, IO[bytes]]', segment_length: int =25) 
     try:
         # Open the audio file
         random_string = ''.join(random.choices('0123456789', k=5))
-        print(input_file)
         audio = AudioSegment.from_file(input_file)
-        print("1")
         # Calculate the segment size in bytes
         segment_size = segment_length * 1024 * 1024
-        print("2")
         # Calculate the total number of segments
         num_segments = math.ceil(len(audio) / segment_size)
-        print("3")
         # Create a list to hold the file paths for the audio segments
         segment_paths = []
         # Split the audio file into segments and save each segment as an MP3 file
         for i in range(num_segments):
-            print(i, num_segments)
             start = i * segment_size
             end = min((i + 1) * segment_size, len(audio))
             segment = audio[start:end]

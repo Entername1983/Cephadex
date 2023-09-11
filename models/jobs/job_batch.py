@@ -97,7 +97,9 @@ class JobBatch():
                 if task_type == "audio":
                     await self.reassemble_audio_transcript()
                 else:
+                    print("about to reasseble long form ")
                     await self.reassemble_long_form()
+                    print("about to create deck attributes ")
                     await self.create_deck_attributes()
                     ##await self.check_sufficient_cards_created()
                     ##if self.sufficient_cards is False:
