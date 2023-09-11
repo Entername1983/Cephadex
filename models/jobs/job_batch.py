@@ -55,9 +55,13 @@ class JobBatch():
         try:
             tasks = [self.process_job_with_semaphore(job) for job in self.jobs]
             await asyncio.gather(*tasks)
-            await self.handle_completion()
         except Exception as e:
-             processing_logger.critical(f"Error processing job batch: {e}")      
+             processing_logger.critical(f"Error processing job batch: {e}")
+        try:
+            await self.handle_completion()  
+        except Exception as e:
+            processing_logger.critical(f"Error handling completion: {e}")
+    
 
     @job_log_decorator  
     async def process_job_with_semaphore(self, job: 'Job') -> None:

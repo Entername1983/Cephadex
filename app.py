@@ -169,7 +169,10 @@ def query():
     num_total = Job.query.filter_by(slug=job_id).count()
     slug = JobNotification.query.filter_by(slug=job_id).first()
     if num_total != 0:
-        progress = int(num_completed/num_total*95)
+        progress = int(num_completed/num_total*99)
+        if progress > 98:
+            slug.state = "ready"
+            db.session.commit()
     if data is None:
         return jsonify({"state": None, "progress": None, "result": None})
     return jsonify(
