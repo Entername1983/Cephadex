@@ -142,11 +142,12 @@ def account_settings():
 def feedback():
     form = FeedbackForm()
     if form.validate_on_submit():
-        entry = Feedback(name=form.name.data,
-                        email=form.email.data,
-                        message=form.message.data,
-                        type_feedback=form.type_feedback.data)
-        entry.send_feedback()
+        if form.data.name != "RobertEmelo":
+            entry = Feedback(name=form.name.data,
+                            email=form.email.data,
+                            message=form.message.data,
+                            type_feedback=form.type_feedback.data)
+            entry.send_feedback()
         return jsonify(status="success", message="Thank you for your feedback!")
     errors = []
     for field, error_msgs in form.errors.items():

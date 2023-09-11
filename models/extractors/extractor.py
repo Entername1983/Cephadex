@@ -168,6 +168,7 @@ class Extractor:
             self.type = 'text'
         elif self.link_data:
             self.text, self.type = extract_from_url(self.link_data)
+        print("text is", self.text)
         return self.text
 
     def quantity_tokens(self) -> int:
@@ -236,17 +237,18 @@ class Extractor:
         prompt_options = self.prompt_options
         prompt_options['main_opt'] = prompt
         counter = 0
-        print(type(self.text))
         for text in self.text:
             total_len = len(self.text)
             counter = counter + 1
+            print("Text before payload is ", text)
             payload_dict = {'deck': self.deck.id, 'text': text,
                 'prompt_options': prompt_options, 'task_type': 'standard'}
-            payload = json.dumps(payload_dict)
+            payload = json.dumps(payload_dict, ensure_ascii=False)
             data = Job(slug=self.slug, user = current_user.id,
                        task_type = "standard", payload = payload,
                        item_number = counter, deck_id = self.deck.id,
                        item_quantity = total_len)
+            print(f" payload is {data.payload}")
             self.db_session.add(data)
             if counter == total_len:
                 session['slug'] = self.slug
@@ -322,9 +324,8 @@ def tokens_general(form: 'FlaskForm') -> int:
     elif form.text_input.data:
         text = form.text_input.data
     elif form.link_input.data:
-        print("recognized link")
         text, link_type = extract_from_url(form.link_input.data)
-        print(text)
+    print(text)
     return count_tokens(text)
 
 
