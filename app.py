@@ -169,19 +169,17 @@ def query():
     num_total = Job.query.filter_by(slug=job_id).count()
     slug = JobNotification.query.filter_by(slug=job_id).first()
     if num_total != 0:
-        progress = int(num_completed/num_total*99)
-        if progress > 98:
-            slug.state = "ready"
-            db.session.commit()
+        progress = int(num_completed/num_total*95)
     if data is None:
         return jsonify({"state": None, "progress": None, "result": None})
-    return jsonify(
-        {
-            "state": data.state,
-            "progress": progress,
-            "result": slug.state,
-        }
-    )
+    else:
+        return jsonify(
+            {
+                "state": data.state,
+                "progress": progress,
+                "result": slug.state,
+            }
+        )
 
 
 @app.route("/notification_complete", methods=["POST"])
@@ -194,10 +192,15 @@ def notification_complete():
             db.session.commit()
             return jsonify("error")
     if slug.state == 'ready':
-        send_email(current_user.email, current_user.first_name,'deck_ready')
         session.pop('slug', None)
         slug.state = 'notified'
         db.session.commit()
+        try:
+            send_email(current_user.email, current_user.first_name,'deck_ready')
+        except Exception as e:
+            logger.error("error sending email", e)
+        session.pop('slug', None)
+
         return jsonify("success")
  
 

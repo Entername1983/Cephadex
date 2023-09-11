@@ -38,7 +38,7 @@ def send_email( recipients, first_name, template_name,
         response = sg.send(message)
         print(response.status_code)
     except Exception as e:
-        print(e.message)
+        print(e)
 
 @log_decorator
 def send_email_report(recipient, body, api_key = None):
