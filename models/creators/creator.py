@@ -174,7 +174,7 @@ class AiCaller:
 
     async def process_text(self, instruction: str, task:str, extra_info: str, items: str) -> str:
         items = remove_html_tags(items)
-        option_1 = f"You are an expert at {instruction}"
+        option_1 = f"You are an expert at {instruction} and respond in the same language as the passage"
         option_2 = f"{task} the following passage and return it using HTML formatting, using header tags, paragraph tags and list tags where appropriate, {extra_info} ignore table of contents and indexes, {items}" # noqa: E501
         response = await self.call_ai_terms(option_1, option_2)
         response = response['choices'][0]['message']['content']
@@ -338,7 +338,7 @@ class AiCaller:
         prompt = self.question_prompt_builder(self, term, content, latest_paragraph, question)
         while retries < 3:
             try:
-                sys_instruct = "You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help."  # noqa: E501
+                sys_instruct = "You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help.  You respond to the student in the same language as their question"  # noqa: E501
                 response = self.call_ai_terms_non_async(sys_instruct, prompt)
                 return response['choices'][0]['message']['content'].strip()
             except Exception as e:
