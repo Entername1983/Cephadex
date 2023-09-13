@@ -59,6 +59,6 @@ async def process_jobs() -> None:
         await asyncio.sleep(SLEEP_TIME) 
 
 if __name__ == "__main__":
-    print("Starting job processing")
+    processing_logger.info("Starting job processing")
     asyncio.run(process_jobs())
 

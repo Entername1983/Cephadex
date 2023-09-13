@@ -2,7 +2,11 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import os
 from models.helpers.log_decorators import log_decorator
+import logging
 
+SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
+
+logger = logging.getLogger("subrollover")
 @log_decorator
 def send_email( recipients, first_name, template_name,
                 subject = None, text_body = None,
@@ -35,14 +39,12 @@ def send_email( recipients, first_name, template_name,
     }
     try:
         sg = SendGridAPIClient(SEND_GRID_KEY)
-        response = sg.send(message)
-        print(response.status_code)
+        sg.send(message)
     except Exception as e:
-        print(e)
+        logger.error(f"Failed to send email {template_name}: {e}")
 
 @log_decorator
 def send_email_report(recipient, body, api_key = None):
-    SEND_GRID_KEY = os.environ.get("SEND_GRID_KEY")
 
     if SEND_GRID_KEY is None:
         SEND_GRID_KEY = api_key
@@ -53,8 +55,6 @@ def send_email_report(recipient, body, api_key = None):
         plain_text_content = body)
     try: 
         sg = SendGridAPIClient(SEND_GRID_KEY)
-        response = sg.send(message)
-        print(response.status_code)
+        sg.send(message)
     except Exception as e:
-        print(SEND_GRID_KEY)
-        print(e)
+        logger.error(f"Failed to send daily report email: {e}")

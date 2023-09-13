@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 import xhtml2pdf.pisa as pisa
 import random
 import uuid
-
+import logging
 from flask import (
     Blueprint, render_template, url_for, make_response,
     flash, redirect, request, jsonify, session
@@ -35,6 +35,8 @@ from tools.lists import TEST_NAMES
 from config.settings import APP_URL
 
 from models.helpers.log_decorators import log_decorator
+
+logger = logging.getLogger("flask_app")
 
 quiz_bp = Blueprint(
     'quiz_bp', 
@@ -72,6 +74,7 @@ def update_card():
         db.session.commit()
         return jsonify(success=True)
     except Exception as e:
+        logger.error(f"Quiz - Error in updating quiz card {e}")
         raise e
     ## TO DO how to handle htis, was it necessary?
     # finally:
@@ -243,6 +246,7 @@ def assign_test(test_id):
         return render_template('/quiz_bp/assign_test.html', title='Assign test',
                             test=test, form = form, update_card_form = update_card_form, settings = settings)
     except Exception as e:
+        logger.error(f"Quiz - Error assigning quiz {e}")
         raise e        
         ##flash("At this moment you can only assign tests to other users.  We are working on allowing you to assign tests to non-users")
         # return render_template('/quiz_bp/assign_test.html', title='Assign test',
@@ -367,8 +371,8 @@ def take_test_2(share_id, user_id):
             try:
                 test.taker.remove(current_user)
                 db.session.commit()
-            except:
-                print("could not remove user from test")
+            except Exception as e:
+                logger.error(f"could not remove user from test: {e}")
             flash('you have already taken this test', 'danger')
             return redirect('/quiz_bp/test_results_overview/')
         
@@ -564,9 +568,6 @@ def test_answers(test_id, taker_id):#
                 QuestionResult.query
                 .filter_by(test_id = test.id, taker=c_taker_id).all()
     )
-    for qr in question_results:
-        print(f"Question ID: {qr.question_id}, Answer: {qr.answer}")
-
     result.sum_points()   
     taker = User.query.filter_by(id = c_taker_id).first()
     if result.creator != current_user.id:

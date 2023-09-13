@@ -14,10 +14,9 @@ if TYPE_CHECKING:
     from models.models_ import DeckAttributes
 
 processing_logger = logging.getLogger("job_processing")
-
 encoding = tiktoken.get_encoding("cl100k_base")
 
-
+TEMPERATURE = 0.2
 
 class AiCaller:
     def __init__(self, api_key: str = None):
@@ -32,12 +31,12 @@ class AiCaller:
                 {"role": "user", "content": user_prompt},
             
             ],
-            temperature=0.2,
+            temperature = TEMPERATURE,
         )
- 
+    
+    ## currently unused
     async def add_more_cards(self, attributes: 'DeckAttributes',
                               extract_type: str ="Mcq") -> Union[dict[str, Any], None]:
-
         sys_instruct = "You are an excellent teacher, you respond to all questions in a JSON object like string, do not answer with anything outside of the JSON object"  
         prompt = self.build_add_more_cards_prompt(
                     attributes.subject, attributes.topic,
@@ -56,8 +55,7 @@ class AiCaller:
                 byte_string = response_.encode('utf-8')
                 x = byte_string.decode('utf-8')
                 x = self.extract_json_from_string(x)
-                x = json.loads(x)
-                return x
+                return load_json_string(x)
             except Exception as e:
                 processing_logger.exception(f"Error occurred while in attempt {attempt} add more cards {str(e)}. AI content response is {response_}")  # noqa: E501
                 if attempt == max_attempts:
@@ -70,11 +68,9 @@ class AiCaller:
         json_start = s.find('[')
         if json_start == -1:
             return None
-
         json_end = s.rfind(']')
         if json_end == -1:
             return None
-
         return s[json_start:json_end+1]
 
 
@@ -99,13 +95,7 @@ class AiCaller:
         
         byte_string = response_.encode('utf-8')
         x = byte_string.decode('utf-8')
-        try:
-            x = json.loads(x)        
-        except json.JSONDecodeError as e:
-            processing_logger.error(f"Failed to decode JSON: {e}")
-            processing_logger.error("First 100 characters:", x[:100])
-            processing_logger.error("Last 100 characters:", x[-100:])
-        return x
+        return load_json_string(x)
     
 
     async def extract_terms(self, text: str, prompt_options: dict) -> json:
@@ -120,13 +110,7 @@ class AiCaller:
             response_ = add_underscores(response_)
         byte_string = response_.encode('utf-8')
         x = byte_string.decode('utf-8')
-        try:
-            x = json.loads(x)        
-        except json.JSONDecodeError as e:
-            processing_logger.error(f"Failed to decode JSON: {e}")
-            processing_logger.error("First 100 characters:", x[:100])
-            processing_logger.error("Last 100 characters:", x[-100:])
-        return x
+        return load_json_string(x)
 
 
 
@@ -237,7 +221,7 @@ class AiCaller:
 
             except Exception as e:
                 retries += 1
-                print(f"Error: {e}. Retrying ({retries}/3)")
+                processing_logger.error(f"Error: {e}. Retrying ({retries}/3)")
                 if retries == 3:
                     raise e
 
@@ -277,7 +261,7 @@ class AiCaller:
                 return response['choices'][0]['message']['content'].strip()
             except Exception as e:
                 retries += 1
-                print(f"Error: {e}. Retrying ({retries}/3)")
+                processing_logger.error(f"Error: {e}. Retrying ({retries}/3)")
                 if retries == 3:
                     raise e
             
@@ -299,7 +283,7 @@ class AiCaller:
                 return response['choices'][0]['message']['content'].strip()
             except Exception as e:
                 retries += 1
-                print(f"Error: {e}. Retrying ({retries}/3)")
+                processing_logger.error(f"Error: {e}. Retrying ({retries}/3)")
                 if retries == 3:
                     raise e
                 
@@ -343,7 +327,7 @@ class AiCaller:
                 return response['choices'][0]['message']['content'].strip()
             except Exception as e:
                 retries += 1
-                print(f"Error: {e}. Retrying ({retries}/3)")
+                processing_logger.error(f"Error: {e}. Retrying ({retries}/3)")
                 if retries == 3:
                     raise e
                 
@@ -395,3 +379,48 @@ def isolate_json_string(json_string: str) -> str:
     start_index = json_string.find('[')
     end_index = json_string.rfind(']')
     return json_string[start_index:end_index+1]
+
+
+def load_json_string(x:str) -> json:
+    json_result, success = try_json_load(x)
+    if not success:
+        processing_logger.info("failed to decode json, trying with single quote")
+        json_result, success = try_json_load(fix_end_json_string_single(x))
+    if not success:
+        processing_logger.info("failed to decode json, trying with double quote")
+        json_result, success = try_json_load(fix_end_json_string_double(x))
+    if not success:
+        processing_logger.error("Failed to decode JSON")
+        processing_logger.error("First 100 characters:", x[:100])
+        processing_logger.error("Last 100 characters:", x[-100:])
+        raise json.JSONDecodeError
+    return json_result
+
+
+def try_json_load(json_string):
+    try:
+        return json.loads(json_string), True
+    except json.JSONDecodeError:
+        return None, False
+    
+def fix_end_json_string_single(json_string):
+    if json_string.endswith("'"):
+        json_string = json_string[:-1] + "}]"
+    elif json_string.endswith('"'):
+        json_string = json_string[:-1] + "}]"
+    elif json_string.endswith("}"):
+        json_string += "]"
+    else:
+        json_string += "'}]"
+    return json_string
+
+def fix_end_json_string_double(json_string):
+    if json_string.endswith("'"):
+        json_string = json_string[:-1] + "}]"
+    elif json_string.endswith('"'):
+        json_string = json_string[:-1] + "}]"
+    elif json_string.endswith("}"):
+        json_string += "]"
+    else:
+        json_string += '"}]'
+    return json_string

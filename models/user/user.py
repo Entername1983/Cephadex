@@ -8,7 +8,7 @@ from models.association_tables import user_group_association, distribution, sour
 from models.user.usage_record import UsageRecord
 from run.extensions import db
 from typing import Optional
-
+from models.helpers.log_decorators import log_decorator
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -120,7 +120,7 @@ class User(db.Model, UserMixin):
             next_roll_over = self.subscription_start_date + timedelta(days=31)
         return next_roll_over.strftime('%b %d, %Y')
     
-
+    @log_decorator
     def perform_operation(self, operation_type: str, n: int, operation_details: str=None) -> 'Optional[bool]':
     # Check the user's remaining count for this time period
         usage_record = (
@@ -128,13 +128,10 @@ class User(db.Model, UserMixin):
                 .filter_by(user_id=self.id)
                 .order_by(UsageRecord.date.desc()).first()
         )
-        print(usage_record)
-        print(usage_record.remaining_count)
         subscription_plan = (
                 SubscriptionPlan.query
                 .filter_by(id=self.subscription_plan).first() 
         ) 
-        print(subscription_plan)
         if usage_record is None:
             remaining_count = subscription_plan.limit_count
         else:

@@ -3,6 +3,7 @@
 import eventlet
 eventlet.monkey_patch()
 
+import logging
 import datetime as dt
 import random
 from flask import g, redirect, render_template, request, session
@@ -18,12 +19,13 @@ from factory import create_app
 from run.extensions import db, login_manager, socketio
 from config.settings import DEBUG
 from run.bp_register import register_blueprints
-import logging
+
 
 logger = logging.getLogger("flask_app")
 
 app = create_app()
 ##app.config['EXPLAIN_TEMPLATE_LOADING'] = True
+login_manager.login_view = 'user_bp.login'
 
 
 @app.before_request
@@ -163,7 +165,6 @@ def check_for_errors(slug: str) -> float:
 def query():
     progress = 0
     job_id = request.form["id"]
-    # Now we can ask database about the state of that request
     data = Job.query.filter_by(slug=job_id).first()
     num_completed = Job.query.filter_by(slug=job_id).filter(Job.state.in_(["completed", "failed"])).count()
     num_total = Job.query.filter_by(slug=job_id).count()

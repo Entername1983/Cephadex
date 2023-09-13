@@ -5,7 +5,9 @@ from app import db, app
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import os
-
+import logging
+import sys
+sys.path.append("..")
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 result = load_dotenv(dotenv_path)
 
@@ -28,25 +30,26 @@ db.init_app(app)
 
 setup_subrollover_logger()
 
+logger = logging.getLogger('subrollover')
+
 @subrollover_log_decorator
 def roll_over():
-
-    # Query active subscriptions
+    """ Subscriptions get reset every 30 days
+    Look at all accounts who are reaching 30 days since last rollover
+    Set their allowance equal to the appropriate amount in their subscription
+    """
     subscriptions = User.query.filter_by(account_status='active').all()
     # Loop through each subscription and check if 30 days have passed
     for subscription in subscriptions:
         if subscription.latest_roll_over is None:
             if subscription.subscription_start_date is None:
                 subscription.subscription_start_date = datetime.now(timezone.utc)
-
-
             subscription.latest_roll_over = subscription.subscription_start_date
         aware_datetime = datetime.replace(subscription.latest_roll_over, tzinfo=timezone.utc)
-
         if aware_datetime + timedelta(days=30) <= datetime.now(
             timezone.utc
         ):
-            print(f"rolling over {subscription.username}")
+            logger.info(f"rolling over {subscription.username}")
             subscription.latest_roll_over = datetime.now(timezone.utc)
             # Reset the usage limit for this subscription type
             user = User.query.filter_by(id=subscription.id).first()
@@ -65,9 +68,6 @@ def roll_over():
             )
             db.session.add(new_record)
             db.session.commit()
-
-
-    # Save changes to the database
     db.session.commit()
     return "Usage limits have been reset successfully."
 
@@ -75,9 +75,8 @@ def roll_over():
 def delete_accounts():
     accounts_to_delete = User.query.filter_by(account_expiration_reason='deleted').all()
     for account in accounts_to_delete:
-        print(account.id)
         event_tracker(account.id, "delete_account", "account deleted", account.email)
-        print(f"Deleted account: {account.username}")
+        logger.info(f"Deleted account: {account.username}")
         db.session.delete(account)
         db.session.commit()
 
@@ -85,16 +84,13 @@ def delete_accounts():
 @subrollover_log_decorator
 def create_report():
     csv_file_path = 'report.csv'
-    # Check if CSV file exists, create it if not
     is_new_file = not os.path.isfile(csv_file_path)
     with open(csv_file_path, 'a', newline='') as csv_file:
         writer = csv.writer(csv_file)
         if is_new_file:
-            # Write categories as the first column
             categories = ['User Accounts Created', 'Deleted Accounts', 'Stripe Events', 'Usage Records', 'Cards Created', 'Decks Created', 'Deck Files', 'Feedback', 'Tests Created', 'Event Types']
             writer.writerow(['Date'] + categories)
 
-    # Get counts for each metric
     user_accounts_created = count_user_accounts_created()
     deleted_accounts = count_deleted_accounts_by_reason()
     stripe_events = count_stripe_events()
@@ -106,7 +102,6 @@ def create_report():
     tests_created = count_tests_created()
     event_types = count_events_by_type()
 
-    # Create a new row with the data and time
     row_data = [
         datetime.now().strftime('%Y-%m-%d %H'),
         {'accounts_created': user_accounts_created},
@@ -121,7 +116,6 @@ def create_report():
         {'event_types': event_types}
     ]
 
-    # Append the row to the CSV file
     with open(csv_file_path, 'a', newline='') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(row_data)
@@ -138,14 +132,8 @@ def create_report():
                     {'tests_created':<20} {tests_created}, \
                     {'event_types':<20} {event_types}"
 
-
-    # Send email with the report
     send_email_report('pro.mccarthy@gmail.com', formatted_report, os.environ.get("SEND_GRID_KEY")
 )
-
-
-
-
 
 def count_user_accounts_created():
     start_time = datetime.now(timezone.utc) - timedelta(hours=24)
@@ -176,9 +164,7 @@ def count_stripe_events():
         .group_by(StripeEvents.event_type)
         .all()
     )
-
-    event_counts_dict = {event_type: count for event_type, count in event_counts}
-    return event_counts_dict
+    return {event_type: count for event_type, count in event_counts}
 
 
 def count_usage_record():
@@ -186,12 +172,10 @@ def count_usage_record():
     usage_records = UsageRecord.query.filter(
         UsageRecord.date >= start_time
     ).all()
-
     count_by_operation = {}
     for record in usage_records:
         operation = record.operation_type
         count_by_operation[operation] = count_by_operation.get(operation, 0) + 1
-
     return count_by_operation
 
 def count_card_created_by_type():
@@ -229,7 +213,6 @@ def list_feedback():
     ).all()
     return [message.message for message in feedback]
 
-
 def count_tests_created():
     start_time = datetime.now(timezone.utc) - timedelta(hours=24)
     count = Test.query.filter(Test.time_created >= start_time).count()
@@ -238,12 +221,10 @@ def count_tests_created():
 def count_events_by_type():
     start_time = datetime.now(timezone.utc) - timedelta(hours=24)
     events = EventTracking.query.filter(EventTracking.created_at >= start_time).all()
-
     event_counts = {}
     for event in events:
         event_type = event.event_type
         event_counts[event_type] = event_counts.get(event_type, 0) + 1
-
     return event_counts
 
 

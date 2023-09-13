@@ -4,19 +4,16 @@ from logging.handlers import RotatingFileHandler
 import sys
 import os
 
-# class SafeStreamHandler(logging.StreamHandler):
-#     def emit(self, record):
-#         try:
-#             super().emit(record)
-#         except UnicodeEncodeError:
-#             # Handle the error as needed, or replace the problematic character
-#             record.msg = record.msg.encode('utf-8', 'replace').decode('utf-8')
-#             super().emit(record)
+LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'INFO').upper()
+LOGGING_LEVEL_CONST = getattr(logging, LOGGING_LEVEL, logging.INFO)
+
+
+
 
 
 def setup_app_logger():
     logger = logging.getLogger('flask_app')
-    logger.setLevel(logging.DEBUG)  # You can set the logging level as needed
+    logger.setLevel(LOGGING_LEVEL_CONST)
 
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.DEBUG)  # Set the level for this handler
@@ -47,7 +44,7 @@ def setup_app_logger():
 
 def setup_processing_logger():
     processing_logger = logging.getLogger('job_processing')
-    processing_logger.setLevel(logging.DEBUG)
+    processing_logger.setLevel(LOGGING_LEVEL_CONST)
 
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.DEBUG)
@@ -75,8 +72,8 @@ def setup_processing_logger():
 
 def setup_subrollover_logger():
     subrollover_logger = logging.getLogger('subrollover')
-    subrollover_logger.setLevel(logging.DEBUG)  # You can set the logging level as needed
-
+    subrollover_logger.setLevel(LOGGING_LEVEL_CONST)
+    
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.DEBUG)  # Set the level for this handler
 

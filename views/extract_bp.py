@@ -1,4 +1,5 @@
 
+import logging
 from flask import (
     Blueprint, render_template, flash,
     redirect, session, url_for, jsonify
@@ -14,10 +15,9 @@ from models.tracking.events import event_tracker
 from models.forms.forms import UploadFileForm
 from models.exceptions.exceptions import YoutubeError, AudioError
 from run.extensions import db
-
 from models.helpers.log_decorators import log_decorator
 
-
+logger = logging.getLogger("flask_app")
 
 extract_bp = Blueprint(
     'extract_bp', 
@@ -77,7 +77,6 @@ def call_credit_counter():
     try:
         credit = round(tokens_to_credit(tokens_general(form)), 1)
         return jsonify(credit)
-
     except YoutubeError as e:
         raise YoutubeError from e
     except FileNotFoundError as e:
@@ -85,7 +84,7 @@ def call_credit_counter():
         redirect(url_for('extract_bp.extract'))
         raise e
     except Exception as e:
-        print("general exception", e)
+        logger.error(f"general exception in call credit counter {e}")
         raise e
 
 def tokens_to_credit(tokens):

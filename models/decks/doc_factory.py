@@ -11,8 +11,13 @@ from tools.lists import SUMMARY_FILE_NAMES
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+from models.helpers.log_decorators import job_log_decorator
 
-## Creates documents and also in charge of creating deck attributes
+""" Contains both async and regular methods - but only used for async at the moment
+This object us used to create documents by reassembling processed content from jobs and saving them
+in the db
+We additionally use this object to create deck attributes
+"""
 class DocFactory:
     def __init__(self, session: 'AsyncSession', deck_id: int):
         self.session: 'AsyncSession' = session
@@ -70,8 +75,8 @@ class DocFactory:
             deck.description = deck_attributes.concepts
         self.session.commit()
 
+    @job_log_decorator
     async def async_create_doc(self, content:list) -> str:
-        print("entered async create doc")
         result = await self.session.execute(
             select(Deck).filter_by(id=self.deck).options(selectinload(Deck.deck_files))
         )
@@ -94,6 +99,7 @@ class DocFactory:
         await self.session.commit()
         return full_text
 
+    @job_log_decorator
     async def async_save_transcript(self, content:list) -> None:
         result = await self.session.execute(
             select(Deck).filter_by(id=self.deck).options(selectinload(Deck.deck_files))
@@ -108,6 +114,7 @@ class DocFactory:
         deck.deck_files.append(file_storage)
         await self.session.commit()
 
+    @job_log_decorator
     async def async_create_deck_attributes(self, text: str) -> 'DeckAttributes':
         result = await self.session.execute(select(Deck).filter_by(id=self.deck))
         deck = result.scalar_one()
@@ -125,7 +132,8 @@ class DocFactory:
         await self.session.commit()
         await self.async_assign_attributes_to_deck(deck, attributes)
         return attributes
-
+    
+    @job_log_decorator
     async def async_assign_attributes_to_deck(self, deck: str, deck_attributes: 'DeckAttributes') -> None:
         if deck.subject is None:
             deck.subject = deck_attributes.subject

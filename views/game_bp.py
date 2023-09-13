@@ -1,5 +1,6 @@
 
 from random import shuffle
+import logging
 import qrcode
 import json
 import base64
@@ -21,8 +22,6 @@ from models.models_ import (
 from config.settings import ENVIRONMENT
 from run.extensions import db, socketio
 from models.helpers.log_decorators import log_decorator
-import logging
-logger = logging.getLogger("flask_app")
 
 game_bp = Blueprint(
     'game_bp', 
@@ -31,6 +30,7 @@ game_bp = Blueprint(
     static_folder='static'
 )
 
+logger = logging.getLogger("flask_app")
 
 
 @login_required
@@ -253,7 +253,6 @@ def handle_start_round(data):
 @log_decorator
 def submit_vote(data):
     try:
-        print("entered submit vote")
         game_id = int(data['game_id'])
         round_id = int(data['round_id'])
         answer = data['answer']
@@ -271,7 +270,8 @@ def submit_vote(data):
         db.session.commit()
         return jsonify({'message': 'Vote submitted successfully.'})
     except Exception as e:
-        print("exception in submit vote", e)
+        # TO DO - how to handle this exception?
+        logger.error(f"Error in submit_vote {e}")
 
 
 @socketio.on('submit_answer')
@@ -301,7 +301,7 @@ def check_if_all_answers_submitted(data):
                   callback=messageReceived, room=data['game_id'])
     except Exception as e:
         ## TO DO sort this out, what the hell is this?
-        print("exception in check if all answers ubmitted", e)
+        logger.error("exception in check if all answers submitted (game)", e)
 
 @socketio.on('check_all_votes_are_in')
 @log_decorator
@@ -369,12 +369,11 @@ def count_votes(data):
         'total_points':total_points_json,
         'correct_answer': correct_answer.text, 
         'round_id': data['round_id'],
-        'answers_info': answers_info  # Include the answer information in the event payload
+        'answers_info': answers_info  
     }, callback=messageReceived, room=data['game_id'])
-## check points for votes
 
 
-
+### currently unused?  TO DO - figure this out
 @game_bp.route('/game/<int:game_id>/tabulate', methods=['GET', 'POST'])
 @log_decorator
 def tabulate_answers(game_id):
@@ -388,17 +387,19 @@ def tabulate_answers(game_id):
             belongs_to_user = GameAnswer.query.filter_by(id = answer.id).first()
             result = {answer.id: quantity_votes, 'user_id': belongs_to_user.user_id}
             results.append(result)
-        correct_answer = GameAnswer.query.filter_by(game_id=game.id,
-                                            round=round_id, is_correct=True).first()
-        ## who voted for the correct answer
-        correct_answer_voters = GameVote.query.filter_by(answer_id=correct_answer.id).all()
-        for voter in correct_answer_voters:
-            print(voter.id)
+        # correct_answer = GameAnswer.query.filter_by(game_id=game.id,
+        #                                     round=round_id, is_correct=True).first()
+        # ## who voted for the correct answer
+        # correct_answer_voters = GameVote.query.filter_by(answer_id=correct_answer.id).all()
+        # for voter in correct_answer_voters:
+        #     print(voter.id)
     return jsonify({'results': 'none'})
         
 
-def messageReceived(methods=['GET', 'POST']):
-    print('message was received!!!')
+def messageReceived(methods=None):
+    if methods is None:
+        methods = ['GET', 'POST']
+    logger.info('message was received!!!')
 
 @socketio.on('update_scores')
 @log_decorator

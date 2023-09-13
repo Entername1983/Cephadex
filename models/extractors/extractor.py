@@ -7,11 +7,9 @@ import json
 import os
 import math
 import datetime as dt
-
 from werkzeug.utils import secure_filename
 from flask import session
 from flask_login import current_user
-
 from pdf2image import convert_from_path
 from pdfminer.high_level import extract_pages
 from pptx import Presentation
@@ -33,8 +31,9 @@ from models.exceptions.exceptions import (
     YoutubeError, UnsupportedFileError, AudioError, ExtractionError,
     ExtractionWikiError
 )
-
+import logging
 from models.extractors.extractor_config import PAGES_PER_MIN, TOKENS_PER_PAGE
+from models.helpers.log_decorators import log_decorator
 
 from typing import TYPE_CHECKING, Any, Optional, Union, IO
 if TYPE_CHECKING:
@@ -46,11 +45,28 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 encoding = tiktoken.get_encoding("cl100k_base")
 UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER")
 
+logger = logging.getLogger("flask_app")
 
-""" This class is responsible for storing the data and instructions related to content creation 
-and creating a job object that will be later used for the actual processing.  It accepts either 
-a flask form or a dictionary of options and will create a job object accordingly.  It also
- contains the main extraction function which will be called by the main controller. """
+"""
+This class serves as the central hub for content creation tasks, orchestrating the conversion of input data 
+into actionable jobs for further processing. It plays a key role in the following:
+
+1. Data Storage: Holds data and instructions pertinent to content creation.
+2. Job Object Creation: Creates job objects based on either a Flask form or a dictionary of options.
+   (Note: 'deck' and 'description' fields are disabled when using a dictionary.) <-- TO DO
+3. Extraction Function: Houses the primary function for data extraction, invoked by the main controller.
+
+Features:
+- Slug ID: A unique identifier shared across all jobs and their corresponding notification entries for each extraction.
+- Audio Job Special Handling: Audio jobs undergo a two-step process. The initial step is transcription, 
+  which is queued before standard jobs for the same audio source are generated.
+
+Usage:
+The class takes in a form or a dictionary and performs the following tasks:
+1. Transforms the form into a 'payload,' which comprises sets of instructions for an AI model.
+2. Creates a new 'deck' entry in the database.
+3. Generates a notification entry to keep track of job status.
+"""
 class Extractor:
     def __init__(self, db_session: 'Session', form: 'Optional[FlaskForm]' =None, slug: str =None, **kwargs: Any):
         self.db_session: 'Session' = db_session
@@ -114,25 +130,22 @@ class Extractor:
         self.extension: str = None
         self.text: str = None
         self.tokens: int = None
+        self.description: str = None
 
     def __repr__(self):
         return (f"Extractor(prompt_options={self.prompt_options}, "
-                f"description={repr(self.description)}, "
-                f"deck={repr(self.deck)}, "
                 f"file_data={repr(self.file_data)}, "
                 f"text_data={repr(self.text_data)}, "
                 f"link_data={repr(self.link_data)}, "
                 f"slug={repr(self.slug)})")
-
+    
+    @log_decorator
     def get_deck(self, form: 'FlaskForm') -> tuple['Deck', bool]:
-        print("entered get_deck")
         """ Retrieves the deck object and a boolean to determine whether a new deck was created """
         if form.deck_list.data:
-            print("recognized deck_list.data", form.deck_list.data)
             self.deck = form.deck_list.data
             return form.deck_list.data, False
         else:
-            print("recognized no deck")
             chosen_name = form.name.data or random.choice(DECK_NAMES)
             description = form.description.data or None
             deck = Deck(name=chosen_name, user_id=current_user.id,
@@ -140,7 +153,7 @@ class Extractor:
             self.deck = deck
             return deck, True
 
-
+    @log_decorator
     def get_content(self) -> str:
         """ Retrieves the text content from input, or in the case of an audio file the duration
         of the the file """
@@ -174,7 +187,8 @@ class Extractor:
         elif self.link_data:
             self.text, self.type = extract_from_url(self.link_data)
         return self.text
-
+    
+    @log_decorator
     def quantity_tokens(self) -> int:
         """ Gives a token cost depending on number of characters (or length of audio file)"""
         if self.extension in ['.wav', '.mp3']:
@@ -182,7 +196,8 @@ class Extractor:
         else:
             self.tokens = count_tokens(self.text)
         return self.tokens
-
+    
+    @log_decorator
     def save_source_text(self) -> None:
         """ Saves the source text as a deckfile object to be stored in the db"""
         if self.prompt_options['save_text_opt'] is True and self.extension not in ['.wav', '.mp3']:
@@ -194,6 +209,7 @@ class Extractor:
             self.deck.deck_files.append(file_storage)
             self.db_session.commit()
 
+    @log_decorator
     def create_jobs(self) -> None:
         """ creates either audio job or regular job and matching job notification object"""
         if self.extension in ['.wav', '.mp3']:
@@ -220,9 +236,9 @@ class Extractor:
                     self.job_creator('Summarize')
                 elif self.prompt_options['create_notes_opt'] is True:
                     self.job_creator('Turn2notes')
-        print("ready to create notification")
         self.notification_creator()
 
+    @log_decorator
     def audio_job_creator(self) -> None:
         """ renames and stores the audio file """
         upload_folder = UPLOAD_FOLDER
@@ -237,6 +253,7 @@ class Extractor:
         self.file_data = None
         self.extract_audio(file_path)
 
+    @log_decorator
     def job_creator(self, prompt: str) -> None:
         prompt_options = self.prompt_options
         prompt_options['main_opt'] = prompt
@@ -254,9 +271,10 @@ class Extractor:
             self.db_session.add(data)
             if counter == total_len:
                 session['slug'] = self.slug
-                
                 self.db_session.commit()
 
+
+    @log_decorator
     def notification_creator(self) -> None:
         job_notification = JobNotification(user_id=current_user.id,
             slug = self.slug,  cost = self.tokens, date_created = dt.datetime.now(dt.timezone.utc),
@@ -265,12 +283,11 @@ class Extractor:
         self.db_session.commit()
 
 
-
-
-
     ## AUDIO EXTRACTORS
+    @log_decorator
     def extract_audio(self, file: str) -> None:
-        """ Divides up audio if necessary into segments and stores them, then creating individual jobs"""
+        """ Divides up audio if necessary into segments and stores them, then creating individual jobs 
+        audio files need to be divided up into max chunks of 25mb for whisper """
         folder_path = "audio_segments"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -283,11 +300,11 @@ class Extractor:
             os.remove(file)
         except Exception as e:
             # Handle any exceptions that may occur during audio extraction
-            print(f"Error occurred during audio extraction: {str(e)}")
+            logger.error(f"Error occurred during audio extraction: {str(e)}, raising AudioError")
             raise AudioError 
 
 
-
+    @log_decorator
     def create_audio_job(self, segment: str, item_number: int, item_quantity: int) -> None:
         """ creates the actual audio job to be stored in the db"""
         payload = {"prompt_options": self.prompt_options,
@@ -300,7 +317,7 @@ class Extractor:
         self.db_session.add(audio_job)
         self.db_session.commit()
 
-
+@log_decorator
 def tokens_general(form: 'FlaskForm') -> int:
     """ counts tokens from flask form """
     if form.file.data:
@@ -327,7 +344,7 @@ def tokens_general(form: 'FlaskForm') -> int:
     return count_tokens(text)
 
 
-
+@log_decorator
 def save_file_to_upload_folder(file: str) -> str:
     """ saves a file to appropriate folder"""
     upload_folder = UPLOAD_FOLDER
@@ -341,13 +358,14 @@ def save_file_to_upload_folder(file: str) -> str:
     file.save(file_path)
     return file_path
 
-
+@log_decorator
 def get_audio_content(file_data: str, name: str) -> float:
     """ returns the duration of an audio file"""
     duration = get_duration(file_data, name)
     file_data.seek(0)
     return duration
 
+@log_decorator
 def extract_from_pdf(file_data: str, n: int = 3) -> str:
     """ extracts text from a pdf, if a page has less than n characters attempts OCR
     otherwise defautls to pdf miner"""
@@ -368,8 +386,8 @@ def extract_from_pdf(file_data: str, n: int = 3) -> str:
                         # Perform OCR on the image
                         current_page_text = image_to_string(image)
                 except Exception as e:
-                    print(f"Error occurred during OCR: {str(e)}")
-                    ## TO DO figure out how to handle this properly
+                    logger.error(f"Error occurred during OCR: {str(e)}")
+                    raise e
 
             text.append(current_page_text)
         return "\n".join(text)
@@ -378,7 +396,8 @@ def extract_from_pdf(file_data: str, n: int = 3) -> str:
         raise e
     except Exception as e:
         raise ExtractionError(f"Failed to extract data: {e}") from e
-
+    
+@log_decorator
 def extract_from_pptx(file_data: str) -> Optional[str]:
     """ extracts text from a pptx file"""
     try:
@@ -395,8 +414,8 @@ def extract_from_pptx(file_data: str) -> Optional[str]:
     except Exception as e:
         raise ExtractionError(f"Failed to extract data: {e}") from e
     
+@log_decorator
 def extract_from_docx(file_data: str) -> Optional[str]:
-    print("entered docx function")
     try:
         text = docx2txt.process(file_data)
         text = text.replace("\n", " ")
@@ -405,7 +424,8 @@ def extract_from_docx(file_data: str) -> Optional[str]:
         raise e from e
     except Exception as e:
         raise ExtractionError(f"Failed to extract data: {e}") from e
-
+    
+@log_decorator
 def extract_from_txt(file_data: str) -> str:
     """ extracts text from a text file """
     try:
@@ -413,7 +433,7 @@ def extract_from_txt(file_data: str) -> str:
     except Exception as e:
         raise ExtractionError(f"Failed to extract data: {e}") from e    
 
-
+@log_decorator
 def extract_from_url(link_data: str) -> tuple[str, str]:
     """ extracts text from a url, either wiki or youtube """
     text = None
@@ -449,7 +469,8 @@ def extract_from_url(link_data: str) -> tuple[str, str]:
         return text, link_type
     except Exception as e:
         raise ExtractionError(f"Failed to extract data: {e}") from e
-
+    
+@log_decorator
 def extract_from_other_url(link: str) -> str:
     response = requests.get(link)
     text = ""
@@ -459,11 +480,11 @@ def extract_from_other_url(link: str) -> str:
             text = text + paragraph.text
         return text
     else:
-        print(f"Failed to retrieve the URL. Status code: {response.status_code}")
+        logger.error(f"Failed to retrieve the URL. Status code: {response.status_code}")
         raise ExtractionError(f"Failed to retrieve the URL. Status code: {response.status_code}")
 
 
-
+@log_decorator
 def extract_from_wiki(wiki_url: str) -> str:
     """ extract from wikilinks"""
     try:
@@ -473,7 +494,8 @@ def extract_from_wiki(wiki_url: str) -> str:
         raise e from e
     except Exception as e:
         raise ExtractionWikiError(f"Failed to extract data: {e}") from e
-
+    
+@log_decorator
 def extract_from_youtube(youtube_url: str) -> str:
     """ extracts from youtube """
     try:
@@ -506,7 +528,7 @@ def extract_from_youtube(youtube_url: str) -> str:
     except Exception as e:
         raise YoutubeError(f"Failed to extract data: {e}") from e
     
-
+@log_decorator
 def get_video_id(link: Union[str, list[str]]) -> Optional[str]:
     """ cleans up youtube links nad puts them in teh appropriate format to use
     with the youtube extraction api"""
@@ -524,13 +546,12 @@ def get_video_id(link: Union[str, list[str]]) -> Optional[str]:
             return match[1]
 
 
-
 def check_comma_list(string: str) -> bool:
     """ checks if there is a comma in a string --> indicating more htan one link"""
     """ deprecated to use semi colon?"""
     return "," in string
     
-
+@log_decorator
 def clean_text(text: str) -> str:
     """Decode Unicode escape sequences into actual characters"""
     text = codecs.decode(text, 'unicode_escape')
@@ -539,6 +560,7 @@ def clean_text(text: str) -> str:
     pattern = r"[^\w\s.,;:?!-’'\"()]+"
     return re.sub(pattern, "", text)
 
+@log_decorator
 def make_request(wiki_url: str) -> 'bytes':
     # Replace the URL with the mobile version
     wiki_url = re.sub(r"https://(..).wikipedia.org", r"https://\1.m.wikipedia.org", wiki_url)
@@ -546,6 +568,7 @@ def make_request(wiki_url: str) -> 'bytes':
     page.raise_for_status()  # Check for any HTTP request errors
     return page.content
 
+@log_decorator
 def process_soup(content: str) -> str:
     """ processes the content of the page to extract the text """
     soup = BeautifulSoup(content, 'html.parser')
@@ -553,6 +576,7 @@ def process_soup(content: str) -> str:
     remove_elements(soup)
     return extract_content(soup)
 
+@log_decorator
 def remove_elements(soup: BeautifulSoup):
     """ remove unwanted elements from wiki page"""
     unwanted_tags = ['script', 'style', 'table', 'noscript', 'nav', 'header', 'footer', 'sup', 'div', 'h2', 'li', 'a']
@@ -580,6 +604,7 @@ def remove_elements(soup: BeautifulSoup):
         if li.find('a'):
             li.extract()
 
+@log_decorator
 def extract_content(soup: BeautifulSoup) -> str:
     """ beautiful soup extractor"""
     wanted_tags = ['p', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'td']
@@ -590,6 +615,7 @@ def extract_content(soup: BeautifulSoup) -> str:
     return "\n\n".join(extracted_content)
 
 ## returns duration in seconds
+@log_decorator
 def get_duration(file, name: str) -> float:
     """ gets duration of audio file"""
     file_data = file.read()
@@ -600,7 +626,7 @@ def get_duration(file, name: str) -> float:
     try:
         duration = float(info["duration"])
     except Exception as e:
-        print("An error occurred:", e)
+        logging.error("An error occurred when trying to get duration of audio file", e)
         raise AudioError from e
     time_base = float(info["time_base"].split("/")[1])
     duration = float(info['duration_ts']) / time_base
@@ -609,23 +635,23 @@ def get_duration(file, name: str) -> float:
 
 
 def convert_time_to_tokens(time: float) -> float:
-    """ converts time to tokens"""
+    """ converts time to tokens - using estimates of how many pages a min of audio is
+    worth and how many tokens a page is worth"""
     return ((time / 60)/PAGES_PER_MIN) * TOKENS_PER_PAGE
 
+@log_decorator
 def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment_size_MB: int = 20) -> list[str]:
-    print("entered divide audio")
+    """Divides up the audio file into segments of at max 20mb of length, checks if any segments are below 0.1mb
+    deletes those to avoid empty segments - """
     min_segment_size_MB = 0.1
     try:
         file_size_bytes = os.path.getsize(input_file)
         max_segment_size_bytes = max_segment_size_MB * 1024 * 1024
         num_segments = math.ceil(file_size_bytes / max_segment_size_bytes)
-        # Generate a random string for file naming
         random_string = ''.join(random.choices('0123456789', k=5))
-        # Detect the audio format based on file extension
         file_extension = os.path.splitext(input_file)[-1].replace(".", "")
         audio = AudioSegment.from_file(input_file, format=file_extension)
         segment_length_ms = duration // num_segments
-        # Initialize time pointers in milliseconds
         start_time = 0
         end_time = segment_length_ms * 1000  # milliseconds in segment_length seconds
         total_length = len(audio)
@@ -643,10 +669,10 @@ def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment
         return segment_paths
     
     except FileNotFoundError as e:
-        print(f"File not found: {e}")
+        logging.error(f"File not found in divide_audio: {e}")
         raise e from e
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logging.error(f"An unexpected error occurred during divide audio: {e}")
         raise e from e
 
 # Sample call
@@ -654,58 +680,58 @@ def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment
 
 
 
-def divide_audio1(input_file_path, segment_length=25):
-    print("entered divide audio")
-    segment_paths = []
-    random_string = ''.join(random.choices('0123456789', k=5))
-    ##segment_size = segment_length * 1024 * 1024  # size in bytes
+# def divide_audio1(input_file_path, segment_length=25):
+#     print("entered divide audio")
+#     segment_paths = []
+#     random_string = ''.join(random.choices('0123456789', k=5))
+#     ##segment_size = segment_length * 1024 * 1024  # size in bytes
 
-    start_ms = 0  # start time in milliseconds
-    end_ms = segment_length * 1000  # end time in milliseconds
-    audio = AudioSegment.from_mp3(input_file_path)
-    total_length = len(audio)
+#     start_ms = 0  # start time in milliseconds
+#     end_ms = segment_length * 1000  # end time in milliseconds
+#     audio = AudioSegment.from_mp3(input_file_path)
+#     total_length = len(audio)
 
-    while start_ms < total_length:
-        segment = audio[start_ms:end_ms]
-        output_file = os.path.join(os.path.dirname(input_file_path), f"{random_string}_segment_{start_ms}.mp3")
-        segment.export(output_file, format="mp3")
-        segment_paths.append(output_file)
+#     while start_ms < total_length:
+#         segment = audio[start_ms:end_ms]
+#         output_file = os.path.join(os.path.dirname(input_file_path), f"{random_string}_segment_{start_ms}.mp3")
+#         segment.export(output_file, format="mp3")
+#         segment_paths.append(output_file)
         
-        # move to next segment
-        start_ms += segment_length * 1000
-        end_ms += segment_length * 1000
+#         # move to next segment
+#         start_ms += segment_length * 1000
+#         end_ms += segment_length * 1000
 
-    return segment_paths
+#     return segment_paths
 
-def divide_audio2(input_file: 'Union[str, IO[bytes]]', segment_length: int =25) -> list[str]:
-    print("entered divide audio")
-    """ divides audio into segments of a length of at most segment_length mb (defautls to 25)"""
-    try:
-        # Open the audio file
-        random_string = ''.join(random.choices('0123456789', k=5))
-        audio = AudioSegment.from_file(input_file)
-        # Calculate the segment size in bytes
-        segment_size = segment_length * 1024 * 1024
-        # Calculate the total number of segments
-        num_segments = math.ceil(len(audio) / segment_size)
-        # Create a list to hold the file paths for the audio segments
-        segment_paths = []
-        # Split the audio file into segments and save each segment as an MP3 file
-        for i in range(num_segments):
-            start = i * segment_size
-            end = min((i + 1) * segment_size, len(audio))
-            segment = audio[start:end]
-            # Define the output file path for the segment
-            output_file = os.path.join(os.path.dirname(input_file), f"{random_string}segment_{i}.mp3")
-            # Export the segment as an MP3 file
-            segment.export(output_file, format="mp3")
-            # Add the output file path to the list of segment paths
-            segment_paths.append(output_file)
-        return segment_paths
+# def divide_audio2(input_file: 'Union[str, IO[bytes]]', segment_length: int =25) -> list[str]:
+#     print("entered divide audio")
+#     """ divides audio into segments of a length of at most segment_length mb (defautls to 25)"""
+#     try:
+#         # Open the audio file
+#         random_string = ''.join(random.choices('0123456789', k=5))
+#         audio = AudioSegment.from_file(input_file)
+#         # Calculate the segment size in bytes
+#         segment_size = segment_length * 1024 * 1024
+#         # Calculate the total number of segments
+#         num_segments = math.ceil(len(audio) / segment_size)
+#         # Create a list to hold the file paths for the audio segments
+#         segment_paths = []
+#         # Split the audio file into segments and save each segment as an MP3 file
+#         for i in range(num_segments):
+#             start = i * segment_size
+#             end = min((i + 1) * segment_size, len(audio))
+#             segment = audio[start:end]
+#             # Define the output file path for the segment
+#             output_file = os.path.join(os.path.dirname(input_file), f"{random_string}segment_{i}.mp3")
+#             # Export the segment as an MP3 file
+#             segment.export(output_file, format="mp3")
+#             # Add the output file path to the list of segment paths
+#             segment_paths.append(output_file)
+#         return segment_paths
 
-    except FileNotFoundError as e:
-        raise e from e
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+#     except FileNotFoundError as e:
+#         raise e from e
+#     except Exception as e:
+#         print(f"An unexpected error occurred: {e}")
 
 

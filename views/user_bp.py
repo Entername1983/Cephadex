@@ -5,6 +5,7 @@ import time
 from bleach import clean
 import stripe
 import uuid
+import logging
 from werkzeug.utils import secure_filename
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -21,7 +22,7 @@ from models.send_email import send_email
 from models.stripe_events import StripeEvents
 from models.tracking.events import event_tracker
 from models.forms.forms import (
-    RegSub, RegisterForm, TryOut, UploadFileForm,
+    RegSub, RegisterForm, UploadFileForm,
     AccountForm, DeleteAccountForm, UpdateProfilePicForm,
     Unsubscribe, FeedbackForm
 )
@@ -30,6 +31,7 @@ from run.extensions import db
 from models.user.stripe_config import STRIPE_PLANS
 
 from models.helpers.log_decorators import log_decorator
+logger = logging.getLogger("flask_app")
 
 user_bp = Blueprint(
     'user_bp', 
@@ -43,93 +45,89 @@ endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
 @user_bp.route("/googleSignIn", methods=["POST"])
 @log_decorator
 def googleSignIn():
-    print("entered google sign in")
-    #Security validation
-    form = TryOut()
-    csrf_token_cookie = request.cookies.get('g_csrf_token')
-    if not csrf_token_cookie:
-        return jsonify({'error': 'No CSRF token in Cookie'}), 400
-    csrf_token_body = request.form.get('g_csrf_token')
-    if not csrf_token_body:
-        return jsonify({'error': 'No CSRF token in post body.'}), 400
-    if csrf_token_cookie != csrf_token_body:
-        return jsonify({'error': 'Failed to verify double submit cookie.'}), 400
-    #encrypted credential
+    csrf_error_message, csrf_error_code = verify_csrf_token()
+    if csrf_error_message:
+        return jsonify({'error': csrf_error_message}), csrf_error_code
     credential = request.form.get('credential')
-    # Decrypt credential, third parameter comes from google API console client ID
     try:
         idinfo = id_token.verify_oauth2_token(credential,
                                             requests.Request(), AUTH2_CLIENT_ID)
     except ValueError as e:
-        # Invalid token
+        logger.error(f"Value error in google sign in, invalid token {e}")
         return jsonify({'error': 'Invalid token'}), 400
-    # ID token is valid. Get the user's Google Account ID from the decoded token.
-    #  (UniqueID to use for login)
     userid = idinfo['sub']
-    user = User.query.filter_by(external_id=userid).first()
-    if user:
-        login_user(user)
-        game_id = session.get('game_id')
-        if 'shared_deck_id' in session:
-            shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
-            new_deck = Deck(user_id = current_user.id,
-                    name=shared_deck.name,
-                    description=shared_deck.description,
-                    time_created=dt.datetime.now(dt.timezone.utc))
-            db.session.add(new_deck)
-            for card in shared_deck.cards:
-                new_card = Card(term=card.term,
-                    content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
-                    boc_4=card.boc_4,img=card.img, sound=card.sound,
-                    subject=card.subject, topic=card.topic,
-                    category=card.category,
-                    prompt_option=card.prompt_option,
-                    prompt_option2=card.prompt_option2,
-                    trans_option=card.trans_option, len_option=card.len_option,
-                    qmin_option=card.qmin_option,
-                    qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-                new_deck.cards.append(new_card)
-            del session['shared_deck_id']
-            db.session.commit()
-            flash("You have been logged in and the deck has been added to your decks", "success")
-            return redirect(url_for('deck_bp.viewdecks'))
-        if 'game_id' in session:
-            game_id = session.get('game_id')
-            if user.username:
-                username = user.username
-            else:
-                username  = user.email
-            player = PlayerGame(player_id = user.id, game_id = game_id, username = username)
-            db.session.add(player)
-            db.session.commit()
-            del session['game_id']
-            return redirect(url_for('game_bp.game_lobby', game_id=game_id))
-        if 'shared_test_id' in session:
-            shared_test_id = session.get('shared_test_id')
-            del session['shared_test_id']
-            return redirect(url_for('take_test_2',
-                share_id=shared_test_id, user_id = user.id))
-        flash('You have been logged in!', 'success')
-        event_tracker(user.id, "login", "google")
-        return redirect(url_for('deck_bp.viewdecks'))
-    else:
-        print("recognized not user")
-        session['google_id_token'] = idinfo['sub']
-        if idinfo.get('email'):
-            session['google_email'] = idinfo['email']
-        else: 
-            session['google_email'] = "n/a"
-        if idinfo.get('given_name'):
-            session['given_name'] = idinfo['given_name']
-        else: 
-            session['given_name'] = "Anonymous"
-        if idinfo.get('family_name'):
-            session['family_name'] = idinfo['family_name']
-        else: 
-            session['family_name'] = "Anonymous"
-        print("about to redirect")
-        return redirect(url_for('user_bp.register'))
+    if not (user := User.query.filter_by(external_id=userid).first()):
+        return handle_new_user(idinfo)
+    login_user(user)
+    if 'shared_deck_id' in session:
+        return found_shared_deck_id_in_session()
+    if 'game_id' in session:
+        return found_game_id_in_session()
+    if 'shared_test_id' in session:
+        return found_quiz_id_in_session()
+    flash('You have been logged in!', 'success')
+    event_tracker(user.id, "login", "google")
+    return redirect(url_for('deck_bp.viewdecks'))
+   
+def handle_new_user(idinfo):
+    session['google_id_token'] = idinfo['sub']
+    session['google_email'] = idinfo.get('email', 'n/a')
+    session['given_name'] = idinfo.get('given_name', 'Anonymous')
+    session['family_name'] = idinfo.get('family_name', 'Anonymous')
+    return redirect(url_for('user_bp.register'))
 
+def verify_csrf_token():
+    csrf_token_cookie = request.cookies.get('g_csrf_token')
+    csrf_token_body = request.form.get('g_csrf_token')
+    if not csrf_token_cookie:
+        return 'No CSRF token in Cookie', 400
+    if not csrf_token_body:
+        return 'No CSRF token in post body', 400
+    if csrf_token_cookie != csrf_token_body:
+        return 'Failed to verify double submit cookie', 400
+    return None, None
+
+def found_shared_deck_id_in_session():
+    shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
+    new_deck = Deck(user_id = current_user.id,
+            name=shared_deck.name,
+            description=shared_deck.description,
+            time_created=dt.datetime.now(dt.timezone.utc))
+    db.session.add(new_deck)
+    for card in shared_deck.cards:
+        new_card = Card(term=card.term,
+            content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
+            boc_4=card.boc_4,img=card.img, sound=card.sound,
+            subject=card.subject, topic=card.topic,
+            category=card.category,
+            prompt_option=card.prompt_option,
+            prompt_option2=card.prompt_option2,
+            trans_option=card.trans_option, len_option=card.len_option,
+            qmin_option=card.qmin_option,
+            qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+        new_deck.cards.append(new_card)
+    del session['shared_deck_id']
+    db.session.commit()
+    flash("You have been logged in and the deck has been added to your decks", "success")
+    return redirect(url_for('deck_bp.viewdecks'))
+
+def found_game_id_in_session():
+    game_id = session.get('game_id')
+    if current_user.username:
+        username = current_user.username
+    else:
+        username  = current_user.email
+    player = PlayerGame(player_id = current_user.id, game_id = game_id, username = username)
+    db.session.add(player)
+    db.session.commit()
+    del session['game_id']
+    return redirect(url_for('game_bp.game_lobby', game_id=game_id))
+
+def found_quiz_id_in_session():
+    shared_test_id = session.get('shared_test_id')
+    del session['shared_test_id']
+    return redirect(url_for('take_test_2',
+        share_id=shared_test_id, user_id=current_user.id))
 
 @user_bp.route("/accountsettings", methods = ["GET", "POST"])
 @login_required
@@ -151,8 +149,7 @@ def feedback():
         return jsonify(status="success", message="Thank you for your feedback!")
     errors = []
     for field, error_msgs in form.errors.items():
-        for msg in error_msgs:
-            errors.append(f"{field}: {msg}")
+        errors.extend(f"{field}: {msg}" for msg in error_msgs)
     return jsonify(status="error", errors=errors)
 
 
@@ -172,15 +169,14 @@ def delete_account():
             else:
                 reason = form.reason.data
 
-            details = form.more.data if form.more.data else None
+            details = form.more.data or None
             deleted_entry = DeletedAccounts(user_id=current_user.id,
                     email = current_user.email, date_created = current_user.time_created,
                     date_deleted = dt.datetime.now(dt.timezone.utc), reason=reason,
                     reason_details = details)
             db.session.add(deleted_entry)
             db.session.commit()
-            flash('We are sorry to see you go. Your account is now inactive and will be'
-                  'permanently deleted within 48 hours.')
+            flash('We are sorry to see you go. Your account is now inactive and will be permanently deleted within 48 hours.')  # noqa: E501
             return redirect(url_for('user_bp.logout'))
     return render_template('user_bp/delete_account.html', form_del=form)
 
@@ -196,16 +192,12 @@ def login():
 @log_decorator
 def check_username(username):
     user = User.query.filter_by(username=username).first()
-    # Check if username already exists
-    user = User.query.filter_by(username=username).first()
     if user is not None:
         response = jsonify({'username_taken': True})
-        response.status_code = 200
-        return response
     else:
         response = jsonify({'username_taken': False})
-        response.status_code = 200
-        return response
+    response.status_code = 200
+    return response
     
 @user_bp.route("/register", methods=["GET", "POST"])
 @log_decorator
@@ -214,7 +206,6 @@ def register():
     try:
         form = RegisterForm()
         if request.method == 'POST':
-            # Get the user's name and password from the form data
             username = request.form['username']
             ##timezone = request.form['password']
             ##role = request.form['role']
@@ -228,32 +219,17 @@ def register():
             userid= session['google_id_token']
             given_name = session['given_name']
             family_name = session['family_name']
-            account_type = "free"
-            subscription_plan = 1
-            existing_user = User.query.filter_by(email=email, guest=True).first()
-            if existing_user:
-                existing_user.username = username
-                existing_user.guest = False
-                existing_user.external_id = userid
-                existing_user.external_type = 'google'
-                existing_user.subscription_plan = 1
-                existing_user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-                existing_user.role = role
-                existing_user.timezone = timezone
-                db.session.commit()
-                user = existing_user
-                return redirect(url_for('deck_bp.viewdecks'))
-            else: 
-                user = User(email=email, first_name=given_name, account_type = account_type,
-                            last_name=family_name,external_id=userid,
-                            external_type='google', subscription_plan = subscription_plan,
-                            contacted_email=True, username=username,
-                            timezone = timezone,
-                            subscription_start_date = dt.datetime.now(dt.timezone.utc),
-                            role = role)
+            if guest_user := User.query.filter_by(email=email, guest=True).first():
+                user = turn_guest_into_regular_user(guest_user, username, userid, given_name, family_name,
+                        role, timezone)
+            else:
+                user = User(email=email, first_name=given_name, last_name=family_name,external_id=userid,
+                    external_type='google', contacted_email=True, username=username, timezone = timezone,
+                    subscription_start_date = dt.datetime.now(dt.timezone.utc), role = role)
                 db.session.add(user)
             send_email(email, given_name, 'welcome')
             user_settings = UserSettings(user=user.id)
+            db.session.add(user_settings)
             if subscribe == "subscribe":
                 sub_exists = Subscriber.query.filter_by(email=email).first()
                 if not sub_exists:
@@ -262,54 +238,39 @@ def register():
                                              last_name=family_name, timestamp = timestamp)
                     db.session.add(subscriber)
             event_tracker(user.id, "register", "google")
-            db.session.add(user_settings)
             db.session.commit()
             login_user(user)
-            game_id = session.get('next_game_id')
             if 'shared_test_id' in session:
-                shared_test_id = session['shared_test_id']
-                del session['shared_test_id']
-                return redirect(url_for('quiz_bp.take_test_2',
-                    share_id=shared_test_id, user_id = user.id))
+                return found_quiz_id_in_session()
             if 'shared_deck_id' in session:
-                shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
-                new_deck = Deck(user_id = current_user.id,
-                        name=shared_deck.name,
-                        description=shared_deck.description,
-                        time_created=dt.datetime.now(dt.timezone.utc))
-                db.session.add(new_deck)
-                for card in shared_deck.cards:
-                    new_card = Card(term=card.term,
-                        content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
-                        boc_4=card.boc_4,img=card.img, sound=card.sound,
-                        subject=card.subject, topic=card.topic,
-                        category=card.category,
-                        prompt_option=card.prompt_option,
-                        prompt_option2=card.prompt_option2,
-                        trans_option=card.trans_option, len_option=card.len_option,
-                        qmin_option=card.qmin_option,
-                        qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-                    new_deck.cards.append(new_card)
-                del session['shared_deck_id']
-                db.session.commit()
-                flash("You have been registered and logged in!", "success")
-                return redirect(url_for('deck_bp.viewdecks'))
-            if game_id is not None:
-                game = Game.query.get(game_id)
-                game.players.append(current_user)
-                db.session.commit()
-                del session['game_id']
-                return redirect(url_for('game_bp.game_lobby', game_id=game_id))
+                return found_shared_deck_id_in_session()
+            if 'game_id' in session:
+                return found_game_id_in_session()
             flash("You have been registered and logged in!", "success")
             return redirect(url_for('deck_bp.viewdecks'))
         return render_template('/user_bp/register.html', title='Register', form = form)
     except Exception as e:
         error_occured = True
-        print(e)
+        logger.error(f"An error occured during registration {e}")
         raise e
     finally:
         if error_occured:
             return "An error occurred during registration", 500
+
+
+def turn_guest_into_regular_user(guest_user, username, userid, given_name, family_name,
+                        role, timezone, external_type='google', subscription_plan = 1):
+    guest_user.username = username
+    guest_user.guest = False
+    guest_user.external_id = userid
+    guest_user.first_name = given_name
+    guest_user.last_name = family_name
+    guest_user.external_type = external_type
+    guest_user.subscription_plan = subscription_plan
+    guest_user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+    guest_user.role = role
+    guest_user.timezone = timezone
+    return guest_user
 
 @user_bp.route('/subscribe', methods=['GET', 'POST'])
 @log_decorator
@@ -323,9 +284,7 @@ def subscribe():
         db.session.add(subscriber)
         db.session.commit()
         flash('You are now subscribed to our newsletter!')
-
     return render_template('user_bp/subscribe.html', title='Subscribe', form=subscribe_form)
-
 
 @user_bp.route('/subscribe2', methods=['GET', 'POST'])
 @log_decorator
@@ -401,9 +360,8 @@ def account():
             db.session.commit()
             if form.subscribe.data:
                 if not subscriber:
-                    subscriber = Subscriber(email=user.email, first_name=user.first_name,
-                                            last_name=user.last_name,
-                                            timestamp=dt.datetime.now(dt.timezone.utc))
+                    subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name,
+                            timestamp=dt.datetime.now(dt.timezone.utc))
                     db.session.add(subscriber)
                     db.session.commit()
                     flash("You have been subscribed to our mailing list")
@@ -415,11 +373,11 @@ def account():
 
             db.session.commit
             flash("Your account has been updated")
-        return render_template("user_bp/account.html", title="Account",
-                                form_del = form_del, form = form,
-                                user = user, subscriber = subscriber, form2 = form2)
+        return render_template("user_bp/account.html", title="Account", form_del = form_del, form = form,
+                    user = user, subscriber = subscriber, form2 = form2)
     except Exception as e:
         error_occured = True
+        logger.error(f"An error occured while accessing the account page: {e}")
         raise e
     finally:
         if error_occured:
@@ -539,6 +497,7 @@ def stripe_webhook():
             payload, sig_header, endpoint_secret
         )
     except Exception as e:
+        logger.critical(f"An exception occurred in stribe_webhook() route): {str(e)}")
         raise e
     # except ValueError as e:
     #     # Invalid payload
@@ -616,6 +575,7 @@ def process_event_in_background(event):
         except Exception as e:
             # Update the StripeEvents table with the error message if processing fails
             stripe_event.error_message = str(e)
+            logger.critical(f'Exception in process_event_in_background - stripe {e} - see db')
             current_user.logger.error('Exception in process_event_background'
                                     'function):%s', e)
             raise e
@@ -642,6 +602,7 @@ def associate_stripe_customer_with_user(event):
             )
         db.session.commit()
     except Exception as e:
+        logger.critical(f"Exception in associate_stripe_customer_with_user - stripe {e}")
         raise e
 
 def handle_checkout_session(event):
@@ -666,6 +627,7 @@ def handle_checkout_session(event):
         if user:
             update_plan(user, plan)
     except Exception as e:
+            logger.critical(f"Exception occurred in handle_checkout_session: {str(e)}")
             # ## log user not found error
             # logger.debug("user not found")
             # logger.error(f"Exception occurred in handle_checkout_session: {str(e)}") 
@@ -721,8 +683,7 @@ def update_plan(user,plan):
         # logger.debug("%s, %s", user.id, user.subscription_plan)
         db.session.commit()
     except Exception as e:
-        # logger.debug(e)
-        # logger.debug("error updating plan")
+        logger.error(f"Exception occurred in update_plan: {str(e)}")
         raise e
 
 def set_usage_limit(user, n):

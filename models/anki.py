@@ -1,10 +1,12 @@
-################# ANKI FUNCTIONS #######################
 
 import json
 import urllib.request
 import requests
+import logging
 from typing import Any, Optional
+from models.helpers.log_decorators import log_decorator
 
+logger = logging.getLogger("flask_app")
 ## action deckNamesAndIds --> returns deck IDs use as param for findCards
 ## action findCards --> returns card IDs use as param for cardsInfo
 ## action cardsInfo --> returns card info
@@ -31,11 +33,13 @@ def request_params(deckName: str, term: str, content: str, interval: Optional[st
 
     return {"action": "addNote", "params": params, "version": 6}
 
+
+@log_decorator
 def invoke(action: str, **params: Any) -> Any:
     requestJson = json.dumps(request(action, **params)).encode('utf-8')
-    print(requestJson)
+    logger.debug(f"invoke requestJson: {requestJson}")
     response = request_anki(requestJson)
-    print("anki json response from invoke function", response)
+    logger.debug(f"invoke response: {response}")
     if len(response) != 2:
         raise Exception('response has an unexpected number of fields')
     if 'error' not in response:
@@ -46,11 +50,11 @@ def invoke(action: str, **params: Any) -> Any:
         raise Exception(response['error'])
     return response['result']
 
+@log_decorator
 def anki_create_deck(deck_name: str) -> None:
     invoke('createDeck', deck=deck_name)
-    print("deck_created")
 
-
+@log_decorator
 def anki_create_card(deck_name: str, term: str, content: str) -> None:
     payload = {
         "action": "addNote",
@@ -70,15 +74,15 @@ def anki_create_card(deck_name: str, term: str, content: str) -> None:
         },
         "version": 6
     }
-    print(payload)
+    logger.debug(f"anki_create_card payload: {payload}")
     requestJson = json.dumps(payload).encode('utf-8')
     
     # Send the API request and handle errors
     response = request_anki(requestJson)
-    print("anki json response", response)
+    logger.debug(f"anki_create_card response: {response}")
 
+@log_decorator
 def check_anki_connect() -> bool:
-    print("Entered Anki Connect check")
     """Checks if the Anki Connect server is running and if the required API version is available."""
     try:
         request_data = {
@@ -105,34 +109,33 @@ def check_anki_connect() -> bool:
             raise ValueError('Anki Connect server returned non-200 status: {}'.format(response.status))
     except Exception as e:
         ## TO DO implement better error handling here
-        print(f"Error: {e}")
+        logger.error(f"Failed to connect to Anki Connect: {e}")
         return False
 
 
 
-    
+@log_decorator
 def anki_import_all() -> str:
     response = []
     decks = invoke('deckNamesAndIds')
     for key in decks.items():
         key1 = quote_deck_name_if_needed(key[0])
         card_ids = invoke('findCards', query='deck:{}'.format(key1))
-        print("card ids: ", card_ids)
         cards = []
         for id in card_ids:
             card_deets = invoke('cardsInfo', cards=[id])
-            print(card_deets)
             cards.append(card_deets)
         entry = {key[0]: cards}
         response.append(entry)
     response=pretty_json(json.dumps(response))
     return response
 
+
+@log_decorator
 def anki_import_deck(deck_name: str) -> str:
     response = []
     name = quote_deck_name_if_needed(deck_name)
     card_ids = invoke('findCards', query='deck:{}'.format(name))
-    print("card ids: ", card_ids)
     cards = []
     for id in card_ids:
         card_deets = invoke('cardsInfo', cards=[id])
@@ -140,23 +143,23 @@ def anki_import_deck(deck_name: str) -> str:
     entry = {deck_name: cards}
     response.append(entry)
     response=pretty_json(json.dumps(response))
-    print(response)
+    logger.debug(f"anki_import_deck response: {response}")
     return response
 
 
-
+@log_decorator
 def quote_deck_name_if_needed(deck_name: str) -> str:
     return f'"{deck_name}"' if ' ' in deck_name else deck_name
 
 
-
+@log_decorator
 def pretty_json(json_str: str) -> str:
     parsed = json.loads(json_str)
     return json.dumps(parsed, indent=4)
 
-
+@log_decorator
 def find_notes2(query: str) -> bool:
-    print(query)
+    logger.debug(f"find_notes2: {query}")
     # Connect to Anki Connect API
     anki_url = "http://localhost:8765"
     headers = {
@@ -174,19 +177,18 @@ def find_notes2(query: str) -> bool:
     # Parse the response
     if response.status_code == 200:
         note_ids = json.loads(response.text)
-        print(note_ids)
         if note_ids['result'] != []:
-            print("matches found")
+            logger.debug("matches found")
             return True
         else:
-            print("no matches found")
+            logger.debug("no matches found")
             return False
     else:
         raise Exception("Anki Connect error: " + response.text)
-    
-    
+
+@log_decorator
 def find_notes(query: str) -> bool:
-    print(query)
+    logger.debug(f"find_notes: {query}")
     payload = {
     "action": "findNotes",
     "version": 6,
@@ -196,14 +198,15 @@ def find_notes(query: str) -> bool:
     }
     payload = json.dumps(payload).encode('utf-8')
     response = request_anki(payload)
-    print("Find notes", response)
+    logger.debug("Find notes", response)
     if response['result'] != []:
-        print("matches found")
+        logger.debug("matches found")
         return True
     else:
+        logger.debug("no matches found")
         return False
 
-
+@log_decorator
 def request_anki(payload: bytes) -> Optional[dict[str, Any]]:
     try:
         return json.load(
@@ -213,22 +216,21 @@ def request_anki(payload: bytes) -> Optional[dict[str, Any]]:
         )
     except Exception as e:
         ## TO DO implement better error handling here
-        print(f"Error: {e}")
+        logger.debug(f"Failed to connect to Anki Connect: {e}")
         return None
 
-
+@log_decorator
 def request_anki_permission() -> bool:
-    print("entered request anki permission")
     payload = {
     "action": "requestPermission",
     "version": 6
 }
     payload = json.dumps(payload).encode('utf-8')
     response = request_anki(payload)
-    print(response)
+    logger.debug("request_anki_permission", response)
     if response['result']['permission'] != 'granted':
-        print("permission not granted")
+        logger.debug("permission not granted")
         return False
     else :
-        print("permission granted")
+        logger.debug("permission granted")
     return True

@@ -35,4 +35,7 @@ package.json
 report.csv
 .vscode
 /instance
+/static/audio
+/static/files
+/static/profile_pictures
 ```

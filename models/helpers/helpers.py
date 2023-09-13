@@ -4,33 +4,23 @@ import numpy as np
 from flask import render_template
 from typing import Union
 from flask import Response
+from models.helpers.log_decorators import log_decorator
+
+
 encoding = tiktoken.get_encoding("cl100k_base")
 
 def remove_punctuation(words: str) -> str:
     s = words
     punct = string.punctuation  # contains all punctuation characters
+    return ''.join([char for char in s if char not in punct])
 
-    # Remove punctuation using list comprehension
-    s_clean = ''.join([char for char in s if char not in punct])
-    print(s_clean)  # Output: Hello World
-
-    # Remove punctuation using loop
-    #s_clean = ''
-
-    return s_clean
-
-
+@log_decorator
 def split_text(text: str, n: int = 1700) -> Union[list, str]:
-    print("entered split text")
     tokens = count_tokens(text)
-    print("tokens:",tokens)
-
     if tokens > n:
-        print("tokens:",tokens)
         n_chunks = tokens // n
         if tokens % n != 0:
             n_chunks += 1
-        print("chunks", n_chunks)
         chunks = np.array_split(text.split(), n_chunks)
         return [' '.join(chunk) for chunk in chunks]
     else:

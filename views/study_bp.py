@@ -1,5 +1,5 @@
 import json
-
+import logging
 from bleach import clean
 from flask import Blueprint, render_template, redirect, url_for, jsonify
 from flask_login import login_required, current_user
@@ -18,6 +18,8 @@ study_bp = Blueprint(
     static_folder='static'
 )
 
+logger = logging.getLogger("flask_app")
+
 NUMBER_OF_CARDS_TO_LOAD = 20
 
 @study_bp.route("/study", methods = ["GET", "POST"])
@@ -35,6 +37,7 @@ def study_select():
         form.deck.choices = [(deck.id, deck.name) for deck in Deck.query.filter_by(user_id=current_user.id).all()]  # noqa: E501
         decks = Deck.query.filter_by(user_id=current_user.id).all()
     except Exception as e:
+        logger.error(f"Error in study_select: {e}")
         raise e
     if form.validate_on_submit():
         return redirect(url_for('study_bp.study_deck', deck_id=form.deck.data))

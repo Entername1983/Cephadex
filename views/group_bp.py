@@ -280,7 +280,6 @@ def update_member_permissions(group_id, user_id = None, permission = None):
 @login_required
 @log_decorator
 def search_public_decks():
-    print("entered search public decks")
     data = request.json
     search_term = clean(data['search'])
     decks = Deck.query.filter(Deck.public == True, Deck.name.contains(search_term)).all()  # noqa: E712

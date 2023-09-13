@@ -33,6 +33,10 @@ session_factory = sessionmaker(
     expire_on_commit=False,
 )
 
+
+""" This class is the primary hub for content creation tasks, orchestrating all the jobs involved
+with a a card or document creation process, semaphores are used to limit concurrency as everything is done
+asynchronously"""
 class JobBatch():
     def __init__(self, slug: str):
         self.slug: str = slug
@@ -74,15 +78,17 @@ class JobBatch():
                     merged_job.state = "completed"
                     await session.commit()
                     await session.refresh(merged_job)
+                    processing_logger.info(f"Job {merged_job.id}, {merged_job.state} completed")
                     job.state = merged_job.state
                     job.processed_content = merged_job.processed_content
                     job.qty_cards_created = merged_job.qty_cards_created
 
                 except Exception as e:
-                    processing_logger.error(f"Error processing job with semaphore: {e}")
                     self.failed_jobs.append(merged_job)
                     merged_job.state = "failed"
-                    await session.commit()
+                    await session.commit()                    
+                    processing_logger.error(f"Error processing job with semaphore {merged_job.id}, {merged_job.state}: {e}")
+
                     raise ProcessingJobError(e) from e
                 
     ## Disabling add more cards for now            
@@ -97,9 +103,7 @@ class JobBatch():
                 if task_type == "audio":
                     await self.reassemble_audio_transcript()
                 else:
-                    print("about to reasseble long form ")
                     await self.reassemble_long_form()
-                    print("about to create deck attributes ")
                     await self.create_deck_attributes()
                     ##await self.check_sufficient_cards_created()
                     ##if self.sufficient_cards is False:

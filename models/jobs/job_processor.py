@@ -14,6 +14,9 @@ processing_logger = logging.getLogger("job_processing")
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+
+
+
 class JobProcessor():
     def __init__(self, job: Job, session: 'AsyncSession'):
         self.session: AsyncSession = session 
@@ -37,19 +40,20 @@ class JobProcessor():
             except Exception as e:
                 processing_logger.error(f"Error occurred while in attempt {attempt} JobProcessor.process, slug:{self.job.slug}: {str(e)}")  # noqa: E501
                 if attempt == max_attempts: 
+                    processing_logger.error(f"Max attempts reached, raising error and abandonning job slug:{self.job.slug}: {str(e)}") # noqa: E501
                     raise e
                 
     @job_log_decorator
     async def process_audio_job(self) -> None:
         segment = self.payload['segment']
         if not os.path.exists(segment):
-            processing_logger.exception(f"The file '{segment}' does not exist.")
+            processing_logger.error(f"Error in process audio The file '{segment}' does not exist.")
         text = await self.openai_caller.transcribe_whisper(segment)
         self.text = text
         try:
             os.remove(segment)
         except OSError as e:
-            processing_logger.exception(f"Error occurred while deleting the file '{segment}': {str(e)}")
+            processing_logger.error(f"Error occurred while deleting the audio file '{segment}': {str(e)}")
         new_payload = {'deck': self.payload['deck'], 'text': text,
                                 'prompt_options': self.payload['prompt_options'], 'task_type': "standard"}
         new_job = Job(slug=self.slug, task_type="standard",
