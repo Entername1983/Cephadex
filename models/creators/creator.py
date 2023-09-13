@@ -393,7 +393,7 @@ def load_json_string(x:str) -> json:
         processing_logger.error("Failed to decode JSON")
         processing_logger.error("First 100 characters:", x[:100])
         processing_logger.error("Last 100 characters:", x[-100:])
-        raise json.JSONDecodeError
+        raise json.JSONDecodeError("Failed to decode JSON", x, 0)
     return json_result
 
 
