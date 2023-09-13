@@ -9,7 +9,7 @@ logger = logging.getLogger('flask_app')
 job_logger = logging.getLogger('job_processing')
 subrollover_logger = logging.getLogger('subrollover')
 ## TO DO implement special logger for stripe payments
-DEBUG_ARG_LENGTH = os.environ.get("DEBUG_ARG_LENGTH", 50)
+DEBUG_ARG_LENGTH = int(os.environ.get("DEBUG_ARG_LENGTH", 50))
 
 
 logger.setLevel(logging.INFO)
