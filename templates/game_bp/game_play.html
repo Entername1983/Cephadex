@@ -84,17 +84,17 @@
 </div>
 
 <script>
-/// CONSTANTS
 
 const gameId = "{{ game.id }}";
 const playerId = "{{ current_user.id }}";
 const ENVIRONMENT = "{{ environment }}";
 let socketAddress = 'http://localhost:5000';
 
-if (ENVIRONMENT === 'production') {
+const acceptedEnvironments = ['production', 'staging'];
+
+if (acceptedEnvironments.includes(ENVIRONMENT)) {
     socketAddress = window.location.origin;
 }
-console.log(socketAddress);
 
 const socket = io.connect(socketAddress);
 const gameCreator = "{{ game.creator }}";
@@ -146,11 +146,6 @@ socket.on('start_round', function(data) {
     console.log(data.card_id, data.question, data.round)
     startTimer();
 });
-//
-//socket.on('submit_answer', function(data) {
-//    console.log("submit_answer")
-//    checkAllAnswersSubmitted();
-//});
 
 socket.on('check_if_all_answers_submitted', function(data) {
     console.log("all_answers_submitted for round " + data.round_id)
