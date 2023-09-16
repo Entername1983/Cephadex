@@ -3,12 +3,12 @@ from run.extensions import db
 # relational database cards & decks
 cards = db.Table("cards", 
                  db.Column("card_id", db.Integer, db.ForeignKey("card.id")), 
-                 db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),
+                 db.Column("deck_id", db.Integer, db.ForeignKey("deck.id", ondelete="CASCADE")),
                  )
 
 source_files = db.Table("source_files",
                         db.Column("deck_file_id", db.Integer, db.ForeignKey("deck_files.id")), 
-                        db.Column("deck_id", db.Integer, db.ForeignKey("deck.id")),  # 
+                        db.Column("deck_id", db.Integer, db.ForeignKey("deck.id", ondelete="CASCADE")),  # 
                         )
 
 cards_shared = db.Table("cards_shared", 
@@ -29,8 +29,8 @@ distribution = db.Table("distribution",
                         )	
 
 deck_relationships = db.Table("deck_relationships", 
-                               db.Column("parent_deck", db.Integer, db.ForeignKey("deck.id")),
-                               db.Column("child_deck", db.Integer, db.ForeignKey("deck.id"))  # 
+                               db.Column("parent_deck", db.Integer, db.ForeignKey("deck.id", ondelete="SET NULL")),
+                               db.Column("child_deck", db.Integer, db.ForeignKey("deck.id", ondelete="SET NULL"))  # 
                                )
 
 user_group_association = db.Table("user_group_association",

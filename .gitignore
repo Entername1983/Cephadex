@@ -25,7 +25,6 @@ mydatabase.db
 subscibers.csv
 backup.sql
 /logs
-/migrations
 /.vscode
 package-lock.json
 package.json

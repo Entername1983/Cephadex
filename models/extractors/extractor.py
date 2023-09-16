@@ -32,7 +32,7 @@ from models.exceptions.exceptions import (
     ExtractionWikiError
 )
 import logging
-from models.extractors.extractor_config import PAGES_PER_MIN, TOKENS_PER_PAGE
+from models.extractors.extractor_config import PAGES_PER_MIN, TOKENS_PER_PAGE, MAX_TOKENS_PER_JOB
 from models.helpers.log_decorators import log_decorator
 
 from typing import TYPE_CHECKING, Any, Optional, Union, IO
@@ -216,7 +216,7 @@ class Extractor:
             self.type = "audio"
             self.audio_job_creator()
         else:
-            texts= split_text(self.text)
+            texts= split_text(self.text, MAX_TOKENS_PER_JOB)
             self.text = texts
             if not isinstance(texts, list):
                 self.text = [texts]
@@ -261,12 +261,10 @@ class Extractor:
         for text in self.text:
             total_len = len(self.text)
             counter = counter + 1
-            logger.debug(f"text is: {text}")
             payload_dict = {'deck': self.deck.id, 'text': text,
                 'prompt_options': prompt_options, 'task_type': 'standard'}
             payload = json.dumps(payload_dict, ensure_ascii=False)
-            logger.debug(f"payload is: {text}")
-
+            logger.debug(f"payload is: {text[:50]}")
             data = Job(slug=self.slug, user = current_user.id,
                        task_type = "standard", payload = payload,
                        item_number = counter, deck_id = self.deck.id,
