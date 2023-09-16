@@ -62,7 +62,7 @@ class AiCaller:
                     raise e
                 continue
 
-  
+    ## currently unused
     @staticmethod
     def extract_json_from_string(s: str) -> Union[str, None]:
         json_start = s.find('[')
@@ -391,8 +391,8 @@ def load_json_string(x:str) -> json:
         json_result, success = try_json_load(fix_end_json_string_double(x))
     if not success:
         processing_logger.error("Failed to decode JSON")
-        processing_logger.error("First 100 characters:", x[:100])
-        processing_logger.error("Last 100 characters:", x[-100:])
+        processing_logger.error(f"First 100 characters:{x[:100]}")
+        processing_logger.error(f"Last 100 characters:{x[-100:]}")
         raise json.JSONDecodeError("Failed to decode JSON", x, 0)
     return json_result
 

@@ -1,6 +1,5 @@
 import pytest
-from unittest.mock import patch, Mock
-from models.creators.creator import AiCaller  # Replace with the actual import path if this is incorrect
+from models.creators.creator import AiCaller, fix_end_json_string_single, fix_end_json_string_double, load_json_string
 import os
 
 
@@ -36,3 +35,43 @@ async def test_transcribe_whisper():
 
     except Exception as e:
         pytest.fail(f"transcribe_whisper() raised an exception: {e}, transcript is {type(transcript)}, {transcript}")
+
+
+
+def test_fix_end_json_string_single():
+    assert fix_end_json_string_single("{'key':'value'}") == "{'key':'value'}]"
+    assert fix_end_json_string_single('{"key":"value"}') == '{"key":"value"}]'
+    assert fix_end_json_string_single('{"key":"value"}') == '{"key":"value"}]'
+    assert fix_end_json_string_single('{key:value') == "{key:value'}]"
+
+def test_fix_end_json_string_double():
+    assert fix_end_json_string_double("{'key':'value'}") == "{'key':'value'}]"
+    assert fix_end_json_string_double('{"key":"value"}') == '{"key":"value"}]'
+    assert fix_end_json_string_double('{"key":"value"}') == '{"key":"value"}]'
+    assert fix_end_json_string_double('{"key":"value') == '{"key":"value"}]'
+
+
+@patch('your_module.processing_logger')  # Replace 'your_module' with the actual module name
+def test_load_json_string(mock_logger):
+    # Test case: JSON string is valid
+    valid_json_str = '{"key": "value"}'
+    result = load_json_string(valid_json_str)
+    assert result == {'key': 'value'}
+    
+    # Test case: JSON string is invalid and cannot be fixed
+    invalid_json_str = '{key value'
+    with pytest.raises(json.JSONDecodeError):
+        load_json_string(invalid_json_str)
+    mock_logger.error.assert_called()  # Check if error is logged
+    
+    # Test case: JSON string is invalid but can be fixed with single quotes
+    single_quote_json_str = "{'key':'value'}"
+    result = load_json_string(single_quote_json_str)
+    assert result == {'key': 'value'}
+    mock_logger.info.assert_any_call('failed to decode json, trying with single quote')
+    
+    # Test case: JSON string is invalid but can be fixed with double quotes
+    double_quote_json_str = '{key:"value"}'
+    result = load_json_string(double_quote_json_str)
+    assert result == {'key': 'value'}
+    mock_logger.info.assert_any_call('failed to decode json, trying with double quote')

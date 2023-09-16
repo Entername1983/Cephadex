@@ -261,9 +261,12 @@ class Extractor:
         for text in self.text:
             total_len = len(self.text)
             counter = counter + 1
+            logger.debug(f"text is: {text}")
             payload_dict = {'deck': self.deck.id, 'text': text,
                 'prompt_options': prompt_options, 'task_type': 'standard'}
             payload = json.dumps(payload_dict, ensure_ascii=False)
+            logger.debug(f"payload is: {text}")
+
             data = Job(slug=self.slug, user = current_user.id,
                        task_type = "standard", payload = payload,
                        item_number = counter, deck_id = self.deck.id,

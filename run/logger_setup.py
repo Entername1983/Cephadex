@@ -26,12 +26,12 @@ def setup_app_logger():
     if not os.path.exists('logs'):
         os.makedirs('logs')
 
-    file_handler = RotatingFileHandler('logs/flask_app.log', maxBytes=10*1024*1024, backupCount=5)
+    file_handler = RotatingFileHandler('logs/flask_app.log', maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    error_file_handler = RotatingFileHandler('logs/flask_app_errors.log', maxBytes=10*1024*1024, backupCount=5)
+    error_file_handler = RotatingFileHandler('logs/flask_app_errors.log', maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
     error_file_handler.setLevel(logging.ERROR) 
     error_file_handler.setFormatter(formatter) 
 
@@ -57,12 +57,12 @@ def setup_processing_logger():
     if not os.path.exists('logs'):
         os.makedirs('logs')
 
-    file_handler = RotatingFileHandler('logs/job_processing.log', maxBytes=10*1024*1024, backupCount=5)
+    file_handler = RotatingFileHandler('logs/job_processing.log', maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     processing_logger.addHandler(file_handler)
 
-    error_file_handler = RotatingFileHandler('logs/job_processing_errors.log', maxBytes=10*1024*1024, backupCount=5)
+    error_file_handler = RotatingFileHandler('logs/job_processing_errors.log', maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
     error_file_handler.setLevel(logging.ERROR)  
     error_file_handler.setFormatter(formatter) 
     processing_logger.addHandler(error_file_handler)
@@ -85,12 +85,12 @@ def setup_subrollover_logger():
     if not os.path.exists('logs'):
         os.makedirs('logs')
 
-    file_handler = RotatingFileHandler('logs/subrollover.log', maxBytes=10*1024*1024, backupCount=5)
+    file_handler = RotatingFileHandler('logs/subrollover.log', maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     subrollover_logger.addHandler(file_handler)
 
-    error_file_handler = RotatingFileHandler('logs/subrollover.log', maxBytes=10*1024*1024, backupCount=5)
+    error_file_handler = RotatingFileHandler('logs/subrollover.log', maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
     error_file_handler.setLevel(logging.ERROR) 
     error_file_handler.setFormatter(formatter) 
 
