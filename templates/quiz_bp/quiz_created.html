@@ -1,4 +1,4 @@
-{% extends "layout.html" %}{% block title %} {{test.name}} {% endblock %}
+{% extends "layout.html" %}{% block title %} {{quiz.name}} {% endblock %}
 {% block main_0 %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -29,7 +29,7 @@
             $('#test-form').on('input', function () {
                 event.preventDefault();
                 $.ajax({
-                    url: "{{ url_for('quiz_bp.assign_test', test_id=test.id) }}",
+                    url: "{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id) }}",
                     method: "POST",
                     data: $('#test-form').serialize(),
                     success: function (data) {
@@ -63,44 +63,44 @@
             </div>
             <div class="col-2">
                 <!----- PRINT ------>
-                <a href="/quiz_bp/test_print/{{test.id}}" class="mx-2" style="cursor: pointer; text-decoration: none;">
+                <a href="/quiz_bp/quiz_print/{{quiz.id}}" class="mx-2" style="cursor: pointer; text-decoration: none;">
                     <img src="\static\print-icon.png" alt="Print" style="max-width:30px;max-height:30px;" class="px-1"
                         title="Print">
 
 
                     <!----- DEKLETE TEST-->
                     <a href="#" class="mx-2"
-                        onclick="if (confirm('Are you sure you want to delete this test?')) { window.location.href = '/delete_test/{{test.id}}'; }">
+                        onclick="if (confirm('Are you sure you want to delete this quiz?')) { window.location.href = '/delete_quiz/{{quiz.id}}'; }">
                         <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;"
-                            class="px-1" title="Delete test">
+                            class="px-1" title="Delete quiz">
                     </a>
             </div>
         </div>
         <form action="" method="POST">
             <div class="collapse show" id="collapseTestInfo" data-bs-parent="#collap">
                 <div class="container m-2 p-2 box_study">
-                    <input type="hidden" name="test-id" value="{{test.id}}">
+                    <input type="hidden" name="test-id" value="{{quiz.id}}">
                     <label for="test-name">Test name:</label>
                     <input name="test-name" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="text" id="test-name" placeholder="{{test.name}}" value="{{test.name}}" required>
+                        type="text" id="test-name" placeholder="{{quiz.name}}" value="{{quiz.name}}" required>
                     <label for="due-date">Due date:</label>
                     <input name="due-date" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="datetime-local" id="due-date" placeholder="{{test.due_date}}" value="{{test.due_date}}">
+                        type="datetime-local" id="due-date" placeholder="{{quiz.due_date}}" value="{{quiz.due_date}}">
                     <label for="subject">Subject:</label>
                     <input name="subject" class=" card-title box_study input_0 form-control form-control-lg" type="text"
-                        id="subject" placeholder="{{test.subject}}" value="{{test.subject}}">
+                        id="subject" placeholder="{{quiz.subject}}" value="{{quiz.subject}}">
                     <label for="topic">Topic:</label>
                     <input name="topic" class=" card-title box_study input_0 form-control form-control-lg" type="text"
-                        id="topic" placeholder="{{test.topic}}" value="{{test.topic}}">
+                        id="topic" placeholder="{{quiz.topic}}" value="{{quiz.topic}}">
                     <label for="topic">Instructions:</label>
                     <input name="instructions" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="text" id="instructions" placeholder="{{test.instructions}}" value="{{test.instructions}}">
+                        type="text" id="instructions" placeholder="{{quiz.instructions}}" value="{{quiz.instructions}}">
                     <label for="topic">Description:</label>
                     <input name="description" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="text" id="description" placeholder="{{test.description}}" value="{{test.description}}">
+                        type="text" id="description" placeholder="{{quiz.description}}" value="{{quiz.description}}">
                     <label for="time-limit">Time limit (minutes, leave blank if no time limit):</label>
                     <input name="time-limit" class=" card-title box_study input_0 form-control form-control-lg"
-                        type="number" id="time-limit" placeholder="{{test.time_limit}}" value="{{test.time_limit}}">
+                        type="number" id="time-limit" placeholder="{{quiz.time_limit}}" value="{{quiz.time_limit}}">
                     <label for="answer-reveal">Answer reveal</label>
                     <input name="answer-reveal" type="checkbox" id="answer-reveal" placeholder="answer reveal"
                         value="answer-reveal">
@@ -108,8 +108,8 @@
                     <input name="result-reveal" type="checkbox" id="result-reveal" value="result-reveal">
                     <label for="shuffle">Shuffle</label>
                     <input type="checkbox" name="shuffle" id="shuffle" value="shuffle">
-                    <h5>Total marks: {{ test.points }}</h5>
-                    <h5> Number of questions: {{test.num_questions}}</h5>
+                    <h5>Total marks: {{ quiz.points }}</h5>
+                    <h5> Number of questions: {{quiz.num_questions}}</h5>
                     </h5>
                     <input type="submit" class="btn btn-primary" value="Save changes">
                 </div>
@@ -121,7 +121,7 @@
 
         <div class="collapse" id="collapseTestQuestions" data-bs-parent="#collap">
             <div class="container m-2 box_study">
-                {% for question in test.questions %}
+                {% for question in quiz.questions %}
                 {% if question.q_type == "mcq" %}
                 <form class="question-form">
                     <div class="card m-1">
@@ -166,7 +166,7 @@
                                         </div>
                                         <div class="row">
                                             <a href="#" class="mx-2"
-                                                onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{test.id}}/{{question.id}}'; }">
+                                                onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{quiz.id}}/{{question.id}}'; }">
                                                 <img src="\static\delete-icon.png" alt="Delete"
                                                     style="max-width:30px;max-height:30px;" class="px-1"
                                                     title="Delete question">
@@ -212,7 +212,7 @@
                                         </div>
                                         <div class="row">
                                             <a href="#" class="mx-2"
-                                                onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/delete_question/{{test.id}}/{{question.id}}'; }">
+                                                onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/delete_question/{{quiz.id}}/{{question.id}}'; }">
                                                 <img src="\static\delete-icon.png" alt="Delete"
                                                     style="max-width:30px;max-height:30px;" class="px-1"
                                                     title="Delete question">
@@ -259,7 +259,7 @@
                                     </div>
                                     <div class="row">
                                         <a href="#" class="mx-2"
-                                            onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{test.id}}/{{question.id}}'; }">
+                                            onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{quiz.id}}/{{question.id}}'; }">
                                             <img src="\static\delete-icon.png" alt="Delete"
                                                 style="max-width:30px;max-height:30px;" class="px-1"
                                                 title="Delete question">
@@ -293,7 +293,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header modal-header-style p-4">
-                <h5 class="modal-title" id="assignModalLabel">Assign test</h5>
+                <h5 class="modal-title" id="assignModalLabel">Assign quiz</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -303,7 +303,7 @@
                         <input type="email" class="form-control" id="assign-email" name="assign-email" required
                             placeholder="Type receiver's email here">
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="assignDeck('{{ test.id }}')">Assign</button>
+                    <button type="button" class="btn btn-primary" onclick="assignDeck('{{ quiz.id }}')">Assign</button>
                 </form>
             </div>
         </div>

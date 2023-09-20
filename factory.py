@@ -8,15 +8,10 @@ import logging
 
 
 def create_app():
-
     app = Flask(__name__)
-
     configure_app(app)
-
     app.logger.setLevel(logging.WARNING)
-
     setup_app_logger()
     init_extensions(app)
 
- 
     return app

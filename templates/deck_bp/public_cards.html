@@ -8,40 +8,58 @@
 {% block main_0 %}
 
 
-<div class="container mt-5">
-    <div class="table-responsive" style = "background-color: aliceblue;">
-        <table class="table table-bordered table-striped table-hover">
-            <thead>
-                <tr>
-                    <th>Term</th>
-                    <th>Type</th>
-                    <th>Content</th>
-                    <th>Formula</th>
-                    <th>+ 1</th>
-                    <th>+ 2</th>
-                    <th>+ 3</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for card in cards %}
-                <tr id = "row{{card.id}}">
-                    <td>{{ card.term }}</td>
-                    <td>
-                        {{ card.category }}
-                    </td>
-                    <td id="tableContent{{ card.id }}">{{ card.content }}</td>
-                    <td>{{ card.formula }}</td>
-                    <td>{{ card.boc_2 }}</td>
-                    <td>{{ card.boc_3 }}</td>
-                    <td>{{ card.boc_4 }}</td>
-                    <td>
-                       
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container-fluid mt-5">
+    <div class="d-none d-md-block d-flex justify-content-center align-items-center">
+        <h1 class=" display-3 hcepha1"> {{deck.name }}</h1>
     </div>
+        <div class="card-columns" >
+            {% for card in paginated_cards.items %}
+            <div class="card mb-4" style="background-color: #dccdfd;">
+                <!-- Card Header -->
+                <div class="card-header" style="background-color: #dccdfd;">
+                    <h5 class="card-title"   style="background-color: #dccdfd!important">{{ card.term }} <small class="text-light">({{ card.category }})</small></h5>
+                </div>
+                
+                <!-- Card Body -->
+                <div class="card-body">
+                    <p class="card-text">{{ card.content }}</p>
+                    {% if card.boc_2 %}
+                    <p class="card-text">{{ card.boc_2 }}</p>
+                    {% endif %}
+                    {% if card.boc_3 %}
+                    <p class="card-text">{{ card.boc_3 }}</p>
+                    {% endif %}
+                    {% if card.boc_4 %}
+                    <p class="card-text">{{ card.boc_4 }}</p>
+                    {% endif %}
+                    {% if card.formula %}
+                    <p class="card-text">{{ card.formula }}</p>
+                    {% endif %}
+
+                </div>
+    
+ 
+            </div>
+            {% endfor %}
+        </div>
+
+    <ul class=" my-1 pagination">
+            {% if paginated_cards.has_prev %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.public_cards', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+            {% endif %}
+            {% for page_num in paginated_cards.iter_pages() %}
+                <li class="page-item {% if page_num ==paginated_cards.page %}active{% endif %}">
+                    {% if page_num %}
+                        <a class="page-link" href="{{ url_for('deck_bp.public_cards', deck_id=deck.id, page=page_num) }}">{{ page_num }}</a>
+                    {% else %}
+                        <span class="page-link">...</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            {% if paginated_cards.has_next %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.public_cards', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+            {% endif %}
+        </ul>
 </div>
 
 {% endblock %}

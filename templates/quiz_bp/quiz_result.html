@@ -4,9 +4,9 @@
 
 {% block main_0 %}
 <div class = "container-fluid ">
-<a href="/quiz_bp/test_results_overview">
-    <img src="\static\go-back-icon.png" alt="Return to tests" style="max-width:35px;max-height:35px;"
-      class="m-3 img-grow" title="Return to tests">
+<a href="/quiz_bp/quiz_overview">
+    <img src="\static\go-back-icon.png" alt="Return to quizzes" style="max-width:35px;max-height:35px;"
+      class="m-3 img-grow" title="Return to quizzes">
   </a>
   <div class = "row">
 <div class = "col-3"></div>
@@ -14,22 +14,22 @@
   <div class = "card">
     <div class = "card-body">
   <h4 class = "card-title">
-Test name: {{ test.name }}
+Test name: {{ quiz.name }}
   </h4>
 <h5 class="card-subtitle mb-2 text-muted">
-Your score: {{result.points}} / {{test.points}}
+Your score: {{result.points}} / {{quiz.points}}
 </h5>
 <div class = "row">
-  <h6>Subject: {{test.subject}}</h6>
+  <h6>Subject: {{quiz.subject}}</h6>
   </div>
   <div class = "row">
-    <h6>Topic: {{test.topic}}</h6>
+    <h6>Topic: {{quiz.topic}}</h6>
     </div>
 <div class = "row">
 <h6>Result id: {{result.id}}</h6>
 </div><div class = "row">
 
-<h6>Test id: {{test.id}}</h6>
+<h6>Test id: {{quiz.id}}</h6>
 
 </div>
 </div>

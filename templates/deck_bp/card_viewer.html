@@ -1,0 +1,356 @@
+{% extends "layout.html" %} {% block title %} AI Flashcard Editor {% endblock %} {% block head
+    %}
+    
+    {% endblock %} {% block main_0 %}
+    
+    <script>
+    $(document).ready(function () {
+    
+        const form = document.querySelector('#newCardForm');    
+        console.log(form); 
+        const saveButton = document.querySelector('#saveButton');
+        var deck_id = "{{ deck.id }}";
+    
+        $(saveButton).click(function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+    
+            // Validation
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return false;
+            }
+    
+            // Get the form data
+            var formData = $('#newCardForm').serialize();
+            var newTerm = $('#new_term').val();
+            var actualUrl = "/deck_bp/add_card/" + deck_id;
+            // Send the form data to the Flask app using AJAX
+            $.ajax({
+                type: 'POST',
+                url: actualUrl,
+                data: formData,
+                success: function (response) {
+                    // Reset the form fields
+                    $('#addCardMessage').text('Card "' + newTerm + '" created successfully.  Refresh the page to view it.')
+                    $("#new_term").val("");
+                    $("#new_content").val("");
+                    $("#new_boc_2").val("");
+                    $("#new_boc_3").val("");
+                    $("#new_boc_4").val("");
+                    
+                },
+            });
+    
+            return false;
+            });
+    
+        $('#closeButton').click(function () {
+            $('#addCardMessage').text('')
+        });
+    
+    
+                $('.regenerate-button').on('click', function (event) {
+                event.preventDefault();
+                var deckId = "{{ deck.id }}";
+                var cardId = $(this).data('card-id');
+                console.log(cardId);
+                
+                // Show spinner
+                $('#spinner' + cardId).show();
+                $('#c-spinner' + cardId).show();
+                $('#c-regen' + cardId).hide();
+    
+                $('#regen' + cardId).hide();
+                $.post('/deck_bp/regenerate_def',
+                    { id: cardId },
+                    function (response) {
+                        $('#content' + cardId).val(response.content);
+                        $('#tableContent' + cardId).text(response.content);
+                        $('#tableContent' + cardId).val(response.content);
+                        $('#c-content' + cardId).text(response.content);
+    
+                        
+                        // Hide spinner
+                        $('#spinner' + cardId).hide();
+                        $('#regen' + cardId).show();
+                        $('#c-spinner' + cardId).hide();
+                        $('#c-regen' + cardId).show();
+    
+                    }
+                );
+            });
+    
+        $('.delete-button').on('click', function (event) {
+            event.preventDefault();
+            var deckId = "{{ deck.id }}";
+            var cardId = $(this).data('card-id');
+            var $carousel = $('.carousel');
+            var simpleId = $(this).data('simple-id');
+            console.log(simpleId);
+            if (confirm('Are you sure you want to delete this card?')) {
+            $.post('/deck_bp/deletecard/' + cardId)
+                .done(function (response) {
+                    if (response.status === "success") {
+                        $('#card' + simpleId).remove(); // Remove the deleted card from the table
+                    } else {
+                        console.log("Error:", response.message);
+                    }
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.log("Error:", textStatus, errorThrown);
+                });
+            }
+        });
+    });
+    </script>
+    <div class="container-fluid mt-1">
+        <div class="row ">
+            <div class="col-4 d-flex justify-content-start">
+                <a href="/deck_bp/deck_manager/{{deck.id}}"><img src="/static/go-back-icon.png" class="img-grow" style="width: 35px; height:35px"></a>
+                
+            </div>
+            <div class="col-4 d-flex text-center">
+            <div class = "d-flex text-center" id = "successMessageSave" style="display:none"></div>
+            </div>
+            <div class="col-4 d-flex justify-content-end">
+    
+                <a class="px-2" data-bs-toggle="modal" data-bs-target="#exampleModalLong" style="cursor: pointer;">
+                    <img src="/static/plus-icon.png" class = "img-grow" style="width: 35px; height:35px"></a>
+              
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 d-flex justify-content-center align-items-center">
+        <h1 class=" display-3 hcepha1">Card editor - {{deck.name }}</h1>
+    </div>
+    
+    <div id="tableView">
+        <div class=""> 
+            {% for card in paginated_cards.items %}
+            <form method="post" class="card-update-form">
+                {{ form.csrf_token }}
+    
+                <div class="card card-selector my-2" id="card{{card.id}}" data-card-id="{{card.id}}">                
+                    <input name="id" type="hidden" id="id{{card.id}}" value="{{ card.id }}" placeholder="{{ card.id }}" />
+
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #dccdfd;">
+                        {{ form.term(class="h5 border-0 card-title", id=("input"+card.id|string), placeholder=card.term,
+                            value=card.term, style="background-color: #dccdfd!important; min-width: 90%", **{'data-value': card.term}) }}
+                            <i class="fas fa-edit"></i>  </div>
+                
+                    <div class="card-body">
+                        <p class="card-text ">
+                            {{ form.content(class="border-0", id=("tableContent" + card.id|string), placeholder=card.content, style="background-color: transparent; min-width: 100%", **{'data-value': card.content}) }}
+                        </p>
+                        <p>
+                            {% if card.boc_2 %}
+                                {{ form.boc_2(class="border-0", id=("boc_2"+card.id|string), placeholder=card.boc_2,
+                                value=card.boc_2, style="background-color: transparent; min-width: 100%", **{'data-value': card.boc_2}) }}
+                            {% endif %}
+                        </p>
+                        <p>
+                            {% if card.boc_3 %}
+                                {{ form.boc_3(class="border-0", id=("boc_3"+card.id|string), placeholder=card.boc_3,
+                                value=card.boc_3, style="background-color: transparent; min-width: 100%", **{'data-value': card.boc_3}) }}
+                            {% endif %}
+                        </p>
+                        <p>
+                            {% if card.boc_4 %}
+                                {{ form.boc_4(class="border-0", id=("boc_4"+card.id|string), placeholder=card.boc_4,
+                                value=card.boc_4, style="background-color: transparent; min-width: 100%", **{'data-value': card.boc_4}) }}
+                            {% endif %}
+                        </p>
+                        <p>
+                            {% if card.formula %}
+                                {{ card.formula }}
+                            {% endif %}
+                        </p>
+                    </div>
+                
+                    <div class="card-footer">
+                        <div class="spinner-border" id="spinner{{card.id}}" style="display: none; max-width: 35px; max-height: 35px;"></div>
+
+                        <button class="regenerate-button" id="regen{{card.id}}" data-card-id="{{card.id}}" 
+                        style="border: none; background: none;">
+                        <img src="\static\recycle-icon.png" alt="Regenerate" class="img-grow"
+                            style="max-width: 35px; max-height: 35px;" class="mx-1"
+                            title="Regenerate content">
+
+                    </button>
+                    <button class="delete-button" data-simple-id="{{card.id}}" 
+                        data-card-id="{{deck.id}}/{{card.id}}" style="border: none; background: none;">
+                        <img src="\static\delete-icon.png" alt="Delete" class="img-grow"
+                            style="max-width: 35px; max-height: 35px;" class="mx-1" title="Delete">
+                    </button>
+                    </div>
+                </div>
+                </form>
+            {% endfor %}
+          </div>
+
+
+
+    </div>
+    <ul class=" my-1 pagination">
+        {% if paginated_cards.has_prev %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.card_viewer', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+        {% endif %}
+        {% for page_num in paginated_cards.iter_pages() %}
+            <li class="page-item {% if page_num ==paginated_cards.page %}active{% endif %}">
+                {% if page_num %}
+                    <a class="page-link" href="{{ url_for('deck_bp.card_viewer', deck_id=deck.id, page=page_num) }}">{{ page_num }}</a>
+                {% else %}
+                    <span class="page-link">...</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+        {% if paginated_cards.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.card_viewer', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+        {% endif %}
+    </ul>
+    <script>
+    $(document).ready(function(){
+        $('input').each(function(){
+            $(this).attr('size', $(this).val().length);
+        });
+    });
+    </script>
+    
+    <script>
+    
+    $(document).ready(function() {
+      $('.card-selector').each(function() {
+        var $card = $(this);
+
+        var $contentField = $card.find('[name="content"]');
+        var $termField = $card.find('[name="term"]');
+        var $boc_2Field = $card.find('[name="boc_2"]');
+        var $boc_3Field = $card.find('[name="boc_3"]');
+        var $boc_4Field = $card.find('[name="boc_4"]');
+        var $formulaField = $card.find('[name="formula"]');
+        
+        var cardContent = $contentField.attr('data-value');
+        var cardTerm = $termField.attr('data-value');
+        var cardBoc_2 = $boc_2Field.attr('data-value');
+        var cardBoc_3 = $boc_3Field.attr('data-value');
+        var cardBoc_5 = $boc_4Field.attr('data-value');
+        var cardFormula = $formulaField.attr('data-value');
+    
+        $contentField.val(cardContent);
+        $termField.val(cardTerm);
+        $boc_2Field.val(cardBoc_2);
+        $boc_3Field.val(cardBoc_3);
+        $boc_4Field.val(cardBoc_5);
+        $formulaField.val(cardFormula);
+    
+      });
+    });
+    </script>
+    
+    <script>
+    $(document).ready(function() {
+      $('.card-selector').each(function() {
+        var $card = $(this);
+        var successMessageSave = $('#successMessageSave');
+    
+        var $inputs = $card.find('input, textarea');
+            var initialValues = {};
+        $inputs.each(function() {
+          var inputId = $(this).attr('id');
+          var inputValue = $(this).val();
+          initialValues[inputId] = inputValue;
+        });
+            $inputs.on('change', function() {
+          var hasChanges = false;
+          $inputs.each(function() {
+            var inputId = $(this).attr('id');
+            var inputValue = $(this).val();
+            if (initialValues[inputId] !== inputValue) {
+              hasChanges = true;
+              return false; 
+            }
+          });
+    
+          if (hasChanges) {
+            var data = {
+              id: $card.find('[name="id"]').val(),
+              term: $card.find('[name="term"]').val(),
+              content: $card.find('[name="content"]').val(),
+            };
+            $.ajax({
+              url: "{{ url_for('deck_bp.edit_card_new') }}",
+              type: 'POST',
+              contentType: 'application/json',
+              data: JSON.stringify(data),
+              success: function(response) {
+                console.log('Card updated successfully:', response);
+                successMessageSave.show();
+                successMessageSave.text('Card updated successfully');
+              },
+              error: function(error) {
+                console.error('Error updating card:', error);
+              }
+            });
+          }
+        });
+      });
+    });
+    </script>
+    <!--- MODAL -->
+    <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header modal-header-style p-5">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Add card</h5>
+                    <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+    
+                </div>
+                <form  id="newCardForm" class = "" action="" method="post" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="modal-body"><div class="m-2" id="addCardMessage"></div>
+    
+    
+                        <div class="form-floating mt-1">
+                            {{ form.new_term(class="form-control", id="new_term", required=required) }}
+                            <label for="new_term">Front of card</label>
+                            <div class = "invalid-feedback">
+                                Please provide some content
+                                </div>
+                        </div>
+                        <div class="form-floating mt-1">
+                            {{ form.new_content(class="form-control", id="new_content", required=required) }}
+                            <label for="new_content">Main content</label>
+                            <div class = "invalid-feedback">
+                                Please provide some content
+                                </div>
+                        </div>
+                        <div class="form-floating mt-1">
+                            {{ form.new_boc_2(class="form-control", id="new_boc_2") }}
+                            <label for="new_boc_2">Extra content</label>
+                        </div>
+                        <div class="form-floating mt-1">
+                            {{ form.new_boc_3(class="form-control", id="new_boc_3") }}
+                            <label for="new_boc_3">Extra content</label>
+                        </div>
+                        <div class="form-floating mt-1">
+                            {{ form.new_boc_4(class="form-control", id="new_boc_4") }}
+                            <label for="new_boc_4">Extra content</label>
+                        </div>
+                        <div class="form-floating mt-1">
+                            {{ form.new_category(class="form-select", id="choose-card", required=required) }}
+                            <label for="choose-card">Card type</label>
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" id="saveButton"  class="btn-generate" name="edit-card" value="Save" /> 
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+    </div>
+    
+    {% endblock %}

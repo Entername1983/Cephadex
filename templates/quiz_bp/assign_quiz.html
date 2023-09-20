@@ -9,11 +9,8 @@
 {% endblock %}{% block
 main_0 %}
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/intro.min.js"></script>
-
 <script>
-
     {% if settings.new_user_tests == 1 %}
     console.log("new user")
         viewDecksTour()
@@ -48,15 +45,12 @@ main_0 %}
       element: document.querySelector('#tour-answer-key'),
       intro: "Print an answer key here"
     },
-    {
-      
+    { 
       intro: "That's it.  Your quiz will be saved in your deck so you can re-use it as often as you want.  The results of any quizzes assigned can be found in the quizzes section.  As always if you have any questions or feedback please let us know!"
     }],
       scrollToElement: false,
-
     }).start();
       });
-
       fetch('/user_bp/new_user_settings_tests', {
         method: 'POST',
         headers: {
@@ -64,35 +58,20 @@ main_0 %}
         },
         body: JSON.stringify({ checked: true })
       })
-
-
     }
-
 </script>
-
-
-
 <script data-cookie-consent="strictly-necessary">
-
     document.addEventListener("DOMContentLoaded", function () {
         const forms = document.querySelectorAll('.question-form');
         const csrfToken = document.getElementsByName("csrf_token")[0].value;
 
-        console.log("javacsript loaded")
-        console.log(forms)
         forms.forEach(form => {
             form.addEventListener('change', (event) => {
                 event.preventDefault(); // Added to prevent page reload
-
-
-                console.log("change detected");
                 const formData = new FormData(form);
-                console.log("Form Data:", formData);
                 const cardId = form.getAttribute('data-question-id');
                 const data = Object.fromEntries(formData);
                 data['question-id'] = cardId; // Add 'question-id' to the JSON payload
-                console.log("JSON Payload:", data);
-
                 fetch('/quiz_bp/update_card', {
                     method: 'POST',
                     headers: {
@@ -110,16 +89,12 @@ main_0 %}
                     });
             });
         });
-
-
-
-
         $(document).ready(function () {
             // Send data to server on input change
             $('#test-form').on('input', function () {
                 event.preventDefault();
                 $.ajax({
-                    url: "{{ url_for('quiz_bp.assign_test', test_id=test.id) }}",
+                    url: "{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id) }}",
                     method: "POST",
                     data: $('#test-form').serialize(),
                     success: function (data) {
@@ -135,7 +110,7 @@ main_0 %}
 
     });
 </script>
-
+<!---Maintain collapsed section through paginations-->
 
 
 
@@ -146,7 +121,7 @@ main_0 %}
             <div class="row my-3 d-flex justify-content-start">
                 <div class="d-flex">
                     <!-- ASSIGN TEST -->
-                    <a  data-bs-toggle="collapse" class="mx-2 img-grow" data-bs-target="#test-info-collapse" alt="Collapse" style="max-width:35px;max-height:35px;"
+                    <a  data-bs-toggle="collapse" id="toggle-collapse-btn" class="mx-2 img-grow" data-bs-target="#test-info-collapse" alt="Collapse" style="max-width:35px;max-height:35px;"
                             title="Collapse info" aria-expanded="true" aria-controls="test-info-collapse">
                         <img src="\static\collapse-icon.png" alt="Collapse" style="max-width:35px;max-height:35px; cursor: pointer;"
                             title="Collapse test">
@@ -158,16 +133,15 @@ main_0 %}
                         <img src="/static/share-icon.png" style="width: 35px; height:35px" alt="Assign" title="Assign">
                     </a>
 
-               
-
+        
                     <!-- PRINT -->
-                    <a href="/quiz_bp/test_print/{{test.id}}" id ="tour-print" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
+                    <a href="/quiz_bp/quiz_print/{{quiz.id}}" id ="tour-print" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
                         alt="Print" title="Print">
                         <img src="\static\print-icon.png" alt="Print" style="max-width:35px;max-height:35px;"
                             title="Print">
                     </a>
                     {% if current_user.subscription_plan in [1, 2, 3, 4, 5, 6, 7] %}
-                    <a href="/quiz_bp/answer_key/{{test.id}}" id = "tour-answer-key" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
+                    <a href="/quiz_bp/answer_key/{{quiz.id}}" id = "tour-answer-key" class="mx-2 img-grow" style="cursor: pointer; text-decoration: none;"
                     alt="Print" title="Answer key">
                     <img src="\static\answer-key-icon.png" alt="Print" style="max-width:35px;max-height:35px;"
                         title="Print answer key">
@@ -175,20 +149,20 @@ main_0 %}
                 {% endif %}
                     <!-- DELETE TEST -->
                     <a href="#" class="mx-2 img-grow"
-                        onclick="if (confirm('Are you sure you want to delete this test?')) { window.location.href = '/quiz_bp/delete_test/{{test.id}}'; }">
+                        onclick="if (confirm('Are you sure you want to delete this test?')) { window.location.href = '/quiz_bp/delete_quiz/{{quiz.id}}'; }">
                         <img src="\static\delete-icon.png" alt="Delete" style="max-width:35px;max-height:35px;"
-                            title="Delete test">
+                            title="Delete quiz">
                     </a>
                     
                 </div>
             </div>
-            <div class="collapse show" id = "test-info-collapse">
-                <input type="hidden" name="test-id" value="{{test.id}}">
+            <div class="collapse" id = "test-info-collapse">
+                <input type="hidden" name="test-id" value="{{quiz.id}}">
                 <div class="row mt-2">
                     <div class="col-md-6" style="padding-right: 3px!important;padding-left: 3px!important;">
                         <div class="form-floating">
                             <input name="name" class=" form-control" type="text" id="name"
-                                placeholder="{{test.name}}" value="{{test.name}}" required>
+                                placeholder="{{quiz.name}}" value="{{quiz.name}}" required>
                             <label for="test-name">Test name</label>
                         </div>
                         </div>
@@ -197,7 +171,7 @@ main_0 %}
                         
                         <div class="form-floating">
                             <input name="due_date" class=" form-control" type="datetime-local"
-                                id="due_date" placeholder="{{test.due_date}}" value="{{test.due_date}}">
+                                id="due_date" placeholder="{{quiz.due_date}}" value="{{quiz.due_date}}">
                             <label for="due_date">Due date</label>
                         </div>
                     </div>
@@ -208,7 +182,7 @@ main_0 %}
                         <div class="form-floating">
 
                         <input name="subject" class=" form-control" type="text" id="subject"
-                            placeholder="{{test.subject}}" value="{{test.subject}}">
+                            placeholder="{{quiz.subject}}" value="{{quiz.subject}}">
                         <label for="subject">Subject</label>
                         </div>
                     </div>
@@ -216,7 +190,7 @@ main_0 %}
                     <div class="col-md-6" style="padding-right: 3px!important;padding-left: 3px!important;">
                         <div class="form-floating">
                             <input name="topic" class=" form-control" type="text" id="topic"
-                                placeholder="{{test.topic}}" value="{{test.topic}}">
+                                placeholder="{{quiz.topic}}" value="{{quiz.topic}}">
 
                             <label for="topic">Topic</label>
 
@@ -231,7 +205,7 @@ main_0 %}
                         <div class="form-floating">
 
                             <input name="instructions" class=" form-control" type="text" id="instructions"
-                                placeholder="{{test.instructions}}" value="{{test.instructions}}">
+                                placeholder="{{quiz.instructions}}" value="{{quiz.instructions}}">
                             <label for="topic">Instructions</label>
                         </div>
                     </div>
@@ -240,7 +214,7 @@ main_0 %}
 
                         <div class="form-floating ">
                             <input name="description" class=" form-control" type="text" id="description"
-                                placeholder="{{test.description}}" value="{{test.description}}">
+                                placeholder="{{quiz.description}}" value="{{quiz.description}}">
                             <label for="topic">Description</label>
 
                         </div>
@@ -252,7 +226,7 @@ main_0 %}
                         <div class="form-floating">
 
                             <input name="time_limit" class=" form-control" type="number" id="time_limit"
-                                placeholder="{{test.time_limit}}" value="{{test.time_limit}}">
+                                placeholder="{{quiz.time_limit}}" value="{{quiz.time_limit}}">
                             <label for="time-limit">Time limit(minutes):</label>
 
                         </div>
@@ -261,7 +235,7 @@ main_0 %}
                     <div class="col-md-4" style="padding-right: 3px!important;padding-left: 3px!important;">
                          <div class="form-floating">
                             <input class="form-control" name="qty-questions" type="text" id="qty-questions"
-                                placeholder="{{test.num_questions}}" value={{test.num_questions}} disabled>
+                                placeholder="{{quiz.num_questions}}" value={{quiz.num_questions}} disabled>
                             <label for="qty-questions">Number of questions</label>
                         </div>
                     </div>
@@ -269,7 +243,7 @@ main_0 %}
 
                         <div class="form-floating">
                             <input class="form-control" name="qty-marks" type="text" id="qty-marks"
-                                placeholder="{{test.num_questions}}" value="{{ test.points }}" disabled>
+                                placeholder="{{quiz.num_questions}}" value="{{ quiz.points }}" disabled>
                             <label for="qty-marks">Total marks </label>
                         </div>
                         </div>
@@ -281,14 +255,14 @@ main_0 %}
                 <!---
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" name="shuffle" id="shuffle" value="shuffle" {%
-                            if test.shuffle %} checked {% endif %}>
+                            if quiz.shuffle %} checked {% endif %}>
                         <label class="form-check-label" for="shuffle" value="contacted">Shuffle (coming soon)</label>
                     </div>
 
 
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" name="answer-reveal" id="answer-reveal"
-                            value="answer-reveal" {% if test.answer_reveal %} checked {% endif %}>
+                            value="answer-reveal" {% if quiz.answer_reveal %} checked {% endif %}>
                         <label class="form-check-label" for="answer-reveal" value="answer-reveal">Reveal answers (coming
                             soon)</label>
                     </div>
@@ -296,7 +270,7 @@ main_0 %}
 
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" name="result-reveal" id="result-reveal"
-                            value="result-reveal" {% if test.result_reveal %} checked {% endif %}>
+                            value="result-reveal" {% if quiz.result_reveal %} checked {% endif %}>
                         <label class="form-check-label" for="result-reveal" value="result-reveal">Reveal results (coming
                             soon)</label>
                     </div>
@@ -311,12 +285,12 @@ main_0 %}
 </div>
 
 
-        <div class="container-fluid mt-2" id="question-box" style="padding: 1px!important;max-height:80vh; overflow-y: scroll;">
-            {% for question in test.questions %}
+        <div class="container-fluid mt-2" id="question-box" style="padding: 1px!important">
+            {% for question in paginated_questions.items %}
             {% if question.q_type == "mcq" %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">
                 {{ update_card_form.hidden_tag() }}
-                <div class="card box-build m-1">
+                <div class="card m-1">
                     <div class="card-body  ">
                         <div class="row">
                             <div class="row">
@@ -353,7 +327,7 @@ main_0 %}
                                     </div>
                                 <div class="col-2 d-flex align-items-center justify-content-center">
                                     <a href="#" class="mx-2"
-                                    onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{test.id}}/{{question.id}}'; }">
+                                    onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{quiz.id}}/{{question.id}}'; }">
                                     <img src="\static\delete-icon.png" alt="Delete"
                                         style="max-width:35px;max-height:35px;" class="px-1"
                                         title="Delete question">
@@ -368,7 +342,7 @@ main_0 %}
             {% elif question.q_type == "cloze" %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">
                 {{ update_card_form.hidden_tag() }}
-                <div class="card box-build m-1">
+                <div class="card m-1">
                     <div class="card-body  ">
 
                         <div class="row">
@@ -394,7 +368,7 @@ main_0 %}
                                     </div>
                                     <div class="col-2 d-flex align-items-center justify-content-center">
                                         <a href="#" class="mx-2"
-                                            onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{test.id}}/{{question.id}}'; }">
+                                            onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{quiz.id}}/{{question.id}}'; }">
                                             <img src="\static\delete-icon.png" alt="Delete"
                                                 style="max-width:35px;max-height:35px;" class="px-1"
                                                 title="Delete question">
@@ -410,7 +384,7 @@ main_0 %}
             {% elif question.q_type in ["jeopardy"] %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">
                 {{ update_card_form.hidden_tag() }}
-                <div class="card box-build m-1">
+                <div class="card m-1">
     
                     <div class="card-body">
                         <div class="row">
@@ -437,7 +411,7 @@ main_0 %}
                                 </div>
                                 <div class="col-2 d-flex align-items-center justify-content-center">
                                     <a href="#" class="m-4"
-                                    onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{test.id}}/{{question.id}}'; }">
+                                    onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{quiz.id}}/{{question.id}}'; }">
                                     <img src="\static\delete-icon.png" alt="Delete"
                                         style="max-width:35px;max-height:35px;" class="px-1"
                                         title="Delete question">
@@ -454,7 +428,7 @@ main_0 %}
             {% elif question.q_type in ["definitions", "explain"] %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">
                 {{ update_card_form.hidden_tag() }}
-                <div class="card box-build m-1">
+                <div class="card m-1">
     
                     <div class="card-body">
                         <div class="row">
@@ -481,7 +455,7 @@ main_0 %}
                                 </div>
                                 <div class="col-2 d-flex align-items-center justify-content-center">
                                     <a href="#" class="m-4"
-                                    onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{test.id}}/{{question.id}}'; }">
+                                    onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{quiz.id}}/{{question.id}}'; }">
                                     <img src="\static\delete-icon.png" alt="Delete"
                                         style="max-width:35px;max-height:35px;" class="px-1"
                                         title="Delete question">
@@ -498,7 +472,7 @@ main_0 %}
             {% elif question.q_type == "formulas" %}
             <form class="question-form" method="POST" data-question-id="{{question.id}}">
                 {{ update_card_form.hidden_tag() }}
-                <div class="card box-build m-1">
+                <div class="card m-1">
 
                     <div class="card-body">
                         <div class="row">
@@ -522,7 +496,7 @@ main_0 %}
                             
                                 <div class="col-2 d-flex align-items-center justify-content-center">
                                     <a href="#" class="m-4"
-                                            onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{test.id}}/{{question.id}}'; }">
+                                            onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{quiz.id}}/{{question.id}}'; }">
                                             <img src="\static\delete-icon.png" alt="Delete"
                                                 style="max-width:35px;max-height:35px;" class="px-1"
                                                 title="Delete question">
@@ -533,9 +507,69 @@ main_0 %}
                     </div>
                 </div>
             </form>
+            {% else %}
+            <form class="question-form" method="POST" data-question-id="{{question.id}}">
+                {{ update_card_form.hidden_tag() }}
+                <div class="card m-1">
+    
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="row">
+                                <div class="col-10">
+                                    
+                                        Question:
+                                        {{ update_card_form.question(class="form-control",
+                                        placeholder=question.question, value=question.question, **{'data-value': question.question}) }}
+                                </div>
+                                <div class="col-2 d-flex flex-column">
+                                        Marks:
+                                        {{ update_card_form.points(class="form-control",
+                                        placeholder=question.points, value=question.points, **{'data-value': question.points}) }}
+
+                                </div>
+                            </div>
+                            <div class="row mt-1">
+                                <div class="col-10">
+
+                                Answer:
+                                {{ update_card_form.answer(class="form-control",
+                                placeholder=question.content, value=question.content, **{'data-value': question.content}) }}
+                                </div>
+                                <div class="col-2 d-flex align-items-center justify-content-center">
+                                    <a href="#" class="m-4"
+                                    onclick="if (confirm('Are you sure you want to delete this question?')) { window.location.href = '/quiz_bp/delete_question/{{quiz.id}}/{{question.id}}'; }">
+                                    <img src="\static\delete-icon.png" alt="Delete"
+                                        style="max-width:35px;max-height:35px;" class="px-1"
+                                        title="Delete question">
+                                </a>
+
+
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </form>
             {% endif %}
             {% endfor %}
-
+            <ul class="pagination">
+                {% if paginated_questions.has_prev %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id, page=paginated_questions.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+                {% endif %}
+                {% for page_num in paginated_questions.iter_pages() %}
+                    <li class="page-item {% if page_num ==paginated_questions.page %}active{% endif %}">
+                        {% if page_num %}
+                            <a class="page-link" href="{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id, page=page_num) }}">{{ page_num }}</a>
+                        {% else %}
+                            <span class="page-link">...</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                {% if paginated_questions.has_next %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id, page=paginated_questions.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+                {% endif %}
+            </ul>
         </div>
     </div>
 </div>
@@ -571,28 +605,28 @@ main_0 %}
                         <label for="email">Email:</label>
 
                         <div class = mt-2>
-                            <img id="qr_code_image{{test.id}}" src="" alt="QR Code" width="100" height="100"style="display:none" >
+                            <img id="qr_code_image{{quiz.id}}" src="" alt="QR Code" width="100" height="100"style="display:none" >
   
-                          <p id="share-link{{test.id}}" readonly style="display:none"></p>
+                          <p id="share-link{{quiz.id}}" readonly style="display:none"></p>
                           </div>
                     </div>
-                    <button type="button" class="btn btn-generate" onclick="assignDeck('{{ test.id }}')">Assign</button>
-                    <button type="button" class="btn btn-generate" onclick="generateLink('{{ test.id }}')">Generate Link and QR Code</button>
+                    <button type="button" class="btn btn-generate" onclick="assignDeck('{{ quiz.id }}')">Assign</button>
+                    <button type="button" class="btn btn-generate" onclick="generateLink('{{ quiz.id }}')">Generate Link and QR Code</button>
 
                 </form>
             </div>
             <div class = "modal-footer d-flex justify-content-center">
-                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('twitter', '{{test.id}}')" role="button"
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('twitter', '{{quiz.id}}')" role="button"
                 target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
-                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit', '{{test.id}}')" role="button"
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit', '{{quiz.id}}')" role="button"
                 target="_blank"><i class="fab fa-reddit fa-lg"></i></a>
-                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('whatsapp', '{{test.id}}')" role="button"
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('whatsapp', '{{quiz.id}}')" role="button"
                 target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
-                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('linkedin', '{{test.id}}')" role="button"
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('linkedin', '{{quiz.id}}')" role="button"
                 target="_blank"><i class="fab fa-linkedin fa-lg"></i></a>
-                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('facebook', '{{test.id}}')" role="button"
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('facebook', '{{quiz.id}}')" role="button"
                 target="_blank"><i class="fab fa-facebook fa-lg"></i></a>
-                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('telegram', '{{test.id}}')" role="button"
+                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('telegram', '{{quiz.id}}')" role="button"
                 target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
               </div>      
         </div>
@@ -600,11 +634,35 @@ main_0 %}
 </div>
 </div>
 <script>
-    function shareToSocialMedia(platform, test_id) {
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const collapseElem = document.getElementById('test-info-collapse');
+        const isCollapsed = sessionStorage.getItem('isCollapsed');
+        
+        if (isCollapsed === null) {
+            sessionStorage.setItem('isCollapsed', 'true');
+            collapseElem.classList.remove('show');
+        } else if (isCollapsed === 'true') {
+            collapseElem.classList.remove('show');
+        } else {
+            collapseElem.classList.add('show');
+        }
+    });
+    
+    document.querySelector('#toggle-collapse-btn').addEventListener('click', function() {
+        const collapseElem = document.getElementById('test-info-collapse');
+        const isCollapsed = collapseElem.classList.contains('show') ? 'false' : 'true';
+        sessionStorage.setItem('isCollapsed', isCollapsed);
+    });
+      </script>
+    
+
+
+<script>
+    function shareToSocialMedia(platform, quiz_id) {
       let share_link;  // Declare share_link outside of the AJAX call
     
       $.ajax({
-        url: '/quiz_bp/generate_link_test/' + test_id,
+        url: '/quiz_bp/generate_link_quiz/' + quiz_id,
         type: 'GET',
         success: function(data) {
           share_link = data['share_link'];  // Set share_link within the callback
@@ -639,17 +697,17 @@ main_0 %}
 
 
 <script>
-    function generateLink(test_id) {
+    function generateLink(quiz_id) {
         console.log("generate link")
         $.ajax({
-            url: '/quiz_bp/generate_link_test/' + test_id,
+            url: '/quiz_bp/generate_link_quiz/' + quiz_id,
             type: 'GET',
             success: function(data) {
               console.log(data);
-                $('#share-link' + test_id).text(data['share_link']);
-                $('#share-link' + test_id).show();
-                $('#qr_code_image' + test_id).attr('src', 'data:image/jpeg;base64,' + data['qr_code']);
-                $('#qr_code_image' + test_id).show();
+                $('#share-link' + quiz_id).text(data['share_link']);
+                $('#share-link' + quiz_id).show();
+                $('#qr_code_image' + quiz_id).attr('src', 'data:image/jpeg;base64,' + data['qr_code']);
+                $('#qr_code_image' + quiz_id).show();
             },
             error: function(error) {
                 console.log(error);

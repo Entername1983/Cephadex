@@ -42,10 +42,12 @@ deck_bp = Blueprint(
     static_folder='static'
 )
 
-@deck_bp.route("/viewdecks", methods = ["GET", "POST"])
+
+
+@deck_bp.route("/view_decks", methods = ["GET", "POST"])
 @login_required
 @log_decorator
-def viewdecks():
+def view_decks():
     """ main view once logged in"""
     share_form = Share()
     user_settings = UserSettings.query.filter_by(user=current_user.id).first()
@@ -53,39 +55,42 @@ def viewdecks():
         user_settings = UserSettings(user=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
-   ## check if user has any pending tests
-    tests = Test.query.filter(Test.taker.contains(current_user)).all()
+   ## check if user has any pending quizzes
+    quizzes = Test.query.filter(Test.taker.contains(current_user)).all()
     user = current_user
     email = current_user.email
     shared_decks = (
             SharedDecks.query
             .filter(SharedDecks.receiver == current_user.id).all()
     )
-    decks = Deck.query.filter(Deck.user_id == current_user.id).all()
-    if request.method == 'GET':
-        sort_method = None
-        search_query = None
-        if request.args.get('sort'):
-            sort_method = clean(request.args.get('sort'))
-        if request.args.get('search'):
-            search_query = clean(request.args.get('search', '').strip())
-        if sort_method:
-            column, order = sort_method.split('_')
-            order_by = (
-                getattr(getattr(Deck, column),
-                order)() if column in 
-                ['name', 'category', 'time_created'] else None
-            )
-            if order_by:
-                decks = Deck.query.filter(Deck.user_id == current_user.id).order_by(order_by).all()
-            elif column == "cards_due":
-                decks = sorted(decks, key=lambda deck: deck.qty_cards_due(),
-                                reverse=order == 'desc')
-        if search_query:
-            decks = Deck.query.filter(Deck.name.ilike(f'%{search_query}%')).all()
-    return render_template('deck_bp/viewdecks.html', decks=decks, shared_decks = shared_decks,
-                            tests=tests, user = user, settings = user_settings,
-                            share_form = share_form)
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Items per page
+    sort_by = request.args.get('sort_by', 'time_created')
+    order = request.args.get('order', 'asc')
+    sort_method = request.args.get('sort', None)
+
+    search_query = request.args.get('search', None)
+    query = Deck.query.filter(Deck.user_id == current_user.id)
+
+    if search_query:
+        query = query.filter(Deck.name.ilike(f'%{search_query}%'))
+
+    if sort_by:
+        if order == 'asc':
+            query = query.order_by(getattr(Deck, sort_by).asc())
+        else:
+            query = query.order_by(getattr(Deck, sort_by).desc())
+
+    decks_paginated = query.paginate(page, per_page, False)
+
+    return render_template('deck_bp/view_decks.html', decks=decks_paginated.items, decks_paginated=decks_paginated, 
+            shared_decks = shared_decks,quizzes=quizzes, user = user, settings = user_settings, share_form = share_form)
+
+
+
+
+
 
 
 @deck_bp.route("/createdeck", methods = ["GET", "POST"])
@@ -123,7 +128,7 @@ def rename_deck(id, new_name):
         return jsonify({'error': 'Deck not assigned to user'}), 403
     deck.rename(clean(c_new_name))
     db.session.commit()
-    return redirect(url_for('deck_bp.viewdecks'))
+    return redirect(url_for('deck_bp.view_decks'))
 
 @deck_bp.route("/deletecard/<int:deck_id>/<int:card_id>", methods = ["POST"])
 @login_required
@@ -230,9 +235,7 @@ def add_card(deck_id):
 @login_required
 @log_decorator
 def edit_card_new():
-    print("entered edit card")
     data = request.get_json()
-    print(data)
     if data:
         card_id = data["id"]
         card = Card.query.filter_by(id=card_id).first()
@@ -257,22 +260,42 @@ def edit_card_new():
     return jsonify(success=False)
 
 
-@deck_bp.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
+# @deck_bp.route("/carousel/<int:deck_id>", methods = ["GET", "POST"])
+# @login_required
+# @log_decorator
+# def carousel(deck_id):
+    
+#     c_deck_id = deck_id
+#     deck = Deck.query.filter_by(id=c_deck_id, user_id=current_user.id).first()
+
+#     form = DeckOrg(obj=deck)
+#     cards = (
+#             Card.query.filter(Card.decks_backref.any(id=deck_id))
+#             .order_by(Card.id.desc()).all()
+#     )
+#     if(current_user.id != deck.user_id):
+#          return apology('Deck not assigned to user', 403)
+#     return render_template("/deck_bp/carousel.html", title="Carousel",
+#                             deck=deck, cards=cards, form=form)
+@deck_bp.route("/card_viewer/<int:deck_id>", methods = ["GET", "POST"])
 @login_required
 @log_decorator
-def carousel(deck_id):
+def card_viewer(deck_id):
+    page = request.args.get('page', 1, type=int)
+    per_page = 4  # Items per page
     c_deck_id = deck_id
     deck = Deck.query.filter_by(id=c_deck_id, user_id=current_user.id).first()
 
     form = DeckOrg(obj=deck)
-    cards = (
+    paginated_cards = (
             Card.query.filter(Card.decks_backref.any(id=deck_id))
-            .order_by(Card.id.desc()).all()
+            .order_by(Card.id.desc()).paginate(page, per_page, False)
     )
+    print(paginated_cards.items)
     if(current_user.id != deck.user_id):
          return apology('Deck not assigned to user', 403)
-    return render_template("/deck_bp/carousel.html", title="Carousel",
-                            deck=deck, cards=cards, form=form)
+    return render_template("/deck_bp/card_viewer.html", title="Card viewer",
+                            deck=deck, paginated_cards=paginated_cards, form=form)
 """
     if form.validate_on_submit():
         print("entered validate on submit")
@@ -308,7 +331,7 @@ def carousel(deck_id):
             db.session.commit()
 """
 
-
+## OBSOLETE?
 @deck_bp.route("/edit_card", methods=["POST"])
 @login_required
 @log_decorator
@@ -323,7 +346,8 @@ def edit_card():
             card.boc_2 = form.boc_2.data.strip()
             card.boc_3 = form.boc_3.data.strip()
             card.boc_4 = form.boc_4.data.strip()
-            card.formula = form.formula.data.strip()
+            if card.formula:
+                card.formula = form.formula.data.strip()
             db.session.commit()
             return jsonify({"status": "success"})
         else:
@@ -367,10 +391,12 @@ def import_public_deck(deck_id):
 
 
 
-@deck_bp.route("/sea_dox/<int:deck_id>", methods=["GET", "POST"])
+
+
+@deck_bp.route("/document_viewer/<int:deck_id>", methods=["GET", "POST"])
 @login_required
 @log_decorator
-def sea_dox(deck_id):
+def document_viewer(deck_id):
     form = UpdateFileNameForm()
     search_and_sort_form = SearchAndSortForm()
 
@@ -424,7 +450,7 @@ def sea_dox(deck_id):
                     .filter(DeckFiles.file_name.contains(search_query))
                     .all()
                 )
-        return render_template("deck_bp/sea_dox.html", title="Sea Dox",
+        return render_template("deck_bp/document_viewer.html", title="Sea Dox",
                                 files=files, deck = deck, form = form,
                                 search_form = search_and_sort_form)
     if form.validate():
@@ -435,12 +461,16 @@ def sea_dox(deck_id):
         if new_name != '':
             file.file_name = new_name
             db.session.commit()
-        return render_template("deck_bp/sea_dox.html",
+        return render_template("deck_bp/document_viewer.html",
                                 title="Sea Dox", files=files, deck = deck,
                                 form = form, search_form = search_and_sort_form)
-    return render_template("deck_bp/sea_dox.html", title="Sea Dox",
+    return render_template("deck_bp/document_viewer.html", title="Sea Dox",
                             files=files, deck = deck, form = form,
                             search_form = search_and_sort_form)
+
+
+
+
 
 @deck_bp.route("/source_file/<int:file_id>", methods=["GET", "POST"])
 @login_required
@@ -475,7 +505,7 @@ def delete_file(deck_id, file_id):
     deck = Deck.query.get_or_404(c_deck_id)
     db.session.delete(file)
     db.session.commit()
-    return redirect(("/deck_bp/sea_dox/{deck}").format(deck=deck.id)) 
+    return redirect(("/deck_bp/document_viewer/{deck}").format(deck=deck.id)) 
 
 @deck_bp.route('/generate_link/<int:deck_id>', methods=['GET'])
 @login_required
@@ -517,10 +547,15 @@ def generate_link(deck_id):
 @deck_bp.route('/shared_deck_view/<string:share_id>', methods=['GET'])
 @log_decorator
 def shared_deck_view(share_id):
+    page = request.args.get('page', 1, type=int)
+    per_page = 8 
     deck = Deck.query.filter_by(share_id=share_id).first_or_404()
+    paginated_cards = (
+            Card.query.filter(Card.decks_backref.any(id=deck.id))
+            .order_by(Card.term.asc()).paginate(page, per_page, False)
+    )
     session['shared_deck_id'] = share_id
-    print(session['shared_deck_id'])
-    return render_template('deck_bp/shared_deck_view.html', deck=deck)
+    return render_template('deck_bp/shared_deck_view.html', deck=deck, paginated_cards = paginated_cards)
 
 
 @deck_bp.route("/share_deck/<int:deck_id>/", methods=["GET", "POST"])
@@ -648,13 +683,13 @@ def reject_shared(deck_id):
     return jsonify({'success': success})
 
 
-@deck_bp.route("/sea_source/<int:file_id>/", methods=["GET", "POST"])
+@deck_bp.route("/print_doc/<int:file_id>/", methods=["GET", "POST"])
 @login_required
 @log_decorator
-def sea_source(file_id):
+def print_doc(file_id):
     c_file_id = file_id
     source = DeckFiles.query.filter_by(id = c_file_id).first()
-    return render_template('deck_bp/sea_source.html',file=source)
+    return render_template('deck_bp/print_doc.html',file=source)
 
 @deck_bp.route("/import_deck/", methods=["GET", "POST"])
 @login_required
@@ -716,7 +751,7 @@ def export_deck(deck_id):
                 anki_create_card(deck.name, card.term, card.content)
         event_tracker(current_user.id, "export-anki", "success")
         flash("Deck exported", "success")
-        return redirect(url_for('deck_bp.viewdecks'))
+        return redirect(url_for('deck_bp.view_decks'))
     else:
         event_tracker(current_user.id, "export-anki", "fail")
 
@@ -761,7 +796,7 @@ def latest_deck():
     return (
         redirect('/deck_bp/deck_manager/{deck_id}'.format(deck_id=deck.id))
         if deck is not None
-        else redirect('/deck_bp/viewdecks')
+        else redirect('/deck_bp/view_decks')
     )
     
 
@@ -769,15 +804,17 @@ def latest_deck():
 @login_required
 @log_decorator
 def public_cards(deck_id):
-    c_deck_id = deck_id
-    deck = Deck.query.filter_by(id=c_deck_id).first()
+    page = request.args.get('page', 1, type=int)
+    per_page = 12
+    deck = Deck.query.filter_by(id=deck_id).first()
     if deck.public is False:
         return apology("Sorry, this deck is not public")
-    cards = (
+    paginated_cards = (
             Card.query.filter(Card.decks_backref.any(id=deck_id))
-            .order_by(Card.term.desc()).all()
+            .order_by(Card.term.asc()).paginate(page, per_page, False)
     )
-    return render_template('deck_bp/public_cards.html', cards=cards, deck=deck)
+    print(paginated_cards.items)
+    return render_template('deck_bp/public_cards.html', paginated_cards = paginated_cards, deck=deck, page = page)
 
 
 @deck_bp.route("/public_decks", methods = ['GET', 'POST'])
@@ -785,8 +822,9 @@ def public_cards(deck_id):
 @log_decorator
 def public_decks():
     form = SearchAndSortForm()
-    decks = Deck.query.filter_by(public=True).all()
-    print(decks)
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 8  # Items per page
     search_query= form.search.data
     sort_method = form.sort.data
     # Start building the query
@@ -809,24 +847,31 @@ def public_decks():
         query = query.order_by(Deck.category.asc())
     elif sort_method == "category_desc":
         query = query.order_by(Deck.category.desc())
+    decks_paginated = query.paginate(page, per_page, False)
 
-    # Execute the query and fetch all the decks
-    decks = query.all()
-    print(decks)
-    return render_template('deck_bp/public_decks.html', decks=decks, form = form)
+
+    return render_template('deck_bp/public_decks.html', decks=decks_paginated.items, 
+            decks_paginated=decks_paginated, form=form)
 
 @deck_bp.route("/deck_manager/<int:deck_id>", methods=['GET', 'POST'])
 @login_required
 @log_decorator
 def deck_manager(deck_id):
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Items per page
     settings = UserSettings.query.filter_by(user=current_user.id).first()
     form = DeckOrg()
     share_form = Share()
     deck = Deck.query.filter_by(id=deck_id).first()
-    tests = Test.query.filter_by(deck_id=deck_id).all()
-
     if current_user.id != deck.user_id:
         return apology("Sorry, this is not your deck")
+
+    quizzes = Test.query.filter_by(deck_id=deck_id).all()
+    paginated_cards = (
+            Card.query.filter(Card.decks_backref.any(id=deck_id))
+            .order_by(Card.term.asc()).paginate(page, per_page, False)
+    )
+    print(paginated_cards.items)
     files = deck.deck_files
     if form.validate_on_submit():
         if form.new_deck_name.data:
@@ -841,17 +886,13 @@ def deck_manager(deck_id):
                 deck.public = True
             else:
                 deck.public = False
-
             if parent:
                 db.session.execute(deck_relationships.insert().values(parent_deck=parent.id,
                                     child_deck=deck.id))
-
             db.session.commit()
-
-
     return render_template('deck_bp/deck_manager.html', deck=deck, files=files,
-                            share_form = share_form, tests = tests,
-                              form=form, settings=settings)
+                share_form = share_form, quizzes = quizzes, form=form, settings=settings,
+                page=page, paginated_cards = paginated_cards)
 
 
 #### CHAT BOT ####

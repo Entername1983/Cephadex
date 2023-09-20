@@ -265,25 +265,25 @@ $(document).ready(function () {
             </a>
           </li>
           <li>
-            <a href="/deck_bp/viewdecks" class="nav-link text-center" id="sidebar-viewdecks">
+            <a href="/deck_bp/view_decks" class="nav-link text-center" id="sidebar-view_decks">
                 <span class="menu-icon" style="display:none"><img src="/static/home-school-icon-svg.svg" title = "My decks" max-width="40" height="40"/></span>
                 <span class="menu-text">Decks</span>
             </a>
           </li>
           <li>
-            <a href="/study_bp/study_select" class="nav-link text-center" id="sidebar-viewdecks">
+            <a href="/study_bp/study_select" class="nav-link text-center" id="sidebar-view_decks">
                 <span class="menu-icon" style="display:none"><img src="/static/study-svg-icon.svg" title = "Study" max-width="40" height="40"/></span>
                 <span class="menu-text">Study</span>
             </a>
           </li>
      <li>
-            <a href="/game_bp/game_new" class="nav-link text-center" id="sidebar-viewdecks">
+            <a href="/game_bp/game_new" class="nav-link text-center" id="sidebar-view_decks">
                 <span class="menu-icon" style="display:none"><img src="/static/games-svg-icon.svg" title = "Games" max-width="40" height="40"/></span>
                 <span class="menu-text">Games <small>(beta)</small></span>
             </a>
           </li>
           <li>
-            <a href="/quiz_bp/test_results_overview" class="nav-link text-center" id="sidebar-quiz">
+            <a href="/quiz_bp/quiz_overview" class="nav-link text-center" id="sidebar-quiz">
                 <span class="menu-icon" style="display:none"><img src="/static/quiz-2-svg-icon.svg" title = "My quizzes" max-width="40" height="40"></span>
                 <span class="menu-text">Quizzes</span>
             </a>
@@ -315,9 +315,9 @@ $(document).ready(function () {
           </li>
         </ul>
       
-        <h5 class = " text-center p-3 text-white " id="sidebar-credit"style="background-color: #a880fd; margin: 0px!important;">
-            <span class = "menu-icon" style="display:none">{{current_user.remaining_credit()}}</span>
-            <span class = "menu-text">Credits: {{current_user.remaining_credit()}}</span>
+        <h5 class = " text-center p-1 py-3 text-white " id="sidebar-credit"style="background-color: #a880fd; margin: 0px!important;">
+            <div class = "menu-icon" style="display:none">{{current_user.remaining_credit()}}</div>
+            <div class = "menu-text">Credits: {{current_user.remaining_credit()}}</div>
         
         </h5>
       </div>
@@ -341,7 +341,7 @@ $(document).ready(function () {
                     <div >
                   
                         <!---
-                        <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/viewdecks{% else %}/{% endif %}">
+                        <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/view_decks{% else %}/{% endif %}">
                             <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
                         </a>
 -->
@@ -391,7 +391,7 @@ $(document).ready(function () {
             {% else %}
             <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
                 <div class="container px-5 d-flex justify-content-between align-items-center">
-                    <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/deck_bp/viewdecks{% else %}/{% endif %}">
+                    <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/deck_bp/view_decks{% else %}/{% endif %}">
                         <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
                     </a>
                     <div class="d-flex">

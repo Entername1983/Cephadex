@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{% block title %} AI Generates Notes, Summaries, and Transcriptions {% endblock %}
+
+
+{% block main_0 %}
+
+<a href="/deck_bp/deck_manager/{{deck.id}}">
+    <img src="\static\go-back-icon.png" alt="Return to decks" style="max-width:35px;max-height:35px;"
+      class="m-3 img-grow" title="Return to decks">
+  </a>
+
+<div class = "container-fluid" style="text-align:center">
+    <div class="col-md-12 d-flex justify-content-center align-items-center">
+
+    <h1 class="display-3 hcepha1"> Files for {{deck.name}}:</h1>
+    </div>
+{% if not files|length > 0 %}
+<h5>You have no files associated with this deck.  Files are created when you save the source text or when you use the transcribe, summarize, or turn to notes functionalities.</h5>
+</div>
+{% endif %}
+
+<div class="container">
+    <div class="row">
+                    <div class="col-md-6"></div>
+
+        <div class="col-md-6">
+            <form action="" method="get">
+                {{ search_form.hidden_tag() }}
+            
+                <div class="row justify-content-end">
+ 
+                    <div class="form-floating">
+                        <div id="sort-form">
+                            {{ search_form.sort(class="form-select my-1 mr-sm-2", id="sort", onchange="this.form.submit();", choices=[('default', 'Select sort method'), ('date', 'Date'), ('name_asc', 'Name (A-Z)'), ('name_desc', 'Name (Z-A)'), ('type', 'Type')]) }}
+                        </div>
+                    </div>
+                </div>
+            
+            </form>
+        </div>
+    </div>
+        <div class="row my-2">
+        {% for file in files %}
+        <div class="col-lg-6 col-md-12 mb-4">
+                <div class="card mb-4" style="background-color: #dccdfd;">
+        
+                        <form action="" method="post">
+                            {{ form.hidden_tag() }}
+                            {{ form.file_id(value=file.id, type="hidden") }}
+                            <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #dccdfd;">
+                                {{ form.new_name(class="h5 border-0 card-title", id=file.id, value=file.file_name, style="background-color: #dccdfd!important; width: 100%", placeholder=file.file_name, onchange="this.form.submit();") }}
+                                <i class="fas fa-edit"></i> 
+                            </div>
+                        </form>
+                   
+        
+                    <a href="/deck_bp/print_doc/{{file.id}}" target="_blank" style="text-decoration: none; color: inherit;">
+
+                    <div class="card-body">
+                        <div class="form-group">
+                        </div>
+                        <p><strong>Type:</strong> {{ file.create_type }}</p>
+                        <p><strong>Date Created:</strong> {{ file.time_created }}</p>
+                    </div>
+                     </a>
+                    <div class="card-footer">
+                        <a href="/deck_bp/print_doc/{{file.id}}" target="_blank" style="text-decoration: none; color: inherit;">
+
+                        <img src="\static\print-icon.png" alt="Printable format" style="max-width:30px;max-height:30px;" class="px-1" title="Printable format">
+                    </a>
+                        <a href="#" onclick="if (confirm('Are you sure you want to delete this deck?')) { window.location.href = '/deck_bp/delete_file/' + {{ deck.id }} + '/' + {{ file.id }} + '/'; event.stopPropagation(); }">
+                            <img src="\static\delete-icon.png" alt="Delete" style="max-width:30px;max-height:30px;" class="px-1" title="Delete File">
+                        </a>
+                    </div>
+               
+                </div>
+            
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+{% endblock %}

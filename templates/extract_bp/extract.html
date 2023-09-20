@@ -203,7 +203,11 @@
         </div>
     </div>
 </div>--->
-<div class="container-fluid" style="max-width:1200px;">
+<div class=" d-flex justify-content-center align-items-center">
+    <h1 class="d-none d-md-block my-4 display-3 hcepha1">Deck creator </h1>
+</div>
+<div class="container-fluid mt-5" style="max-width:1200px;">
+
     <form id = "extract-form" method="POST" action="{{url_for('extract_bp.extract')}}" enctype="multipart/form-data", onsubmit="showSpinner()">
         {{form.hidden_tag()}}
         {{ form.csrf_token }}
@@ -239,15 +243,14 @@
                 <div class="row">
                     <div class="col-md-6" id = "tour-input">
                         <h5 class="mb-3">Type of input</h5>
-                        <h6 class="mb-1"> Upload a file</h6>
+                        <h6 class="mb-1">Either upload a file</h6>
                         <div class="input-group">
                             {{form.file(id="file-input", class="form-control")}}
-                            <label class="input-group-text" for="file-input">Upload</label>
                             <div style="color:red" id="error-message"></div>
 
                         </div>
 
-                        <h6 class="mb-1"> Paste some text</h6>
+                        <h6 class="mb-1">Paste some text</h6>
                         <div class="form-floating">
                             {{form.text_input(id="text-input", class="form-control form-control-lg", style="height:100%;
                             width:100%; font-size:20px")}}
@@ -259,13 +262,11 @@
                         
                         <div class="form-floating">
                             {{form.link_input(id="link-input", class="form-control form-control-lg")}}
-                            <label for="link-input" class="form-label">Insert a wikipedia, youtube or other URL</label>
+                            <label for="link-input" class="form-label">Insert a wikipedia, youtube, or other URL</label>
 
                         </div>
                         <div id="fileinputhelp" class="form-text d-md-block d-none" style = "font-size: 12px">
-                            YouTube videos, Wikipedia pages and most regular webpages are accepted. If you would like to insert more than one link,
-                            separate them
-                            semi-colon ";".
+                            If you would like to insert more than one link separate them semi-colon ";".
                         </div>
                     </div>
                     <div class="col-md-6" id ="tour-name">
@@ -276,7 +277,7 @@
                             <label for="name-input"> Name of the deck</label>
                         </div>
                         {% if current_user.decks %}
-                        <h6 class="mb-1">Add to existing deck</h6>
+                        <h6 class="mb-1">Or add to an existing deck</h6>
                         <div class="form-floating mb-3">
                             {{form.deck_list(id="existing-input", class="form-select form-control-lg",
                             placeholder="Select a deck")}}

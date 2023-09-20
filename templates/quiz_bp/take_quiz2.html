@@ -21,33 +21,33 @@
     <div class="row mx-auto">
         <div class="row d-flex justify-content-center">
         <div class = "row">
-            {% if test.time_limit %}  
+            {% if quiz.time_limit %}  
             <div class = "col-3">
 
-                <h5>Test name: {{ test.name }} </h5></div>
+                <h5 class=" display-3 hcepha1">Quiz: {{ quiz.name }} </h5></div>
                 
-                <div class = "col-3"> <h5>Time: {{test.time_limit}} min.</h5></div>
+                <div class = "col-3"> <h5>Time: {{quiz.time_limit}} min.</h5></div>
                 
                 <div class = "col-3">  <h5 class="d-flex justify-content-center" id="timer"></h5></div>
-<div class = "col-3"><h5>Marks: {{test.points}}</h5></div>
+<div class = "col-3"><h5>Marks: {{quiz.points}}</h5></div>
 
                 {% else %}
-                <h5>Test name: {{ test.name }} Points: {{test.points}}</h5>
+                <h5 class=" display-3 hcepha1">Quiz name: {{ quiz.name }} Points: {{quiz.points}}</h5>
                 {% endif %}
         </div>
     </div>
     </div>
     <form id="my-form" method="POST" onsubmit="captureEndTime()">
         <div class="row d-flex justify-content-end m-2">
-            <input class="form-control justify-content-end" type="submit" value="Submit test">
+            <input class="form-control justify-content-end" type="submit" value="Submit quiz">
         </div>
         <input type="hidden" name="start-time" value="{{ start_time }}">
         <input type="hidden" name="end-time" va lue="">
 
         <div class="box-manager p-2" style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
-            {% for question in test.questions %}
-
+            {% for question in quiz.questions %}
             {% set q_counter = loop.index %}
+            <div class="card mt-1 {% if loop.index == 1 %}active-question{% endif %}" id="question-card-{{ q_counter }}">
 
       
             {% if question.q_type == "jeopardy" %}
@@ -207,12 +207,12 @@
         </div>
 
     </form>
-    {% if test.time_limit %}
+    {% if quiz.time_limit %}
 
     <script>
     
         const timer = document.querySelector('#timer');
-        const duration = {{test.time_limit}}* 60;
+        const duration = {{quiz.time_limit}}* 60;
         console.log(duration);
         function updateTimer() {
             const remainingTime = Math.max(duration - Math.floor((new Date() - startTime) / 1000), 0);

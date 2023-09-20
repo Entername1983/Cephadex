@@ -65,7 +65,7 @@ def extract():
         except Exception as e:
             handle_unknown_error(e)
             raise e
-        return redirect('/deck_bp/viewdecks')
+        return redirect('/deck_bp/view_decks')
     return render_template("extract_bp/extract.html", title="Extract", form=form,
                             settings = user_settings)
 

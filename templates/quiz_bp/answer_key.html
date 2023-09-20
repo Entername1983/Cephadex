@@ -46,8 +46,18 @@
 {% endblock %}
 {% block
     main_0 %}
-
-    <div id = "printable" class ="printable printable-container">
+    <div class = "container">
+        <div class="row">
+            <div class=" col-6 d-flex justify-content-center align-items-center">
+                <h1 class="display-3 hcepha1 text-truncate" style="max-width: 100%;">Answer key</h1>
+            </div>
+            <div class=" col-6 d-flex justify-content-end align-items-center">
+                <a id="print-button" title="Print">
+                    <img class="img-grow" src="/static/print-icon.png" style="width: 35px; height: 35px">
+                </a>
+            </div>
+        </div></div>
+<div id = "printable" class ="printable printable-container">
 
 <div class = "p-4">
 {% set q_counter = 0 %}
@@ -61,13 +71,13 @@
             
 
         <div class="col-12 d-flex align-items-center">
-            <h4>Answers for: {{test.name}}</h4>
+            <h4>Answers for: {{quiz.name}}</h4>
         </div>
 
 
     </div>
 <br>
-{% for question in test.questions %}
+{% for question in quiz.questions %}
 {% set q_counter = loop.index %}
 {% if question.q_type == "jeopardy" %}
 <div class = "row " style="page-break-inside: avoid;">
@@ -189,7 +199,29 @@
     
 </div>
 
+{% else %}
+<div class = "row " style="page-break-inside: avoid;">
+    
+    <div class="card">
+        <div class="card-head">
+            <div class="row my-2">
+                <div class="col-10 ">
+                    {{q_counter}} - {{question.question}}
+                </div>
+                <div class=" col-2">
+                    Marks: {{question.points}}
+                </div>
+            </div>
+        </div>
 
+        <div class="card-body">
+
+            {{question.content}}
+           
+        </div>
+    </div>
+    
+</div>
 
 
 
@@ -209,5 +241,13 @@
 
 
 </div>
-</div
+</div>
+<script>
+    $("#print-button").click(function () {
+    console.log("printing")
+    window.print();
+});
+
+</script>
+
 {% endblock %}

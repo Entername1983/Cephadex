@@ -81,7 +81,7 @@ def index():
     if not current_user.is_authenticated: # type: ignore
         return render_template('index.html', form=form)
     cache_buster = random.randint(1, 999999)
-    return redirect(url_for("deck_bp.viewdecks")+'?v=' + str(cache_buster))
+    return redirect(url_for("deck_bp.view_decks")+'?v=' + str(cache_buster))
 
 @app.route('/testing1', methods = ['GET', 'POST'])
 def testing1():

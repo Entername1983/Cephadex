@@ -16,7 +16,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/3.3.1/intro.min.js"></script>
 
 <script>
-
     {% if settings.new_user_cards == 1 %}
     console.log("new user")
         viewDecksTour()
@@ -65,17 +64,13 @@
       element: document.querySelector('#tour-more'),
       intro: "Export to anki, as a CSV or delete the deck in the dropdown menu here"
     },
-
-
 {
     title: "That's it!",
   intro: "You should now have the basics.  There are a lot more features and we encourage you to explore the quiz maker!  If you have any feedback or questions please contact us.  We're always looking to improve!"
       }],
       scrollToElement: false,
-
     }).start();
       });
-
       fetch('/user_bp/new_user_settings_cards', {
         method: 'POST',
         headers: {
@@ -83,10 +78,7 @@
         },
         body: JSON.stringify({ checked: true })
       })
-
-
     }
-
 </script>
 
 
@@ -100,23 +92,23 @@
         <div class="col-md-6">
            <div class="card box-manager mt-2">
             <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
-                {% if deck.cards|length > 0 %}
-                    <a href='/study_bp/study_deck/{{ deck.id }}' id = "tour-study" class = "img-grow" title="Study"><img src="/static/master-icon.png" style="width: 35px; height:35px"></a>
-                    <a href="/quiz_bp/build_test/{{ deck.id }}" id = "tour-quiz" class = "img-grow" title="Create quiz"><img src="/static/quiz-3-svg-icon.svg" style="width: 35px; height:35px"></a>
-                    <a href="/deck_bp/carousel/{{ deck.id }}" id = "tour-card-viewer" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="width: 35px; height:35px"></a>
+                {% if paginated_cards.items|length > 0 %}
+                    <a href='/study_bp/study_deck/{{ deck.id }}' id = "tour-study" class = "img-grow" title="Study"><img src="/static/master-icon.png" style="max-width: 35px; height:35px"></a>
+                    <a href="/quiz_bp/build_quiz/{{ deck.id }}" id = "tour-quiz" class = "img-grow" title="Create quiz"><img src="/static/quiz-3-svg-icon.svg" style="max-width: 35px; height:35px"></a>
+                    <a href="/deck_bp/card_viewer/{{ deck.id }}" id = "tour-card-viewer" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="max-width: 35px; height:35px"></a>
 
                     <a class="px-2" data-bs-toggle="modal" id = "tour-edit" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
-                        <img src="/static/edit-deck-icon.png" class = "img-grow" style="width: 35px; height:35px" title="Edit"></a>
+                        <img src="/static/edit-deck-icon.png" class = "img-grow" style="max-width: 35px; height:35px" title="Edit"></a>
                     <a  data-bs-toggle="modal" id = "tour-share" data-bs-target="#Modal{{ deck.id }}"
-                        style="cursor: pointer;" class = "img-grow" title="Share"><img src="/static/share-icon.png" style="width: 35px; height:35px"></a>
+                        style="cursor: pointer;" class = "img-grow" title="Share"><img src="/static/share-icon.png" style="max-width: 35px; height:35px"></a>
                         
                     {% else %}
                     <p>You don't seem to have any cards in this deck, click <a href="/extract_bp/extract"> here </a> to create
                         some.</p>
                     {% endif %}
-                    <a onclick="event.stopPropagation();" id = "tour-more" width="35px" height="35px"
+                    <a onclick="event.stopPropagation();" id = "tour-more" max-width="35px" height="35px"
                          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                        style="cursor: pointer;" class = "img-grow" title="More actions"><img src="/static/more-icon.png" style="width: 35px; height:35px"></a>
+                        style="cursor: pointer;" class = "img-grow" title="More actions"><img src="/static/more-icon.png" style="max-width: 35px; height:35px"></a>
 
 
                     <!-- Dropdown menu containing the list of links -->
@@ -127,7 +119,7 @@
                         <a class="dropdown-item" onclick="event.stopPropagation();"
                             href="/deck_bp/downloadascsv/{{ deck.id }}">Download CSV</a>
                         <a class = "dropdown-item" onclick="event.stopPropagation();"
-                            href="/deck_bp/sea_dox/{{ deck.id }}">Manage files</a>
+                            href="/deck_bp/document_viewer/{{ deck.id }}">Manage files</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" style="cursor: pointer;"
                             onclick="event.stopPropagation(); { deleteDeck('{{ deck.id }}'); }">Delete deck</a>
@@ -168,9 +160,9 @@
               <div class="collapse" id="quizCollapse">
                 <div class="card card-body mt-2">
                     <ul class="list-group list-group-flush">
-                        {% if tests %}
-                            {% for test in tests %}
-                        <li class="list-group-item"><a href="/quiz_bp/assign_test/{{test.id}}">{{ test.name }}</a></li>                            
+                        {% if quizzes %}
+                            {% for quiz in quizzes %}
+                        <li class="list-group-item"><a href="/quiz_bp/assign_quiz/{{quiz.id}}">{{ quiz.name }}</a></li>                            
                         {% endfor %}
                         {% else %}
                         <li class="list-group-item" style="color: red;">No quizzes found.  Create one using your deck.</li>
@@ -178,13 +170,13 @@
                     </ul>                
                 </div>
               </div>
-              <div class="collapse show" id="fileCollapse">
+              <div class="collapse" id="fileCollapse">
                 <div class="card card-body mt-2">
                     <ul class="list-group list-group-flush">
                         {% if deck.deck_files  %}
 
                         {% for file in deck.deck_files %}
-                        <li class="list-group-item"><a href="/deck_bp/sea_source/{{file.id}}">{{ file.file_name }}</a></li>
+                        <li class="list-group-item"><a href="/deck_bp/print_doc/{{file.id}}">{{ file.file_name }}</a></li>
                         {% endfor %}
                         {% else %}
                         <li class="list-group-item"  style="color: red;">No files found</li>
@@ -223,11 +215,10 @@
 
 
     </div>
-    <!--
-    <h4 class = "text-center my-1">{{ deck.quantity_cards() }} cards</h4>-->
+
     <div  id = "tour-cards"class = "row">
        
-            {% for card in deck.cards %}
+            {% for card in paginated_cards.items %}
             {% if card.category == "Mcq" %}
             <div class = "col-md-6 p-2">
                 <div class = "card">
@@ -278,7 +269,23 @@
 
 
     </div>
-        
+    <ul class=" my-1 pagination">
+        {% if paginated_cards.has_prev %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.deck_manager', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+        {% endif %}
+        {% for page_num in paginated_cards.iter_pages() %}
+            <li class="page-item {% if page_num ==paginated_cards.page %}active{% endif %}">
+                {% if page_num %}
+                    <a class="page-link" href="{{ url_for('deck_bp.deck_manager', deck_id=deck.id, page=page_num) }}">{{ page_num }}</a>
+                {% else %}
+                    <span class="page-link">...</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+        {% if paginated_cards.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.deck_manager', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+        {% endif %}
+    </ul>
 
 
   
@@ -367,7 +374,7 @@
                 },
                 success: function (response) {
                     // Deck deleted successfully, remove it from the DOM
-                    window.location.href = '/deck_bp/viewdecks';
+                    window.location.href = '/deck_bp/view_decks';
                 },
                 error: function (xhr) {
                     // Handle error
@@ -507,7 +514,7 @@
 
                         <div class = mt-2>
                         <p id="share-link{{deck.id}}" readonly style="display:none"></p>
-                        <img id="qr_code_image{{deck.id}}" src="" alt="QR Code" width="100" height="100" style="display:none">
+                        <img id="qr_code_image{{deck.id}}" src="" alt="QR Code" max-width="100" height="100" style="display:none">
                         </div>
                     </div>
                     <button type="button" class="btn btn-generate" onclick="generateLink('{{ deck.id }}')">Generate Link and QR Code</button>

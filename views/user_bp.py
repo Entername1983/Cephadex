@@ -67,7 +67,7 @@ def googleSignIn():
         return found_quiz_id_in_session()
     flash('You have been logged in!', 'success')
     event_tracker(user.id, "login", "google")
-    return redirect(url_for('deck_bp.viewdecks'))
+    return redirect(url_for('deck_bp.view_decks'))
    
 def handle_new_user(idinfo):
     session['google_id_token'] = idinfo['sub']
@@ -109,7 +109,7 @@ def found_shared_deck_id_in_session():
     del session['shared_deck_id']
     db.session.commit()
     flash("You have been logged in and the deck has been added to your decks", "success")
-    return redirect(url_for('deck_bp.viewdecks'))
+    return redirect(url_for('deck_bp.view_decks'))
 
 def found_game_id_in_session():
     game_id = session.get('game_id')
@@ -126,7 +126,7 @@ def found_game_id_in_session():
 def found_quiz_id_in_session():
     shared_test_id = session.get('shared_test_id')
     del session['shared_test_id']
-    return redirect(url_for('take_test_2',
+    return redirect(url_for('take_quiz_2',
         share_id=shared_test_id, user_id=current_user.id))
 
 @user_bp.route("/accountsettings", methods = ["GET", "POST"])
@@ -184,7 +184,7 @@ def delete_account():
 @log_decorator
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('deck_bp.viewdecks'))
+        return redirect(url_for('deck_bp.view_decks'))
     else:
         return redirect(url_for('index'))
 
@@ -247,7 +247,7 @@ def register():
             if 'game_id' in session:
                 return found_game_id_in_session()
             flash("You have been registered and logged in!", "success")
-            return redirect(url_for('deck_bp.viewdecks'))
+            return redirect(url_for('deck_bp.view_decks'))
         return render_template('/user_bp/register.html', title='Register', form = form)
     except Exception as e:
         error_occured = True
@@ -443,7 +443,7 @@ def new_user_settings_create():
         db.session.commit()
     return jsonify({'success': True})
 
-@user_bp.route("/new_user_settings_viewdecks", methods = ["POST", "GET"])
+@user_bp.route("/new_user_settings_view_decks", methods = ["POST", "GET"])
 @login_required
 @log_decorator
 def new_user_settings_viewdecks():

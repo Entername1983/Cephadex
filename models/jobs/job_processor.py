@@ -15,8 +15,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-
-
 class JobProcessor():
     def __init__(self, job: Job, session: 'AsyncSession'):
         self.session: AsyncSession = session 

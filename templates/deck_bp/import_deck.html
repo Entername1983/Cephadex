@@ -8,9 +8,9 @@
 {% block main_0 %}
 
 <div>
-  <div class="container p-5">
+  <div class="container-fluid">
 
-      <h1 class="text-center hcepha1 mt-5">Import from Anki</h1>
+      <h1 class="text-center display-3 hcepha1 mt-5">Import from Anki</h1>
 
       <div class="my-4">
           <h5 class="text-center">Import all decks:</h5>
@@ -28,7 +28,7 @@
           <form id="import-by-name-form" class="d-flex flex-column align-items-center mt-3" method="POST">
               <div class="form-group">
                   <label for="deck-name">Deck name(s):</label>
-                  <input type="text" name="deck-name" id="deck-name" placeholder="MyAnkiDeck1, MyAnkiDeck2,..." class="form-control" style="width: 300px">
+                  <input type="text" name="deck-name" id="deck-name" placeholder="MyAnkiDeck1, MyAnkiDeck2,..." class="form-control" style="max-width: 300px">
               </div>
               <input type="submit" value="Import" id="import-by-name" name="import-by-name" class="btn btn-primary mt-2">
           </form>

@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block title %} Your AI Test Results {% endblock %}
+
+{% block main_0 %}
+<br>
+<br>
+<div class = "container-fluid">
+  <a href="/deck_bp/view_decks">
+    <img src="\static\go-back-icon.png" alt="Return to decks" style="max-width:30px;max-height:30px;"
+      class="m-2" title="Return to decks">
+  </a>
+
+</div>
+  <div class="container">
+    <!-- Quiz name row -->
+    <div class="row justify-content-center mb-1">
+        <h5 class="text-center">{{quiz.name}}</h5>
+    </div>
+
+    <!-- Points row -->
+    <div class="row justify-content-center mb-1">
+        <h5 class="text-center">{{quiz_result.points}} / {{quiz.points}}</h5>
+    </div>
+
+    <!-- Info text row -->
+    <div class="row justify-content-center mb-1">
+        <p class="text-center text-muted">
+            <small>Your instructor will likely review your results - your final score may change.</small>
+        </p>
+    </div>
+</div>
+<div class="container mt-4">
+  {% for result in results.items %}
+  <div class="card mb-3 {% if result.correct != True %}bg-lightred {% else%} bg-lightgreen {% endif %}">
+    <div class="card-header font-weight-bold text-uppercase">
+      {{ result.question.question }}
+    </div>
+    <div class="card-body">
+      <ul class="list-unstyled mb-0">
+        <li><strong>Your answer:</strong> {{ result.result.answer }}</li>
+        <li><strong>Correct answer:</strong> {{ result.question.term if result.question.q_type == "jeopardy" else result.question.content }}</li>
+      </ul>
+    </div>
+  </div>
+  {% endfor %}
+  <ul class=" my-1 pagination">
+    {% if results.has_prev %}
+
+    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_results', quiz_id=quiz.id, user_id=current_user.id, page=results.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+    {% endif %}
+    {% for page_num in results.iter_pages() %}
+        <li class="page-item {% if page_num ==results.page %}active{% endif %}">
+            {% if page_num %}
+                <a class="page-link" href="{{ url_for('quiz_bp.quiz_results', quiz_id=quiz.id, user_id=current_user.id, page=page_num) }}">{{ page_num }}</a>
+            {% else %}
+                <span class="page-link">...</span>
+            {% endif %}
+        </li>
+    {% endfor %}
+    {% if results.has_next %}
+    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_results', quiz_id=quiz.id, user_id=current_user.id, page=results.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+    {% endif %}
+</ul>
+
+
+</div>
+
+
+
+
+{% endblock %}

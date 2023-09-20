@@ -3,6 +3,8 @@ from models.association_tables import cards, source_files, deck_relationships
 from flask import jsonify
 from run.extensions import db
 import json
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import select, func
 
 class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -41,6 +43,10 @@ class Deck(db.Model):
                     backref=db.backref("parents", lazy="dynamic"),
                     lazy="dynamic")
 
+    @property
+    def num_cards(self):
+        return len(self.cards)
+    
     def correct_incorrect(self) -> list[int]:
         correct = 0
         incorrect = 0

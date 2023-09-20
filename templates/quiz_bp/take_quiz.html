@@ -1,0 +1,274 @@
+{% set q_counter = 0 %}
+{% extends "layout.html" %}
+
+
+
+
+
+{% block title %}  Take a Quiz {% endblock %}
+{% block head %}
+
+<style>
+    .card {
+        display: none!important;
+    }
+    .active-question {
+        display: block!important;
+    }
+</style>
+
+
+
+
+{% endblock %}
+{% block main_0 %}
+
+
+
+
+
+
+
+
+
+<div class="container-fluid" style="padding-top: 4px!important; padding-bottom: 4px!important;">
+        <div class = "row">
+            {% if quiz.time_limit %}  
+            <div class = "col-6 d-none d-md-block"><h5 class=" display-4 hcepha1 text-truncate">{{ quiz.name }}</h5></div>
+            <div class = "col-3"> <h6>Time: {{quiz.time_limit}} min.</h6></div>
+            <div class = "col-3">  <h6 class="d-flex justify-content-center" id="timer"></h6></div>
+            <div class = "col-3 d-none d-md-block "><h5>Points: {{quiz.points}}</h5></div>
+            {% else %}
+            <div class = "col-6 d-none d-md-block"><h5 class=" display-4 hcepha1 text-truncate">{{ quiz.name }}</h5></div>
+            <div class = "col-6 d-none d-md-block"><h5 class=" display-4 hcepha1 d-flex justify-content-center">Points: {{quiz.points}}</h5></div> 
+            {% endif %}
+        </div>
+
+        <form id="my-form" method="POST" onsubmit="captureEndTime()">
+            <div class="my-2 d-flex justify-content-end">
+                <input class="btn btn-generate" type="submit" value="Submit quiz">
+            </div>
+            <input type="hidden" name="start-time" value="{{ start_time }}">
+            <input type="hidden" name="end-time" value="">
+
+        <div class=" p-2" style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
+            {% for question in quiz.questions %}
+            {% set q_counter = loop.index %}
+            <div class="card mt-1 p-2 {% if loop.index == 1 %}active-question{% endif %} " id="question-card-{{ q_counter }}" >
+                <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
+                    {% if question.q_type == "jeopardy" %}
+                        <div class="card-head">
+                            <div class="row p-1">
+                                <div class="col-10 ">
+                                    {{q_counter}} - {{question.question}}
+                                </div>
+                                <div class=" col-2 d-none d-md-block">
+                                    Points: {{question.points}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <label for="answer{{question.id}}">Answer:</label>
+                            <input type="text" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                        </div>
+                    {% elif question.q_type == "cloze" %}
+                        <div class="card-head">
+                            <div class="row p-1">
+                                <div class="col-10 ">
+                                    {{q_counter}} - {{question.question}}
+                                </div>
+                                <div class="col-2 d-none d-md-block ">
+                                    Points: {{question.points}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <label for="answer{{question.id}}">Answer:</label>
+
+                            <input type="text" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                        </div>
+                    {% elif question.q_type == "mcq" %}
+                        <div class="card-head">
+                            <div class="row p-1">
+                                <div class="col-10">
+                                    <h4 class="m-1"> {{q_counter}} - {{question.question}}</h4>
+                                </div>
+                                <div class="col-2 d-none d-md-block ">
+                                    Points: {{question.points}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body flex-grow align-items-center" style="flex-grow: 1;">
+
+                            <div class="row my-1" style="flex-grow: 1;">
+                                <div class=" d-flex align-items-center justify-content-center" style="flex-grow: 1;">
+                                    <button class="  form-control answer-button{{question.id}}" style="width: 100%"
+                                        id="A-btn{{question.id}}">A</button>
+                                </div>
+                            </div>
+                            <div class="row my-1" style="flex-grow: 1;">
+                                <div class=" d-flex align-items-center justify-content-center" style="flex-grow: 1;">
+                                    <button class=" form-control answer-button{{question.id}}"
+                                        id="B-btn{{question.id}}" style="width: 100%">B</button>
+                                </div>
+                            </div>
+                            <div class="row my-1" style="flex-grow: 1;">
+                                <div class="d-flex align-items-center justify-content-center" style="flex-grow: 1;">
+                                    <button class=" form-control answer-button{{question.id}}" style="width: 100%"
+                                        id="C-btn{{question.id}}">C</button>
+                                </div>
+                            </div>
+                            <div class="row my-1" style="flex-grow: 1;">
+                                <div class=" d-flex align-items-center justify-content-center" style="flex-grow: 1;">
+                                    <button class=" form-control answer-button{{question.id}}" style="width: 100%"
+                                        id="D-btn{{question.id}}">D </button>
+                                </div>
+                            </div>
+                            <div class="">
+                                <input type="hidden" id="answer{{question.id}}" name="answer{{question.id}}">
+                            </div>
+                        
+                        <script>
+                            const answers{{ question.id }} =["{{question.content|safe}}", "{{question.boc_2|safe}}", "{{question.boc_3|safe}}", "{{question.boc_4|safe}}"];
+                            function shuffle(array) {
+                                for (let i = array.length - 1; i > 0; i--) {
+                                    const j = Math.floor(Math.random() * (i + 1));
+                                    [array[i], array[j]] = [array[j], array[i]];
+                                }
+                                return array;
+                            }
+                            const shuffledAnswers{{ question.id }} = shuffle(answers{{ question.id }});
+                            const answer_buttons{{ question.id }} = document.querySelectorAll('.answer-button{{question.id}}');
+                                //const buttons = document.querySelectorAll('.answer-button'+{{ question.id }});
+                            answer_buttons{{ question.id }}.forEach((button, index) => {
+
+                                button.innerText = shuffledAnswers{{ question.id }}[index];
+                                button.value = shuffledAnswers{{ question.id }}[index];
+                            });
+                            const answerInput{{ question.id }} = document.querySelector(`#answer{{question.id}}`);
+                            const buttons_to_deselect{{ question.id }} = document.querySelectorAll('#A-btn{{question.id}}, #B-btn{{question.id}}, #C-btn{{question.id}}, #D-btn{{question.id}}');
+                            console.log(buttons_to_deselect{{ question.id }})
+
+                            answer_buttons{{ question.id }}.forEach(button => {
+                                button.addEventListener('click', (event) => {
+                                    event.preventDefault();
+                            answerInput{{ question.id }}.value = button.value;
+                                    console.log(answerInput{{ question.id }}.value)
+                                const buttonA = document.querySelector('#A-btn{{question.id}}');
+                                const buttonB = document.querySelector('#B-btn{{question.id}}');
+                                const buttonC = document.querySelector('#C-btn{{question.id}}');
+                                const buttonD = document.querySelector('#D-btn{{question.id}}');
+                                buttonA.classList.remove('selected');
+                                buttonB.classList.remove('selected');
+                                buttonC.classList.remove('selected');
+                                buttonD.classList.remove('selected');
+                                button.classList.add('selected')
+                                    });
+                            });
+                        </script>
+                           
+                        </div>
+                    {% else %}
+                        <div class="card-head">
+                            <div class="row p-1">
+                                <div class="col-10 ">
+                                    {{q_counter}} - {{question.question}}
+                                </div>
+                                <div class="col-2 d-none d-md-block">
+                                    Points: {{question.points}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <label for="answer{{question.id}}">Answer:</label>
+                            <input type="text" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
+                        </div>
+                    {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+       
+    </form> 
+    <div class="my-2 progress" style="height: 25px;">
+        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>    
+    <div class = " my-2">
+
+    <button id="prev-btn" class="btn btn-generate" onclick="move(-1)">Previous</button>
+    <button id="next-btn" class="btn btn-generate" onclick="move(1)">Next</button>
+    </div>
+    {% if quiz.time_limit %}
+
+    <script>
+    
+        const timer = document.querySelector('#timer');
+        const duration = {{quiz.time_limit}}* 60;
+        console.log(duration);
+        function updateTimer() {
+            const remainingTime = Math.max(duration - Math.floor((new Date() - startTime) / 1000), 0);
+            console.log(remainingTime)
+            const minutes = Math.floor(remainingTime / 60);
+            console.log(minutes)
+            const seconds = Math.floor(remainingTime % 60).toString().padStart(2, '0');
+            console.log(seconds)
+            timer.textContent = `${minutes}:${seconds}`;
+            if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+                timer.textContent = 'Time is up!';
+                document.querySelector('#my-form').submit(); // submit the form when the timer expires
+            }
+        }
+        const startTime = new Date();
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
+    
+    </script>
+    
+    {% endif %}
+    
+</div>
+
+<script>
+    function captureEndTime() {
+        const endTime = new Date();
+        document.getElementsByName('end-time')[0].value = endTime.toISOString();
+    }
+</script>
+<script>
+    let currentQuestion = 1;
+    let totalQuestions = {{ quiz.questions|length }};
+
+    function move(step) {
+        // Remove active class from current question
+        document.getElementById(`question-card-${currentQuestion}`).classList.remove('active-question');
+
+        // Update current question index
+        currentQuestion += step;
+
+        // Update the progress bar and question indicator
+        updateProgressBar(currentQuestion, totalQuestions);
+        // Add active class to the new current question
+        document.getElementById(`question-card-${currentQuestion}`).classList.add('active-question');
+
+        // Enable or disable buttons based on current question
+        document.getElementById('prev-btn').disabled = (currentQuestion === 1);
+        document.getElementById('next-btn').disabled = (currentQuestion === totalQuestions);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('prev-btn').disabled = (currentQuestion === 1);
+        document.getElementById('next-btn').disabled = (currentQuestion === totalQuestions);
+    });
+        function updateProgressBar(current, total) {
+    const progressBar = document.getElementById('progress-bar');
+    const progress = (current / total) * 100;
+    progressBar.style.width = progress + '%';
+    progressBar.setAttribute('aria-valuenow', progress);
+    progressBar.innerHTML = `Question ${current} of ${total}`;  // Optionally, display the text inside the progress bar
+    }
+
+</script>
+
+
+
+{% endblock %}

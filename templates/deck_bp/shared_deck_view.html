@@ -5,16 +5,23 @@
 
 
 {% block main_0 %}
+<div class = "row">
+    <div class = "col-6">
+        <div class=" d-none d-md-block col-md-12 d-flex justify-content-center align-items-center">
+            <h1 class=" display-3 hcepha1"> {{deck.name }}</h1>
+        </div>
+    </div>
+    <div class = "col-6">
 {% if current_user.is_authenticated %}
 <a id="save-deck" class="conversion-button" href="/deck_bp/save_shared_deck/{{deck.share_id}}">Save this deck</a>
 {% else %}
 <a class="conversion-button" data-bs-toggle="modal" data-bs-target="#registerModal">Register to save this deck</a>
 {% endif %}
-
-
+</div>
+</div>
 <div  id = "tour-cards"class = "row">
        
-    {% for card in deck.cards %}
+    {% for card in paginated_cards.items %}
     {% if card.category == "Mcq" %}
     <div class = "col-md-6 p-2">
         <div class = "card">
@@ -62,8 +69,26 @@
     </div>
     {% endif %}
     {% endfor %}
+    <div class = "col-md-12 p-2">
+    <ul class=" my-1 pagination">
+        {% if paginated_cards.has_prev %}
 
-
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.shared_deck_view', share_id=deck.share_id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+        {% endif %}
+        {% for page_num in paginated_cards.iter_pages() %}
+            <li class="page-item {% if page_num ==paginated_cards.page %}active{% endif %}">
+                {% if page_num %}
+                    <a class="page-link" href="{{ url_for('deck_bp.shared_deck_view', share_id=deck.share_id, page=page_num) }}">{{ page_num }}</a>
+                {% else %}
+                    <span class="page-link">...</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+        {% if paginated_cards.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.shared_deck_view', share_id=deck.share_id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+        {% endif %}
+    </ul>
+    </div>
 </div>
 
 

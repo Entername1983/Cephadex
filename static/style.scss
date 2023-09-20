@@ -1,7 +1,7 @@
 $cepha_1: #6019FF;
 $cepha_105: #a880fd;
 $cepha_101: #efe8ff;
-
+$cepha_1001: #f5f2fc;
 $cepha_2: #FF6700;
 $cepha_205: #fcad79;
 
@@ -1669,10 +1669,10 @@ td:empty {
 
 
 .box-manager {
-  border-radius: 10px!important;
+  border-radius: 5px!important;
   border: solid!important;
-  border-width: 3px!important;
-  border-color: $cepha_1!important;
+  border-width: 2px!important;
+  border-color: $cepha_105!important;
   
 }
 
@@ -1927,4 +1927,25 @@ main-class {
 
 #questions-parent .card {
   box-shadow: none !important;
+}
+
+
+.page-item {
+  color: $cepha_1!important;
+}
+
+.page-item.active .page-link {
+  background-color: $cepha_105!important;
+}
+
+.page-link {
+  color: $cepha_1!important;
+}
+
+.bg-lightred {
+  background-color: #ffe6e6!important; /* light red */
+}
+
+.bg-lightgreen {
+  background-color: #DFFFD9!important;
 }

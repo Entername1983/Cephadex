@@ -1,0 +1,211 @@
+{% extends "layout.html" %}
+
+{% block title %} Quiz Dashboard {% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block main_0 %}
+<div class="container-fluid">
+    <div class="row">
+        <div class=" d-none d-md-block col-md-12 d-flex justify-content-center align-items-center">
+            <h1 class="my-4 display-3 hcepha1"> Quiz Dashboard</h1>
+        </div>
+        <div class="col-md-12">
+            <div class="card mt-2">
+                <ul class="nav nav-tabs" id="myTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="quizzes-tab" data-bs-toggle="tab" href="#quizzes" role="tab">Quizzes</a>
+                    </li>
+
+
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="results-tab" data-bs-toggle="tab" href="#results" role="tab">My results</a>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="student-results-tab" data-bs-toggle="tab" href="#studentResults" role="tab">My students' results</a>
+                    </li>
+                </ul>
+        
+                    <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade" id="quizzes" role="tabpanel">
+                    <div class="card-body">
+                        {% if created|length == 0 %}
+                <p>It seems that you haven't created any quizzes yet. Use an existing deck to create one.</p>
+                {% else %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name:</th>
+                            <th scope="col">Created on:</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for quiz in created %}
+                        <tr id="assign-{{quiz.id}}" class="view-row"
+                            onclick="window.location.href='/quiz_bp/assign_quiz/{{quiz.id}}';"
+                            onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
+                            onmouseout="this.style.backgroundColor='';;this.style.color= ''">
+                            <td>{{ quiz.name }}</td>
+                            <td>{{ quiz.time_created.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+                        <nav>
+                            <nav>
+                                <ul class="pagination">
+                                    {% if created_paginations.has_prev %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_created=created_paginations.prev_num) }}#quizzes">Previous</a></li>
+                                    {% endif %}
+                                    {% for page_num in created_paginations.iter_pages() %}
+                                    <li class="page-item {% if page_num == created_paginations.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_created=page_num) }}#quizzes">{{ page_num }}</a>
+                                    </li>
+                                    {% endfor %}
+                                    {% if created_paginations.has_next %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_created=created_paginations.next_num) }}#quizzes">Next</a></li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </nav>
+                    </div>
+                </div>
+                    <div class="tab-pane fade show active" id="results" role="tabpanel">
+                        <div class="card-body">
+                            {% if taken|length == 0 %}
+                            <p>No results to report</p>
+                            {% else %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Name:</th>
+                                        <th scope="col">Date taken:</th>
+                                        <th scope="col">Score:</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in taken %}
+                                    <tr id="assign-{{result.result.id}}" class="view-row"
+                                        onclick="window.location.href='/quiz_bp/quiz_results/{{result.quiz.id}}/{{result.user.id}}';"
+                                        onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
+                                        onmouseout="this.style.backgroundColor='';;this.style.color= ''">
+                                        <td>{{result.quiz.name}}</td>
+                                        <td>{% if result and result.result and result.result.end_time %}
+                                            {{result.result.end_time.strftime('%Y-%m-%d')}}
+                                            {% else %} Not yet taken {% endif %}
+                                        </td>
+
+                                        <td>{{ result.result.points if result.result and result.result.points is not none else '' }}/{{ result.quiz.points if result.quiz and result.quiz.points is not none else '' }}</td>
+            
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% endif %}
+                            <nav>
+                                <ul class="pagination">
+                                    {% if taken_paginations.has_prev %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_taken=taken_paginations.prev_num) }}#results">Previous</a></li>
+                                    {% endif %}
+                                    {% for page_num in taken_paginations.iter_pages() %}
+                                    <li class="page-item {% if page_num == taken_paginations.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_taken=page_num) }}#results">{{ page_num }}</a>
+                                    </li>
+                                    {% endfor %}
+                                    {% if taken_paginations.has_next %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_taken=taken_paginations.next_num) }}#results">Next</a></li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+        
+                    
+        
+                    <div class="tab-pane fade" id="studentResults" role="tabpanel">
+                        <div class="card-body">
+                            {% if given|length == 0 %}
+                            <p>No results yet, assign some quizzes to your students.</p>
+                            {% else %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Quiz</th>
+                                        <th scope="col">Score</th>
+                                        <th scope="col">Due date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for quiz in given %}
+                                    <tr id="test-{{quiz.quiz.id}}" class="view-row"
+                                        onclick="window.location.href='/quiz_bp/quiz_result_details/{{quiz.quiz.id}}';"
+                                        onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
+                                        onmouseout="this.style.backgroundColor='';;this.style.color= ''">
+                                        <td>{{ quiz.user.last_name }}, {{ quiz.user.first_name }}</td>
+                                        <td>{{ quiz.quiz.name }}</td>
+                                        <td>{{ quiz.result.points if quiz.result and quiz.result.points is not none else '' }}/{{ quiz.quiz.points if quiz.quiz and quiz.quiz.points is not none else '' }}</td>
+                                        <td>{{ quiz.quiz.due_date.strftime('%Y-%m-%d') if quiz and quiz.quiz.due_date else 'N/A' }}</td>
+                                    </tr>
+                                    </a>
+                                    {% endfor %}
+                                </tbody>
+                            </table>{% endif %}
+                            <nav>
+                                <nav>
+                                    <ul class="pagination">
+                                        {% if given_paginations.has_prev %}
+                                        <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=given_paginations.prev_num) }}#studentResults">Previous</a></li>
+                                        {% endif %}
+                                        {% for page_num in given_paginations.iter_pages() %}
+                                        <li class="page-item {% if page_num == given_paginations.page %}active{% endif %}">
+                                            <a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=page_num) }}#studentResults">{{ page_num }}</a>
+                                        </li>
+                                        {% endfor %}
+                                        {% if given_paginations.has_next %}
+                                        <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=given_paginations.next_num) }}#studentResults">Next</a></li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var hash = window.location.hash;
+        
+        var tabLinks = document.querySelectorAll('.nav-link');
+        var tabPanes = document.querySelectorAll('.tab-pane');
+        
+        tabLinks.forEach(function(link) {
+            link.classList.remove('active');
+        });
+        
+        tabPanes.forEach(function(pane) {
+            pane.classList.remove('show', 'active');
+        });
+        
+        if (hash) {
+            document.querySelector('.nav-link[href="' + hash + '"]').classList.add('active');
+            document.querySelector(hash).classList.add('show', 'active');
+        } else {
+            tabLinks[0].classList.add('active');
+            tabPanes[0].classList.add('show', 'active');
+        }
+    });
+    </script>
+
+
+
+{% endblock %}

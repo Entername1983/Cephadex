@@ -101,11 +101,11 @@ main_0 %}
         </div>
     </div>
 </div>
-    <div class="container-fluid mt-2" id="tour-question-select" style="padding: 1px!important;max-height:80vh; overflow-y: scroll;">
-        {% for card in deck.cards %}
+    <div class="container-fluid mt-2" id="tour-question-select" style="padding: 1px!important">
+        {% for card in paginated_cards.items %}
         {% if card.category in ["Mcq"] %}
 
-        <div class="card box-build m-1" >
+        <div class="card m-1" >
             <div class="card-body w-100">
                 <div class="row">
                     <div class="col-1 ">
@@ -144,7 +144,7 @@ main_0 %}
 
 
         {% elif card.category == "Formulas" %}
-        <div class="card box-build m-1" >
+        <div class="card m-1" >
             <div class="card-body  w-100">
                 <div class="row">
                     <div class="col-1 ">
@@ -171,7 +171,7 @@ main_0 %}
         </div>
         {% elif card.category == "Cloze", "Explain" %}
 
-        <div class="card box-build m-1">
+        <div class="card m-1">
             <div class="card-body  w-100" style="margin:0px !important;">
                 <div class="row">
                     <div class="col-1 ">
@@ -203,7 +203,7 @@ main_0 %}
         </div>
         {% elif card.category in ["Discuss"] %}
 
-        <div class="card box-build m-1" style="">
+        <div class="card m-1" style="">
             <div class="card-body w-100">
                 <div class="row">
                     <div class="col-1 ">
@@ -236,7 +236,7 @@ main_0 %}
 
         {% else %}
 
-        <div class="card box-build m-1" style="">
+        <div class="card m-1" style="">
             <div class="card-body  w-100" style="margin:0px !important;">
                 <div class="row">
                     <div class="col-1 ">
@@ -272,8 +272,25 @@ main_0 %}
 
         {% endif%}
         {% endfor %}
-
+        
         </form>
+        <ul class="pagination">
+            {% if paginated_cards.has_prev %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.build_quiz', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+            {% endif %}
+            {% for page_num in paginated_cards.iter_pages() %}
+                <li class="page-item {% if page_num ==paginated_cards.page %}active{% endif %}">
+                    {% if page_num %}
+                        <a class="page-link" href="{{ url_for('quiz_bp.build_quiz', deck_id=deck.id, page=page_num) }}">{{ page_num }}</a>
+                    {% else %}
+                        <span class="page-link">...</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            {% if paginated_cards.has_next %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.build_quiz', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+            {% endif %}
+        </ul>
     </div>
 </div>
 <script>

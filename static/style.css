@@ -1470,10 +1470,10 @@ td:empty {
 }
 
 .box-manager {
-  border-radius: 10px !important;
+  border-radius: 5px !important;
   border: solid !important;
-  border-width: 3px !important;
-  border-color: #6019FF !important;
+  border-width: 2px !important;
+  border-color: #a880fd !important;
 }
 
 .box-build {
@@ -1711,4 +1711,24 @@ a {
 
 #questions-parent .card {
   box-shadow: none !important;
+}
+
+.page-item {
+  color: #6019FF !important;
+}
+
+.page-item.active .page-link {
+  background-color: #a880fd !important;
+}
+
+.page-link {
+  color: #6019FF !important;
+}
+
+.bg-lightred {
+  background-color: #ffe6e6 !important; /* light red */
+}
+
+.bg-lightgreen {
+  background-color: #DFFFD9 !important;
 }/*# sourceMappingURL=style.css.map */

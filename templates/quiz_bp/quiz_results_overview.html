@@ -42,18 +42,18 @@
                         <tbody>
                             {% for result in taken %}
                             <tr id="assign-{{result.id}}" class="view-row"
-                                onclick="window.location.href='/quiz_bp/test_result/{{result.id}}';"
+                                onclick="window.location.href='/quiz_bp/quiz_result/{{result.id}}';"
                                 onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                 onmouseout="this.style.backgroundColor='';;this.style.color= ''">
-                                <td>{% for test in tests %}
-                                    {% if result.test_id == test.id %}
-                                    {{ test.name }}
+                                <td>{% for quiz in quizzes %}
+                                    {% if result.test_id == quiz.id %}
+                                    {{ quiz.name }}
 
                                     {% endif %}
 
                                     {% endfor %}</td>
-                                <td>{{ result.points}}/{% for test in tests %}
-                                    {% if result.test_id == test.id %}{{test.points}}{% endif %}
+                                <td>{{ result.points}}/{% for quiz in quizzes %}
+                                    {% if result.test_id == quiz.id %}{{quiz.points}}{% endif %}
 
                                     {% endfor %} </td>
                             </tr>
@@ -83,13 +83,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for test in created %}
-                            <tr id="assign-{{test.id}}" class="view-row"
-                                onclick="window.location.href='quiz_bp/assign_test/{{test.id}}';"
+                            {% for quiz in created %}
+                            <tr id="assign-{{quiz.id}}" class="view-row"
+                                onclick="window.location.href='quiz_bp/assign_quiz/{{quiz.id}}';"
                                 onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                 onmouseout="this.style.backgroundColor='';;this.style.color= ''">
-                                <td>{{ test.name }}</td>
-                                <td>{{ test.time_created.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ quiz.name }}</td>
+                                <td>{{ quiz.time_created.strftime('%Y-%m-%d') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -117,13 +117,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for test in created %}
-                            <tr id="test-{{test.id}}" class="view-row"
-                                onclick="window.location.href='quiz_bp/test_result_details/{{test.id}}';"
+                            {% for quiz in created %}
+                            <tr id="test-{{quiz.id}}" class="view-row"
+                                onclick="window.location.href='quiz_bp/quiz_result_details/{{quiz.id}}';"
                                 onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                 onmouseout="this.style.backgroundColor='';;this.style.color= ''">
-                                <td>{{ test.name }}</td>
-                                <td>{{test.due_date.strftime('%Y-%m-%d')}}</td>
+                                <td>{{ quiz.name }}</td>
+                                <td>{{quiz.due_date.strftime('%Y-%m-%d')}}</td>
                             </tr>
                             </a>
                             {% endfor %}
@@ -162,13 +162,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for test in created %}
-                            <tr id="assign-{{test.id}}" class="view-row"
-                                onclick="window.location.href='/quiz_bp/assign_test/{{test.id}}';"
+                            {% for quiz in created %}
+                            <tr id="assign-{{quiz.id}}" class="view-row"
+                                onclick="window.location.href='/quiz_bp/assign_quiz/{{quiz.id}}';"
                                 onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                 onmouseout="this.style.backgroundColor='';;this.style.color= ''">
-                                <td>{{ test.name }}</td>
-                                <td>{{ test.time_created.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ quiz.name }}</td>
+                                <td>{{ quiz.time_created.strftime('%Y-%m-%d') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -196,13 +196,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for test in created %}
-                            <tr id="test-{{test.id}}" class="view-row"
-                                onclick="window.location.href='/quiz_bp/test_result_details/{{test.id}}';"
+                            {% for quiz in created %}
+                            <tr id="test-{{quiz.id}}" class="view-row"
+                                onclick="window.location.href='/quiz_bp/quiz_result_details/{{quiz.id}}';"
                                 onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                 onmouseout="this.style.backgroundColor='';;this.style.color= ''">
-                                <td>{{ test.name }}</td>
-                                <td>{{test.due_date.strftime('%Y-%m-%d')}}</td>
+                                <td>{{ quiz.name }}</td>
+                                <td>{{quiz.due_date.strftime('%Y-%m-%d')}}</td>
                             </tr>
                             </a>
                             {% endfor %}
@@ -228,18 +228,18 @@
                         <tbody>
                             {% for result in taken %}
                             <tr id="assign-{{result.id}}" class="view-row"
-                                onclick="window.location.href='/quiz_bp/test_result/{{result.id}}';"
+                                onclick="window.location.href='/quiz_bp/quiz_result/{{result.id}}';"
                                 onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                 onmouseout="this.style.backgroundColor='';;this.style.color= ''">
-                                <td>{% for test in tests %}
-                                    {% if result.test_id == test.id %}
-                                    {{ test.name }}
+                                <td>{% for quiz in quizzes %}
+                                    {% if result.test_id == quiz.id %}
+                                    {{ quiz.name }}
 
                                     {% endif %}
 
                                     {% endfor %}</td>
-                                <td>{{ result.points}}/{% for test in tests %}
-                                    {% if result.test_id == test.id %}{{test.points}}{% endif %}
+                                <td>{{ result.points}}/{% for quiz in quizzes %}
+                                    {% if result.test_id == quiz.id %}{{quiz.points}}{% endif %}
 
                                     {% endfor %} </td>
                             </tr>

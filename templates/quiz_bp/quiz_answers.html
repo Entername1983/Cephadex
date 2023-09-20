@@ -5,7 +5,7 @@
 {% block main_0 %}
 <div class="container-fluid d-flex justify-content-between mb-2 p-2" style="background-color:#efe8ff;">
 
-    <a href="/quiz_bp/test_result_details/{{test.id}}">
+    <a href="/quiz_bp/quiz_result_details/{{quiz.id}}">
         <img src="\static\go-back-icon.png" class="img-grow" style="max-width:35px; max-height:35px;" alt="Return to decks" class="return-icon" title="Return to decks">
       </a><h2>{{taker.first_name}} {{taker.last_name}}</h2>
 <h4>{{taker.email}}</h4>
@@ -14,7 +14,6 @@
 
 <div class="container-fluid">
     
-    
     <div class="row">
         <div class=" p-3">
             <form action="" method="POST" class="">
@@ -22,44 +21,31 @@
                 <div class = "col-2"><h5>Points: {{ result.points}}</h5></div>
                 <div class = "col-8"></div>
                 <div class = "col-2">
-                <input type="submit" class = "btn-generate" value="Save changes">
+                <input type="submit" class = "btn btn-generate" value="Save changes">
         </div></div>
-        <div style="max-height: 100vh; overflow:auto;">
-                {% for question in test.questions %}
+        <div>
+                {% for result in results.items %}
                 <div class="card m-1">
                     <div class="card-body" >
-                                <h5 class="card-title">Question: {{ question.question }}</h5>
-
+                        <h5 class="card-title">Question: {{ result.question.question }}</h5>
                         <div class="row">
-
-                              {% for q_result in question_results %}
-                              {% if q_result.question_id == question.id  %}
                               <div class="col-9">
-
                                 <p class="card-text">
-                                    Correct Answer: {{ question.content }}
+                                    Answer given: {{ result.result.answer }}
                                 </p>
                                 <p class="card-text">
-                                    Answer given: {{ q_result.answer }}
+                                    Correct Answer: {{ result.question.term if result.question.q_type == "jeopardy" else result.question.content}}
                                 </p>
                             </div>
-
                             <div class="col-3">
-                                <label for="points{{q_result.id}}">Points:</label>
+                                <label for="points{{result.result.id}}">Points:</label>
                                 <input class="control-form box_study" style="max-width:40px" type="text"
-                                    id="points{{q_result.id}}" placeholder="{{q_result.points}}"
-                                    value="{{q_result.points}}" name="points{{q_result.id}}">
+                                    id="points{{result.result.id}}" placeholder="{{result.result.points}}"
+                                    value="{{result.result.points}}" name="points{{result.result.id}}">
                             </div>
-
-                                {% endif %}
-                                {% endfor %}
-
                         </div>
                     </div>
                 </div>
-                
-
-
                 {% endfor %}
             </form>
         </div>

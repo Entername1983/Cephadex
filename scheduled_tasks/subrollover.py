@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 import logging
 
-dotenv_path = os.path.join(os.path.dirname(__file__))
+dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 result = load_dotenv(dotenv_path)
 
 ## Models are below to ensure they are using the correct path - not sure if necessary
@@ -34,8 +34,7 @@ logger = logging.getLogger('subrollover')
 @subrollover_log_decorator
 def roll_over():
     """ Subscriptions get reset every 30 days
-    Look at all accounts who are reaching 30 days since last rollover
-    Set their allowance equal to the appropriate"""
+    Look at all accounts who are reaching 30 days since last rollover"""
     subscriptions = User.query.filter_by(account_status='active').all()
     # Loop through each subscription and check if 30 days have passed
     for subscription in subscriptions:

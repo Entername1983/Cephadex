@@ -15,7 +15,6 @@ def init_extensions(app):
     bcrypt.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    login_manager.login_view = 'user_bp.login'
     socketio.init_app(app, cors_allowed_origins="*")
     login_manager.login_view = 'login'
 
