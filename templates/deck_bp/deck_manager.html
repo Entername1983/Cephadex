@@ -94,7 +94,9 @@
             <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
                 {% if paginated_cards.items|length > 0 %}
                     <a href='/study_bp/study_deck/{{ deck.id }}' id = "tour-study" class = "img-grow" title="Study"><img src="/static/master-icon.png" style="max-width: 35px; height:35px"></a>
-                    <a href="/quiz_bp/build_quiz/{{ deck.id }}" id = "tour-quiz" class = "img-grow" title="Create quiz"><img src="/static/quiz-3-svg-icon.svg" style="max-width: 35px; height:35px"></a>
+                    <a href="#" data-deck-id="{{ deck.id }}" id="tour-quiz" class="img-grow start-new-quiz" title="Create quiz">
+                        <img src="/static/quiz-3-svg-icon.svg" style="max-width: 35px; height:35px">
+                    </a>                    
                     <a href="/deck_bp/card_viewer/{{ deck.id }}" id = "tour-card-viewer" class = "img-grow" title="Cards"><img src="/static/cards-icon.png" style="max-width: 35px; height:35px"></a>
 
                     <a class="px-2" data-bs-toggle="modal" id = "tour-edit" data-bs-target="#editDeckModalLong" style="cursor: pointer;">
@@ -627,6 +629,29 @@ function generateLink(deck_id) {
     </div>
 </div>
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+  // Attach event listener to the "Start New Quiz" button
+  const startNewQuizBtn = document.querySelector('.start-new-quiz');
+  
+  startNewQuizBtn.addEventListener('click', function(event) {
+    event.preventDefault();
+    
+    // Make an AJAX request to clear the session
+    fetch('/quiz_bp/start_new_quiz', {
+      method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        // Navigate to the build_quiz URL
+        const deckId = startNewQuizBtn.getAttribute('data-deck-id');
+        window.location.href = `/quiz_bp/build_quiz/${deckId}`;
+      }
+    });
+  });
+});
+</script>
+<!-- <script>
     window.onload = function() {
         {% for card in deck.cards %}
             if ("{{ card.category }}" == "Mcq") {
@@ -638,5 +663,5 @@ function generateLink(deck_id) {
         {% endfor %}
     }
 
-</script>
+</script> -->
 {% endblock %}

@@ -74,10 +74,10 @@ main_0 %}
     <div class=" m-1">
         <div class="row">
             <div class="col-2 d-flex justify-content-center align-items-center">
-                <div class="p-2">
+                <!-- <div class="p-2">
                     <input type="checkbox" class="" id="check-all" />
                     <label class="form-label" for="check-all">Select All</label>
-                </div>
+                </div> -->
             </div>
             <div class="col-6 d-flex justify-content-center align-items-center">
                 <h2 style="color:#6019FF;">Quiz Maker</h2>
@@ -267,9 +267,6 @@ main_0 %}
             </div>
         </div>
 
-
-
-
         {% endif%}
         {% endfor %}
         
@@ -293,7 +290,7 @@ main_0 %}
         </ul>
     </div>
 </div>
-<script>
+<!-- <script>
     // check all checkboxes when "Check All" checkbox is checked
     const checkAllCheckbox = document.getElementById('check-all');
     const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]');
@@ -314,5 +311,42 @@ main_0 %}
         }
         return true;
     }
+</script> -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]');
+
+        checkboxes.forEach((checkbox) => {
+            checkbox.addEventListener('change', function() {
+                // Update the session whenever a checkbox changes
+                const cardId = this.value;
+                const isChecked = this.checked;
+                fetch(`/quiz_bp/build_quiz_update_session?card_id=${cardId}&is_checked=${isChecked}`, {
+                    method: 'POST',
+                });
+            });
+        });
+
+        const checkAllCheckbox = document.getElementById('check-all');
+        checkAllCheckbox.addEventListener('change', () => {
+            checkboxes.forEach((checkbox) => {
+                checkbox.checked = checkAllCheckbox.checked;
+                fetch(`/quiz_bp/build_quiz_update_session?card_id=${checkbox.value}&is_checked=${checkAllCheckbox.checked}`, {
+                    method: 'POST',
+                });
+            });
+        });
+    });
+
+    function validateForm() {
+        const checkboxes = document.querySelectorAll('input[type=checkbox][name="selected_cards[]"]:checked');
+        if (checkboxes.length === 0) {
+            alert("Please select at least one question.");
+            return false;
+        }
+        return true;
+    }
 </script>
+
 {% endblock %}

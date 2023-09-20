@@ -133,22 +133,18 @@
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th scope="col">Name</th>
                                         <th scope="col">Quiz</th>
-                                        <th scope="col">Score</th>
                                         <th scope="col">Due date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for quiz in given %}
-                                    <tr id="test-{{quiz.quiz.id}}" class="view-row"
-                                        onclick="window.location.href='/quiz_bp/quiz_result_details/{{quiz.quiz.id}}';"
+                                    <tr id="test-{{quiz.id}}" class="view-row"
+                                        onclick="window.location.href='/quiz_bp/quiz_result_details/{{quiz.id}}';"
                                         onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                         onmouseout="this.style.backgroundColor='';;this.style.color= ''">
-                                        <td>{{ quiz.user.last_name }}, {{ quiz.user.first_name }}</td>
-                                        <td>{{ quiz.quiz.name }}</td>
-                                        <td>{{ quiz.result.points if quiz.result and quiz.result.points is not none else '' }}/{{ quiz.quiz.points if quiz.quiz and quiz.quiz.points is not none else '' }}</td>
-                                        <td>{{ quiz.quiz.due_date.strftime('%Y-%m-%d') if quiz and quiz.quiz.due_date else 'N/A' }}</td>
+                                        <td>{{ quiz.name }}</td>
+                                        <td>{{ quiz.due_date.strftime('%Y-%m-%d') if quiz and quiz.due_date else 'N/A' }}</td>
                                     </tr>
                                     </a>
                                     {% endfor %}

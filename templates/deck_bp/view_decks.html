@@ -241,7 +241,7 @@
                   <!-- Dropdown menu containing the list of links -->
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                     <a class="dropdown-item" onclick="event.stopPropagation();" href="/deck_bp/carousel/{{ deck.id }}">Edit</a>
-                    <a class="dropdown-item" onclick="event.stopPropagation();" href="/quiz_bp/build_quiz/{{ deck.id }}">Create quiz</a>
+                    <a class="dropdown-item start-new-quiz-dropdown" data-deck-id="{{ deck.id }}" onclick="event.stopPropagation();" href="#">Create quiz</a>
                     <a class="dropdown-item" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#Modal{{ deck.id }}"
                       style="cursor: pointer;">Share</a>
                     <a class="dropdown-item" onclick="event.stopPropagation();" href="/study_bp/study_deck/{{ deck.id }}">Study</a>
@@ -780,7 +780,30 @@ $(document).ready(function(){
       window.location.href = `/deck_bp/view_decks?sort_by=${currentSortBy}&order=${currentOrder}`;
   }
 </script>
-
-
-
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Attach event listener to both buttons
+  const startNewQuizBtns = document.querySelectorAll('.start-new-quiz, .start-new-quiz-dropdown');
+  
+  startNewQuizBtns.forEach(btn => {
+    btn.addEventListener('click', function(event) {
+      event.preventDefault();
+      event.stopPropagation();  // to prevent dropdown from closing
+      
+      // Make an AJAX request to clear the session
+      fetch('/quiz_bp/start_new_quiz', {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === "success") {
+          // Navigate to the build_quiz URL
+          const deckId = btn.getAttribute('data-deck-id');
+          window.location.href = `/quiz_bp/build_quiz/${deckId}`;
+        }
+      });
+    });
+  });
+});
+</script>
 {% endblock %}
