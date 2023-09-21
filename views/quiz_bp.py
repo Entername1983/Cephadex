@@ -22,7 +22,7 @@ from models.creators.formatters import check_comma_list
 from models.helpers.helpers import remove_punctuation
 from models.tracking.events import event_tracker
 from models.qr_code import create_qr_code
-from models.forms.forms import BuildTest, UpdateCardForm
+from models.forms.forms import BuildTest, UpdateCardForm, StudyDeckForm
 
 from models.models_ import (
     QuestionResult, Question, Test, TestResult, User, 
@@ -176,10 +176,15 @@ def build_quiz(deck_id):
         chosen_name = random.choice(TEST_NAMES)
         new_quiz = Test(creator=current_user.id, deck_id=deck.id, name=chosen_name)
         db.session.add(new_quiz)
-
-        for question_id in quiz_questions:
-            card = Card.query.get_or_404(question_id)
-            add_question_to_quiz(card, new_quiz, jeopardyMode)
+        all_checked = form_data.get('check-all')
+        print(all_checked)
+        if all_checked == "on":
+            for card in deck.cards:
+                add_question_to_quiz(card, new_quiz, jeopardyMode)
+        else:
+            for question_id in quiz_questions:
+                card = Card.query.get_or_404(question_id)
+                add_question_to_quiz(card, new_quiz, jeopardyMode)
 
         db.session.commit()
         session.pop('selected_cards', None) 
@@ -265,6 +270,7 @@ def assign_quiz(quiz_id):
         event_tracker(current_user.id, "assign_quiz", quiz_id)
         quiz = Test.query.get_or_404(quiz_id)
         if request.method == 'POST' and 'name' in request.form:
+            print(request.form['due_date'])
             update_quiz_properties(quiz, form)
             db.session.commit()
             flash(f'Test: "{quiz.name}" has been updated!', 'success')
@@ -651,10 +657,25 @@ def quiz_results_overview():
                             created = quizzes_created,quizzes=quizzes)
 
 
+@quiz_bp.route('/quiz_select_deck/', methods=['GET', 'POST'])
+@log_decorator
+def quiz_select_deck():
+    form = StudyDeckForm()
+    try:
+        form.deck.choices = [(deck.id, deck.name) for deck in Deck.query.filter_by(user_id=current_user.id).all()]  # noqa: E501
+    except Exception as e:
+        logger.error(f"Error in quiz_select_deck: {e}")
+        raise e
+    if form.validate_on_submit():
+        return redirect(url_for('quiz_bp.build_quiz', deck_id=form.deck.data))
+    return render_template('quiz_bp/quiz_select_deck.html', form=form)
+
 
 @quiz_bp.route("/quiz_overview/", methods=["GET", "POST"])
 @log_decorator
 def quiz_overview():
+    quizzes_to_be_taken = Test.query.filter(Test.taker.contains(current_user)).all()
+    print(quizzes_to_be_taken)
     page_created = request.args.get('page_created', 1, type=int)
     page_taken = request.args.get('page_taken', 1, type=int)
     page_given = request.args.get('page_given', 1, type=int)
@@ -674,6 +695,7 @@ def quiz_overview():
 
 
     quiz_results_taken = TestResult.query.filter_by(taker=current_user.id).all()
+
     quizzes_taken = []
     for result in quiz_results_taken:
         exist_quiz = Test.query.filter_by(id=result.test_id).first()
@@ -685,7 +707,6 @@ def quiz_overview():
         else:
             quizzes_taken.append({'result': result,'quiz': exist_quiz, 'user': user})
     taken_paginations = Pagination(quizzes_taken, page_taken, per_page)
-    
     unique_test_ids = (db.session.query(distinct(TestResult.test_id))
     .filter_by(creator=current_user.id).all())
     unique_test_ids_list = [item[0] for item in unique_test_ids]
@@ -708,7 +729,8 @@ def quiz_overview():
     return render_template(
         'quiz_bp/quiz_overview.html', taken=taken_paginations.items, given=given_paginations.items,
         created=quizzes_created_paginated.items, created_paginations=quizzes_created_paginated,
-        given_paginations=given_paginations, taken_paginations=taken_paginations
+        given_paginations=given_paginations, taken_paginations=taken_paginations,
+          quizzes_to_be_taken = quizzes_to_be_taken
     )
 
 @quiz_bp.route("/quiz_result_details/<int:quiz_id>/", methods=["GET", "POST"])
@@ -731,23 +753,6 @@ def quiz_result_details(quiz_id):
     return render_template('quiz_bp/quiz_result_details.html',
             results = my_students_results_paginated, quiz = quiz,
          page = page, per_page = per_page)
-
-class Pagination:
-    def __init__(self, items, page, per_page):
-        self.items = items[(page - 1) * per_page: page * per_page]
-        self.page = page
-        self.per_page = per_page
-        self.total = len(items)
-        self.pages = self.total // per_page + (1 if self.total % per_page else 0)
-
-    def has_prev(self):
-        return self.page > 1
-
-    def has_next(self):
-        return self.page < self.pages
-
-    def iter_pages(self):
-        return range(1, self.pages + 1)
 
 
 @quiz_bp.route("/quiz_created/<int:quiz_id>/", methods=["GET", "POST"])
@@ -840,3 +845,31 @@ def answer_key(quiz_id):
     c_quiz_id = quiz_id
     quiz = Test.query.filter_by(id = c_quiz_id).first()
     return render_template('quiz_bp/quiz_print.html', quiz=quiz)
+
+
+
+
+class Pagination:
+    def __init__(self, items, page, per_page):
+        self.items = items[(page - 1) * per_page: page * per_page]
+        self.page = page
+        self.per_page = per_page
+        self.total = len(items)
+        self.pages = self.total // per_page + (1 if self.total % per_page else 0)
+
+    def has_prev(self):
+        return self.page > 1
+
+    def has_next(self):
+        return self.page < self.pages
+
+    def iter_pages(self, left_edge=2, right_edge=2, left_current=5, right_current=5):
+        last_item = 0
+        for num in range(1, self.pages + 1):
+            if (num <= left_edge) or \
+               (num > self.pages - right_edge) or \
+               ((num >= self.page - left_current) and (num <= self.page + right_current)):
+                if last_item != num - 1:
+                    yield None
+                yield num
+                last_item = num

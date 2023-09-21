@@ -186,26 +186,29 @@ gtag('config', 'G-6NB4ZPCNB0');
 
     <input type="hidden" id="slug_id" value="{{ session['slug'] }}">
     <script>
+        $(document).ready(function() {
+            $.get("/has-session-notification", function(data) {
+                if (data.hasSession) {
+                    // Start your polling logic here
+                    doPoll();
+                }
+            });
+        });
         var slug_id = document.getElementById("slug_id").value;
+        
         function doPoll() {
-            $.post(
-                '/query',
-                { id: slug_id },
-
+            $.post('/query',{ id: slug_id },
                 function (data) {  // <- when the response comes, we'll process
                     // its data with this function
                     $('#status').text(data.state);
-                    if (data.result == 0) {
-                        console.log("no data yet")
-                        // We're setting the timeout for 5 seconds
-                        // so the page will update itself
-                        // every 5 seconds until we get a non-zero result
-                        
-                    } else if (data.result == "ready") {
+                    var progress = data.progress;
+                        if (progress !== null) {
+                            $("#progress-bar").css("width", progress + "%").text(progress + "%");
+                            $("#progress-container").show();
+
+                    }  if (data.result == "ready") {
                     
                         // When we finally get the result we update it on the page
-                        console.log("just before notification complete"),
-                            console.log(slug_id)
                             $.post('/notification_complete', { id: slug_id }, function (response) {
                                 if(response === 'success') {
                                     $('#slugModal').modal('show');
@@ -217,12 +220,9 @@ gtag('config', 'G-6NB4ZPCNB0');
                 }
             );
            
-            setTimeout(doPoll, 2000);
+            setTimeout(doPoll, 1000);
         }
-        // Here we actually instruct the browser to call the function for the effect:
-        $(document).ready(function () {
-            doPoll();
-        });
+
 
     </script>
     {% endif %}
@@ -325,9 +325,6 @@ $(document).ready(function () {
         <!-- Page ontent -->
 <!------ NAVBAR -->
         <div id="page-content-wrapper" class = " {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}">
-  
-
-
 
 
             <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
@@ -736,7 +733,6 @@ $(window).on('load', function() {
 
             $("#menu-toggle").click(function(e) {
                 e.preventDefault();
-                console.log("clicked toggle");
                 $("#sidebar-wrapper").toggleClass("toggled");
                 $("#page-content-wrapper").toggleClass("toggled");
                 $("#menu-toggle").toggleClass("toggled");

@@ -8,12 +8,15 @@
 {% block main_0 %}
 <div class="container-fluid">
     <div class="row">
+        <div class="row">
         <div class=" d-none d-md-block col-md-12 d-flex justify-content-center align-items-center">
             <h1 class="my-4 display-3 hcepha1"> Quiz Dashboard</h1>
         </div>
+    </div>
+            <a href="/quiz_bp/quiz_select_deck/" class="btn btn-generate" style="max-width:200px">Create new quiz</a>
         <div class="col-md-12">
             <div class="card mt-2">
-                <ul class="nav nav-tabs" id="myTabs" role="tablist">
+                <ul class="nav nav-pills" id="myTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <a class="nav-link" id="quizzes-tab" data-bs-toggle="tab" href="#quizzes" role="tab">Quizzes</a>
                     </li>
@@ -58,15 +61,20 @@
                             <nav>
                                 <ul class="pagination">
                                     {% if created_paginations.has_prev %}
-                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_created=created_paginations.prev_num) }}#quizzes">Previous</a></li>
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_created=created_paginations.prev_num) }}#quizzes">&laquo;</a></li>
                                     {% endif %}
-                                    {% for page_num in created_paginations.iter_pages() %}
+                                    {% for page_num in created_paginations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                                     <li class="page-item {% if page_num == created_paginations.page %}active{% endif %}">
+                                        {% if page_num %}
                                         <a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_created=page_num) }}#quizzes">{{ page_num }}</a>
+                                        {% else %}
+                                        <span class="page-link">...</span>
+                                        {% endif %}
                                     </li>
                                     {% endfor %}
+    
                                     {% if created_paginations.has_next %}
-                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_created=created_paginations.next_num) }}#quizzes">Next</a></li>
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_created=created_paginations.next_num) }}#quizzes">&raquo;</a></li>
                                     {% endif %}
                                 </ul>
                             </nav>
@@ -89,7 +97,7 @@
                                 <tbody>
                                     {% for result in taken %}
                                     <tr id="assign-{{result.result.id}}" class="view-row"
-                                        onclick="window.location.href='/quiz_bp/quiz_results/{{result.quiz.id}}/{{result.user.id}}';"
+                                        onclick="window.location.href='/quiz_bp/quiz_results/{{result.result.id}}';"
                                         onmouseover="this.style.backgroundColor='#efe8ff'; this.style.cursor='pointer';"
                                         onmouseout="this.style.backgroundColor='';;this.style.color= ''">
                                         <td>{{result.quiz.name}}</td>
@@ -107,16 +115,22 @@
                             {% endif %}
                             <nav>
                                 <ul class="pagination">
-                                    {% if taken_paginations.has_prev %}
-                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_taken=taken_paginations.prev_num) }}#results">Previous</a></li>
+                                    {% if taken_paginations.has_prev() %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_taken=taken_paginations.prev_num) }}#results">&laquo;</a></li>
                                     {% endif %}
-                                    {% for page_num in taken_paginations.iter_pages() %}
+                                    {% for page_num in taken_paginations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                                     <li class="page-item {% if page_num == taken_paginations.page %}active{% endif %}">
+                                        {% if page_num %}
                                         <a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_taken=page_num) }}#results">{{ page_num }}</a>
+                                        {% else %}
+                                        <span class="page-link">...</span>
+                                        {% endif %}
                                     </li>
                                     {% endfor %}
-                                    {% if taken_paginations.has_next %}
-                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_taken=taken_paginations.next_num) }}#results">Next</a></li>
+                           
+
+                                    {% if taken_paginations.has_next() %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_taken=taken_paginations.next_num) }}#results">&raquo;</a></li>
                                     {% endif %}
                                 </ul>
                             </nav>
@@ -154,21 +168,26 @@
                                 <nav>
                                     <ul class="pagination">
                                         {% if given_paginations.has_prev %}
-                                        <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=given_paginations.prev_num) }}#studentResults">Previous</a></li>
+                                        <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=given_paginations.prev_num) }}#studentResults">&laquo;</a></li>
                                         {% endif %}
-                                        {% for page_num in given_paginations.iter_pages() %}
+                                        {% for page_num in given_paginations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                                         <li class="page-item {% if page_num == given_paginations.page %}active{% endif %}">
-                                            <a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=page_num) }}#studentResults">{{ page_num }}</a>
+                                            {% if page_num %}
+                                                <a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=page_num) }}#studentResults">{{ page_num }}</a>
+                                            {% else %}
+                                                <span class="page-link">...</span>
+                                            {% endif %}
                                         </li>
                                         {% endfor %}
                                         {% if given_paginations.has_next %}
-                                        <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=given_paginations.next_num) }}#studentResults">Next</a></li>
+                                        <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_overview', page_given=given_paginations.next_num) }}#studentResults">&raquo;</a></li>
                                         {% endif %}
                                     </ul>
                                 </nav>
                             </nav>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -176,7 +195,66 @@
 </div>
 
 </div>
+<div class="toast-container position-fixed bottom-0 start-0 p-3"  style="z-index: 1100" id="myToast">
 
+        {% if quizzes_to_be_taken |length > 0 %}
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header">
+            <strong class="me-auto">New quizzes</strong>
+            <small class="text-muted"></small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <div class="toast-body">
+            <button class="mx-2 btn btn-generate" data-bs-toggle="modal" data-bs-target="#testModal" alt="shared decks"
+              style="cursor: pointer">
+              Take quiz
+            </button>
+          </div>
+        </div>
+
+    {% endif %}
+</div>
+<div class="modal fade" id="testModal" tabindex="-1" aria-labelledby="#testModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header modal-header-style p-4">
+          <h5 class="modal-title" id="testModalLabel" >Tests</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            {% for quiz in quizzes_to_be_taken %}
+            <div id="testCard_{{ quiz.id }}" class="col-sm-6">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Name: {{quiz.name}}</h5>
+                  <p class="card-text">Description: {{quiz.description}}</p>
+                  <p class="card-text">Due date: {{quiz.due_date}}</p>
+                  <p class="card-text">Marks: {{quiz.points}}</p>
+                  <p class="card-text">Number of questions: {{quiz.num_questions}}</p>
+                  <p class="card-text">Instructions: {{quiz.instructions}}</p>
+                  <a href="/quiz_bp/take_quiz/{{quiz.id}}/{{current_user.id}}" class="mx-2" style="cursor: pointer;">
+                    Click here to take the quiz
+                  </a>
+                  <a href="#" class="mx-2" onclick="rejectTest('{{quiz.id}}', '{{current_user.id}}');"><img src="/static/reject-icon.png" class ="img-grow" alt="Reject AI generated quiz" style="max-width:40px; max-height:40px;"></a> <!-- Added delete button -->
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var toastElements = document.querySelectorAll('.toast');
+      toastElements.forEach(function (toastElement) {
+        var toast = new bootstrap.Toast(toastElement);
+        toast.show();
+      });
+    });
+  </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var hash = window.location.hash;

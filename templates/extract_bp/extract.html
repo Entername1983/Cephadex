@@ -242,7 +242,7 @@
                 <div class = "box_study p-3">
                 <div class="row">
                     <div class="col-md-6" id = "tour-input">
-                        <h5 class="mb-3">Type of input</h5>
+                        <h5 class="mb-3">Choose a type of input</h5>
                         <h6 class="mb-1">Either upload a file</h6>
                         <div class="input-group">
                             {{form.file(id="file-input", class="form-control")}}
@@ -548,6 +548,7 @@
     $(document).ready(function() {
       // Define the tooltip texts for each radio button option
       var tooltipTexts = {
+        'Mix': 'A mix of definitions and multiple choice questions',
         'Definitions': 'Create definitions for key terms',
         'Mcq': 'Multiple choice questions',
         'Translate': 'Translate key terms',

@@ -14,7 +14,7 @@
         
          <div class="card box-manager mt-4">
           <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
-            <a href="/quiz_bp/quiz_result_details">
+            <a href="/quiz_bp/quiz_overview">
               <img src="\static\go-back-icon.png" class="img-grow" style="max-width:35px; max-height:35px;" alt="Return to quizzes" class="return-icon" title="Return to quizzes">
             </a>
             <a href="#" class="mx-2"
@@ -43,7 +43,7 @@
           onmouseover="this.style.backgroundColor='#f2f2f2'" 
           onmouseout="this.style.backgroundColor=''">
             <td>{{result.taker.last_name}}, {{result.taker.first_name}}</td>
-            <td>{{ result.result.end_time }}</td>
+            <td class="end-time">{{ result.result.end_time }}</td>
             <td>{{ result.result.points}}  </td>
           </tr>
         {% endfor %}
@@ -52,7 +52,7 @@
 <nav>
   <ul class="pagination">
       {% if results.has_prev %}
-      <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_result_details', quiz_id = quiz.id, page=results.prev_num) }}">Previous</a></li>
+      <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_result_details', quiz_id = quiz.id, page=results.prev_num) }}">&laquo;</a></li>
       {% endif %}
       {% for page_num in results.iter_pages() %}
       <li class="page-item {% if page_num == results.page %}active{% endif %}">
@@ -60,10 +60,35 @@
       </li>
       {% endfor %}
       {% if results.has_next %}
-      <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_result_details', quiz_id = quiz.id,page=results.next_num) }}">Next</a></li>
+      <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.quiz_result_details', quiz_id = quiz.id,page=results.next_num) }}">&raquo;</a></li>
       {% endif %}
   </ul>
 </nav>
 </div>
 </div>
+
+
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const endTimeElements = document.querySelectorAll('.end-time');
+        endTimeElements.forEach(element => {
+        const utcDate = new Date(element.textContent + 'Z');
+        element.textContent = toLocalISOString(utcDate);
+    });
+});
+function toLocalISOString(date) {
+    console.log("converting UTC to local time");
+    const offset = date.getTimezoneOffset();
+    const adjustedDate = new Date(date.getTime());
+
+    // Format to YYYY-MM-DDTHH:mm format
+    let YYYY = adjustedDate.getFullYear();
+    let MM = String(adjustedDate.getMonth() + 1).padStart(2, '0');  // months are 0-indexed in JS
+    let DD = String(adjustedDate.getDate()).padStart(2, '0');
+    let HH = String(adjustedDate.getHours()).padStart(2, '0');
+    let mm = String(adjustedDate.getMinutes()).padStart(2, '0');
+    
+    return `${YYYY}-${MM}-${DD}T${HH}:${mm}`;
+}
+</script>
 {% endblock %}

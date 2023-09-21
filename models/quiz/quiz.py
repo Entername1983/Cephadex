@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from run.extensions import db
 from models.association_tables import questions
 from models.quiz.question import Question
@@ -12,7 +12,7 @@ class Test(db.Model):
     subject = db.Column(db.String(50))
     topic = db.Column(db.String(50))
     time_created = db.Column(db.DateTime, default=datetime.utcnow)
-    due_date = db.Column(db.DateTime, default=datetime.utcnow)
+    due_date = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(days=7))
     questions = db.relationship('Question', secondary=questions)
     creator = db.Column(db.Integer, db.ForeignKey('user.id',
                                                    ondelete='SET NULL'), nullable=True)

@@ -194,7 +194,7 @@
     </div>
     <ul class=" my-1 pagination">
         {% if paginated_cards.has_prev %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.card_viewer', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.card_viewer', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&laquo;</a></li>
         {% endif %}
         {% for page_num in paginated_cards.iter_pages() %}
             <li class="page-item {% if page_num ==paginated_cards.page %}active{% endif %}">
@@ -206,7 +206,7 @@
             </li>
         {% endfor %}
         {% if paginated_cards.has_next %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.card_viewer', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.card_viewer', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&raquo;</a></li>
         {% endif %}
     </ul>
     <script>

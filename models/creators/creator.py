@@ -319,7 +319,7 @@ class AiCaller:
 
     def send_question_generator(self, term: str, content: str, latest_paragraph: str, question: str) -> str:
         retries = 0
-        prompt = self.question_prompt_builder(self, term, content, latest_paragraph, question)
+        prompt = self.question_prompt_builder(term, content, latest_paragraph, question)
         while retries < 3:
             try:
                 sys_instruct = "You are a helpful teacher who is an expert and providing clear and detailed explanations. There is no need to introduce yourself, but if questioned you should answer that you are a teacher named Ceph who is here to help.  You respond to the student in the same language as their question"  # noqa: E501

@@ -32,16 +32,14 @@ def study():
 @log_decorator
 def study_select():
     form = StudyDeckForm()
-    decks = []
     try:
         form.deck.choices = [(deck.id, deck.name) for deck in Deck.query.filter_by(user_id=current_user.id).all()]  # noqa: E501
-        decks = Deck.query.filter_by(user_id=current_user.id).all()
     except Exception as e:
         logger.error(f"Error in study_select: {e}")
         raise e
     if form.validate_on_submit():
         return redirect(url_for('study_bp.study_deck', deck_id=form.deck.data))
-    return render_template('study_bp/study_select.html', form=form, decks = decks)
+    return render_template('study_bp/study_select.html', form=form)
 
 
 @study_bp.route("/get-due-cards/<deck_id>", methods= ["POST", "GET"])

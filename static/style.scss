@@ -15,7 +15,7 @@ $cepha_401: #a0a8f7;
 
 
 $cepha_5: #54FFF1;
-$cepha_505: #a0f9f9;
+$cepha_505: #aadddd;
 
 
 $cepha_9999: #b6e2e2;
@@ -208,9 +208,9 @@ $btn-white-space: nowrap;
     border: 10px solid !important;
     align-content: center !important;
     background-color: $backgroundC !important;
-    border-width:1px !important;
+    border-width:3px !important;
     border-radius: 5px !important;
-    border-color: $cepha_1 !important;
+    border-color: $cepha_101 !important;
     align-self: center !important;
     color: $textC !important;
 }
@@ -258,13 +258,12 @@ footer {
 }
 
 .correct-selected {
-    background-color: $cepha_5!important;
+    background-color: #DFFFD9!important;
     color: black !important;
 
 }
 .incorrect-selected {
-    background-color: $cepha_3 !important;
-    color: $cepha_6 !important;
+    background-color: #ffe6e6 !important;
 }
 
 .deck_t
@@ -879,9 +878,9 @@ button:disabled {
   min-height: 50vh;
   height: 100%;
   width: 100%;
-  background-color: $cepha_5;
+  background-color: $cepha_505;
   border-radius: 10px;
-  border: 4px solid $cepha_4;
+  border: 4px solid $cepha_401;
   box-shadow: 4px 4px 6px rgba(135, 111, 240, 0.5);
   transition: all 0.3s ease;
   padding: 5px;
@@ -926,8 +925,8 @@ button:disabled {
   border-style: solid;
   border-radius: 10px;
   border-width: 2px;
-  border-color: $cepha_4;
-  color: $cepha_4;
+  border-color: $cepha_401;
+  color: $cepha_401;
 
 }
 
@@ -943,7 +942,7 @@ button:disabled {
   border-style: solid;
   border-radius: 10px;
   border-width: 2px;
-  border-color: $cepha_4;
+  border-color: $cepha_401;
   overflow-y: auto; /* Always show the scrollbar and hide overflowing content */
   overflow-anchor: none;
   scrollbar-width: thin; 
@@ -966,7 +965,7 @@ button:disabled {
   overflow: hidden;
   border-style: solid;
   border-width: 2px;
-  border-color: $cepha_4;
+  border-color: $cepha_401;
 }
 
 
@@ -975,7 +974,7 @@ button:disabled {
   height: 100%;
   background-color: $cepha_6;
   border-radius: 5px;
-  border: 2px solid $cepha_4;
+  border: 2px solid $cepha_401;
   padding: 5px;
   transition: all 0.3s ease;
   display: flex;
@@ -986,7 +985,7 @@ button:disabled {
 }
 
 .chat-field:hover {
-  border-color: $cepha_4;
+  border-color: $cepha_401;
   background-color: $cepha_101;
 }
 .chat-field-send {
@@ -994,7 +993,7 @@ button:disabled {
   height: 100%;
   border-radius: 5px;
   background-color: $cepha_6;
-  border: 2px solid $cepha_4;
+  border: 2px solid $cepha_401;
   padding: 2px;
   transition: all 0.3s ease;
   display: flex;
@@ -1010,7 +1009,7 @@ button:disabled {
 
 .chat-field-send:hover {
   background-color: $cepha_101;
-  border-color: $cepha_4;
+  border-color: $cepha_401;
 
 }
 .btn-chat-container {
@@ -1024,8 +1023,8 @@ button:disabled {
   max-width: 200px;
   height: 50px;
   border-radius: 15px;
-  background-color: $cepha_5;
-  border: 2px solid $cepha_4;
+  background-color: $cepha_505;
+  border: 2px solid $cepha_401;
   padding: 2px;
   transition: all 0.3s ease;
   justify-content: center;
@@ -1038,8 +1037,8 @@ button:disabled {
 .btn-chat:hover {
   font-size: 13px;
   border-radius: 15px;
-  background-color: $cepha_4;
-  border: 2px solid $cepha_4;
+  background-color: $cepha_401;
+  border: 2px solid $cepha_401;
   color: $cepha_5;
   padding: 2px;
   transition: all 0.3s ease;
@@ -1080,7 +1079,7 @@ button:disabled {
   width: 100%;
   overflow-anchor: none;
   scrollbar-width: thin; 
-  border: 2px, solid, $cepha_1;
+  border: 2px, solid, $cepha_105;
 }
 .message-row {
   display: flex;
@@ -1401,7 +1400,7 @@ button:disabled {
   flex-direction: column;
   margin-top: 10px;
   border: solid;
-  border-color: $cepha_1;
+  border-color: $cepha_105;
   border-width: 5px;
   border-radius: 15px;
   padding: 5px;
@@ -1418,7 +1417,7 @@ button:disabled {
   text-align: center;
   top: 0;
   border: solid;
-  border-color: $cepha_1;
+  border-color: $cepha_105;
   border-width: 1px;
   background-color: $cepha_6;
   border-radius: 10px;
@@ -1464,13 +1463,13 @@ button:disabled {
 
 .mcq-button {
   width: 100%;
-  border-color:$cepha_1;
+  border-color:$cepha_105;
   border-width: 3px;
   border-radius: 10px;
   background-color: $cepha_6;
 }
 .mcq-button:hover {
-  transform: scale(1.02);
+  transform: scale(1.01);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   background-color: $cepha_101;
   border-color: $cepha_1;
@@ -1565,7 +1564,7 @@ button:disabled {
 /// 
 .study-dash {
   border: solid;
-  border-color: $cepha_1;
+  border-color: $cepha_105;
   border-width: 3px;
   background-color: $cepha_6;
   border-radius: 10px;

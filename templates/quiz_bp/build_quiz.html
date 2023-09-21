@@ -74,10 +74,10 @@ main_0 %}
     <div class=" m-1">
         <div class="row">
             <div class="col-2 d-flex justify-content-center align-items-center">
-                <!-- <div class="p-2">
-                    <input type="checkbox" class="" id="check-all" />
-                    <label class="form-label" for="check-all">Select All</label>
-                </div> -->
+                <div class="p-2">
+                    <input type="checkbox" class="" id="check-all" name="check-all" />
+                    <label class="form-label" for="check-all">Select all cards in deck</label>
+                </div>
             </div>
             <div class="col-6 d-flex justify-content-center align-items-center">
                 <h2 style="color:#6019FF;">Quiz Maker</h2>
@@ -90,10 +90,10 @@ main_0 %}
                     onclick="return validateForm()">
                     </div>
                     <div class = "row d-flex justify-content-end">
-                <div class="form-check form-switch" title ="Turns definitions into jeapordy style questions" id="tour-jeopardy">
-                    <input class="form-check-input" type="checkbox" role="switch" name = "jeopardyMode" id="jeopardyMode" >
-                    <label class="form-check-label" for="jeopardyMode">Jeopardy</label>
-                  </div>
+                        <div class="form-check form-switch" title="Turns definitions into jeopardy style questions" id="tour-jeopardy">
+                            <input class="form-check-input" type="checkbox" role="switch" name="jeopardyMode" id="jeopardyMode">
+                            <label class="form-check-label" for="jeopardyMode" data-toggle="tooltip" title="Ticking this box will make it so the definition is given as a question and the expected answer is the term.">Jeopardy</label>
+                        </div>
 
 
                     </div>
@@ -273,7 +273,7 @@ main_0 %}
         </form>
         <ul class="pagination">
             {% if paginated_cards.has_prev %}
-            <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.build_quiz', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+            <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.build_quiz', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&laquo;</a></li>
             {% endif %}
             {% for page_num in paginated_cards.iter_pages() %}
                 <li class="page-item {% if page_num ==paginated_cards.page %}active{% endif %}">
@@ -285,7 +285,7 @@ main_0 %}
                 </li>
             {% endfor %}
             {% if paginated_cards.has_next %}
-            <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.build_quiz', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.build_quiz', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&raquo;</a></li>
             {% endif %}
         </ul>
     </div>
@@ -347,6 +347,11 @@ main_0 %}
         }
         return true;
     }
+</script>
+
+<script>$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();   
+});
 </script>
 
 {% endblock %}

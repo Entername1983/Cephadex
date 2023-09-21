@@ -85,6 +85,7 @@
 
 
 <div class="container-fluid">
+    
     <div class="row">
         <div class="col-md-6 d-none d-sm-block text-center d-flex justify-content-center align-items-center ">
             <h1 class="my-2 hcepha1">{{ deck.name }} </h1>
@@ -130,6 +131,14 @@
                 </div>
             </div>
         </div>
+        <div class="my-1" id="progress-container" style="display: none;">
+            <h6 style = "color: #6019FF">
+              🤖Your cards are being created... beep..beep..boop...beep...</h6>
+            <div class="progress ">
+              <div id="progress-bar" class="progress-bar progress-bar-striped  progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                aria-valuemax="100"></div>
+            </div>
+          </div>
     </div>
     <div >
         <div id = "tour-collapse" class = "row mt-2 ">
@@ -273,9 +282,9 @@
     </div>
     <ul class=" my-1 pagination">
         {% if paginated_cards.has_prev %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.deck_manager', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.deck_manager', deck_id=deck.id, page=paginated_cards.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&laquo;</a></li>
         {% endif %}
-        {% for page_num in paginated_cards.iter_pages() %}
+        {% for page_num in paginated_cards.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
             <li class="page-item {% if page_num ==paginated_cards.page %}active{% endif %}">
                 {% if page_num %}
                     <a class="page-link" href="{{ url_for('deck_bp.deck_manager', deck_id=deck.id, page=page_num) }}">{{ page_num }}</a>
@@ -285,7 +294,7 @@
             </li>
         {% endfor %}
         {% if paginated_cards.has_next %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.deck_manager', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.deck_manager', deck_id=deck.id, page=paginated_cards.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&raquo;</a></li>
         {% endif %}
     </ul>
 

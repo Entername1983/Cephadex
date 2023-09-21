@@ -182,16 +182,26 @@ def query():
             }
         )
 
-
+@app.route("/has-session-notification", methods=["GET"])
+@login_required
+def has_session():
+    print("calling has session notification")
+    if 'slug' in session:
+        return jsonify({"hasSession": True})
+    else:
+        return jsonify({"hasSession": False})
+    
 @app.route("/notification_complete", methods=["POST"])
 @login_required
 def notification_complete():
     slug_id= request.form["id"]
     slug = JobNotification.query.filter_by(slug=slug_id).first()
+    session.pop('slug', None)
+
     if job_error_checker(slug.slug):
-            session.pop('slug', None)
-            db.session.commit()
-            return jsonify("error")
+        slug.state = 'error'
+        db.session.commit()
+        return jsonify("error")
     if slug.state == 'ready':
         session.pop('slug', None)
         slug.state = 'notified'
@@ -200,8 +210,6 @@ def notification_complete():
             send_email(current_user.email, current_user.first_name,'deck_ready')
         except Exception as e:
             logger.error("error sending email", e)
-        session.pop('slug', None)
-
         return jsonify("success")
  
 

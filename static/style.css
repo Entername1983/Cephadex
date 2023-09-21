@@ -116,9 +116,9 @@
   border: 10px solid !important;
   align-content: center !important;
   background-color: white !important;
-  border-width: 1px !important;
+  border-width: 3px !important;
   border-radius: 5px !important;
-  border-color: #6019FF !important;
+  border-color: #efe8ff !important;
   align-self: center !important;
   color: #2D3142 !important;
 }
@@ -161,13 +161,12 @@ footer {
 }
 
 .correct-selected {
-  background-color: #54FFF1 !important;
+  background-color: #DFFFD9 !important;
   color: black !important;
 }
 
 .incorrect-selected {
-  background-color: #27007D !important;
-  color: #ffffff !important;
+  background-color: #ffe6e6 !important;
 }
 
 .deck_t {
@@ -736,9 +735,9 @@ button:disabled {
   min-height: 50vh;
   height: 100%;
   width: 100%;
-  background-color: #54FFF1;
+  background-color: #aadddd;
   border-radius: 10px;
-  border: 4px solid #10003B;
+  border: 4px solid #a0a8f7;
   box-shadow: 4px 4px 6px rgba(135, 111, 240, 0.5);
   transition: all 0.3s ease;
   padding: 5px;
@@ -778,8 +777,8 @@ button:disabled {
   border-style: solid;
   border-radius: 10px;
   border-width: 2px;
-  border-color: #10003B;
-  color: #10003B;
+  border-color: #a0a8f7;
+  color: #a0a8f7;
 }
 
 .chat-body {
@@ -794,7 +793,7 @@ button:disabled {
   border-style: solid;
   border-radius: 10px;
   border-width: 2px;
-  border-color: #10003B;
+  border-color: #a0a8f7;
   overflow-y: auto; /* Always show the scrollbar and hide overflowing content */
   overflow-anchor: none;
   scrollbar-width: thin;
@@ -815,7 +814,7 @@ button:disabled {
   overflow: hidden;
   border-style: solid;
   border-width: 2px;
-  border-color: #10003B;
+  border-color: #a0a8f7;
 }
 
 .chat-field {
@@ -823,7 +822,7 @@ button:disabled {
   height: 100%;
   background-color: #ffffff;
   border-radius: 5px;
-  border: 2px solid #10003B;
+  border: 2px solid #a0a8f7;
   padding: 5px;
   transition: all 0.3s ease;
   display: flex;
@@ -834,7 +833,7 @@ button:disabled {
 }
 
 .chat-field:hover {
-  border-color: #10003B;
+  border-color: #a0a8f7;
   background-color: #efe8ff;
 }
 
@@ -843,7 +842,7 @@ button:disabled {
   height: 100%;
   border-radius: 5px;
   background-color: #ffffff;
-  border: 2px solid #10003B;
+  border: 2px solid #a0a8f7;
   padding: 2px;
   transition: all 0.3s ease;
   display: flex;
@@ -856,7 +855,7 @@ button:disabled {
 
 .chat-field-send:hover {
   background-color: #efe8ff;
-  border-color: #10003B;
+  border-color: #a0a8f7;
 }
 
 .btn-chat-container {
@@ -870,8 +869,8 @@ button:disabled {
   max-width: 200px;
   height: 50px;
   border-radius: 15px;
-  background-color: #54FFF1;
-  border: 2px solid #10003B;
+  background-color: #aadddd;
+  border: 2px solid #a0a8f7;
   padding: 2px;
   transition: all 0.3s ease;
   justify-content: center;
@@ -884,8 +883,8 @@ button:disabled {
 .btn-chat:hover {
   font-size: 13px;
   border-radius: 15px;
-  background-color: #10003B;
-  border: 2px solid #10003B;
+  background-color: #a0a8f7;
+  border: 2px solid #a0a8f7;
   color: #54FFF1;
   padding: 2px;
   transition: all 0.3s ease;
@@ -900,7 +899,7 @@ button:disabled {
   max-height: 400px;
   border-radius: 10px;
   background-color: #ffffff !important;
-  border: 3px solid #a0f9f9;
+  border: 3px solid #aadddd;
   padding: 5px;
   transition: all 0.3s ease;
   overflow: auto;
@@ -926,7 +925,7 @@ button:disabled {
   width: 100%;
   overflow-anchor: none;
   scrollbar-width: thin;
-  border: 2px, solid, #6019FF;
+  border: 2px, solid, #a880fd;
 }
 
 .message-row {
@@ -1223,7 +1222,7 @@ button:disabled {
   flex-direction: column;
   margin-top: 10px;
   border: solid;
-  border-color: #6019FF;
+  border-color: #a880fd;
   border-width: 5px;
   border-radius: 15px;
   padding: 5px;
@@ -1239,7 +1238,7 @@ button:disabled {
   text-align: center;
   top: 0;
   border: solid;
-  border-color: #6019FF;
+  border-color: #a880fd;
   border-width: 1px;
   background-color: #ffffff;
   border-radius: 10px;
@@ -1279,14 +1278,14 @@ button:disabled {
 
 .mcq-button {
   width: 100%;
-  border-color: #6019FF;
+  border-color: #a880fd;
   border-width: 3px;
   border-radius: 10px;
   background-color: #ffffff;
 }
 
 .mcq-button:hover {
-  transform: scale(1.02);
+  transform: scale(1.01);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   background-color: #efe8ff;
   border-color: #6019FF;
@@ -1376,7 +1375,7 @@ button:disabled {
 
 .study-dash {
   border: solid;
-  border-color: #6019FF;
+  border-color: #a880fd;
   border-width: 3px;
   background-color: #ffffff;
   border-radius: 10px;

@@ -269,9 +269,9 @@
   </div>
       <ul class="pagination">
         {% if decks_paginated.has_prev %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.view_decks', page=decks_paginated.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.view_decks', page=decks_paginated.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&laquo;</a></li>
         {% endif %}
-        {% for page_num in decks_paginated.iter_pages() %}
+        {% for page_num in decks_paginated.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
             <li class="page-item {% if page_num == decks_paginated.page %}active{% endif %}">
                 {% if page_num %}
                     <a class="page-link" href="{{ url_for('deck_bp.view_decks', page=page_num) }}">{{ page_num }}</a>
@@ -281,7 +281,8 @@
             </li>
         {% endfor %}
         {% if decks_paginated.has_next %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('deck_bp.view_decks', page=decks_paginated.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('deck_bp.view_decks', page=decks_paginated.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&raquo;</a></li>
         {% endif %}
     </ul>
   <script>
@@ -674,9 +675,16 @@ function shareToSocialMedia(platform, deck_id) {
     header.setAttribute("data-sort", order === 'asc' ? 'desc' : 'asc');
   }
 </script> -->
-<script>
+<!-- <script>
+  $(document).ready(function() {
+    $.get("/has-session-notification", function(data) {
+        if (data.hasSession) {
+            // Start your polling logic here
+            updateProgress();
+        }
+    });
+});
   function updateProgress() {
-
     $.post("/query",
       { id: slug_id },
       function (data) {
@@ -697,10 +705,7 @@ function shareToSocialMedia(platform, deck_id) {
       });
   }
 
-  $(document).ready(function () {
-    updateProgress();
-  });
-</script>
+</script> -->
 
 
 

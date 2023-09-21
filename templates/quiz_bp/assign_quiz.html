@@ -116,7 +116,7 @@ main_0 %}
 
 <div class="" id="collap">
     <div class="container-fluid box-manager" style="background-color:#efe8ff; padding-top: 4px!important; padding-bottom: 4px!important;">
-        <form action="" method="POST">
+        <form id="quiz-attributes-form" action="" method="POST">
             {{ form.hidden_tag() }}
             <div class="row my-3 d-flex justify-content-start">
                 <div class="d-flex">
@@ -171,8 +171,11 @@ main_0 %}
                         
                         <div class="form-floating">
                             <input name="due_date" class=" form-control" type="datetime-local"
-                                id="due_date" placeholder="{{quiz.due_date}}" value="{{quiz.due_date}}">
-                            <label for="due_date">Due date</label>
+                                id="due_date" placeholder="{{quiz.due_date.isoformat()}}" value="{{quiz.due_date.isoformat()}}" data-utc-datetime="{{quiz.due_date.isoformat()}}">
+                            
+                            
+                            
+                                <label for="due_date">Due date</label>
                         </div>
                     </div>
                 </div>
@@ -555,7 +558,7 @@ main_0 %}
             {% endfor %}
             <ul class="pagination">
                 {% if paginated_questions.has_prev %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id, page=paginated_questions.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Previous</a></li>
+                <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id, page=paginated_questions.prev_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&laquo;</a></li>
                 {% endif %}
                 {% for page_num in paginated_questions.iter_pages() %}
                     <li class="page-item {% if page_num ==paginated_questions.page %}active{% endif %}">
@@ -567,7 +570,7 @@ main_0 %}
                     </li>
                 {% endfor %}
                 {% if paginated_questions.has_next %}
-                <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id, page=paginated_questions.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="{{ url_for('quiz_bp.assign_quiz', quiz_id=quiz.id, page=paginated_questions.next_num, sort=request.args.get('sort'), search=request.args.get('search')) }}">&raquo;</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -717,7 +720,7 @@ main_0 %}
     </script>
 
 
-<script data-cookie-consent="strictly-necessary">
+<!-- <script data-cookie-consent="strictly-necessary">
 
     $(document).ready(function () {
         $('.question-form input, .question-form textarea').on('change', function () {
@@ -754,7 +757,42 @@ main_0 %}
             });
         });
     });
+</script> -->
+<script>
+window.addEventListener('DOMContentLoaded', (event) => {
+    const datetimeInput = document.getElementById('due_date');
+    const utcTime = new Date(datetimeInput.getAttribute('data-utc-datetime') + 'Z');
+    datetimeInput.value = toLocalISOString(utcTime);
+    console.log("utcTime", utcTime)
+    console.log("datetimeInputvalue", datetimeInput)
+    
+    document.getElementById('quiz-attributes-form').addEventListener('submit', function(event) {
+        const datetimeInput = document.getElementById('due_date');
+        console.log("Before conversion:", datetimeInput.value); 
+        datetimeInput.value = toUTCISOString(new Date(datetimeInput.value));
+        console.log("After conversion:", datetimeInput.value); 
+    });
+});
+
+function toLocalISOString(date) {
+    console.log("converting UTC to local time")
+    const offset = date.getTimezoneOffset();
+    const adjustedDate = new Date(date.getTime() - offset * 60000);
+    return adjustedDate.toISOString().slice(0, -1);
+}
+
+function toUTCISOString(date) {
+    console.log("converting local to UTC");
+    const offset = date.getTimezoneOffset();
+    const adjustedDate = new Date(date.getTime());
+    return adjustedDate.toISOString().slice(0, -1);
+}
+
 </script>
+
+
+
+
 
 
 <script>
@@ -775,7 +813,7 @@ main_0 %}
     });
 
 
-    </script>
+</script>
 <script>
     $(document).ready(function () {
         $('input[data-value], textarea[data-value]').each(function () {
