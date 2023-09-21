@@ -165,24 +165,47 @@
     });
     </script>
 <script>
-    $(document).ready(function(){
+$(document).ready(function() {
+    
+    // Get the input fields and error message divs
+    var textInput = $("#text-input");
+    var fileInput = $("#file-input");
+    var linkInput = $("#link-input");
+    var errorMessageText = $("#error-message-text");
+    var errorMessage = $("#error-message");
 
-    // Get the input field and error message div
-    var inputField = document.getElementById("text-input");
-    var errorMessage = document.getElementById("error-message-text");
-
-    // Add an event listener to the input field that triggers whenever its content changes
-    inputField.addEventListener("change", function() {
-        // Check if the input field's content has less than 50 characters
-        if(inputField.value.length < 50) {
-            // If it has, display an error message
-            errorMessage.textContent = "Please enter at least 50 characters.";
-            errorMessage.style.color = "red";
+    function validateSingleInput() {
+        // Count number of filled inputs
+        var filledCount = 0;
+        if (textInput.val()) filledCount++;
+        if (fileInput.val()) filledCount++;
+        if (linkInput.val()) filledCount++;
+        
+        // If more than one input is filled, display an error message
+        if (filledCount > 1) {
+            errorMessage.text("Only use one type of input at a time");
         } else {
-            // If it doesn't, clear the error message
-            errorMessage.textContent = "";
+            errorMessage.text("");
         }
+    }
+
+    // Add event listeners for changes in each input field
+    textInput.on("change", function() {
+        // Your existing validation
+        if (textInput.val().length < 50) {
+            errorMessageText.text("Enter at least 50 characters");
+            errorMessageText.css("color", "red");
+        } else {
+            errorMessageText.text("");
+        }
+
+        // Validate for single input
+        validateSingleInput();
     });
+
+    fileInput.on("change", validateSingleInput);
+    linkInput.on("change", validateSingleInput);
+
 });
 </script>
 
@@ -243,10 +266,11 @@
                 <div class="row">
                     <div class="col-md-6" id = "tour-input">
                         <h5 class="mb-3">Choose a type of input</h5>
+                        <div style="color:red" id="error-message"></div>
+
                         <h6 class="mb-1">Either upload a file</h6>
                         <div class="input-group">
                             {{form.file(id="file-input", class="form-control")}}
-                            <div style="color:red" id="error-message"></div>
 
                         </div>
 
@@ -357,7 +381,7 @@
                                       </div>
                                     </div>
                                     <div id="warning-message" class="alert alert-warning" style="display: none;">
-                                        Please select only one option between "Create summary" and "Create study notes".
+                                        Select only one option between "Create summary" and "Create study notes".
                                       </div>
                                   </div>
                                   
