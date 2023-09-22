@@ -13,16 +13,17 @@
     <source src="/static/game-beat-1.mp3" type="audio/mpeg">
 </audio>
 
+
 <div class="container-fluid">
     <div class="row text-center mb-4">
-        <h1 class="display-3 hcepha1">Cepha-Flex</h1>
+        <h1 class="display-3" style="color: #6019FF; text-shadow: 2px 2px 4px #a880fd;">Cepha-Flex</h1>
     </div>
     <div class="row justify-content-center mb-4">
         <div class="col-md-2 text-center">
-            <h5>Timer: <span id="timer"></span></h5>
+            <h5 style="color: #6019FF;">Timer: <span id="timer"></span></h5>
         </div>
         <div class="col-md-3 text-center">
-            <h5>Round: <span id="round">0</span></h5>
+            <h5 style="color: #6019FF;">Round: <span id="round">0</span></h5>
         </div>
         <div class="col-md-4 text-center">
                         <button class="btn btn-primary" id="musicButton">Play Music</button>
@@ -38,12 +39,12 @@
     </div>
     <div class="row">
         <div class="col-md-8">
-            <h2 class="text-center"id="game-over-text">Game board</h2>
+            <h2 class="text-center" id="game-over-text" style="color: #6019FF; text-shadow: 1px 1px 3px #a880fd;">Game board</h2>
             <div id="game-board" class="card box-manager p-3 mb-4" style="min-height:400px;">
                 <div id="game-over" style="display:none;">
                     
                     <div id="scoreboard" class="container">
-                        <h2>Final Scoreboard</h2>
+                        <h2 style="color: #6019FF; text-shadow: 1px 1px 3px #a880fd;">Final Scoreboard</h2>
                         <ul id="scoreboard-list" class="list-group"></ul>
                       </div>
                 </div>
@@ -65,15 +66,17 @@
             </div>
         </div>
         <div class="col-md-4">
-            <h2 class="text-center">Players</h2>
-            <div class="box-manager p-5" id="game-scores" style="min-height:400px;">
+            <h2 class="text-center" style="color: #6019FF; text-shadow: 1px 1px 3px #a880fd;">Players</h2>
+            <div class="box-manager p-5" id="game-scores" style="min-height:400px; background-color: #f5f2fc; box-shadow: 0px 4px 10px rgba(96, 25, 255, 0.2);">
+
                 <ul id ="player-list" class="list-group">
+
                     {% for player in players %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <h6>{{ player.username }}</h6>
                             <span class="badge bg-info badge-pill score" id="score_{{player.player_id}}"></span>
                             {% if game.creator == current_user.id %}
-                                <button class="btn btn-small btn-danger" onclick="removePlayer('{{player.player_id}}')">Remove</button>
+                            <button class="btn btn-small" onclick="removePlayer('{{player.player_id}}')" style="background-color: #FF6700; border: none; border-radius: 10px; box-shadow: 2px 2px 5px rgba(255, 103, 0, 0.5);">Remove</button>
                             {% endif %}
                         </li>
                     {% endfor %}
@@ -82,6 +85,24 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="removedUserModal" tabindex="-1" role="dialog" aria-labelledby="removedUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="removedUserModalLabel">Notification</h5>
+        </div>
+        <div class="modal-body">
+          You have been removed from the game.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 
 <script>
 
@@ -319,24 +340,10 @@ function displayVotes(answers_info) {
 }
 
 
-function endGame() {
-    socket.emit('end_game', {game_id: gameId});
-    endGameScores();
-}
-
-
-function checkEndGame(round) {
-    totalRounds = {{ game.rounds }} + 1;
-    if (round === totalRounds) {
-        endGame();
-    }
-}
-
 socket.on('player_left', function(data) {
     // Remove the player from the list
-    $("li:contains('" + data.username + "')").remove();
+    $("li:contains('" + data.user_id + "')").remove();
 });
-
 
 
 function removePlayer(playerIdRemoved) {
@@ -345,10 +352,28 @@ function removePlayer(playerIdRemoved) {
 }
 
 socket.on('player_removed', function(data) {
-    console.log('Player removed:', data.playerIdRemoved);
-    // Remove the player from the list
-    $("#score_" + data.player_IdRemoved).parent().remove();
+    console.log('Player removed:', data.player_id);
+    $("#score_" + data.player_id).parent().remove();
 });
+socket.on('user_removed_notification', function(data) {
+    $('#removedUserModal').modal('show');
+});
+
+function checkEndGame(round) {
+    totalRounds = {{ game.rounds }} + 1;
+    if (round === totalRounds) {
+        endGame();
+    }
+}
+
+function endGame() {
+    socket.emit('end_game', {game_id: gameId});
+    endGameScores();
+}
+
+
+
+
 function endGameScores() {
     // Get the player list
     var playerList = $('#player-list li');

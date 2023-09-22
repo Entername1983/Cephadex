@@ -390,9 +390,10 @@ def load_json_string(x:str) -> json:
         processing_logger.info("failed to decode json, trying with double quote")
         json_result, success = try_json_load(fix_end_json_string_double(x))
     if not success:
-        processing_logger.error("Failed to decode JSON")
-        processing_logger.error(f"First 100 characters:{x[:100]}")
-        processing_logger.error(f"Last 100 characters:{x[-100:]}")
+        processing_logger.info("failed to decode json, trying with truncate after last curly brace")
+        json_result, success = fix_end_json_string_truncate_after_last_curly_brace(x)
+    if not success:
+        processing_logger.error(f"Failed to decode JSON :{x}")
         raise json.JSONDecodeError("Failed to decode JSON", x, 0)
     return json_result
 
@@ -423,4 +424,10 @@ def fix_end_json_string_double(json_string):
         json_string += "]"
     else:
         json_string += '"}]'
+    return json_string
+
+def fix_end_json_string_truncate_after_last_curly_brace(json_string):
+    index_of_last_brace = json_string.rfind('}')
+    if index_of_last_brace != -1:
+        json_string = json_string[:index_of_last_brace + 1] + "]"
     return json_string

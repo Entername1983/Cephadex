@@ -108,7 +108,8 @@ def game_join(game_id):
     game = Game.query.get_or_404(game_id)
     session['game_id'] = game.id
     ## if user is logged in add them to the game
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and current_user.guest is not True:
+        print("authenticated and not guest")
         return redirect(url_for('game_bp.game_lobby', game_id=game.id))
     if request.method == "POST":
         email = request.form.get('email')
@@ -190,6 +191,8 @@ def reveal_answers(game_id):
 @socketio.on('custom_disconnect')
 @log_decorator
 def handle_custom_disconnect(data):
+    print("entered custom disconnect")
+    logger.info("custom disconnect")
     # Get the user and game information from the session
     user_id = session.get('user_id')
     game_id = data['game_id']
@@ -198,6 +201,7 @@ def handle_custom_disconnect(data):
         # Remove the player from the game
         game = Game.query.get_or_404(game_id)
         player = game.get_player(user_id)
+        user_socket_map.pop(user_id, None)
         if player:
             ##game.remove_player(player)
             ##db.session.commit()
@@ -222,6 +226,7 @@ def create_playa(game_id, user_id):
             return new_player
         return existing_player
 
+user_socket_map = {}
 
 @socketio.on('join_game')
 @log_decorator
@@ -229,6 +234,8 @@ def on_join(data):
     #game_id = data['game_id']
     #players_in_game = PlayerGame.query.filter_by(game_id=game_id).first()
     user_id = data['user_id']
+    if user_id:
+        user_socket_map[user_id] = request.sid 
     game_id = data['game_id']
     create_playa(int(game_id), int(user_id))
     join_room(game_id)
@@ -461,11 +468,15 @@ def increase_round(game_id):
 @socketio.on('remove_player')
 @log_decorator
 def on_remove_player(data):
+    print("removing player")
     game_id = data['game_id']
     player_id = data['player_id']
     remove_player(game_id, player_id)
+    print(f"player id: {player_id}")
     emit('player_removed', {'player_id': player_id}, room=game_id)
-
+    socket_id = user_socket_map.get(player_id)
+    if socket_id:
+        emit('user_removed_notification', {'message': 'You have been removed from the game.'}, room=socket_id)
 
 def remove_player(game_id, player_id):
     if player := PlayerGame.query.filter_by(

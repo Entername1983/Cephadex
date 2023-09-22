@@ -275,7 +275,11 @@
         $('#username').on('input', function () {
             var username = $('#username').val();
             var registerBtn = $('#register-btn');
-
+            if (username.length > 20) {
+                $('#username-error').html('Username should be 20 characters or less');
+                registerBtn.prop('disabled', true);
+                return; // Exit early from the function without making the AJAX call
+            }
             console.log(username)
             $.ajax({
                 url: '/user_bp/check_username/' + username,

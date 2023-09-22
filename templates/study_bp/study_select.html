@@ -24,8 +24,12 @@
                         <button type="submit" class="btn btn-generate mb-2">{{ form.submit.label.text }}</button>
                     </form>
                 {% else %}
-                    <div class="alert alert-warning mt-4 mx-auto" role="alert" style="max-width: 400px;">
-                        You don't have any decks. <a href="{{ url_for('extract_bp.extract') }}" class="alert-link">Create a deck</a> first.
+                <div class="card mt-4" role="">
+                    <div class = " p-3 card-body d-flex justify-content-center">
+                    <h5 class="" role="alert" style="max-width: 400px;">
+                        You don't have any decks. <a href="{{ url_for('extract_bp.extract') }}" class="alert-link">Create a deck to study</a>.
+                    </h5>
+                    </div>
                     </div>
                 {% endif %}
             </div>

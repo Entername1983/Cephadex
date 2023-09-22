@@ -77,9 +77,8 @@ def sitemap():
 @app.route("/", methods=["GET", "POST"])
 def index():
     """Home page"""
-    form = TryOut()
-    if not current_user.is_authenticated: # type: ignore
-        return render_template('index.html', form=form)
+    if not current_user.is_authenticated or current_user.guest is True: # type: ignore
+        return render_template('index.html')
     cache_buster = random.randint(1, 999999)
     return redirect(url_for("deck_bp.view_decks")+'?v=' + str(cache_buster))
 
@@ -185,7 +184,6 @@ def query():
 @app.route("/has-session-notification", methods=["GET"])
 @login_required
 def has_session():
-    print("calling has session notification")
     if 'slug' in session:
         return jsonify({"hasSession": True})
     else:

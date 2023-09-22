@@ -7,13 +7,14 @@
 
 {% endblock %}
 {% block main_0 %}
-
-
-<h1>Join Game</h1>
-    <form method="POST">
-        <label for="email">Enter your email:</label>
-        <input type="email" id="email" name="email" required>
-        <input type="submit" value="Join Game">
-    </form>
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <div style="background-color: #f5f2fc; padding: 20px 40px; border-radius: 10px; box-shadow: 0 0 15px #a880fd; width: 300px;">
+        <h5 style="text-align: center; font-size: 2.5rem; margin-bottom: 1.5rem; color: #6019FF;">Enter your email:</h5>
+        <form method="POST">
+            <input type="email" id="email" name="email" required placeholder="Email Address" style="width: 100%; padding: 10px; background-color: #efe8ff; border: 1px solid #a880fd; border-radius: 5px; margin-bottom: 15px; color: #6019FF;">
+            <input type="submit" value="Join Game" style="background-color: #FF6700; color: #f5f2fc; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; display: block; width: 100%; transition: 0.3s;">
+        </form>
+    </div>
+</div>
 
 {% endblock %}

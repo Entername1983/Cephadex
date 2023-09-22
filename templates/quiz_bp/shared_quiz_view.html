@@ -5,204 +5,58 @@
 
 
 {% block main_0 %}
-{% if current_user.is_authenticated %}
-<a id="take-test" class="conversion-button" href="/quiz_bp/take_quiz_2/{{quiz.share_id}}/{{current_user.id}}">Save this quiz</a>
-{% else %}
-<a class="conversion-button" data-bs-toggle="modal" data-bs-target="#registerModal">Register to take this quiz</a>
-{% endif %}
 
 
-<div id = "questions-parent">
-    {% for question in quiz.questions %}
-    {% set q_counter = loop.index %}
-    {% if question.q_type == "jeopardy" %}
-    <div class="row mt-2" style="page-break-inside: avoid;">
-
-        <div class="card border-0">
-            <div class="card-head">
-                
-                <div class="row">
-                    <div class="col-10 ">
-         <span class = "question-number">{{q_counter}} - </span>               {{question.question}}
-                    </div>
-
-                    <div class=" col-2 print-marks">
-                        <small>Marks: </small> {{question.points}}
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-body">
-                <label for="answer{{question.id}}"></label>
-                <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
-                </textarea>
-            </div>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1 class=" display-3 hcepha1 mb-4">{{ quiz.name }}</h1>
         </div>
-
     </div>
-    {% elif question.q_type in ["definitions", "explain"] %}
-    <div class="row mt-2" style="page-break-inside: avoid;">
-
-        <div class="card border-0">
-            <div class="card-head">
-                <div class="row">
-                    <div class="col-10 ">
-                        <span class = "question-number">{{q_counter}} - </span>            {{question.question}}
-                    </div>
-
-                    <div class=" col-2 print-marks">
-                        <small>Marks: </small> {{question.points}}
-                    </div>
+    <div class="card">
+        <div class="card-body">
+            {% if quiz.points %}
+                <div class="row mb-3">
+                    <div class="col-md-3 font-weight-bold">Points:</div>
+                    <div class="col-md-9">{{ quiz.points }}</div>
                 </div>
-            </div>
+            {% endif %}
 
-            <div class="card-body">
-                <label for="answer{{question.id}}"></label>
-                <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
-                </textarea>
-            </div>
-        </div>
-
-    </div>
-
-
-    {% elif question.q_type == "cloze" %}
-    <div class="row mt-2" style="page-break-inside: avoid;">
-
-        <div class="card border-0">
-            <div class="card-head">
-                <div class="row">
-                    <div class="col-10 ">
-                        <span class = "question-number">{{q_counter}} - </span>{{question.question}}
-                    </div>
-                    <div class=" col-2 print-marks">
-                        <small>Marks: </small> {{question.points}}
-                    </div>
+            {% if quiz.description %}
+                <div class="row mb-3">
+                    <div class="col-md-3 font-weight-bold">Description:</div>
+                    <div class="col-md-9">{{ quiz.description }}</div>
                 </div>
-            </div>
-
-            <div class="card-body">
-                <label for="answer{{question.id}}"></label>
-                <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
-                </textarea>
-            </div>
-        </div>
-
-    </div>
-    {% elif question.q_type == "formulas" %}
-    <div class="row mt-2" style="page-break-inside: avoid;">
-
-        <div class="card border-0">
-            <div class="card-head">
-                <div class="row">
-                    <div class="col-10 ">
-                        <span class = "question-number">{{q_counter}} - </span> {{question.question}}
-                    </div>
-                    <div class=" col-2 print-marks">
-                        <small>Marks: </small> {{question.points}}
-                    </div>
+            {% endif %}
+            <!-- Instructions -->
+            {% if quiz.instructions %}
+                <div class="row mb-3">
+                    <div class="col-md-3 font-weight-bold">Instructions:</div>
+                    <div class="col-md-9">{{ quiz.instructions }}</div>
                 </div>
-            </div>
+            {% endif %}
+            <!-- Description -->
+            {% if quiz.due_date %}
+                <div class="row">
+                    <div class="col-md-3 font-weight-bold">Due Date:</div>
+                    <div class="col-md-9">{{ quiz.due_date }}</div>
+                </div>
+            {% endif %}
+            {% if quiz.time_limit %}
+                <div class="row mb-3">
+                    <div class="col-md-3 font-weight-bold">Time Limit:</div>
+                    <div class="col-md-9">{{ quiz.time_limit }}</div>
+                </div>
+            {% endif %}
 
-            <div class="card-body">
-                <label for="answer{{question.id}}"></label>
-                <textarea rows="2" class="form-control" id="answer{{question.id}}" name="answer{{question.id}}">
-                </textarea>
-            </div>
         </div>
+        <div class = "card-footer d-flex justify-content-evenly">
+            <a class="btn btn-generate" data-bs-toggle="modal" data-bs-target="#registerModal">Register/sign-in and take this quiz</a>
+            <a class="btn btn-generate" href="/quiz_bp/take_quiz_not_logged_in/{{quiz.id}}">Take this quiz without registering</a>
 
+        </div>
     </div>
-
-
-    {% elif question.q_type == "mcq" %}
-            <div class="row mt-2" style="page-break-inside: avoid;">
-
-                            <div class="card border-0">
-                                <div class="card-head">
-                                    <div class="row my-2">
-                                        <div class="col-10 ">
-                                            <span class = "question-number">{{q_counter}} - </span> {{question.question}}
-                                        </div>
-                                        <div class=" col-2 print-marks">
-                                            <small>Marks: </small> {{question.points}}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card-body">
-                                    <div class="row my-1">
-                                        <p>A -
-                                            <span class="  answer-button{{question.id}}" id="A-btn{{question.id}}"
-                                                style="width: 100%"></span>
-                                        </p>
-
-                                    </div>
-                                    <div class="row my-1">
-                                        <p>B -
-                                            <span class="  answer-button{{question.id}}" id="B-btn{{question.id}}"
-                                                style="width: 100%"></span>
-                                        </p>
-                                    </div>
-
-                                    <div class="row my-1">
-                                        <p>C -
-                                            <span class="  answer-button{{question.id}}" id="C-btn{{question.id}}"
-                                                style="width: 100%"></span>
-                                        </p>
-                                    </div>
-
-                                    <div class="row my-1">
-                                        <p>D -
-                                            <span class="  answer-button{{question.id}}" id="D-btn{{question.id}}"
-                                                style="width: 100%"></span>
-                                        </p>
-                                    </div>
-                                    <div class="card-body">
-                                        <input type="hidden" id="answer{{question.id}}" name="answer{{question.id}}">
-                                    </div>
-                                </div>
-                            </div>
-            </div>
-
-
-            <script>
-                const answers{{ question.id }} = [
-                  {{ question.content|tojson|safe }},
-                  {{ question.boc_2|tojson|safe }},
-                  {{ question.boc_3|tojson|safe }},
-                  {{ question.boc_4|tojson|safe }}
-                ];
-              
-                function shuffle(array) {
-                  for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                  }
-                  return array;
-                }
-              
-                const shuffledAnswers{{ question.id }} = shuffle(answers{{ question.id }});
-                const answer_buttons{{ question.id }} = document.querySelectorAll('.answer-button{{ question.id }}');
-              
-                answer_buttons{{ question.id }}.forEach((button, index) => {
-                  button.innerText = decodeURIComponent(shuffledAnswers{{ question.id }}[index]);
-                  button.value = decodeURIComponent(shuffledAnswers{{ question.id }}[index]);
-                });
-              </script>
-
-
-
-
-
-    {% endif %}
-    {% endfor %}
-
-
-
-
-
-
-
+</div>
 
 
 

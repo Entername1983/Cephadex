@@ -182,7 +182,7 @@ gtag('config', 'G-6NB4ZPCNB0');
 
 <body>
     <!---  Polling for notification if user is authentificated ----->
-    {% if current_user.is_authenticated %}
+    {% if current_user.is_authenticated and current_user.guest != 1 %}
 
     <input type="hidden" id="slug_id" value="{{ session['slug'] }}">
     <script>
@@ -244,7 +244,7 @@ $(document).ready(function () {
         localStorage.setItem('navbar-collapsed', isCollapsed);
     });
 });</script>
-{% if current_user.is_authenticated %}
+{% if current_user.is_authenticated and current_user.guest != 1 %}
     <div class="d-flex" id="wrapper">
         <div id = "sidebar-wrapper" class="sidebar-print d-flex flex-column flex-shrink-0 {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}" style="width: 240px; height:100vh;">
 
@@ -388,7 +388,8 @@ $(document).ready(function () {
             {% else %}
             <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
                 <div class="container px-5 d-flex justify-content-between align-items-center">
-                    <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/deck_bp/view_decks{% else %}/{% endif %}">
+                    <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated and current_user.guest != 1 %}
+                    /deck_bp/view_decks{% else %}/{% endif %}">
                         <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
                     </a>
                     <div class="d-flex">
@@ -580,7 +581,7 @@ $(document).ready(function () {
 </div>
  <!------ MODAL CARD COMPLETE NOTIFICATION ------- -->
 
- {% if current_user.is_authenticated %}
+ {% if current_user.is_authenticated and current_user.guest != 1 %}
 
  <div class="modal fade" id="slugModal" tabindex="-1" aria-labelledby="slugModalLabel" aria-hidden="true">
      <div class="modal-dialog modal-dialog-centered">
@@ -598,8 +599,7 @@ $(document).ready(function () {
          </div>
      </div>
  </div>
- {% endif %}
- {% if current_user.is_authenticated %}
+
 
  <div class="modal fade" id="errorModal1" tabindex="-1" aria-labelledby="errorModal1Label" aria-hidden="true">
      <div class="modal-dialog modal-dialog-centered">

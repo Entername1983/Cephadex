@@ -16,7 +16,8 @@ from flask import (
 from flask_login import login_user, login_required, logout_user, current_user
 from models.models_ import (
     Card, Deck, Game, PlayerGame, Subscriber,
-    UsageRecord, UserSettings, User, Feedback, DeletedAccounts
+    UsageRecord, UserSettings, User, Feedback, DeletedAccounts,
+    Test, TestResult
 )
 from models.send_email import send_email
 from models.stripe_events import StripeEvents
@@ -31,6 +32,7 @@ from run.extensions import db
 from models.user.stripe_config import STRIPE_PLANS
 
 from models.helpers.log_decorators import log_decorator
+from models.helpers.helpers import apology
 logger = logging.getLogger("flask_app")
 
 user_bp = Blueprint(
@@ -63,8 +65,10 @@ def googleSignIn():
         return found_shared_deck_id_in_session()
     if 'game_id' in session:
         return found_game_id_in_session()
-    if 'shared_test_id' in session:
+    if 'shared_quiz_id' in session:
         return found_quiz_id_in_session()
+    if 'quiz_result_id' in session:
+        return found_quiz_result_id_in_session()
     flash('You have been logged in!', 'success')
     event_tracker(user.id, "login", "google")
     return redirect(url_for('deck_bp.view_decks'))
@@ -88,46 +92,67 @@ def verify_csrf_token():
     return None, None
 
 def found_shared_deck_id_in_session():
-    shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
-    new_deck = Deck(user_id = current_user.id,
-            name=shared_deck.name,
-            description=shared_deck.description,
-            time_created=dt.datetime.now(dt.timezone.utc))
-    db.session.add(new_deck)
-    for card in shared_deck.cards:
-        new_card = Card(term=card.term,
-            content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
-            boc_4=card.boc_4,img=card.img, sound=card.sound,
-            subject=card.subject, topic=card.topic,
-            category=card.category,
-            prompt_option=card.prompt_option,
-            prompt_option2=card.prompt_option2,
-            trans_option=card.trans_option, len_option=card.len_option,
-            qmin_option=card.qmin_option,
-            qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
-        new_deck.cards.append(new_card)
-    del session['shared_deck_id']
-    db.session.commit()
-    flash("You have been logged in and the deck has been added to your decks", "success")
+    if session.get('shared_deck_id'):
+        shared_deck = Deck.query.filter_by(share_id = session['shared_deck_id']).first()
+        new_deck = Deck(user_id = current_user.id,
+                name=shared_deck.name,
+                description=shared_deck.description,
+                time_created=dt.datetime.now(dt.timezone.utc))
+        db.session.add(new_deck)
+        for card in shared_deck.cards:
+            new_card = Card(term=card.term,
+                content=card.content, boc_2=card.boc_2, boc_3=card.boc_3,
+                boc_4=card.boc_4,img=card.img, sound=card.sound,
+                subject=card.subject, topic=card.topic,
+                category=card.category,
+                prompt_option=card.prompt_option,
+                prompt_option2=card.prompt_option2,
+                trans_option=card.trans_option, len_option=card.len_option,
+                qmin_option=card.qmin_option,
+                qmax_option=card.qmax_option, diff_lvl=card.diff_lvl)
+            new_deck.cards.append(new_card)
+    
+        del session['shared_deck_id']
+        db.session.commit()
+        flash("Your deck has been saved", "success")
+    else:
+        flash("There was an issue saving your deck, please try again", "failure")
     return redirect(url_for('deck_bp.view_decks'))
 
 def found_game_id_in_session():
-    game_id = session.get('game_id')
-    if current_user.username:
-        username = current_user.username
+    if session.get('game_id'):
+        game_id = session.get('game_id')
+        if current_user.username:
+            username = current_user.username
+        else:
+            username  = current_user.email
+        player = PlayerGame(player_id = current_user.id, game_id = game_id, username = username)
+        db.session.add(player)
+        db.session.commit()
+        del session['game_id']
+        return redirect(url_for('game_bp.game_lobby', game_id=game_id))
     else:
-        username  = current_user.email
-    player = PlayerGame(player_id = current_user.id, game_id = game_id, username = username)
-    db.session.add(player)
-    db.session.commit()
-    del session['game_id']
-    return redirect(url_for('game_bp.game_lobby', game_id=game_id))
+        return apology("There was an issue saving your game, please try again", 400)
 
 def found_quiz_id_in_session():
-    shared_test_id = session.get('shared_test_id')
-    del session['shared_test_id']
-    return redirect(url_for('take_quiz_2',
-        share_id=shared_test_id, user_id=current_user.id))
+    if session.get('shared_quiz_id'):
+        quiz = Test.query.filter_by(share_id = session['shared_quiz_id']).first()
+        del session['shared_quiz_id']
+        return redirect(url_for('quiz_bp.take_quiz',
+            quiz_id=quiz.id, user_id=current_user.id))
+    else:
+        return apology("There was an loading your quiz, please try again", 400)
+
+def found_quiz_result_id_in_session():
+    if session.get('quiz_result_id'):
+        quiz_result = TestResult.query.filter_by(id = session['quiz_result_id']).first()
+        quiz_result.taker = current_user.id
+        db.session.commit()
+        del session['quiz_result_id']
+        flash("Your results have been saved", "success")
+    else:
+        flash("There was an issue saving your results, please contact us for assistance", "failure")
+    return redirect(url_for('quiz_bp.quiz_overview'))
 
 @user_bp.route("/accountsettings", methods = ["GET", "POST"])
 @login_required
@@ -246,6 +271,8 @@ def register():
                 return found_shared_deck_id_in_session()
             if 'game_id' in session:
                 return found_game_id_in_session()
+            if 'quiz_result_id' in session:
+                return found_quiz_result_id_in_session()
             flash("You have been registered and logged in!", "success")
             return redirect(url_for('deck_bp.view_decks'))
         return render_template('/user_bp/register.html', title='Register', form = form)
@@ -474,6 +501,7 @@ def check_credit():
     return render_template("/user_bp/check_credit.html", title="Check Credit", form = form)
 
 @user_bp.route('/upgrade', methods=['GET', 'POST'])
+@login_required
 @log_decorator
 def upgrade():
     if not current_user.is_authenticated:

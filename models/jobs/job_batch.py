@@ -12,7 +12,7 @@ from models.jobs.job_processor import JobProcessor
 from models.jobs.job_finder import JobFinder
 from models.jobs.jobs_config import (MAX_CONCURRENT_TASKS,
     ASYNC_SQLALCHEMY_DATABASE_URI, ASYNC_SQLALCHEMY_ENGINE_OPTIONS,
-    LONG_FORM_JOBS, DENOMINATOR_CHECK_FLASHCARDS)
+    LONG_FORM_JOBS, DENOMINATOR_CHECK_FLASHCARDS, MAX_CHARACTERS_DECK_ATTRIBUTES_TEXT)
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -138,7 +138,7 @@ class JobBatch():
     async def create_deck_attributes(self) -> None:
         if self.text is None:
             self.text = json.loads(self.jobs[0].payload)['text']
-        self.attributes = await self.doc_creator.async_create_deck_attributes(self.text)
+        self.attributes = await self.doc_creator.async_create_deck_attributes(self.text[:MAX_CHARACTERS_DECK_ATTRIBUTES_TEXT])
 
     async def check_sufficient_cards_created(self) -> None:
         for job in self.jobs:

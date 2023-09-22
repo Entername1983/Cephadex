@@ -29,6 +29,7 @@ def study():
     return render_template("study_bp/study.html", title="Study")
 
 @study_bp.route('/study_select', methods=['GET', 'POST'])
+@login_required
 @log_decorator
 def study_select():
     form = StudyDeckForm()

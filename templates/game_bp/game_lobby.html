@@ -10,83 +10,98 @@
 {% endblock %}
 {% block main_0 %}
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <h1 class="display-3 hcepha1">Game Lobby</h1>
-    </div>
-    <div class="row justify-content-center d-none d-md-block">
-        <p><i>This is our version of apples to apples.  The creator of the game loads a deck and invites players to the game.  Each round players will be presented with a prompt
-            and have to come up with their own answer, after which the correct answer, as well as all the player submitted answers are revealed.  At this point each player will need to vote
-            on what they believe is the correct answer.  Points are awarded for correct answers (2 points) and for votes on your answer (1 point).  The player with the most points at the end of the game wins.
-        </i></p><p><i>
-            The answers expected depend on the type of deck loaded and the prompt.  For example a term might be presented to the players and they would have to write the best definition possible.  If the prompt is a question
-            they would have to come up with the most convincing answer.
-        </i></p>
-    </div>
-    <div class="row justify-content-center mt-2 d-md-none">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#rulesModal">
-            Rules
-        </button>
-    </div>
-    <div class="row mt-3">
-        <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h2>Players</h2>
-                </div>
-                <ul id="players-in-lobby" class="list-group list-group-flush">
-                    <!-- Player list will be filled here -->
-                </ul>
+<div class="m-2" style="background-color: #f5f2fc; padding: 30px 0; border-radius: 10px;">
+    <div class="container mt-1">
+        <div class="row justify-content-center align-items-center mb-4">
+            <div class="col-12 col-lg-8 text-center">
+                <h1 class="my-4 display-3 hcepha1" style="color: #6019FF;">Game Lobby</h1>
             </div>
             {% if current_user.id == game.creator %}
-            <div class="d-grid gap-2">
-                <button class="btn btn-primary" id="start-game">START GAME</button>
+            <div class="col-12 col-sm-8">
+                <button class="btn btn-generate" id="start-game" style="width: 100%; padding: 16px 24px; text-align: center;">START GAME</button>
             </div>
             {% endif %}
         </div>
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-body">
-                    <p>Share this link with your friends to join the game:</p>
-                    <p class="text-primary">{{ game_url }}</p>
-                    <div class="d-flex justify-content-center">
-                        <img src="data:image/png;base64,{{ qr_code }}">
-                    </div>
-                </div>
-                <div class = "modal-footer d-flex justify-content-center">
-                    <a class="btn btn-outline-dark btn-floating m-1" href="https://twitter.com/intent/tweet?text=Join+my+game!&hashtags=CephaFlex,FunWithCephadex,Cephadex&url={{game_url}}" role="button"
-                    target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
-                    <a class="btn btn-outline-dark btn-floating m-1" href="https://wa.me/?text={{ game_url }}" role="button"
-                    target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
-                    <a class="btn btn-outline-dark btn-floating m-1"  href="https://t.me/share/url?url={{ game_url }}&text=Join+my+game!" role="button"
-                    target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
-                  </div>      
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="rulesModal" tabindex="-1" role="dialog" aria-bs-labelledby="exampleModalLabel" aria-bs-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Rules</h5>
 
+        <div class="row justify-content-center mb-1 d-none d-md-block" style="color: #a880fd;">
+            <p><i>This is our version of apples to apples.  The creator of the game loads a deck and invites players to the game.  Each round players will be presented with a prompt
+                and have to come up with their own answer, after which the correct answer, as well as all the player submitted answers are revealed.  At this point each player will need to vote
+                on what they believe is the correct answer.  Points are awarded for correct answers (2 points) and for votes on your answer (1 point).  The player with the most points at the end of the game wins.
+            </i></p><p><i>
+                The answers expected depend on the type of deck loaded and the prompt.  For example a term might be presented to the players and they would have to write the best definition possible.  If the prompt is a question
+                they would have to come up with the most convincing answer.
+            </i></p>        </div>
+
+        <div class="row mt-1">
+            <div class="col-lg-6 mb-1">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2>Players</h2>
+                    </div>
+                    <ul id="players-in-lobby" class="list-group list-group-flush">
+                    </ul>
+                </div>
             </div>
-            <div class="modal-body">
-                <p><i>This is our version of apples to apples.  The creator of the game loads a deck and invites players to the game.  Each round players will be presented with a prompt
-                    and have to come up with their own answer, after which the correct answer, as well as all the player submitted answers are revealed.  At this point each player will need to vote
-                    on what they believe is the correct answer.  Points are awarded for correct answers (2 points) and for votes on your answer (1 point).  The player with the most points at the end of the game wins.
-                </i></p><p><i>
-                    The answers expected depend on the type of deck loaded and the prompt.  For example a term might be presented to the players and they would have to write the best definition possible.  If the prompt is a question
-                    they would have to come up with the most convincing answer.
-                </i></p>
+
+            <div class="col-lg-6 mb-1">
+                <div class="card">
+                    <div class="card-body">
+                        <p>Share this link with your friends to join the game:</p>
+                        <p class="text-primary">{{ game_url }}</p>
+                        <div class="d-flex justify-content-center">
+                            <img src="data:image/png;base64,{{ qr_code }}" style="max-width: 100%; width: auto; height: auto;">
+                        </div>
+                    </div>
+                    <div class = "modal-footer d-flex justify-content-center">
+                        <a class="btn btn-outline-dark btn-floating m-1" href="https://twitter.com/intent/tweet?text=Join+my+game!&hashtags=CephaFlex,FunWithCephadex,Cephadex&url={{game_url}}" role="button"
+                        target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a class="btn btn-outline-dark btn-floating m-1" href="https://wa.me/?text={{ game_url }}" role="button"
+                        target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
+                        <a class="btn btn-outline-dark btn-floating m-1"  href="https://t.me/share/url?url={{ game_url }}&text=Join+my+game!" role="button"
+                        target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
+                      </div>      
+                </div>            </div>
+        </div>
+        <div class="row justify-content-center mb-1 d-md-none">
+            <div class="col-12 col-sm-8">
+                <button type="button" class="btn btn-generate" style=" width: 100%; padding: 16px 24px; text-align: center;" data-bs-toggle="modal" data-bs-target="#rulesModal">
+                    Rules
+                </button>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div class="modal fade" id="rulesModal" tabindex="-1" role="dialog" aria-bs-labelledby="exampleModalLabel" aria-bs-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Rules</h5>
+    
+                </div>
+                <div class="modal-body">
+                    <p><i>This is our version of apples to apples.  The creator of the game loads a deck and invites players to the game.  Each round players will be presented with a prompt
+                        and have to come up with their own answer, after which the correct answer, as well as all the player submitted answers are revealed.  At this point each player will need to vote
+                        on what they believe is the correct answer.  Points are awarded for correct answers (2 points) and for votes on your answer (1 point).  The player with the most points at the end of the game wins.
+                    </i></p><p><i>
+                        The answers expected depend on the type of deck loaded and the prompt.  For example a term might be presented to the players and they would have to write the best definition possible.  If the prompt is a question
+                        they would have to come up with the most convincing answer.
+                    </i></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+
+
+
+
+
+
 <script>
 const ENVIRONMENT = "{{ environment }}";
 

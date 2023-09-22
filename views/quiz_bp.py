@@ -145,7 +145,6 @@ def start_new_quiz():
 
 @quiz_bp.route("/build_quiz_update_session", methods=["POST"])
 def update_session():
-    print("calling build_quiz_update_session")
     card_id = request.args.get('card_id')
     is_checked = request.args.get('is_checked') == 'true'
     
@@ -156,7 +155,6 @@ def update_session():
         session['selected_cards'].append(card_id)
     else:
         session['selected_cards'].remove(card_id)
-    print(session['selected_cards'])
     session.modified = True  # Mark the session as modified to make sure it saves
     return jsonify(success=True)
 
@@ -177,7 +175,6 @@ def build_quiz(deck_id):
         new_quiz = Test(creator=current_user.id, deck_id=deck.id, name=chosen_name)
         db.session.add(new_quiz)
         all_checked = form_data.get('check-all')
-        print(all_checked)
         if all_checked == "on":
             for card in deck.cards:
                 add_question_to_quiz(card, new_quiz, jeopardyMode)
@@ -254,6 +251,8 @@ def add_question_to_quiz(card, new_quiz, jeopardyMode):
 
 @quiz_bp.route("/assign_quiz/<int:quiz_id>", methods=["GET", "POST"])
 @log_decorator
+
+@login_required
 def assign_quiz(quiz_id):
     settings = UserSettings.query.filter_by(user=current_user.id).first()
     update_card_form = UpdateCardForm(request.form)
@@ -270,7 +269,6 @@ def assign_quiz(quiz_id):
         event_tracker(current_user.id, "assign_quiz", quiz_id)
         quiz = Test.query.get_or_404(quiz_id)
         if request.method == 'POST' and 'name' in request.form:
-            print(request.form['due_date'])
             update_quiz_properties(quiz, form)
             db.session.commit()
             flash(f'Test: "{quiz.name}" has been updated!', 'success')
@@ -310,7 +308,11 @@ def update_quiz_properties(quiz, form):
 def shared_quiz_view(share_id):
     quiz = Test.query.filter_by(share_id=share_id).first_or_404()
     session['shared_quiz_id'] = share_id
-    return render_template('/quiz_bp/shared_quiz_view.html', quiz=quiz)
+    if not current_user.is_authenticated:
+        return render_template('/quiz_bp/shared_quiz_view.html', quiz=quiz)
+    else:
+        return redirect(f'/quiz_bp/take_quiz/{quiz.id}/{current_user.id}')
+
 
 @quiz_bp.route('/generate_link_quiz/<int:quiz_id>', methods=['GET'])
 @login_required
@@ -387,7 +389,7 @@ def assign(quiz_id, user_email):
 def take_quiz_2(share_id, user_id):
     event_tracker(current_user.id, "take_quiz", share_id)
     quiz = Test.query.filter_by(share_id=share_id).first_or_404()
-    quiz_result = TestResult.query.filter_by(quiz_id = quiz.id, taker = user_id).first()
+    quiz_result = TestResult.query.filter_by(test_id = quiz.id, taker = user_id).first()
 
     if request.method == 'POST':
         for question in quiz.questions:
@@ -395,7 +397,7 @@ def take_quiz_2(share_id, user_id):
             to_call = f"answer{str(question_id)}"
             answer = request.form.get(to_call, '')
             answer = answer.strip()
-            result = QuestionResult(quiz_id = quiz.id,
+            result = QuestionResult(test_id = quiz.id,
                                     taker = current_user.id,
                                     question_id = question.id, answer = answer)
             db.session.add(result)
@@ -410,7 +412,7 @@ def take_quiz_2(share_id, user_id):
     else:
         if quiz_result is None:
             start_time = dt.datetime.now(dt.timezone.utc)
-            quiz_result = TestResult(quiz_id = quiz.id,
+            quiz_result = TestResult(test_id = quiz.id,
                                     taker = user_id, start_time = start_time,
                                     creator=quiz.creator)
             taker = User.query.get_or_404(user_id)
@@ -425,59 +427,10 @@ def take_quiz_2(share_id, user_id):
                 db.session.commit()
             except Exception as e:
                 logger.error(f"could not remove user from quiz: {e}")
-            flash('you have already taken this quiz', 'danger')
+            flash('You have already taken this quiz', 'danger')
             return redirect('/quiz_bp/quiz_overview/')
         
-# @quiz_bp.route("/take_quiz/<int:quiz_id>/<int:user_id>/", methods=["GET", "POST"])
-# @login_required
-# @log_decorator
-# def take_quiz(quiz_id, user_id):
-#     if user_id != current_user.id:
-#         flash('You do not have permission to take this quiz', 'danger')
-#         return redirect('/quiz_bp/quiz_overview/')
-#     event_tracker(current_user.id, "take_quiz", quiz_id)
-#     start_time = dt.datetime.now(dt.timezone.utc)
-#     quiz = Test.query.get_or_404(quiz_id)
 
-#     quiz_result = TestResult(test_id = quiz_id,
-#                             taker = user_id, start_time = start_time,
-#                             creator=quiz.creator) 
-#     print(f"Creating quiz result, {quiz_result.id}")
-
-#     db.session.add(quiz_result) 
-#     db.session.commit()  
-#     if request.method == 'POST':
-        
-#         for question in quiz.questions:
-#             question_id = question.id
-#             to_call = f"answer{str(question_id)}"
-#             answer = request.form.get(to_call, '')
-#             answer = answer.strip()
-#             result = QuestionResult(test_id = quiz.id,
-#                 taker = current_user.id, question_id = question.id,
-#                 answer = answer, quiz_result_id = quiz_result.id)
-#             db.session.add(result)
-#         end_time = request.form.get('end-time')
-#         end_time = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S.%fZ')
-#         quiz_result.end_time = end_time
-#         print(f"taker is {distribution.c.taker_id}, deleting")
-#         ## Delete the entry so that the test cannot be taken again
-#         distribution_entry = distribution.delete().where(
-#             (distribution.c.test_id == quiz_id) & (distribution.c.taker_id == user_id)
-#         )
-#         db.session.execute(distribution_entry)
-#         db.session.commit()
-#         return redirect('/quiz_bp/quiz_results/{quiz_result_id}'.format
-#                         (quiz_result_id = quiz_result.id))
-#     taker = User.query.get_or_404(user_id)
-#     db.session.commit()
-#     return render_template('quiz_bp/take_quiz.html',
-#                     quiz=quiz, taker=taker, start_time = start_time)
-#         ##else:
-          ##  quiz.taker.remove(current_user)
-         ##   db.session.commit()
-           ## flash('you have already taken this quiz', 'danger')
-          ##  return redirect('/quiz_overview/')
 @quiz_bp.route("/take_quiz/<int:quiz_id>/<int:user_id>/", methods=["GET", "POST"])
 @login_required
 @log_decorator
@@ -494,8 +447,6 @@ def take_quiz(quiz_id, user_id):
         quiz_result = TestResult(test_id=quiz_id, taker=user_id, start_time=start_time, creator=quiz.creator)
         db.session.add(quiz_result)
         db.session.flush()  # This will populate quiz_result.id without committing the transaction
-
-
         for question in quiz.questions:
             question_id = question.id
             to_call = f"answer{str(question_id)}"
@@ -519,7 +470,35 @@ def take_quiz(quiz_id, user_id):
 
     taker = User.query.get_or_404(user_id)
     return render_template('quiz_bp/take_quiz.html', quiz=quiz, taker=taker, start_time=start_time)
+
+
+@quiz_bp.route('/take_quiz_not_logged_in/<int:quiz_id>', methods=['GET', 'POST'])
+@log_decorator
+def take_quiz_not_logged_in(quiz_id):
+    start_time = dt.datetime.now(dt.timezone.utc)
+    quiz = Test.query.get_or_404(quiz_id)
+    if request.method == 'POST':
+        quiz_result = TestResult(test_id=quiz_id, start_time=start_time, creator=quiz.creator)
+        db.session.add(quiz_result)
+        db.session.flush() 
+        for question in quiz.questions:
+            question_id = question.id
+            to_call = f"answer{str(question_id)}"
+            answer = request.form.get(to_call, '').strip()
+            result = QuestionResult(test_id=quiz.id, question_id=question.id,
+                                    answer=answer, quiz_result_id=quiz_result.id)
+            db.session.add(result)
+        end_time = request.form.get('end-time')
+        end_time = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+        quiz_result.end_time = end_time
+        db.session.commit()
+        return redirect(f'/quiz_bp/quiz_results/{quiz_result.id}')
+    return render_template('quiz_bp/take_quiz.html', quiz=quiz, start_time=start_time)
+
+
+
 @quiz_bp.route('/reject_quiz/<int:quiz_id>/<int:user_id>', methods=['DELETE'])
+@login_required
 @log_decorator
 def reject_quiz(quiz_id, user_id):
     distribution_entry = distribution.delete().where(
@@ -583,7 +562,6 @@ def calculate_points(answer_given, answer_expected):
     return matcher.ratio()
 
 def grade_quiz(quiz, quiz_result_id):
-
     point_counter = 0
     correct_counter = 0
     graded_results = []
@@ -607,7 +585,6 @@ def grade_quiz(quiz, quiz_result_id):
     return point_counter, correct_counter, graded_results
 
 @quiz_bp.route("/quiz_results/<int:quiz_result_id>/", methods=["GET", "POST"])
-@login_required
 @log_decorator
 def quiz_results(quiz_result_id):
     page = request.args.get('page', 1, type=int)
@@ -615,7 +592,14 @@ def quiz_results(quiz_result_id):
     quiz_result = TestResult.query.filter_by(id=quiz_result_id).first()
 
     quiz = Test.query.get_or_404(quiz_result.test_id)
-    taker = User.query.get_or_404(quiz_result.taker)
+    if quiz_result.taker:
+        taker = User.query.get_or_404(quiz_result.taker)
+    else:
+        taker = "guest"
+        session['quiz_result_id'] = quiz_result_id
+        if session.get('shared_quiz_id'):
+            del session['shared_quiz_id']
+
     point_counter, correct_counter, graded_results = grade_quiz(quiz, quiz_result.id)
     quiz_result.points = point_counter
     quiz_result.correct = correct_counter
@@ -623,7 +607,6 @@ def quiz_results(quiz_result_id):
     graded_results_paginations = Pagination(graded_results, page, per_page)
 
     return render_template('quiz_bp/quiz_results.html', quiz=quiz, quiz_result = quiz_result, taker=taker, results = graded_results_paginations)
-
 
 
 
@@ -658,6 +641,7 @@ def quiz_results_overview():
 
 
 @quiz_bp.route('/quiz_select_deck/', methods=['GET', 'POST'])
+@login_required
 @log_decorator
 def quiz_select_deck():
     form = StudyDeckForm()
@@ -672,10 +656,10 @@ def quiz_select_deck():
 
 
 @quiz_bp.route("/quiz_overview/", methods=["GET", "POST"])
+@login_required
 @log_decorator
 def quiz_overview():
     quizzes_to_be_taken = Test.query.filter(Test.taker.contains(current_user)).all()
-    print(quizzes_to_be_taken)
     page_created = request.args.get('page_created', 1, type=int)
     page_taken = request.args.get('page_taken', 1, type=int)
     page_given = request.args.get('page_given', 1, type=int)
@@ -713,19 +697,6 @@ def quiz_overview():
     given_paginations = Test.query.filter(Test.id.in_(unique_test_ids_list)).paginate(page_given, per_page, False)
 
 
-    # quiz_results_given = TestResult.query.filter_by(creator = current_user.id).all()
-    # quizzes_given = []
-    # for result in quiz_results_given:
-    #     exist_quiz = Test.query.filter_by(id=result.test_id).first()
-    #     user = User.query.filter_by(id=result.taker).first()
-    #     if not exist_quiz:
-    #         if not result.taker:
-    #             db.session.delete(result)
-    #             db.session.commit()
-    #     else:
-    #         quizzes_given.append({'result': result,'quiz': exist_quiz, 'user': user})
-    # given_paginations = Pagination(quizzes_given, page_given, per_page)
-    
     return render_template(
         'quiz_bp/quiz_overview.html', taken=taken_paginations.items, given=given_paginations.items,
         created=quizzes_created_paginated.items, created_paginations=quizzes_created_paginated,
@@ -734,8 +705,13 @@ def quiz_overview():
     )
 
 @quiz_bp.route("/quiz_result_details/<int:quiz_id>/", methods=["GET", "POST"])
+@login_required
 @log_decorator
 def quiz_result_details(quiz_id):
+    quiz = Test.query.filter_by(id = quiz_id).first()
+    if quiz.creator != current_user.id:
+        flash("Only the creator of the quiz can access this page", "failure")
+        return redirect(url_for('quiz_bp.quiz_overview'))
     page = request.args.get('page', 1, type=int)
     per_page = 10
     results = TestResult.query.filter_by(test_id = quiz_id).all()

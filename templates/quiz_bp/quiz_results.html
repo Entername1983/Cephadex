@@ -13,22 +13,23 @@
 
 </div>
   <div class="container">
-    <!-- Quiz name row -->
-    <div class="row justify-content-center mb-1">
-        <h5 class="text-center">{{quiz.name}}</h5>
+ 
+  
+  <div class="row justify-content-center mb-1">
+        <h3 class="text-center h1cepha">{{quiz.name}} -- {{quiz_result.points}} / {{quiz.points}}</h3>
     </div>
 
-    <!-- Points row -->
-    <div class="row justify-content-center mb-1">
-        <h5 class="text-center">{{quiz_result.points}} / {{quiz.points}}</h5>
-    </div>
 
-    <!-- Info text row -->
     <div class="row justify-content-center mb-1">
         <p class="text-center text-muted">
             <small>Your instructor will likely review your results - your final score may change.</small>
         </p>
     </div>
+    {% if taker == "guest" %}
+    <div class="row justify-content-center mb-1">
+      <a class="btn btn-generate" style = "max-width:300px" data-bs-toggle="modal" data-bs-target="#registerModal">Register to save your results</a>
+    </div>   
+  {% endif %}
 </div>
 <div class="container mt-4">
   {% for result in results.items %}

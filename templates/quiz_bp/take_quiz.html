@@ -147,13 +147,11 @@
                             });
                             const answerInput{{ question.id }} = document.querySelector(`#answer{{question.id}}`);
                             const buttons_to_deselect{{ question.id }} = document.querySelectorAll('#A-btn{{question.id}}, #B-btn{{question.id}}, #C-btn{{question.id}}, #D-btn{{question.id}}');
-                            console.log(buttons_to_deselect{{ question.id }})
 
                             answer_buttons{{ question.id }}.forEach(button => {
                                 button.addEventListener('click', (event) => {
                                     event.preventDefault();
                             answerInput{{ question.id }}.value = button.value;
-                                    console.log(answerInput{{ question.id }}.value)
                                 const buttonA = document.querySelector('#A-btn{{question.id}}');
                                 const buttonB = document.querySelector('#B-btn{{question.id}}');
                                 const buttonC = document.querySelector('#C-btn{{question.id}}');
@@ -190,7 +188,7 @@
        
     </form> 
     <div class="my-2 progress" style="height: 25px;">
-        <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        <div id="progress-bar-quiz" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>    
     <div class = " my-2">
 
@@ -203,14 +201,10 @@
     
         const timer = document.querySelector('#timer');
         const duration = {{quiz.time_limit}}* 60;
-        console.log(duration);
         function updateTimer() {
             const remainingTime = Math.max(duration - Math.floor((new Date() - startTime) / 1000), 0);
-            console.log(remainingTime)
             const minutes = Math.floor(remainingTime / 60);
-            console.log(minutes)
             const seconds = Math.floor(remainingTime % 60).toString().padStart(2, '0');
-            console.log(seconds)
             timer.textContent = `${minutes}:${seconds}`;
             if (remainingTime <= 0) {
                 clearInterval(timerInterval);
@@ -235,6 +229,7 @@
     }
 </script>
 <script>
+    console.log("Hello curious person!")
     let currentQuestion = 1;
     let totalQuestions = {{ quiz.questions|length }};
 
@@ -258,14 +253,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('prev-btn').disabled = (currentQuestion === 1);
         document.getElementById('next-btn').disabled = (currentQuestion === totalQuestions);
+        updateProgressBar(currentQuestion, totalQuestions);
+
     });
-        function updateProgressBar(current, total) {
-    const progressBar = document.getElementById('progress-bar');
-    const progress = (current / total) * 100;
-    progressBar.style.width = progress + '%';
-    progressBar.setAttribute('aria-valuenow', progress);
-    progressBar.innerHTML = `Question ${current} of ${total}`;  // Optionally, display the text inside the progress bar
+    function updateProgressBar(current, total) {
+        const progressBar = document.getElementById('progress-bar-quiz');
+        const progress = (current / total) * 100;
+        progressBar.style.width = progress + '%';
+        progressBar.setAttribute('aria-valuenow', progress);
+        progressBar.innerHTML = `Question ${current} of ${total}`;
     }
+    const progressBar = document.getElementById('progress-bar-quiz');
+
 
 </script>
 
