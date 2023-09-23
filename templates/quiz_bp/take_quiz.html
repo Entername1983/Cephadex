@@ -54,7 +54,7 @@
         <div class=" p-2" style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
             {% for question in quiz.questions %}
             {% set q_counter = loop.index %}
-            <div class="card mt-1 p-2 {% if loop.index == 1 %}active-question{% endif %} " id="question-card-{{ q_counter }}" >
+            <div class="card mt-1 p-2 {% if loop.index == 1 %}active-question{% endif %} "  id="question-card-{{ q_counter }}" >
                 <input type="hidden" name="id{{question.id}}" value="{{question.id}}">
                     {% if question.q_type == "jeopardy" %}
                         <div class="card-head">

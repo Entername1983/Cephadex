@@ -35,6 +35,11 @@ def news():
 def about():
     return render_template('/info_bp/about.html')
 
+
+@info_bp.route("/faq/", methods=['GET', 'POST'])
+def faq():
+    return render_template('/info_bp/faq.html')
+
 ##@info_bp.route("/team", methods=['GET', 'POST'])
 ##def team():
     ##return render_template('team.html')

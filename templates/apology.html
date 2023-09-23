@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block title %} Oops! {% endblock %}
+
+{% block main_0 %}
+<div class="apology-container">
+    <h2>Sorry about that...</h2>
+    <h3>{{ top }}</h3>
+    <p>{{ bottom }}</p>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</div>
+{% endblock %}

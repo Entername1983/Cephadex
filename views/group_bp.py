@@ -116,7 +116,7 @@ def invite_group():
         return jsonify('success', 'User invited successfully')
 
 
-@group_bp.route("/group_bprove_group/<int:group_id>/", methods=["GET", "POST"])
+@group_bp.route("/approve_group/<int:group_id>/", methods=["GET", "POST"])
 @login_required
 @log_decorator
 def group_bprove_group(group_id):

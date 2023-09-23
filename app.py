@@ -19,7 +19,7 @@ from factory import create_app
 from run.extensions import db, login_manager, socketio
 from config.settings import DEBUG
 from run.bp_register import register_blueprints
-
+from models.helpers.helpers import apology
 
 logger = logging.getLogger("flask_app")
 
@@ -63,6 +63,27 @@ def before_request():
 
 ###  REGISTERING BLUEPRINTS AFTER REQUESTS
 register_blueprints(app)
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return apology("Page not found", 404)
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return apology("Something went wrong on our end. Please try again later.", 500)
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return apology("Method not allowed", 405)
+
+@app.errorhandler(403)
+def forbidden(e):
+    return apology("Forbidden", 403)
+
+@app.errorhandler(401)
+def unauthorized(e):
+    return apology("Unauthorized access", 401)
 
 @app.route('/robots.txt')
 def robots():
@@ -157,6 +178,8 @@ def check_for_errors(slug: str) -> float:
             job.error_type = "error_returned"
         db.session.commit()
     return error_count / len(jobs)
+
+
 
 
 @app.route("/query", methods=["POST"])

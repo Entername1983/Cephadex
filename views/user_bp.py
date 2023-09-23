@@ -227,6 +227,9 @@ def check_username(username):
 @user_bp.route("/register", methods=["GET", "POST"])
 @log_decorator
 def register():
+    if 'google_email' not in session or 'google_id_token' not in session:
+        flash('Please sign in through Google first.', 'warning')
+        return redirect(url_for('index')) 
     error_occured = False
     try:
         form = RegisterForm()
@@ -282,7 +285,7 @@ def register():
         raise e
     finally:
         if error_occured:
-            return "An error occurred during registration", 500
+            return apology("An error occurred during registration", 500)
 
 
 def turn_guest_into_regular_user(guest_user, username, userid, given_name, family_name,
@@ -337,6 +340,7 @@ def subscribe2():
 @log_decorator
 def logout():
     logout_user()
+    session.clear()
     flash('You have been logged out!')
     return redirect(url_for('index'))
 

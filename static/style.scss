@@ -82,16 +82,51 @@ $yellow: #FFFD98;
 }
 
 $btn-white-space: nowrap;
+a {
+  color: #6019FF!important;
+}
 
- 
+a:hover {
+  background-color: $cepha_6;
+}
+
+//  EXPERIMENTATION CSS
+.button-testing {
+  background-color: $cepha_2;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  transition: 0.3s;
+  &:hover {
+    background-color: darken($cepha_2, 10%);
+  }
+}
+
+.email-input {
+  width: 100%;
+  padding: 10px;
+  background-color: $cepha_101;
+  border: 1px solid $cepha_105;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  color: $cepha_105;
+  &:focus {
+    outline: none;
+    border-color: darken($cepha_105, 10%);
+  }
+}
+
+//  END EXPERIMENTATION CSS
+
 
 
 .responsive {
     max-width: 100%;
     height: auto;
   }
-
-
 
 .full-width {
     position: absolute;
@@ -128,7 +163,11 @@ $btn-white-space: nowrap;
 }
 
 .card {
-    background-color: $backgroundC !important;
+    // background-color: $backgroundC !important;
+    background-color:  $backgroundC!important;
+    padding: 20px 40px!important;
+    border-radius: 10px!important;
+    box-shadow: 0 0 5px #a880fd!important;
 }
 .card-body {
     background-color: $backgroundC !important;
@@ -1281,7 +1320,7 @@ button:disabled {
   color: $cepha_6 !important;
   border-color: $cepha_4 !important;
   transform: scale(1.01);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(255, 103, 0, 1);
 }
 
 .btn-generate:active {
@@ -1755,6 +1794,14 @@ a {
 #wrapper {
   width:100%!important;
 }
+/* SIDE BAR */
+
+
+
+
+
+
+
 
 #sidebar-wrapper {
   position: fixed;
@@ -1775,7 +1822,7 @@ a {
   background-color: $cepha_2;
   color: $cepha_6!important;
 }
-/* SIDE BAR */
+
 
 #sidebar-wrapper.toggled .menu-text {
   display: none;
@@ -1801,12 +1848,13 @@ a {
 }
 
 #page-content-wrapper {
-  margin-left: 240px; /* the width of your sidebar */
+  margin-left: 240px; 
 }
 #page-content-wrapper.toggled {
-  margin-left: 60px; /* the width of your sidebar */
+  margin-left: 60px; 
 }
-@media (max-width: 768px) { /* Adjust the breakpoint to suit your design */
+
+@media (max-width: 768px) { 
   #sidebar-wrapper {
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
@@ -1814,14 +1862,12 @@ a {
     width:0px;
     display:none!important;
   }
-
   #sidebar-wrapper.toggled {
     transform: translateX(0);
     width: 80px; 
     display:block!important;
 
   }
-
   #page-content-wrapper {
     width: 100%!important;
     margin-left: 0!important; 
@@ -1829,7 +1875,6 @@ a {
   }
   #page-content-wrapper.toggled {
     margin-left: 50px!important; 
-
   }
 }
 
@@ -1844,23 +1889,33 @@ a {
 }
 
 
-#menu-toggle .menu-icon {
-  display:block;
+
+
+
+
+
+
+
+
+#menu-toggle {
+  .menu-icon {
+    display: block;
+  }
+
+  .menu-text {
+    display: none;
+  }
+
+  &.toggled {
+    .menu-icon {
+      display: none;
+    }
+
+    .menu-text {
+      display: block !important;
+    }
+  }
 }
-
-#menu-toggle .menu-text {
-  display:none;
-}
-
-#menu-toggle.toggled .menu-icon {
-  display:none;
-}
-
-#menu-toggle.toggled .menu-text {
-  display:block!important;
-}
-
-
 
 @media print {
   * {
@@ -1947,4 +2002,198 @@ main-class {
 
 .bg-lightgreen {
   background-color: #DFFFD9!important;
+}
+
+
+//// APOLOGY CSS
+.apology-container {
+  width: 80%;
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 2px solid $cepha_105;
+  border-radius: 10px;
+  text-align: center;
+  background-color: $cepha_1001;
+  box-shadow: 0 0 5px #a880fd !important;
+
+  h2 {
+    color: #333;
+    margin-top: 0;
+  }
+
+  h3 {
+    color: #666;
+  }
+
+  p {
+    color: #999;
+    margin-bottom: 20px;
+  }
+
+  a {
+    color: $cepha_2;
+    text-decoration: none;
+    border: 1px solid $cepha_2;
+    padding: 5px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: $cepha_2;
+      color: #FFF;
+    }
+  }
+}
+
+
+.cepha-container {
+  background-color: #f5f2fc;
+  padding: 20px 40px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px #a880fd;
+  margin: 20px 0;
+}
+
+.cepha-container h2 {
+  text-align: center;
+  color: #6019FF;
+  margin-bottom: 30px;
+}
+
+.cepha-container h3 {
+  text-align: center;
+  color: #6019FF;
+  margin-bottom: 20px;
+}
+
+.cepha-container h4 {
+  color: #FF6700;
+  margin-bottom: 15px;
+}
+
+.cepha-container ul {
+  padding-left: 20px;
+  color: #555;
+}
+
+.cepha-container ul li {
+  margin-bottom: 10px;
+}
+
+.cepha-container img {
+  max-height: 120px;
+  max-width: 120px;
+}
+
+.cepha-section {
+  margin: 30px 0;
+}
+
+.cepha-icon-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.hero {
+  .scrolling-header {
+    color: $cepha_1;
+    display: flex;
+    align-items: center;
+    overflow: hidden; // in case content tries to overflow the fixed height
+  }
+
+  .hero-content {
+    text-align: center;
+    margin-bottom: 2rem; // space below the content for smaller screens
+
+    @media (min-width: 992px) {
+      text-align: left;
+      margin-bottom: 0; // remove the margin on larger screens
+    }
+
+    .display-1 {
+      color: $cepha_1;
+    }
+
+    .conversion-button {
+      margin-bottom: 1.5rem; // adding spacing for smaller screens
+    }
+  }
+
+  .hero-image {
+    .cepha-img {
+      border: 3px solid $cepha_105;
+      border-radius: 15px;
+      max-width: 80%;
+      height: auto;
+    }
+  }
+
+  .hero-text {
+    color: $cepha_2;
+  }
+
+  .scroll-down-icon {
+    .arrow-icon {
+      height: 50px;
+      width: 50px;
+    }
+  }
+
+  .conversion-button {
+    background-color: $cepha_2;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    &:hover {
+      background-color: $cepha_205;
+    }
+  }
+}
+
+
+
+
+.bg-cepha-1001 {
+  background-color: $cepha_1001;
+}
+
+.text-cepha-1 {
+  color: $cepha_1;
+}
+
+.bg-cepha-101 {
+  background-color: $cepha_101;
+}
+
+.shadow-cepha {
+  box-shadow: 0 0 15px $cepha_105;
+}
+
+.faq-item {
+  .btn-link {
+      transition: color 0.3s;
+
+      &:hover, 
+      &:focus, 
+      &:active {
+          color: $cepha_2;
+          text-decoration: none;
+      }
+  }
+}
+
+
+.btn-outline-footer {
+  color: $cepha_1!important; /* Adjust the color value as you see fit */
+  border-color: $cepha_1!important;
+
+  &:hover {
+      background-color: $cepha_105!important;
+      color: #fff!important;
+  }
 }

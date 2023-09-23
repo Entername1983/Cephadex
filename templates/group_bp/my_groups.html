@@ -9,10 +9,10 @@
   <div class="m-2" style="background-color: #efe8ff;">
         {% if invitations|length > 0 %}
 
-        <div class="row box_0 mx-3 mb-3 pt-2" style="text-align: center">
-            <p> You have been invited to join groups. Click <a class="mx-2" data-bs-toggle="modal"
+        <div class="card" style="text-align: center">
+            <h6> You have been invited to join groups. Click <a class="mx-2" data-bs-toggle="modal"
                     data-bs-target="#inviteGroupModal" alt="shared decks" style="cursor: pointer;">here</a>to approve
-                them</p>
+                them</h6>
         </div>
 
         {% endif %}
@@ -25,8 +25,8 @@
             <h1 class="my-4 display-3 hcepha1">My groups </h1>
         </div>
         <div class="col-md-6" >
-           <div class="card box-manager  mt-4" >
-            <div class="card-body d-flex justify-content-around" style="background-color: #efe8ff!important;">
+           <div class="card  mt-4" >
+            <div class="card-body d-flex justify-content-around">
 
                 <a  data-bs-toggle="modal" data-bs-target="#createGroupModal"
                 style="cursor: pointer;" class = "img-grow" title="Share"><img src="/static/create-group-icon.png" style="width: 35px; height:35px"></a>
@@ -35,56 +35,36 @@
             </div>
             </div>
 </div>
-<div class = "row mt-3  p-2" >
-    <div class = "col-md-6 ">
-    <h4>Owner</h4>
-
-
-    <div class="table-responsive " style = "max-height: 40vh;  overflow:auto;">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Actions</th>
-            </tr>
-                </thead>
-                <tbody>
-            {% for group in created_groups %}
-            <tr id="invited-row-{{ username }}">
-                <td><a href = "/group_bp/group/{{group.id}}"><h6>{{ group.name }}</h6></a> </td>
-                <td>        <button class ="btn btn-sm" data-bs-toggle="modal" data-bs-target="#Modal{{group.id}}">Members</button>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-        </table>
+<div class="row mt-3 p-2">
+    <!-- Owner Groups -->
+    {% for group in created_groups %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <a href="/group_bp/group/{{group.id}}" class="text-decoration-none">
+                    <h4 class="card-title">{{ group.name }}</h4>
+                </a>
+                <p class="card-text text-muted">Owner</p>
+                <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#Modal{{group.id}}">Members</button>
+            </div>
         </div>
     </div>
-    <div class = "col-md-6 ">
-
-    <h4>Member</h4>
-
-    <div class="table-responsive " style = "max-height: 40vh;  overflow:auto;">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for group in groups %}
-    <tr id="invited-row-{{ username }}">
-        <td><a href = "/group_bp/group/{{group.id}}"><h6>{{ group.name }}</h6></a> </td>
-        <td>        <button class ="btn btn-sm" data-bs-toggle="modal" data-bs-target="#Modal{{group.id}}">Members</button>
-        </td>
-    </tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
-</div>
-
+    {% endfor %}
+    
+    <!-- Member Groups -->
+    {% for group in groups %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <a href="/group_bp/group/{{group.id}}" class="text-decoration-none">
+                    <h4 class="card-title">{{ group.name }}</h4>
+                </a>
+                <p class="card-text text-muted">Member</p>
+                <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#Modal{{group.id}}">Members</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 </div>
@@ -175,77 +155,71 @@
 <!----- SHARE DECK MODAL -->
 {% for group in created_groups %}
 
-<div class="modal fade" id="Modal{{group.id}}" tabindex="-1" aria-labelledby="#ModalLabel{{group.id}}"
-    aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="Modal{{group.id}}" tabindex="-1" aria-labelledby="ModalLabel{{group.id}}" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header p-4 modal-header-style">
+            <div class="modal-header">
                 <h5 class="modal-title" id="ModalLabel{{group.id}}">Add members</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="share-form" method="POST">
-                    <div class="form-group my-2">
+                    <div class="mb-3">
                         <div class="form-floating">
-
-                            <input type="email" class="form-control" id="email{{group.id}}" name="email" required
-                                placeholder="Type receiver's email here">
-                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email{{group.id}}" name="email" required placeholder="Type receiver's email here">
+                            <label for="email{{group.id}}">Email</label>
                         </div>
-
                     </div>
-                    <button type="button" class="btn btn-generate" onclick="inviteGroup(event, '{{ group.id }}')">Invite</button>
-                    <div>
-                        <div id = "invited-success" style="color:#FF6700;">
-
-                        </div>
-                        <h6 class = "mt-2">Invited</h6>
-                        <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
+                    <button type="button" class="btn btn-primary mb-3" onclick="inviteGroup(event, '{{ group.id }}')">Invite</button>
+                    <div id="invited-success" class="text-warning mb-2"></div>
+                    
+                    <!-- Invited Section -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">Invited</h6>
+                        <div class="table-responsive">
                             <table class="table table-striped">
-                              <thead>
-                                <tr>
-                                  <th scope="col">Username</th>
-                                  <th scope="col">Email</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                        {% for user_id, username, email in group_invites %}
-                        <tr id="invited-row-{{ username }}">
-                            <td>{{ username }}</td>
-                            <td>{{ email }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-                </table>
-            </div>
+                                <thead>
+                                    <tr>
+                                      <th scope="col">Username</th>
+                                      <th scope="col">Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user_id, username, email in group_invites %}
+                                    <tr id="invited-row-{{ username }}">
+                                        <td>{{ username }}</td>
+                                        <td>{{ email }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                    
+                    <!-- Members Section -->
                     <div>
-                        <h6>Members:</h6>
-                        <div class="table-responsive" style = "max-height: 40vh" overflow = "auto">
-                          <table class="table table-striped">
-                            <thead>
-                              <tr>
-                      
-                                <th scope="col">Username</th>
-                                <th scope="col">Role</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for id, info in user_roles.get(group.id, {}).items() %}
-                        <tr id="invited-row-{{ username }}"></tr>
-                                               
-                        <th>{{info['username']}}</th>
-                        <th>{{info['role']}}</th>
-                        </tr>
-
-                    {% endfor %}
-                </tbody>
-            </table>
-            </div>
+                        <h6 class="mb-2">Members:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                      <th scope="col">Username</th>
+                                      <th scope="col">Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for id, info in user_roles.get(group.id, {}).items() %}
+                                    <tr>
+                                        <td>{{info['username']}}</td>
+                                        <td>{{info['role']}}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
 </div>
@@ -280,7 +254,107 @@
     }
 </script>
 {% endfor %}
+{% for group in groups %}
 
+<div class="modal fade" id="Modal{{group.id}}" tabindex="-1" aria-labelledby="ModalLabel{{group.id}}" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalLabel{{group.id}}">Add members</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="share-form" method="POST">
+                    <div class="mb-3">
+                        <div class="form-floating">
+                            <input type="email" class="form-control" id="email{{group.id}}" name="email" required placeholder="Type receiver's email here">
+                            <label for="email{{group.id}}">Email</label>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary mb-3" onclick="inviteGroup(event, '{{ group.id }}')">Invite</button>
+                    <div id="invited-success" class="text-warning mb-2"></div>
+                    
+                    <!-- Invited Section -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">Invited</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                      <th scope="col">Username</th>
+                                      <th scope="col">Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user_id, username, email in group_invites %}
+                                    <tr id="invited-row-{{ username }}">
+                                        <td>{{ username }}</td>
+                                        <td>{{ email }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Members Section -->
+                    <div>
+                        <h6 class="mb-2">Members:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                      <th scope="col">Username</th>
+                                      <th scope="col">Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for id, info in user_roles.get(group.id, {}).items() %}
+                                    <tr>
+                                        <td>{{info['username']}}</td>
+                                        <td>{{info['role']}}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+    function inviteGroup(event, groupId) {
+        event.preventDefault(); // prevent default form submission behavior
+
+        var email = document.getElementById('email' + groupId).value;
+        var encodedEmail = encodeURIComponent(email);
+        var invitedSuccess = document.getElementById('invited-success');
+        var url = '/group_bp/invite_group/?groupId=' + groupId + '&email=' + encodedEmail;
+
+        // use AJAX to send the form data to the backend
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                // parse the JSON response and do something with it
+                var response = JSON.parse(xhr.responseText);
+                console.log(response);
+                invitedSuccess.innerHTML = "New member invited!";
+            } else {
+                // handle error
+                console.log('Error: ' + xhr.statusText);
+            }
+        };
+
+        xhr.send(); // send the AJAX request
+    }
+</script>
+{% endfor %}
 <!-----APPROVE REJECT MODAL
     ---->
 

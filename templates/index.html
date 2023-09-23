@@ -44,55 +44,47 @@
 
     <div class="container">
 
-        <div class="scrolling-header mt-1">
+        <div class="scrolling-header mt-1 d-md-block d-none">
             Turn <span class="scrolling-header-words" id="from">youtube video</span> into <span
                 class="scrolling-header-words" id="to">flashcards</span>
         </div>
-        <br>
 
-        <div class="row align-items-center">
+        <div class="row align-items-center mt-5">
             <div class="col-lg-6">
-                <div class="mb-3 mb-lg-0 text-center text-lg-start">
-                    <h1 class="display-1 lh-1"><strong>Your Personalized Education Solution</strong></h1>
-                    <p class="lead fw-normal mb-5" style="color:#a880fd;">Whether you're a teacher, student, content creator, or parent, Cephadex is your platform for simplified, effective learning. Join us and experience the future of education.</p>
-                    <div class="d-flex flex-column flex-lg-row align-items-center">
-                        <a class="conversion-button" data-bs-toggle="modal" data-bs-target="#registerModal">Sign Up for
-                            Free</a>
-                    </div>
+                <div class="hero-content">
+                    <h1 class="display-1 lh-1 text-cepha-1">
+                        <strong>Your Personalized Education Solution</strong>
+                    </h1>
+                    <p class="lead text-cepha-105 mb-5">
+                        Whether you're a teacher, student, content creator, or parent, Cephadex is your platform for simplified, effective learning. Join us and experience the future of education.
+                    </p>
+                    <a class="conversion-button" data-bs-toggle="modal" data-bs-target="#registerModal">Sign Up for Free</a>
                 </div>
             </div>
-            <div class=col-lg-6>
-                <div class="d-flex justify-content-center">
-
-<img src = "/static/cepha-illu-01.jpg" alt = "Cephadex Illustration" style = "border-color:#a880fd!important; border-width: 3px;border:solid; border-radius:15px; height: 400px; width: 400px;">
-
+            <div class="col-lg-6 ">
+                <div class="hero-image d-flex justify-content-center">
+                    <img src="/static/cepha-illu-01.jpg" alt="Cephadex Illustration" class="cepha-img">
                 </div>
             </div>
         </div>
-        <br>
-        <br>
-        <br>
-        <div class="row mt-5">
+
+        <div class="row mt-5 text-center">
             <div class="col-10">
-                <div class="row mt-5 align-items-center text-center">
-                    <h1 class="hero-text">Transform Your Educational Experience Today!
-                    </h1>
-                </div>
+                <h1 class="hero-text text-cepha-1">Transform Your Educational Experience Today!</h1>
             </div>
             <div class="col-2 d-flex align-items-center justify-content-center">
-                <div class="row mt-5">
-
-                    <div class="scroll-down-icon ">
-                        <img src="\static\arrow-round-bottom-outline-icon.png" style="height:50px; width:50px">
-                    </div>
+                <div class="scroll-down-icon">
+                    <img src="\static\arrow-round-bottom-outline-icon.png" alt="Scroll down icon" class="arrow-icon">
                 </div>
             </div>
         </div>
+    </div>
 
 </header>
 
 <main class="main-content mt-5">
     <div class="container">
+        <div class = "cepha-container">
         <h2 class="text-center mb-5">How It Works</h2>
         <div class="row mb-5">
             <div class="col-md-3 text-center">
@@ -130,8 +122,7 @@
         </div>
         </section>-->
         <br>
-
-
+</div>
 
 
 <!---
@@ -140,99 +131,88 @@
     </div>
 
 -->
-    <aside class="mt-4  py-5" style="border-radius: 10px;">
-        <h2 class = "text-center">Who it's for</h2>
-    
-     
-        <section class="my-5">
-            <h3 class = "text-center">For Teachers: Reclaim Your Time 🕰️</h3>
-            <div class="row mt-4">
-                <div class="col-md-6 d-flex justify-content-center align-items-center md-order-0 order-0">
-                    <img class=" "src="/static/teacher-svg-icon.svg" alt="Illustration of a busy teacher"style="max-height: 120px; max-width:120px">
-                </div>
-                <div class="col-md-6 md-order-1 order-1">
-                    <h4>Transform Your Teaching 🍎</h4>
-                    <ul>
-                        <li>Turn your powerpoint presentations into quizzes</li>
-                        <li>Record your lectures and turn them into notes</li>
-                        <li>Assign quizzes and worksheets and let us grade them for you</li>
-                        <li>Share your creations with your colleagues</li>
-                        <li>Create flashcard decks for your students</li>
+<aside class="cepha-container">
+    <h2>Who it's for</h2>
 
-
-                    </ul>
-                
-                </div>
+    <section class="cepha-section">
+        <h3>For Teachers: Reclaim Your Time 🕰️</h3>
+        <div class="row">
+            <div class="col-md-6 cepha-icon-col">
+                <img src="/static/teacher-svg-icon.svg" alt="Illustration of a busy teacher">
             </div>
-        </section>
-        <br>
-        <br>
-        <section class="my-5">
-            <h3 class = "text-center">For Students: Optimized Learning</h3>
-            <div class="row mt-4">
-                <div class="col-md-6 md-order-0 order-0">
-                    <h4>Take Control of Your Learning Journey 🏆</h4>
-                    <ul>
-                        <li>Enjoy learning from youtube videos but want some way to study the content later?  Enter the link into Cephadex and turn that content into flashcards</li>
-                        
-                        <li>Turn your notes, pdfs, and ppts into quizzes to help you prepare for an upcoming exam</li>
-                        <li>Use our spaced repetition system to ensure you don't forget what you learn</li>
-                    </ul>
-                </div>
-                <div class="col-md-6 d-flex justify-content-center align-items-center md-order-1 order-0">
-                    <img class="" src="/static/student-graduate-icon-svg.svg" alt="Illustration of a confident student" style="max-height: 120px; max-width:120px">
-                </div>
+            <div class="col-md-6">
+                <h4>Transform Your Teaching 🍎</h4>
+                <ul>
+                    <li>Turn your powerpoint presentations into quizzes</li>
+                    <li>Record your lectures and turn them into notes</li>
+                    <li>Assign quizzes and worksheets and let us grade them for you</li>
+                    <li>Engage your students by playing games with the content created</li>
+                    <li>Share your creations with your colleagues</li>
+                    <li>Create flashcard decks for your students</li>
+                </ul>
             </div>
-        </section>
-        <br>
-        <br>
-        <section class="my-5">
-            <h3 class = "text-center">For Content Creators: Enrich Your Offerings</h3>
-            <div class="row mt-4">
-                <div class="col-md-6 d-flex justify-content-center align-items-center md-order-0 order-0">
-                    <img  src="/static/content-creator-svg-icon.svg" alt="Illustration of a content creator" style="max-height: 120px; max-width:120px">
-                </div>
-                <div class="col-md-6 md-order-1 order-1">
-                    <h4>Add Value, Build Community 🌱</h3>
-                    <ul>
-                        <li>Provide your viewers with tools to reinforce what they learn by watching your videos</li>
-                        <li>Use your content to create custom cards</li>
-                        <li>Engage and build a stronger community</li>
-                    </ul>
-                </div>
+        </div>
+    </section>
+
+    <section class="cepha-section">
+        <h3>For Students: Optimized Learning</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Take Control of Your Learning Journey 🏆</h4>
+                <ul>
+                    <li>Enjoy learning from youtube videos but want some way to study the content later? Enter the link into Cephadex and turn that content into flashcards</li>
+                    <li>Turn your notes, pdfs, and ppts into quizzes to help you prepare for an upcoming exam</li>
+                    <li>Use our spaced repetition system to ensure you don't forget what you learn</li>
+                </ul>
             </div>
-        </section>
-        <br>
-        <br>
-        <section class="my-5">
-            <h3 class = "text-center">For Parents: Promote Effective Learning</h3>
-            <div class="row mt-4">
-                <div class="col-md-6 md-order-0 order-0">
-                    <h4>Elevate Your Child's Learning Experience 🌟</h4>
-                    <ul>
-                        <li>Create your own contnet for your child to study</li>
-                        <li>Provide them with an easy to use platform</li>
-                        <li>Track your child's products and verify that they have mastered the content</li>
-                        <li>Provide them with an AI tutor bot to answer all their questions</li>
-                    </ul>
-                </div>
-                <div class="col-md-6 d-flex justify-content-center align-items-center md-order-1 order-0">
-                    <img  src="/static/parents-svg-icon.svg" alt="Illustration of parents" style="max-height: 120px; max-width:120px">
-                </div>
+            <div class="col-md-6 cepha-icon-col">
+                <img src="/static/student-graduate-icon-svg.svg" alt="Illustration of a confident student">
             </div>
-        </section>
+        </div>
+    </section>
 
+    <section class="cepha-section">
+        <h3>For Content Creators: Enrich Your Offerings</h3>
+        <div class="row">
+            <div class="col-md-6 cepha-icon-col">
+                <img src="/static/content-creator-svg-icon.svg" alt="Illustration of a content creator">
+            </div>
+            <div class="col-md-6">
+                <h4>Add Value, Build Community 🌱</h4>
+                <ul>
+                    <li>Provide your viewers with tools to reinforce what they learn by watching your videos</li>
+                    <li>Use your content to create custom cards</li>
+                    <li>Engage and build a stronger community</li>
+                </ul>
+            </div>
+        </div>
+    </section>
 
-    <br>
-    <br>
+    <section class="cepha-section">
+        <h3>For Parents: Promote Effective Learning</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Elevate Your Child's Learning Experience 🌟</h4>
+                <ul>
+                    <li>Create your own content for your child to study</li>
+                    <li>Provide them with an easy-to-use platform</li>
+                    <li>Track your child's products and verify that they have mastered the content</li>
+                    <li>Provide them with an AI tutor bot to answer all their questions</li>
+                </ul>
+            </div>
+            <div class="col-md-6 cepha-icon-col">
+                <img src="/static/parents-svg-icon.svg" alt="Illustration of parents">
+            </div>
+        </div>
+    </section>
+</aside>
 
-
-    <section class="newsletter-section my-4 py-3">
+    <section class="cepha-container my-4 py-3">
         <div class="container">
             <div class="row justify-content-center text-center">
                 <div class="col-md-8 col-lg-6">
                     <h2 class="mb-3">Join our subscriber list and enjoy exclusive discounts!</h2>
-                    <p class="mb-4">Stay ahead with Cephadex and unlock your educational potential. Sign up now!</p>
+                    <p class="mb-4">Stay ahead with Cephadex and unlock your educational potential. <a data-bs-toggle="modal" data-bs-target="#registerModal" style="color: #6019FF">Sign up now!</a></p>
                 </div>
             </div>
             <form id="subscribe">
@@ -263,7 +243,7 @@
                 </div>
                 <div class="row justify-content-center">
                     <div class="col-md-8 col-lg-6">
-                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill">Subscribe</button>
+                        <button type="submit" class="btn btn-generate w-100 py-3 rounded-pill">Subscribe</button>
                     </div>
                 </div>
             </form>
