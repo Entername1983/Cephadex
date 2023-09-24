@@ -35,7 +35,7 @@ report.csv
 .vscode
 /instance
 /static/audio
-/static/files/*
+# /static/files/*
 /static/profile_pictures
 /migrations
 /templates/quiz_bp/obsolete

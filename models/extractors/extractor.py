@@ -663,6 +663,8 @@ def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment
         while start_time < total_length:
             segment = audio[start_time:end_time]
             base_path = 'static/files'
+            if not os.path.exists(base_path):
+                os.makedirs(base_path)
             output_file = Path(base_path) / f"{random_string}_segment_{start_time}.mp3"
             output_file_str = output_file.as_posix()
             logger.info(output_file_str)            
