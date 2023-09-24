@@ -1,6 +1,7 @@
 import os
 import json
 import datetime as dt
+import tempfile
 import time
 from bleach import clean
 import stripe
@@ -30,7 +31,7 @@ from models.forms.forms import (
 from config.settings import AUTH2_CLIENT_ID
 from run.extensions import db
 from models.user.stripe_config import STRIPE_PLANS
-
+from models.storage.s3 import upload_to_s3, delete_s3_object_in_folder
 from models.helpers.log_decorators import log_decorator
 from models.helpers.helpers import apology
 logger = logging.getLogger("flask_app")
@@ -422,14 +423,18 @@ def update_profile_pic():
     form = UpdateProfilePicForm()
     if form.validate_on_submit():
         if profile_picture := form.profile_pic.data:
-            # Generate a random and secure filename
-            filename = secure_filename(profile_picture.filename)
-            # Save the file to our server
-            pic_path = os.path.join('static', 'profile_pictures', filename)
-            profile_picture.save(pic_path)
-            # Update the user's profile picture
+            filename = f"{current_user.id}_{secure_filename(profile_picture.filename)}"
+            temp_path = os.path.join(tempfile.gettempdir(), filename)
+            profile_picture.save(temp_path)
+            upload_to_s3('cephadex', 'profile_pictures', temp_path, filename)
+            os.remove(temp_path)
             user = User.query.filter_by(id=current_user.id).first()
-            user.pic = pic_path
+            if user.pic is not None:
+                try:
+                    delete_s3_object_in_folder('cephadex', 'profile_pictures', user.pic)
+                except Exception as e:
+                    logger.error(f"Error deleting profile pic from s3: {e}")
+            user.pic = filename
             db.session.commit()
         else:
             flash('No file selected')
@@ -437,7 +442,6 @@ def update_profile_pic():
         for error in form.profile_pic.errors:
             flash(error)
     return redirect(url_for('user_bp.account'))
-
 @user_bp.route("/new_user_settings_tests", methods = ["POST", "GET"])
 @login_required
 @log_decorator

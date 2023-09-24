@@ -60,11 +60,11 @@ class JobBatch():
             tasks = [self.process_job_with_semaphore(job) for job in self.jobs]
             await asyncio.gather(*tasks)
         except Exception as e:
-             processing_logger.critical(f"Error processing job batch: {e}")
+             processing_logger.critical(f"Error processing job batch: {str(e)}")
         try:
             await self.handle_completion()  
         except Exception as e:
-            processing_logger.critical(f"Error handling completion: {e}")
+            processing_logger.critical(f"Error handling completion: {str(e)}")
     
 
     @job_log_decorator  
@@ -87,7 +87,7 @@ class JobBatch():
                     self.failed_jobs.append(merged_job)
                     merged_job.state = "failed"
                     await session.commit()                    
-                    processing_logger.error(f"Error processing job with semaphore {merged_job.id}, {merged_job.state}: {e}")
+                    processing_logger.error(f"Error processing job with semaphore {merged_job.id}, {merged_job.state}: {str(e)}")
 
                     raise ProcessingJobError(e) from e
                 
@@ -111,7 +111,7 @@ class JobBatch():
                     await self.change_notification_to_ready(session)
                     await self.cache_results(session)
             except Exception as e:
-                processing_logger.error(f"Error handling completion: {e}")
+                processing_logger.error(f"Error handling completion: {str(e)}")
                 raise ProcessingCompletionError(e) from e
 
     async def check_for_errors(self) -> None:

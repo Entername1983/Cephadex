@@ -19,8 +19,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from bs4 import BeautifulSoup
 from pydub.utils import mediainfo
 from pytesseract import image_to_string
-from pathlib import Path
-
+from models.storage.s3 import upload_to_s3
 import openai
 import tiktoken
 from models.jobs.jobs_config import LONG_FORM_JOBS
@@ -626,6 +625,7 @@ def get_duration(file, name: str) -> float:
     temp_filename = f"temp_audio_file{name}"
     with open(temp_filename, "wb") as temp_file:
         temp_file.write(file_data)
+    logger.info(f"get duration of audio file {temp_filename}")
     info = mediainfo(temp_filename)
     try:
         duration = float(info["duration"])
@@ -662,20 +662,15 @@ def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment
         segment_paths = []
         while start_time < total_length:
             segment = audio[start_time:end_time]
-            base_path = 'static/files'
-            if not os.path.exists(base_path):
-                os.makedirs(base_path)
-            output_file = Path(base_path) / f"{random_string}_segment_{start_time}.mp3"
-            output_file_str = output_file.as_posix()
-            logger.info(output_file_str)            
+            output_file = f"{random_string}_segment_{start_time}.mp3"
+            logger.info(output_file)            
             segment.export((output_file), format="mp3")
-            if output_file.stat().st_size > min_segment_size_MB * 1024 * 1024:
-                logger.info(output_file.parts)
-                output_file = output_file.as_posix()
+            upload_to_s3('cephadex', 'audio_segments', output_file)
+
+            if os.path.getsize(output_file) > min_segment_size_MB * 1024 * 1024:
                 segment_paths.append(str(output_file))
             else:
-                output_file.unlink()
-            logger.info(type(output_file))
+                os.remove(output_file)
             start_time += segment_length_ms * 1000 
             end_time += segment_length_ms * 1000
         return segment_paths
@@ -683,9 +678,9 @@ def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment
     except FileNotFoundError as e:
         logging.error(f"File not found in divide_audio: {e}")
         raise e from e
-    except Exception as e:
-        logging.error(f"An unexpected error occurred during divide audio: {e}")
-        raise e from e
+    # except Exception as e:
+    #     logging.error(f"An unexpected error occurred during divide audio: {e}")
+    #     raise e from e
 
 # Sample call
 # Assuming your input_file is "example.mp3" and you want each segment to be 25 seconds long

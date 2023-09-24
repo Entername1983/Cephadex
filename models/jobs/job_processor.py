@@ -6,7 +6,9 @@ from models.models_ import Deck, Job
 from models.creators.creator import AiCaller
 from models.decks.card_factory import CardFactory
 from models.jobs.jobs_config import LONG_FORM_JOBS
+from models.storage.s3 import get_s3_object_in_folder, delete_s3_object_in_folder
 from typing import TYPE_CHECKING
+import tempfile
 from typing import Dict, Union
 from models.helpers.log_decorators import job_log_decorator
 processing_logger = logging.getLogger("job_processing")
@@ -43,15 +45,16 @@ class JobProcessor():
                 
     @job_log_decorator
     async def process_audio_job(self) -> None:
-        segment = self.payload['segment']
-        if not os.path.exists(segment):
-            processing_logger.error(f"Error in process audio The file '{segment}' does not exist.")
-        text = await self.openai_caller.transcribe_whisper(segment)
-        self.text = text
-        try:
-            os.remove(segment)
-        except OSError as e:
-            processing_logger.error(f"Error occurred while deleting the audio file '{segment}': {str(e)}")
+        object_data = get_s3_object_in_folder('cephadex', 'audio_segments', self.payload['segment'])
+        segment = object_data['Body'].read()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+            temp_file.write(segment)
+            
+            temp_file.seek(0)
+            text = await self.openai_caller.transcribe_whisper(temp_file.name)
+            self.text = text
+        delete_s3_object_in_folder('cephadex', 'audio_segments', self.payload['segment'])
+        os.remove(temp_file.name)
         new_payload = {'deck': self.payload['deck'], 'text': text,
                                 'prompt_options': self.payload['prompt_options'], 'task_type': "standard"}
         new_job = Job(slug=self.slug, task_type="standard",
