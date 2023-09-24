@@ -663,10 +663,12 @@ def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment
         while start_time < total_length:
             segment = audio[start_time:end_time]
             output_file = Path('static') / 'files' / f"{random_string}_segment_{start_time}.mp3"
-            print(output_file)
+            logger.info("")
             segment.export(str(output_file), format="mp3")
             
             if output_file.stat().st_size > min_segment_size_MB * 1024 * 1024:
+                output_file = output_file.as_posix()
+
                 segment_paths.append(str(output_file))
             else:
                 output_file.unlink()
