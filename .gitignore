@@ -4,7 +4,6 @@ api.txt
 __pycache__/*
 database1.db
 dump.sql
-static/files/*
 /Text/*
 /UNUSED/*
 app.log
