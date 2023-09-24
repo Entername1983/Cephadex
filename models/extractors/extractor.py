@@ -19,6 +19,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from bs4 import BeautifulSoup
 from pydub.utils import mediainfo
 from pytesseract import image_to_string
+from pathlib import Path
 
 import openai
 import tiktoken
@@ -292,9 +293,11 @@ class Extractor:
         folder_path = "audio_segments"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
+            print(folder_path)
         try:
             segments = divide_audio(file, self.duration)
             item_quantity = len(segments)
+            print(file)
             for segment in segments:
                 item_number = segments.index(segment) + 1
                 self.create_audio_job(segment, item_number, item_quantity)
@@ -659,16 +662,20 @@ def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment
         segment_paths = []
         while start_time < total_length:
             segment = audio[start_time:end_time]
-            output_file = os.path.join(os.path.dirname(input_file), f"{random_string}_segment_{start_time}.mp3")
-            segment.export(output_file, format="mp3")
-            if os.path.getsize(output_file) > min_segment_size_MB * 1024 * 1024:
-                segment_paths.append(output_file)
+            output_file = Path('static') / 'files' / f"{random_string}_segment_{start_time}.mp3"
+            print(output_file)
+            segment.export(str(output_file), format="mp3")
+            
+            if output_file.stat().st_size > min_segment_size_MB * 1024 * 1024:
+                segment_paths.append(str(output_file))
             else:
-                os.remove(output_file)
+                output_file.unlink()
+            print(type(output_file))
             start_time += segment_length_ms * 1000 
             end_time += segment_length_ms * 1000
+
         return segment_paths
-    
+            
     except FileNotFoundError as e:
         logging.error(f"File not found in divide_audio: {e}")
         raise e from e
