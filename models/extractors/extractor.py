@@ -665,21 +665,17 @@ def divide_audio(input_file: Union[str, IO[bytes]], duration: float, max_segment
             base_path = 'static/files'
             output_file = Path(base_path) / f"{random_string}_segment_{start_time}.mp3"
             output_file_str = output_file.as_posix()
-            print(output_file_str)            
+            logger.info(output_file_str)            
             segment.export((output_file), format="mp3")
-            
             if output_file.stat().st_size > min_segment_size_MB * 1024 * 1024:
-                print(output_file.parts)
+                logger.info(output_file.parts)
                 output_file = output_file.as_posix()
-                
-
                 segment_paths.append(str(output_file))
             else:
                 output_file.unlink()
-            print(type(output_file))
+            logger.info(type(output_file))
             start_time += segment_length_ms * 1000 
             end_time += segment_length_ms * 1000
-
         return segment_paths
             
     except FileNotFoundError as e:
