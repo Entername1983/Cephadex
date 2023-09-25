@@ -43,7 +43,6 @@ user_bp = Blueprint(
     static_folder='static'
 )
 
-endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
 
 @user_bp.route("/googleSignIn", methods=["POST"])
 @log_decorator
@@ -522,6 +521,8 @@ counter = 0
 @user_bp.route("/stripe_webhook", methods=['POST'])
 @log_decorator
 def stripe_webhook():
+    endpoint_secret = os.environ.get("STRIPE_ENDPOINT_SECRET")
+
     valid_events = ['checkout.session.completed','customer.updated']
     global counter
     counter += 1
@@ -554,7 +555,15 @@ def stripe_webhook():
         return 'Unused event type', 200
     return 'Success', 200
 
+
+endpoint_secret = os.environ.get("STRIPE_ENDPOINT_SECRET")
+
+@log_decorator
 def process_event_in_background(event):
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+    endpoint_secret = os.environ.get("STRIPE_ENDPOINT_SECRET")
+
+
     stripe_event_id = event['id']
     event_type = event['type']
     event_data = json.dumps(event)
@@ -622,6 +631,7 @@ def process_event_in_background(event):
         ## handle other event types
         pass
 
+@log_decorator
 def associate_stripe_customer_with_user(event):
     try:
         idempo = str(uuid.uuid4())
@@ -641,6 +651,7 @@ def associate_stripe_customer_with_user(event):
         logger.critical(f"Exception in associate_stripe_customer_with_user - stripe {e}")
         raise e
 
+@log_decorator
 def handle_checkout_session(event):
 
     # Extract customer ID and subscription ID from the invoice object
@@ -668,7 +679,8 @@ def handle_checkout_session(event):
             # logger.debug("user not found")
             # logger.error(f"Exception occurred in handle_checkout_session: {str(e)}") 
             raise e
-
+    
+@log_decorator
 def update_plan(user,plan):
     try:
         if plan == 'standard_yearly':
@@ -721,7 +733,8 @@ def update_plan(user,plan):
     except Exception as e:
         logger.error(f"Exception occurred in update_plan: {str(e)}")
         raise e
-
+    
+@log_decorator
 def set_usage_limit(user, n):
     new_record = UsageRecord(
         user_id=user.id,
