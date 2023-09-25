@@ -521,7 +521,7 @@ counter = 0
 @user_bp.route("/stripe_webhook", methods=['POST'])
 @log_decorator
 def stripe_webhook():
-    endpoint_secret = os.environ.get("STRIPE_ENDPOINT_SECRET")
+    endpoint_secret = os.environ.get("STRIPE_SIGINING_SECRET")
 
     valid_events = ['checkout.session.completed','customer.updated']
     global counter
@@ -556,14 +556,10 @@ def stripe_webhook():
     return 'Success', 200
 
 
-endpoint_secret = os.environ.get("STRIPE_ENDPOINT_SECRET")
 
 @log_decorator
 def process_event_in_background(event):
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-    endpoint_secret = os.environ.get("STRIPE_ENDPOINT_SECRET")
-
-
     stripe_event_id = event['id']
     event_type = event['type']
     event_data = json.dumps(event)

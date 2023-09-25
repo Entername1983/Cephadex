@@ -21,7 +21,6 @@ def configure_app(app) -> None:
     app.config["SESSION_TYPE"] = "filesystem"
     openai.api_key = os.environ.get("OPENAI_API_KEY")
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-
-endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
+    endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
 
     
