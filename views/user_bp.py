@@ -165,7 +165,7 @@ def account_settings():
 def feedback():
     form = FeedbackForm()
     if form.validate_on_submit():
-        if form.data.name != "RobertEmelo":
+        if form.name.data != "RobertEmelo":
             entry = Feedback(name=form.name.data,
                             email=form.email.data,
                             message=form.message.data,
