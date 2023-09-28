@@ -730,9 +730,10 @@ def quiz_result_details(quiz_id):
             results = my_students_results_paginated, quiz = quiz,
          page = page, per_page = per_page)
 
-
+## OBSOLETE?
 @quiz_bp.route("/quiz_created/<int:quiz_id>/", methods=["GET", "POST"])
 @log_decorator
+@login_required
 def quiz_created(quiz_id):
     c_quiz_id = quiz_id
     quiz = Test.query.get_or_404(c_quiz_id)

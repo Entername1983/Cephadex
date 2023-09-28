@@ -16,19 +16,14 @@ s3_client = session.client('s3')
 boto3.set_stream_logger('boto3.resources', logging.DEBUG)
 
 
-def upload_to_s3(bucket, folder, file_name, object_name=None, acl=None):
+def upload_to_s3(bucket, folder, file_name, object_name=None):
     if object_name is None:
         object_name = file_name
     if folder:
         object_name = f"{folder}/{object_name}"
     
-    # Define the upload arguments
-    upload_args = {}
-    if acl:
-        upload_args['ACL'] = acl
-    
     try:
-        s3_client.upload_file(file_name, bucket, object_name, ExtraArgs=upload_args)
+        s3_client.upload_file(file_name, bucket, object_name)
     except ClientError as e:
         logger.error(e)
         return False

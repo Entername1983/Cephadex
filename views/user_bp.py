@@ -1,11 +1,8 @@
 import os
-import json
 import datetime as dt
 import tempfile
-import time
 from bleach import clean
 import stripe
-import uuid
 import logging
 from werkzeug.utils import secure_filename
 from google.oauth2 import id_token
@@ -16,12 +13,11 @@ from flask import (
 )
 from flask_login import login_user, login_required, logout_user, current_user
 from models.models_ import (
-    Card, Deck, Game, PlayerGame, Subscriber,
-    UsageRecord, UserSettings, User, Feedback, DeletedAccounts,
+    Card, Deck, PlayerGame, Subscriber,
+    UserSettings, User, Feedback, DeletedAccounts,
     Test, TestResult
 )
 from models.send_email import send_email
-from models.stripe_events import StripeEvents
 from models.tracking.events import event_tracker
 from models.forms.forms import (
     RegSub, RegisterForm, UploadFileForm,
@@ -30,10 +26,11 @@ from models.forms.forms import (
 )
 from config.settings import AUTH2_CLIENT_ID
 from run.extensions import db
-from models.user.stripe_config import STRIPE_PLANS
 from models.storage.s3 import upload_to_s3, delete_s3_object_in_folder
 from models.helpers.log_decorators import log_decorator
 from models.helpers.helpers import apology
+from models.user.sub_handler import StripeEventHandler
+
 logger = logging.getLogger("flask_app")
 
 user_bp = Blueprint(
@@ -525,8 +522,11 @@ counter = 0
 @log_decorator
 def stripe_webhook():
     endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
-
-    valid_events = ['checkout.session.completed','customer.updated']
+ 
+    valid_events = ['checkout.session.completed', 'customer.subscription.renewing',
+                    'customer.deleted', 'customer.updated', 'customer.subscription.deleted',
+                    'customer.subscription.updated', 'customer.subscription.created','customer.subscription.trial_will_end',
+                    ]
     global counter
     counter += 1
     payload = request.data.decode('utf-8')
@@ -552,7 +552,7 @@ def stripe_webhook():
     # Handle the checkout.session.completed event
     if event['type'] in valid_events:
         # Fulfill the purchase...
-        process_event_in_background(event)
+        StripeEventHandler.handle_event(event)
     else:
         # Unknown event type
         return 'Unused event type', 200
@@ -560,189 +560,3 @@ def stripe_webhook():
 
 
 
-@log_decorator
-def process_event_in_background(event):
-    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-    stripe_event_id = event['id']
-    event_type = event['type']
-    event_data = json.dumps(event)
-    created_at = dt.datetime.now(dt.timezone.utc)
-    if event['type'] == 'checkout.session.completed':
-        user_id = event['data']['object']['client_reference_id']
-    else:
-        user_id = None
-    if event['type'] != 'customer.updated':
-        stripe_customer_id = event['data']['object']['customer']
-    else:
-        stripe_customer_id = None
-    stripe_event = StripeEvents(
-        stripe_event_id=stripe_event_id,
-        event_type=event_type,
-        event_data=event_data,
-        event_created=created_at,
-        user_id=user_id,
-        stripe_customer_id=stripe_customer_id,
-    )
-    db.session.add(stripe_event)
-    db.session.commit()
-
-    if event['type'] == 'checkout.session.completed':
-        associate_stripe_customer_with_user(event)
-        # Add a small delay to give the webhook function enough time to return a response
-        time.sleep(1)
-        # Store the event data in the StripeEvents table
-        stripe_event_id = event['id']
-        event_type = event['type']
-        event_data = json.dumps(event)
-        created_at = dt.datetime.now(dt.timezone.utc)
-        user_id = event['data']['object']['client_reference_id']
-        stripe_customer_id = event['data']['object']['customer']
-        # logger.debug("CLIENT REF ID %s", event['data']['object']['client_reference_id'])
-        # logger.debug("CUSTOMER ID %s", event['data']['object']['customer'])
-        stripe_event = StripeEvents(
-            stripe_event_id=stripe_event_id,
-            event_type=event_type,
-            event_data=event_data,
-            event_created=created_at,
-            user_id=user_id,
-            stripe_customer_id=stripe_customer_id,
-        )
-        db.session.add(stripe_event)
-        db.session.commit()
-        try:
-            # Your event processing logic
-            handle_checkout_session(event)
-            # Update the event as processed in the StripeEvents table
-            stripe_event.processed = True
-            stripe_event.processed_at = dt.datetime.now(dt.timezone.utc)
-
-        except Exception as e:
-            # Update the StripeEvents table with the error message if processing fails
-            stripe_event.error_message = str(e)
-            logger.critical(f'Exception in process_event_in_background - stripe {e} - see db')
-            current_user.logger.error('Exception in process_event_background'
-                                    'function):%s', e)
-            raise e
-
-        finally:
-            db.session.commit()
-    else:
-        ## handle other event types
-        pass
-
-@log_decorator
-def associate_stripe_customer_with_user(event):
-    try:
-        idempo = str(uuid.uuid4())
-        user_id = event['data']['object']['client_reference_id']
-        stripe_customer_id = event['data']['object']['customer']
-        ## modify user entry in DB
-        user = User.query.filter_by(id=user_id).first()
-        user.stripe_customer_id = stripe_customer_id
-        ## modify stripe customer entry
-        stripe.Customer.modify(
-            stripe_customer_id,
-            metadata={'user_id': user_id},
-            idempotency_key=idempo, 
-            )
-        db.session.commit()
-    except Exception as e:
-        logger.critical(f"Exception in associate_stripe_customer_with_user - stripe {e}")
-        raise e
-
-@log_decorator
-def handle_checkout_session(event):
-
-    # Extract customer ID and subscription ID from the invoice object
-    customer_id = event['data']['object']['customer']
-    ##subscription_id = event['data']['object']['subscription']
-    checkout_session_id = event['data']['object']['id']
-    line_items = stripe.checkout.Session.list_line_items(checkout_session_id)
-    # Look up the user in your database using the customer ID
-    user = User.query.filter_by(stripe_customer_id=customer_id).first()
-    if line_items.data:
-        # Assuming there is only one line item
-        item = line_items.data[0]
-        product_id = item['price']['product']        
-        price_id = item['price']['id']
-        # Retrieve the product details from Stripe API
-        product = stripe.Product.retrieve(product_id)
-        product_name = product['name']
-        plan = STRIPE_PLANS[price_id]
-    try:
-        if user:
-            update_plan(user, plan)
-    except Exception as e:
-            logger.critical(f"Exception occurred in handle_checkout_session: {str(e)}")
-            # ## log user not found error
-            # logger.debug("user not found")
-            # logger.error(f"Exception occurred in handle_checkout_session: {str(e)}") 
-            raise e
-    
-@log_decorator
-def update_plan(user,plan):
-    try:
-        if plan == 'standard_yearly':
-            user.subscription_plan = 6
-            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-            set_usage_limit(user, 682700)
-            if user.contacted_email is True:
-                send_email(user.email, user.first_name, 'upgrade')
-        elif plan == 'standard_monthly':
-            user.subscription_plan = 4
-            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-            set_usage_limit(user, 682700)
-            if user.contacted_email is True:
-                send_email(user.email, user.first_name, 'upgrade')
-        elif plan == 'premium_yearly':
-            user.subscription_plan = 7
-            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-            set_usage_limit(user, 2048000)
-            if user.contacted_email is True:
-                send_email(user.email, user.first_name, 'upgrade')
-        elif plan == 'premium_monthly':
-            user.subscription_plan = 5
-            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-            set_usage_limit(user, 2048000)
-            if user.contacted_email is True:
-                send_email(user.email, user.first_name, 'upgrade')
-        elif plan == 'basic_monthly':
-            user.subscription_plan = 2
-            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-            set_usage_limit(user, 204800)
-            if user.contacted_email is True:
-                send_email(user.email, user.first_name, 'upgrade')
-        elif plan == 'basic_yearly':
-            user.subscription_plan = 3
-            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-            user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-            set_usage_limit(user, 204800)
-            if user.contacted_email is True:
-                send_email(user.email, user.first_name, 'upgrade')
-        else:
-            pass
-        #     logger.debug("plan not found")
-        # logger.debug("%s, %s", user.id, user.subscription_plan)
-        db.session.commit()
-    except Exception as e:
-        logger.error(f"Exception occurred in update_plan: {str(e)}")
-        raise e
-    
-@log_decorator
-def set_usage_limit(user, n):
-    new_record = UsageRecord(
-        user_id=user.id,
-        operation_type="Change plan",
-        limit_count=n,
-        operation_count=0,
-        remaining_count=n,
-        date=dt.datetime.now(dt.timezone.utc),
-        time_period = "month",
-    )
-    db.session.add(new_record)
-    db.session.commit()

@@ -9,6 +9,7 @@ from models.user.usage_record import UsageRecord
 from run.extensions import db
 from typing import Optional
 from models.helpers.log_decorators import log_decorator
+from config.settings import TOKENS_PER_PAGE
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -98,7 +99,7 @@ class User(db.Model, UserMixin):
             .order_by(UsageRecord.date.desc())
             .first()
         ):
-            return round(usage_record.remaining_count/341)
+            return round(usage_record.remaining_count/TOKENS_PER_PAGE)
         subscription_plan = (
         SubscriptionPlan.query
         .filter_by(id=self.subscription_plan).first() 

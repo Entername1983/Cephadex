@@ -21,6 +21,8 @@ from config.settings import DEBUG
 from run.bp_register import register_blueprints
 from models.helpers.helpers import apology
 
+from config.settings import TOKENS_PER_PAGE
+
 logger = logging.getLogger("flask_app")
 
 app = create_app()
@@ -156,7 +158,7 @@ def job_error_checker(slug: str) -> bool:
     error_ratio = check_for_errors(slug)
     if error_ratio > 0:
         job_notification = JobNotification.query.filter_by(slug=slug).first()
-        credit = current_user.remaining_credit() * 341 + job_notification.cost + 3410
+        credit = current_user.remaining_credit() * TOKENS_PER_PAGE + job_notification.cost + (TOKENS_PER_PAGE * 10)
         new_usage_record = UsageRecord(user_id=job_notification.user_id,
             date=dt.datetime.now(dt.timezone.utc), operation_type="credit",
             operation_details="credit for job error", operation_count=0,

@@ -32,7 +32,7 @@ from models.exceptions.exceptions import (
     ExtractionWikiError
 )
 import logging
-from models.extractors.extractor_config import PAGES_PER_MIN, TOKENS_PER_PAGE, MAX_TOKENS_PER_JOB
+from config.settings import PAGES_PER_MIN, TOKENS_PER_PAGE, MAX_TOKENS_PER_JOB
 from models.helpers.log_decorators import log_decorator
 
 from typing import TYPE_CHECKING, Any, Optional, Union, IO

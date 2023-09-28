@@ -16,6 +16,7 @@ from models.forms.forms import UploadFileForm
 from models.exceptions.exceptions import YoutubeError, AudioError
 from run.extensions import db
 from models.helpers.log_decorators import log_decorator
+from config.settings import TOKENS_PER_PAGE
 
 logger = logging.getLogger("flask_app")
 
@@ -88,7 +89,7 @@ def call_credit_counter():
         raise e
 
 def tokens_to_credit(tokens):
-    return tokens / 341
+    return tokens / TOKENS_PER_PAGE
 
 
 def initialize_user_settings():

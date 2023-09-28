@@ -20,6 +20,10 @@ def send_email( recipients, first_name, template_name,
         'upgrade': 'd-58efdfc3c4f14794ab83629b10d2f1b0',
         'deck_shared': 'd-b878423ea0304bd2a70c21cbe9129b75',
         'test_shared': 'd-0b0b6b0b0b0b0b0b0b0b0b0b0b0b0b0b',
+        'trial_over': ' d-e0895108c2984fe6954b4ae9d8c4ee32',
+        'sub_cancelled': 'd-592ee96aac374227b9c3bc4884e77504',
+        'sub_changed': 'd-ff5f582d4fe0448a83c649d13dffd18d',
+
     }
     message = Mail(
         from_email='cephadex@cephadex.com',
