@@ -515,7 +515,10 @@ def upgrade():
         flash('You must first have an account and be logged in'
             'before upgrading your account', 'warning')
         return redirect(url_for('index'))
-    return render_template('user_bp/upgrade.html')
+    publishable_key = os.environ.get("STRIPE_PUBLISHABLE_KEY")
+    pricing_table_id = os.environ.get("STRIPE_PRICING_TABLE_ID")
+    return render_template('user_bp/upgrade.html',
+            pricing_table_id = pricing_table_id, publishable_key = publishable_key)
 
 counter = 0
 @user_bp.route("/stripe_webhook", methods=['POST'])
