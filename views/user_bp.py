@@ -519,7 +519,6 @@ def upgrade():
 
 counter = 0
 @log_decorator
-
 @user_bp.route("/stripe_webhook", methods=['POST'])
 def stripe_webhook():
     endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
@@ -537,23 +536,25 @@ def stripe_webhook():
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
+
+    except ValueError as e:
+        # Invalid payload
+        logger.exception("An exception occurred in stribe_webhook() route): %s", e)
+        return 'Invalid payload', 401
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        logger.debug(f"Signature verification error: {str(e)}")
+        logger.error("An exception occurred in stribe_webhook() route): %s", e)
+
+        return 'Invalid signature', 402
     except Exception as e:
         logger.critical(f"An exception occurred in stribe_webhook() route): {str(e)}")
         raise e
-    # except ValueError as e:
-    #     # Invalid payload
-    #     logger.exception("An exception occurred in stribe_webhook() route): %s", e)
-    #     return 'Invalid payload', 401
-    # except stripe.error.SignatureVerificationError as e:
-    #     # Invalid signature
-    #     logger.debug(f"Signature verification error: {str(e)}")
-    #     logger.error("An exception occurred in stribe_webhook() route): %s", e)
-
-    #     return 'Invalid signature', 402
     # Handle the checkout.session.completed event
     if event['type'] in valid_events:
         # Fulfill the purchase...
-        StripeEventHandler.handle_event(event)
+        stripe_event_handler = StripeEventHandler()
+        stripe_event_handler.handle_event(event)
     else:
         # Unknown event type
         return 'Unused event type', 200
