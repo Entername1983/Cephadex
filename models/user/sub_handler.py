@@ -53,6 +53,7 @@ class StripeEventHandler:
                 item = line_items.data[0]
                 # product_id = item['price']['product']        
                 price_id = item['price']['id']
+                logger.info(f"retrieved price id of {price_id}")
                 # Retrieve the product details from Stripe API
                 # product = stripe.Product.retrieve(product_id)
                 # product_name = product['name']
@@ -121,7 +122,9 @@ class StripeEventHandler:
             if user.stripe_customer_id is not None:
                 logger.critical(f"User {user_id} already has a stripe customer id {user.stripe_customer_id}, which conflicts with:{stripe_customer_id}")
                 self.handle_new_subscription_with_existing_customer(user, stripe_customer_id)
-            user.stripe_customer_id = stripe_customer_id
+            else:
+                logger.info(f"associating user {user_id} with stripe customer id {stripe_customer_id}")
+                user.stripe_customer_id = stripe_customer_id
             ## modify stripe customer entry
             stripe.Customer.modify(
                 stripe_customer_id,
@@ -132,10 +135,12 @@ class StripeEventHandler:
             return user
         except Exception as e:
             logger.critical(f"Exception in associate_stripe_customer_with_user - stripe {e}, stripe customer id {stripe_customer_id},")
-            raise e
-        
+            raise
+
     def handle_new_subscription_with_existing_customer(self, user, stripe_customer_id):
-        pass
+        logger.info(f"changing user {user.id} to have a new stripe customer id {stripe_customer_id}, previous stripe id was {user.stripe_customer_id}")
+        user.stripe_customer_id = stripe_customer_id
+        db.session.commit()
 
     def log_stripe_event(self, event, user_id= None):
         created_at = dt.datetime.now(dt.timezone.utc)
@@ -157,6 +162,7 @@ def update_plan(user, price_id):
     if not plan:
         logger.error(f"Plan {price_id} not found.")
         return
+    logger.info(f"plan is {plan} type {isinstance(plan)}")
     user.subscription_plan = plan['subscription_plan']
     user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
     user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
