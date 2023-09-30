@@ -17,7 +17,7 @@ logger = logging.getLogger("flask_app")
 
 
 class StripeEventHandler:
-    def __init__(self, api_key: None):
+    def __init__(self, api_key= None):
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
     def handle_event(self, event):
