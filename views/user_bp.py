@@ -518,8 +518,9 @@ def upgrade():
             pricing_table_id = pricing_table_id, publishable_key = publishable_key)
 
 counter = 0
-@user_bp.route("/stripe_webhook", methods=['POST'])
 @log_decorator
+
+@user_bp.route("/stripe_webhook", methods=['POST'])
 def stripe_webhook():
     endpoint_secret = os.environ.get("STRIPE_SIGNING_SECRET")
  

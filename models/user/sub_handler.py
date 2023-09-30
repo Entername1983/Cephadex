@@ -47,6 +47,7 @@ class StripeEventHandler:
         time.sleep(1) ## giving webhook time to return a response
         stripe_event = self.log_stripe_event(event, user_id)
         line_items = stripe.checkout.Session.list_line_items(event['data']['object']['id'])
+        logger.info(f"user id is {user_id}, line items are {line_items}")
         if line_items.data:
             try:
                 item = line_items.data[0]
@@ -130,7 +131,7 @@ class StripeEventHandler:
             db.session.commit()
             return user
         except Exception as e:
-            logger.critical(f"Exception in associate_stripe_customer_with_user - stripe {e}")
+            logger.critical(f"Exception in associate_stripe_customer_with_user - stripe {e}, stripe customer id {stripe_customer_id},")
             raise e
         
     def handle_new_subscription_with_existing_customer(self, user, stripe_customer_id):
