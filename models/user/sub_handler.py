@@ -75,13 +75,20 @@ class StripeEventHandler:
         send_email(user.email, user.first_name, "sub_cancelled")
         
     def handle_subscription_update(self, event):
-        stripe_customer_id = event['data']['object']['customer']
-        user = User.query.filter_by(stripe_customer_id=stripe_customer_id).first()
-        line_items = stripe.checkout.Session.list_line_items(event['data']['object']['id'])
-        if line_items.data:
-            item = line_items.data[0]
-            price_id = item['price']['id']
-            update_plan(user, price_id)
+        ## ensure subscription is active
+        sub_is_active = event['data']['object']['status']
+        if sub_is_active == 'active':
+            stripe_customer_id = event['data']['object']['customer']
+
+            user = User.query.filter_by(stripe_customer_id=stripe_customer_id).first()
+            if event['items']['data']:
+                price_id = event['items']['data'][0]['price']['id']
+                update_plan(user, price_id)
+            # line_items = stripe.checkout.Session.list_line_items(event['data']['object']['id'])
+            # if line_items.data:
+            #     item = line_items.data[0]
+            #     price_id = item['price']['id']
+            #     update_plan(user, price_id)
 
     def handle_subscription_creation(self, event):
         pass

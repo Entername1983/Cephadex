@@ -390,7 +390,6 @@ def extract_from_pdf(file_data: str, n: int = 3) -> str:
                         current_page_text = image_to_string(image)
                 except Exception as e:
                     logger.error(f"Error occurred during OCR: {str(e)}")
-                    raise e
 
             text.append(current_page_text)
         return "\n".join(text)
