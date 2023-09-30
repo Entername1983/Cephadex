@@ -57,7 +57,8 @@ class StripeEventHandler:
                 # Retrieve the product details from Stripe API
                 # product = stripe.Product.retrieve(product_id)
                 # product_name = product['name']
-                update_plan(user_id, price_id)
+                user = User.query.filter_by(id=user_id).first()
+                update_plan(user, price_id)
                 stripe_event.processed = True
                 stripe_event.processed_at = dt.datetime.now(dt.timezone.utc)
             except Exception as e:
