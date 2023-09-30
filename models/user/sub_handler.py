@@ -162,7 +162,7 @@ def update_plan(user, price_id):
     if not plan:
         logger.error(f"Plan {price_id} not found.")
         return
-    logger.info(f"plan is {plan} type {isinstance(plan)}")
+    logger.info(f"plan is {plan} type {type(plan)}")
     user.subscription_plan = plan['subscription_plan']
     user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
     user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
