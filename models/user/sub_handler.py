@@ -137,7 +137,7 @@ class StripeEventHandler:
     def handle_new_subscription_with_existing_customer(self, user, stripe_customer_id):
         pass
 
-    def log_stripe_event(self, event, user_id: None):
+    def log_stripe_event(self, event, user_id= None):
         created_at = dt.datetime.now(dt.timezone.utc)
         stripe_event = StripeEvents(
                 stripe_event_id=event['id'],
