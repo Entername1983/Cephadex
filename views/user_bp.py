@@ -4,6 +4,7 @@ import tempfile
 from bleach import clean
 import stripe
 import logging
+import json
 from werkzeug.utils import secure_filename
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -517,7 +518,6 @@ def upgrade():
     return render_template('user_bp/upgrade.html',
             pricing_table_id = pricing_table_id, publishable_key = publishable_key)
 
-counter = 0
 @log_decorator
 @user_bp.route("/stripe_webhook", methods=['POST'])
 def stripe_webhook():
@@ -525,10 +525,11 @@ def stripe_webhook():
  
     valid_events = ['checkout.session.completed', 'customer.subscription.renewing',
                     'customer.deleted', 'customer.updated', 'customer.subscription.deleted',
-                    'customer.subscription.updated', 'customer.subscription.created','customer.subscription.trial_will_end',
+                    'customer.subscription.updated', 'customer.subscription.created',
+                    'customer.subscription.trial_will_end', 'invoice.created',
+                    'invoice.payment_failed', 'invoice.payment_succeeded','invoice.updated',
+                    'invoice.finalized', 'invoice_finalization_failed',
                     ]
-    global counter
-    counter += 1
     payload = request.data.decode('utf-8')
     sig_header = request.headers.get('stripe-signature')
     event = None
@@ -536,27 +537,20 @@ def stripe_webhook():
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
-
     except ValueError as e:
-        # Invalid payload
         logger.exception("An exception occurred in stribe_webhook() route): %s", e)
         return 'Invalid payload', 401
     except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
         logger.debug(f"Signature verification error: {str(e)}")
         logger.error("An exception occurred in stribe_webhook() route): %s", e)
-
         return 'Invalid signature', 402
-    except Exception as e:
-        logger.critical(f"An exception occurred in stribe_webhook() route): {str(e)}")
-        raise e
-    # Handle the checkout.session.completed event
     if event['type'] in valid_events:
-        # Fulfill the purchase...
-        stripe_event_handler = StripeEventHandler()
-        stripe_event_handler.handle_event(event)
+        try:
+            stripe_event_handler = StripeEventHandler()
+            stripe_event_handler.handle_event(event)
+        except Exception as e:
+            logger.critical(f"Unhandled stripe event error {e}: {json.dumps(event, indent=4)}")
     else:
-        # Unknown event type
         return 'Unused event type', 200
     return 'Success', 200
 

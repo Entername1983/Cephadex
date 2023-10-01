@@ -53,7 +53,7 @@ def roll_over():
             db.session.add(user)
             user.latest_roll_over = datetime.now(timezone.utc)
             subscription_plan = SubscriptionPlan.query.filter_by(id=user.subscription_plan).first()
-            if user.subscription_plan not in [5, 7]:
+            if user.subscription_plan not in [4, 5, 6, 7]:
                 usage_limit = subscription_plan.limit_count
             else:
             # for premium members previous months credit rolls over to the next
