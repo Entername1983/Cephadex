@@ -1639,10 +1639,18 @@ a {
 }
 
 #page-content-wrapper {
-  margin-left: 240px;
+  margin-left: 240px !important;
 }
 
 #page-content-wrapper.toggled {
+  margin-left: 60px !important;
+}
+
+#footer-content-wrapper {
+  margin-left: 240px;
+}
+
+#footer-content-wrapper.toggled {
   margin-left: 60px;
 }
 

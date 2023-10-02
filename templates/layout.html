@@ -175,480 +175,444 @@ gtag('config', 'G-6NB4ZPCNB0');
 
 
 <body>
-    <!---  Polling for notification if user is authentificated ----->
-    {% if current_user.is_authenticated and current_user.guest != 1 %}
+    
+                <!---  Polling for notification if user is authentificated ----->
+                {% if current_user.is_authenticated and current_user.guest != 1 %}
 
-    <input type="hidden" id="slug_id" value="{{ session['slug'] }}">
-    <script>
-        $(document).ready(function() {
-            $.get("/has-session-notification", function(data) {
-                if (data.hasSession) {
-                    // Start your polling logic here
-                    doPoll();
-                }
-            });
-        });
-        var slug_id = document.getElementById("slug_id").value;
-        
-        function doPoll() {
-            $.post('/query',{ id: slug_id },
-                function (data) {  // <- when the response comes, we'll process
-                    // its data with this function
-                    $('#status').text(data.state);
-                    var progress = data.progress;
-                        if (progress !== null) {
-                            $("#progress-bar").css("width", progress + "%").text(progress + "%");
-                            $("#progress-container").show();
-
-                    }  if (data.result == "ready") {
-                    
-                        // When we finally get the result we update it on the page
-                            $.post('/notification_complete', { id: slug_id }, function (response) {
-                                if(response === 'success') {
-                                    $('#slugModal').modal('show');
-                                } else if(response === 'error') {
-                                    $('#errorModal1').modal('show');
-                                }
+                <input type="hidden" id="slug_id" value="{{ session['slug'] }}">
+                <script>
+                    $(document).ready(function() {
+                        $.get("/has-session-notification", function(data) {
+                            if (data.hasSession) {
+                                // Start your polling logic here
+                                doPoll();
+                            }
                         });
-                    }
-                }
-            );
-           
-            setTimeout(doPoll, 1000);
-        }
+                    });
+                    var slug_id = document.getElementById("slug_id").value;
+                    
+                    function doPoll() {
+                        $.post('/query',{ id: slug_id },
+                            function (data) {  // <- when the response comes, we'll process
+                                // its data with this function
+                                $('#status').text(data.state);
+                                var progress = data.progress;
+                                    if (progress !== null) {
+                                        $("#progress-bar").css("width", progress + "%").text(progress + "%");
+                                        $("#progress-container").show();
 
-
-    </script>
-    {% endif %}
-
-
-<script>
-$(document).ready(function () {
-    // Check the initial state of the navbar and set it
-    var isCollapsed = localStorage.getItem('navbar-collapsed');
-    if (isCollapsed === 'true') {
-        $('.navbar-collapse').collapse('hide');
-    } else {
-        $('.navbar-collapse').collapse('show');
-    }
-
-    // Update the navbar state on toggle
-    $('.navbar-toggler').on('click', function () {
-        var isCollapsed = $('.navbar-collapse').is(':visible');
-        localStorage.setItem('navbar-collapsed', isCollapsed);
-    });
-});</script>
-{% if current_user.is_authenticated and current_user.guest != 1 %}
-    <div class="d-flex" id="wrapper">
-        <div id = "sidebar-wrapper" class="sidebar-print d-flex flex-column flex-shrink-0 {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}" style="width: 240px; height:100vh;">
-
-        <a href="/" class="d-flex align-items-center">
-          <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
-          <span class="fs-4"></span>
-        </a>
-        <hr>
-        <ul class="nav nav-pills flex-column mb-auto mt-3">
-            <li class=" text-center">
-                <a href="/extract_bp/extract" class=" text-center ">
-                    <span class="menu-text"><img src="\static\Cepha-banner-2.png" max-width="50" height="50"/></span>
-                </a>
-          <li class="nav-item text-center mt-4">
-            <a href="/extract_bp/extract" class="nav-link text-center" id="sidebar-create" >
-                <span class="menu-icon " style="display:none"><img src="/static/create-svg-icon.svg" title = "Create decks" max-width="40" height="40"/></span>
-                <span class="menu-text">Create</span>
-            </a>
-          </li>
-          <li>
-            <a href="/deck_bp/view_decks" class="nav-link text-center" id="sidebar-view_decks">
-                <span class="menu-icon" style="display:none"><img src="/static/home-school-icon-svg.svg" title = "My decks" max-width="40" height="40"/></span>
-                <span class="menu-text">Decks</span>
-            </a>
-          </li>
-          <li>
-            <a href="/study_bp/study_select" class="nav-link text-center" id="sidebar-view_decks">
-                <span class="menu-icon" style="display:none"><img src="/static/study-svg-icon.svg" title = "Study" max-width="40" height="40"/></span>
-                <span class="menu-text">Study</span>
-            </a>
-          </li>
-     <li>
-            <a href="/game_bp/game_new" class="nav-link text-center" id="sidebar-view_decks">
-                <span class="menu-icon" style="display:none"><img src="/static/games-svg-icon.svg" title = "Games" max-width="40" height="40"/></span>
-                <span class="menu-text">Games <small>(beta)</small></span>
-            </a>
-          </li>
-          <li>
-            <a href="/quiz_bp/quiz_overview" class="nav-link text-center" id="sidebar-quiz">
-                <span class="menu-icon" style="display:none"><img src="/static/quiz-2-svg-icon.svg" title = "My quizzes" max-width="40" height="40"></span>
-                <span class="menu-text">Quizzes</span>
-            </a>
-          </li>
-          <li>
-            <a href="/group_bp/my_groups" class="nav-link text-center" id="sidebar-groups">
-
-                <span class="menu-icon" style="display:none"><img src="/static/group-svg-icon.svg" title = "My groups" max-width="40" height="40"/></span>
-            <span class="menu-text">Groups</span>
-            </a>
-          </li>
-          <li>
-            <a href="/deck_bp/public_decks" class="nav-link text-center" id="sidebar-public">
-                <span class="menu-icon" style="display:none"><img src="/static/public-svg-icon.svg" title = "Public decks" max-width="40" height="40"/></span>
-                <span class="menu-text">Public decks</span>
-            </a>
-          </li>
-          <li>
-            <a href="/deck_bp/import_deck" class="nav-link text-center" id="sidebar-import">
-                <span class="menu-icon" style="display:none"><img src="/static/import-svg-icon.svg" title = "Import from Anki" max-width="40" height="40"/></span>
-                <span class="menu-text">Import</span>
-            </a>
-          </li>
-          <li>
-            <a href="/user_bp/upgrade" class="nav-link text-center" id="sidebar-upgrade">
-                <span class="menu-icon" style="display:none"><img src="/static/upgrade-svg-icon.svg" title = "Upgrade" max-width="40" height="40"/></span>
-                <span class="menu-text">Upgrade</span>
-            </a>
-          </li>
-        </ul>
-      
-        <h5 class = " text-center p-1 py-3 text-white " id="sidebar-credit"style="background-color: #a880fd; margin: 0px!important;">
-            <div class = "menu-icon" style="display:none">{{current_user.remaining_credit()}}</div>
-            <div class = "menu-text">Credits: {{current_user.remaining_credit()}}</div>
-        
-        </h5>
-      </div>
-
-        <!-- Page ontent -->
-<!------ NAVBAR -->
-        <div id="page-content-wrapper" class = " {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}">
-
-
-            <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
-                <div class="container-fluid">
-                      <a class =" navbar-brand" id="menu-toggle">
-                                <img class="menu-icon img-grow-2" src="\static\sidebar-svg-icon.svg" max-width="40" height="40"/>
-                                <img class="menu-text img-grow-2" src="\static\sidebar-collapse-icon-svg.svg"  max-width="40" height="40"/>
-
-                                    </a>
-
-                    <div >
-                  
-                        <!---
-                        <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/view_decks{% else %}/{% endif %}">
-                            <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
-                        </a>
--->
-                        <div class="d-flex ms-auto">
-                            <button class="btn-feedback rounded-pill px-3 mb-2 mb-lg-0 me-3 d-none d-md-block" data-bs-toggle="modal" data-bs-target="#feedbackModal">
-                                <span class="d-flex align-items-center">
-                                    <span class="small">Send Feedback</span>
-                                </span>
-                            </button>
-                
-                            <div class="dropdown">
-                                <button
-                                    class="button-initals"
-                                    href="#"
-                                    id="navbarDropdown"
-                                    role="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false">
-                                    {{ current_user.first_name[0] | upper }}{% if current_user.last_name %}{{ current_user.last_name[0] | upper }}{% endif %}
-                                </button>
+                                }  if (data.result == "ready") {
                                 
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-     
-                                    <a class="dropdown-item" href="/user_bp/account">Account</a>
-                                    <a class="dropdown-item" href="/user_bp/upgrade">Upgrade </a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="/user_bp/logout">Sign out</a>
-                                    <a class="dropdown-item d-md-none" data-bs-toggle="modal" data-bs-target="#feedbackModal">Send feedback</a>
-            
-                          
+                                    // When we finally get the result we update it on the page
+                                        $.post('/notification_complete', { id: slug_id }, function (response) {
+                                            if(response === 'success') {
+                                                $('#slugModal').modal('show');
+                                            } else if(response === 'error') {
+                                                $('#errorModal1').modal('show');
+                                            }
+                                    });
+                                }
+                            }
+                        );
+                    
+                        setTimeout(doPoll, 1000);
+                    }
+
+
+                </script>
+                {% endif %}
+
+
+                <script>
+                $(document).ready(function () {
+                    // Check the initial state of the navbar and set it
+                    var isCollapsed = localStorage.getItem('navbar-collapsed');
+                    if (isCollapsed === 'true') {
+                        $('.navbar-collapse').collapse('hide');
+                    } else {
+                        $('.navbar-collapse').collapse('show');
+                    }
+
+                    // Update the navbar state on toggle
+                    $('.navbar-toggler').on('click', function () {
+                        var isCollapsed = $('.navbar-collapse').is(':visible');
+                        localStorage.setItem('navbar-collapsed', isCollapsed);
+                    });
+                });</script>
+    {% if current_user.is_authenticated and current_user.guest != 1 %}
+        <div class="d-flex" id="wrapper">
+            <div id = "sidebar-wrapper" class="sidebar-print d-flex flex-column flex-shrink-0 {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}" style="width: 240px; height:95vh;">
+                <a href="/" class="d-flex align-items-center">
+                    <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+                    <span class="fs-4"></span>
+                </a>
+                <hr>
+                <ul class="nav nav-pills flex-column mb-auto mt-3">
+                    <li class=" text-center">
+                        <a href="/extract_bp/extract" class=" text-center ">
+                            <span class="menu-text"><img src="\static\Cepha-banner-2.png" max-width="50" height="50"/></span>
+                        </a>
+                <li class="nav-item text-center mt-4">
+                    <a href="/extract_bp/extract" class="nav-link text-center" id="sidebar-create" >
+                        <span class="menu-icon " style="display:none"><img src="/static/create-svg-icon.svg" title = "Create decks" max-width="40" height="40"/></span>
+                        <span class="menu-text">Create</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/deck_bp/view_decks" class="nav-link text-center" id="sidebar-view_decks">
+                        <span class="menu-icon" style="display:none"><img src="/static/home-school-icon-svg.svg" title = "My decks" max-width="40" height="40"/></span>
+                        <span class="menu-text">Decks</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/study_bp/study_select" class="nav-link text-center" id="sidebar-view_decks">
+                        <span class="menu-icon" style="display:none"><img src="/static/study-svg-icon.svg" title = "Study" max-width="40" height="40"/></span>
+                        <span class="menu-text">Study</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/game_bp/game_new" class="nav-link text-center" id="sidebar-view_decks">
+                        <span class="menu-icon" style="display:none"><img src="/static/games-svg-icon.svg" title = "Games" max-width="40" height="40"/></span>
+                        <span class="menu-text">Games <small>(beta)</small></span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/quiz_bp/quiz_overview" class="nav-link text-center" id="sidebar-quiz">
+                        <span class="menu-icon" style="display:none"><img src="/static/quiz-2-svg-icon.svg" title = "My quizzes" max-width="40" height="40"></span>
+                        <span class="menu-text">Quizzes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/group_bp/my_groups" class="nav-link text-center" id="sidebar-groups">
+
+                        <span class="menu-icon" style="display:none"><img src="/static/group-svg-icon.svg" title = "My groups" max-width="40" height="40"/></span>
+                    <span class="menu-text">Groups</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/deck_bp/public_decks" class="nav-link text-center" id="sidebar-public">
+                        <span class="menu-icon" style="display:none"><img src="/static/public-svg-icon.svg" title = "Public decks" max-width="40" height="40"/></span>
+                        <span class="menu-text">Public decks</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/deck_bp/import_deck" class="nav-link text-center" id="sidebar-import">
+                        <span class="menu-icon" style="display:none"><img src="/static/import-svg-icon.svg" title = "Import from Anki" max-width="40" height="40"/></span>
+                        <span class="menu-text">Import</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/user_bp/upgrade" class="nav-link text-center" id="sidebar-upgrade">
+                        <span class="menu-icon" style="display:none"><img src="/static/upgrade-svg-icon.svg" title = "Upgrade" max-width="40" height="40"/></span>
+                        <span class="menu-text">Upgrade</span>
+                    </a>
+                </li>
+                </ul>
+                <h5 class = " text-center p-1 py-3 text-white " id="sidebar-credit"style="background-color: #a880fd; margin: 0px!important;">
+                    <div class = "menu-icon" style="display:none">{{current_user.remaining_credit()}}</div>
+                    <div class = "menu-text">Credits: {{current_user.remaining_credit()}}</div>
+                
+                </h5>
+            </div>
+            <!------ NAVBAR -->
+            <div id="page-content-wrapper" class = " {{ 'toggled' if session.get('sidebar-collapsed', False) else '' }}">
+                <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
+                    <div class="container-fluid">
+                        <a class =" navbar-brand" id="menu-toggle">
+                                    <img class="menu-icon img-grow-2" src="\static\sidebar-svg-icon.svg" max-width="40" height="40"/>
+                                    <img class="menu-text img-grow-2" src="\static\sidebar-collapse-icon-svg.svg"  max-width="40" height="40"/>
+
+                                        </a>
+
+                        <div>
+                            <!---
+                            <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated %}/view_decks{% else %}/{% endif %}">
+                                <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
+                            </a>
+    -->
+                            <div class="d-flex ms-auto">
+                                <button class="btn-feedback rounded-pill px-3 mb-2 mb-lg-0 me-3 d-none d-md-block" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                                    <span class="d-flex align-items-center">
+                                        <span class="small">Send Feedback</span>
+                                    </span>
+                                </button>
+                    
+                                <div class="dropdown">
+                                    <button
+                                        class="button-initals" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+                                        aria-haspopup="true" aria-expanded="false">
+                                        {{ current_user.first_name[0] | upper }}{% if current_user.last_name %}{{ current_user.last_name[0] | upper }}{% endif %}
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                        <a class="dropdown-item" href="/user_bp/account">Account</a>
+                                        <a class="dropdown-item" href="/user_bp/upgrade">Upgrade </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="/user_bp/logout">Sign out</a>
+                                        <a class="dropdown-item d-md-none" data-bs-toggle="modal" data-bs-target="#feedbackModal">Send feedback</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-
-
-
                     </div>
+                </nav>
 
-
-                </div>
-
-
-            </nav>
-
-            {% else %}
-            <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
-                <div class="container px-5 d-flex justify-content-between align-items-center">
-                    <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated and current_user.guest != 1 %}
-/deck_bp/view_decks{% else %}/{% endif %}">
-                        <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
-                    </a>
-                    <div class="d-flex">
-                        <button id ="signInButton" class="btn btn-primary btn-feedback rounded-pill px-3 mb-2 mb-lg-0 me-3" data-bs-toggle="modal" data-bs-target="#loginModal">Sign in</button>
-                        <!---- NOT NECESSARY ? 
-                        <a class="nav-link" href="/about">Find out more</a>
-                        --->
+                {% else %}
+                <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
+                    <div class="container px-5 d-flex justify-content-between align-items-center">
+                        <a class="navbar-brand d-flex align-items-center" href="{% if current_user.is_authenticated and current_user.guest != 1 %}
+    /deck_bp/view_decks{% else %}/{% endif %}">
+                            <img src="\static\Cepha-banner-1.png" max-width="120" height="40" alt="logo">
+                        </a>
+                        <div class="d-flex">
+                            <button id ="signInButton" class="btn btn-primary btn-feedback rounded-pill px-3 mb-2 mb-lg-0 me-3" data-bs-toggle="modal" data-bs-target="#loginModal">Sign in</button>
+                            <!---- NOT NECESSARY ? 
+                            <a class="nav-link" href="/about">Find out more</a>
+                            --->
+                        </div>
                     </div>
-                </div>
-            </nav>
-          
+                </nav>
+            
 
-            {% endif %}
+                {% endif %}
 
-<!----  MAIN PAGE CONTENT -------->
+                <!----  MAIN PAGE CONTENT -------->
 
-
-            <div class="container-fluid main-class" style="width:100%">
-                    <div class=" px-2 flex">
-                        <div class="row">
-                            {% with messages = get_flashed_messages() %}
-                            {% if messages %}
-                            {% for msg in messages %}
-                            <div class="container align-self-center alert alert-dismissible fade show" role="alert">
-                                <h5 class="flash-message d-flex justify-content-center m-1">{{msg}}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="container-fluid main-class" style="width:100%;">
+                        <div class=" px-2 flex">
+                            <div class="row">
+                                {% with messages = get_flashed_messages() %}
+                                {% if messages %}
+                                {% for msg in messages %}
+                                <div class="container align-self-center alert alert-dismissible fade show" role="alert">
+                                    <h5 class="flash-message d-flex justify-content-center m-1">{{msg}}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                                {% endwith %}
                             </div>
-                            {% endfor %}
-                            {% endif %}
-                            {% endwith %}
                         </div>
-                    </div>
-                    {% block main_0 %}
-            
-                    {% endblock %}
-            
-
-
-
-
-
-
-
-
-
-            </div>
-        </div>
-        <!-- /#page-content-wrapper -->
-    </div>
-</div>
-    <!-- /#wrapper -->
-
-
-    
-
-
-
-
-
-   
-
-    <!-- Feedback Modal-->
-    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header modal-header-style p-4">
-                <h5 class="modal-title font-alt" id="feedbackModalLabel">Send feedback
-                </h5>
-                <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-            <div class="modal-body border-0 p-4">
-
-                <form id="feedback-form" method="POST" action="{{ url_for('user_bp.feedback') }}">
-                    {{ g.feedback_form.hidden_tag() }}
+                        {% block main_0 %}
                 
-                    <!-- Name input-->
-                    <div class="form-floating mb-3">
-                        {{ g.feedback_form.name(class_="form-control", placeholder=g.feedback_form.name.label.text, required="required") }}
-                        <label for="{{ g.feedback_form.name.id }}">{{ g.feedback_form.name.label.text }}</label>
-                        {% for error in g.feedback_form.name.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <!-- Email address input-->
-                    <div class="form-floating mb-3">
-                        {{ g.feedback_form.email(class_="form-control", placeholder=g.feedback_form.email.label.text, required="required") }}
-                        <label for="{{ g.feedback_form.email.id }}">{{ g.feedback_form.email.label.text }}</label>
-                        {% for error in g.feedback_form.email.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <!-- Feedback type input-->
-                    <div class="form-floating mb-3">
-                        {{ g.feedback_form.type_feedback(class_="form-control", required="required") }}
-                        <label for="{{ g.feedback_form.type_feedback.id }}">{{ g.feedback_form.type_feedback.label.text }}</label>
-                        {% for error in g.feedback_form.type_feedback.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <!-- Message input-->
-                    <div class="form-floating mb-3">
-                        {{ g.feedback_form.message(class_="form-control", placeholder=g.feedback_form.message.label.text, style="height: 10rem", required="required") }}
-                        <label for="{{ g.feedback_form.message.id }}">{{ g.feedback_form.message.label.text }}</label>
-                        {% for error in g.feedback_form.message.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <!-- Submit button-->
-                    <div class="d-grid"><button class="btn btn-primary rounded-pill btn-lg" id="submitButton"
-                            type="submit">Submit</button></div>
-                </form>
+                        {% endblock %}
+                </div>
+
+                </div>
             </div>
-        </div>
-    </div>
-</div>
- <!-- Modal Register -->
- <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
- aria-hidden="true">
- <div class="modal-dialog">
-     <div class="modal-content">
-         <div class="modal-header modal-header-style p-4">
-             <h5 class="modal-title" id="exampleModalLabel" >Register</h5>
-             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-         </div>
-         <div class="modal-body">
-             <div class = "alert" id="adblocker2" style="display:none">
-                 <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                 Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
-
-             </div>
-             <div style="text-align:center">
-                 <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
-                 class="w3-circle w3-margin-top">
-             </div>
-
-          
-
-                 <div id="g_id_onload" class = "google-signin-btn"
-                     data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
-                     data-context="signin" data-ux_mode="popup" data-login_uri="{{ url_for('user_bp.googleSignIn') }}" data-nonce=""
-                     data-auto_prompt="false">
-                 </div>
-                 <div class="g_id_signin d-flex justify-content-center" data-type="standard"
-                     data-shape="pill" data-theme="filled_blue" data-text="signup_with" data-size="large"
-                     data-logo_alignment="left" data-width="300">
-                 </div>
+            <!-- /#page-content-wrapper -->
             
-          
-
-     
-         </div>
-     </div>
- </div>
-</div>
-<!-- END OF REGISTER MODAL-->
-
- <!-- Modal sign in -->
- <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header modal-header-style p-4">
-                <h5 class="modal-title" id="loginModalLabel">Log in</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body"><div class = "alert" id="adblocker1" style="display:none">
-                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                       Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
-                    </div>
-                <div style="text-align:center">
-                    <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
-                        class="w3-circle w3-margin-top">
-                </div>
-                <div class="row d-flex justify-content-center">
-                        <div id="g_id_onload" class = "google-signin-btn"
-                            data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
-                            data-context="signin"  data-ux_mode="popup" data-login_uri="{{ url_for('user_bp.googleSignIn') }}" data-nonce=""
-                            data-auto_prompt="false">
-                        </div>
-                        <div class="g_id_signin d-flex justify-content-center" data-type="standard"
-                            data-shape="pill" data-theme="filled_blue" data-text="signin_with" data-size="large"
-                            data-logo_alignment="left" data-width="300">
-                        </div>
-                </div>
-            </div>
         </div>
+        
     </div>
-</div>
- <!------ MODAL CARD COMPLETE NOTIFICATION ------- -->
-
- {% if current_user.is_authenticated and current_user.guest != 1 %}
-
- <div class="modal fade" id="slugModal" tabindex="-1" aria-labelledby="slugModalLabel" aria-hidden="true">
-     <div class="modal-dialog modal-dialog-centered">
-         <div class="modal-content">
-             <div class="modal-header modal-header-style p-4">
-                 <h5 class="modal-title font-alt" id="slugModalLabel">Deck ready</h5>
-                 <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
-                     aria-label="Close"></button>
-             </div>
-             <div class="modal-body border-0 p-4">
-                 <h4>Your deck is now ready!</h4>
-                 <p> Click <a href="/deck_bp/latest_deck"> here</a> to view it.
-                 </p>
-             </div>
-         </div>
-     </div>
- </div>
+        <!-- /#wrapper -->
 
 
- <div class="modal fade" id="errorModal1" tabindex="-1" aria-labelledby="errorModal1Label" aria-hidden="true">
-     <div class="modal-dialog modal-dialog-centered">
-         <div class="modal-content">
-             <div class="modal-header modal-header-style p-4">
-                 <h5 class="modal-title font-alt" id="slugModalLabel">Uh oh!</h5>
-                 <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
-                     aria-label="Close"></button>
-             </div>
-             <div class="modal-body border-0 p-4">
-                 <h4>We had an issue processing your content</h4>
-                 <p>We have returned the credits to your account and given you an additional 10 credits for the inconvenience.  Please try again.  If the issue persists, please<a href="mailto:support@cephadex.com"> contact us </a>
-                 </p>
-             </div>
-         </div>
-     </div>
- </div>
- {% endif %}
+                    <!-- Feedback Modal-->
+                    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header modal-header-style p-4">
+                                <h5 class="modal-title font-alt" id="feedbackModalLabel">Send feedback
+                                </h5>
+                                <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body border-0 p-4">
+
+                                <form id="feedback-form" method="POST" action="{{ url_for('user_bp.feedback') }}">
+                                    {{ g.feedback_form.hidden_tag() }}
+                                
+                                    <!-- Name input-->
+                                    <div class="form-floating mb-3">
+                                        {{ g.feedback_form.name(class_="form-control", placeholder=g.feedback_form.name.label.text, required="required") }}
+                                        <label for="{{ g.feedback_form.name.id }}">{{ g.feedback_form.name.label.text }}</label>
+                                        {% for error in g.feedback_form.name.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <!-- Email address input-->
+                                    <div class="form-floating mb-3">
+                                        {{ g.feedback_form.email(class_="form-control", placeholder=g.feedback_form.email.label.text, required="required") }}
+                                        <label for="{{ g.feedback_form.email.id }}">{{ g.feedback_form.email.label.text }}</label>
+                                        {% for error in g.feedback_form.email.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <!-- Feedback type input-->
+                                    <div class="form-floating mb-3">
+                                        {{ g.feedback_form.type_feedback(class_="form-control", required="required") }}
+                                        <label for="{{ g.feedback_form.type_feedback.id }}">{{ g.feedback_form.type_feedback.label.text }}</label>
+                                        {% for error in g.feedback_form.type_feedback.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <!-- Message input-->
+                                    <div class="form-floating mb-3">
+                                        {{ g.feedback_form.message(class_="form-control", placeholder=g.feedback_form.message.label.text, style="height: 10rem", required="required") }}
+                                        <label for="{{ g.feedback_form.message.id }}">{{ g.feedback_form.message.label.text }}</label>
+                                        {% for error in g.feedback_form.message.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <!-- Submit button-->
+                                    <div class="d-grid"><button class="btn btn-primary rounded-pill btn-lg" id="submitButton"
+                                            type="submit">Submit</button></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal Register -->
+                <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header modal-header-style p-4">
+                            <h5 class="modal-title" id="exampleModalLabel" >Register</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class = "alert" id="adblocker2" style="display:none">
+                                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                                Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
+
+                            </div>
+                            <div style="text-align:center">
+                                <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
+                                class="w3-circle w3-margin-top">
+                            </div>
+
+                        
+
+                                <div id="g_id_onload" class = "google-signin-btn"
+                                    data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
+                                    data-context="signin" data-ux_mode="popup" data-login_uri="{{ url_for('user_bp.googleSignIn') }}" data-nonce=""
+                                    data-auto_prompt="false">
+                                </div>
+                                <div class="g_id_signin d-flex justify-content-center" data-type="standard"
+                                    data-shape="pill" data-theme="filled_blue" data-text="signup_with" data-size="large"
+                                    data-logo_alignment="left" data-width="300">
+                                </div>
+                            
+                        
+
+                    
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <!-- END OF REGISTER MODAL-->
+
+                <!-- Modal sign in -->
+                <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header modal-header-style p-4">
+                                <h5 class="modal-title" id="loginModalLabel">Log in</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body"><div class = "alert" id="adblocker1" style="display:none">
+                                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                                    Ad-blockers can prevent the google login from working. If so please disable your ad-blocker.
+                                    </div>
+                                <div style="text-align:center">
+                                    <img src="/static/Cephadex-logo-5.png" alt="Avatar" style="width:50%"
+                                        class="w3-circle w3-margin-top">
+                                </div>
+                                <div class="row d-flex justify-content-center">
+                                        <div id="g_id_onload" class = "google-signin-btn"
+                                            data-client_id="945000040547-5j6598rtn7ikp4n0h4npsrvbkdk0il5u.apps.googleusercontent.com"
+                                            data-context="signin"  data-ux_mode="popup" data-login_uri="{{ url_for('user_bp.googleSignIn') }}" data-nonce=""
+                                            data-auto_prompt="false">
+                                        </div>
+                                        <div class="g_id_signin d-flex justify-content-center" data-type="standard"
+                                            data-shape="pill" data-theme="filled_blue" data-text="signin_with" data-size="large"
+                                            data-logo_alignment="left" data-width="300">
+                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!------ MODAL CARD COMPLETE NOTIFICATION ------- -->
+
+                {% if current_user.is_authenticated and current_user.guest != 1 %}
+
+                <div class="modal fade" id="slugModal" tabindex="-1" aria-labelledby="slugModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header modal-header-style p-4">
+                                <h5 class="modal-title font-alt" id="slugModalLabel">Deck ready</h5>
+                                <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body border-0 p-4">
+                                <h4>Your deck is now ready!</h4>
+                                <p> Click <a href="/deck_bp/latest_deck"> here</a> to view it.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="modal fade" id="errorModal1" tabindex="-1" aria-labelledby="errorModal1Label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header modal-header-style p-4">
+                                <h5 class="modal-title font-alt" id="slugModalLabel">Uh oh!</h5>
+                                <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body border-0 p-4">
+                                <h4>We had an issue processing your content</h4>
+                                <p>We have returned the credits to your account and given you an additional 10 credits for the inconvenience.  Please try again.  If the issue persists, please<a href="mailto:support@cephadex.com"> contact us </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
 
 
+    <footer class="text-center site-footer pt-2 no-print" style="width:100%">
 
-<footer class="text-center site-footer pt-2 no-print" >
-    <!----
-    <a class="btn btn-outline-dark btn-floating m-1" href="https://www.facebook.com/Cephadex" role="button"
-        target="_blank"><i class="fab fa-facebook-f"></i></a>
---->
-    <a class="btn btn-outline-footer btn-floating m-1" href="https://twitter.com/Cephadex" role="button"
-        target="_blank"><i class="fab fa-twitter"></i></a>
+        <a class="btn btn-outline-footer btn-floating m-1" href="https://twitter.com/Cephadex" role="button"
+            target="_blank"><i class="fab fa-twitter"></i></a>
+        
+        <a class="btn btn-outline-footer btn-floating m-1" href="https://discord.gg/QE3DqykrdD" role="button"
+            target="_blank"><i class="fab fa-discord"></i></a>
+
+        <a class="btn btn-outline-footer btn-floating m-1" href="https://www.instagram.com/CephadexSocial/" role="button"
+            target="_blank"><i class="fab fa-instagram"></i></a>
+
+        <a class="btn btn-outline-footer btn-floating m-1" href="https://www.linkedin.com/company/Cephadex/"
+            role="button" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+
+
+
+        <p style=""><a class="" href="mailto:support@cephadex.com" target="blank">Contact</a>
+        
+        <a class="" href="/info_bp/legal">Legal</a>
        
-    <a class="btn btn-outline-footer btn-floating m-1" href="https://discord.gg/QE3DqykrdD" role="button"
-        target="_blank"><i class="fab fa-discord"></i></a>
+        <a class="" href="/info_bp/about">About us</a>
+        <a class="" href="/info_bp/documentation">Documentation</a>
+        <a class="" href="/info_bp/pricing">Pricing</a>
+        
+        © 2023 Copyright:
+        <a class="" href="/">Cephadex</a></p>
+        
+    </footer>
+        <!---<a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i class="fab fa-github"></i></a>--->
+     <!---    <a class="" href="/news">News</a>--->
+        <!----
+        <a class="btn btn-outline-dark btn-floating m-1" href="https://www.facebook.com/Cephadex" role="button"
+            target="_blank"><i class="fab fa-facebook-f"></i></a>
+    --->
 
-    <a class="btn btn-outline-footer btn-floating m-1" href="https://www.instagram.com/CephadexSocial/" role="button"
-        target="_blank"><i class="fab fa-instagram"></i></a>
-
-    <a class="btn btn-outline-footer btn-floating m-1" href="https://www.linkedin.com/company/Cephadex/"
-        role="button" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-
-    <!---<a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i class="fab fa-github"></i></a>--->
-
-
-    <p style=""><a class="" href="mailto:support@cephadex.com" target="blank">Contact</a>
-    
-    <a class="" href="/info_bp/legal">Legal</a>
-    <!---
-    <a class="" href="/news">News</a>--->
-    <a class="" href="/info_bp/about">About us</a>
-    <a class="" href="/info_bp/documentation">Documentation</a>
-    <a class="" href="/info_bp/pricing">Pricing</a>
-    
-    © 2023 Copyright:
-    <a class="" href="/">Cephadex</a></p>
-    
-</footer>
+</div>
 <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
     integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" rel="stylesheet" />
 <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"

@@ -63,13 +63,15 @@
 
     }).start();
       });
+      console.log("fetching new user settings"),
 
-      fetch('/user_bp/new_user_settings_viewdecks', {
+      fetch('/user_bp/new_user_settings_view_decks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ checked: true })
+        
       })
 
 

@@ -1851,9 +1851,15 @@ a {
   margin-left: 240px; 
 }
 #page-content-wrapper.toggled {
-  margin-left: 60px; 
+  margin-left: 60px!; 
 }
 
+#footer-content-wrapper {
+  margin-left: 240px;
+}
+#footer-content-wrapper.toggled {
+  margin-left: 60px;
+}
 @media (max-width: 768px) { 
   #sidebar-wrapper {
     transform: translateX(-100%);

@@ -479,8 +479,10 @@ def new_user_settings_create():
 @login_required
 @log_decorator
 def new_user_settings_viewdecks():
+    print("entered new user settings view decks")
     data = request.get_json()
     if data.get('checked'):
+        print("recognized as checked")
         user_settings = UserSettings.query.filter_by(user=current_user.id).first()
         user_settings.new_user_decks = False
         db.session.add(user_settings)

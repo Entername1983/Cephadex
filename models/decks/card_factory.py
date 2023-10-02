@@ -44,7 +44,7 @@ class CardFactory:
                 key = item['A']
                 if not self.check_card_exist(key):
                     value = item['B']
-                    card = Card(term=key, content=value, category=type)
+                    card = Card(term=capitalize_first(key), content=capitalize_first(value), category=type)
                     self.deck.cards.append(card)
                     self.session.add(card)
                     self.session.commit()
@@ -58,9 +58,9 @@ class CardFactory:
                 key = item['A']
                 if not self.check_card_exist(key):
                     value = item['B']
-                    card = Card(term=key, content=value.get("content"), category="Mcq",
-                                boc_2=value.get("boc_2"), boc_3=value.get("boc_3"),
-                                boc_4=value.get("boc_4"))
+                    card = Card(term=capitalize_first(key), content=capitalize_first(value.get("content")), category="Mcq",
+                                boc_2=capitalize_first(value.get("boc_2")), boc_3=capitalize_first(value.get("boc_3")),
+                                boc_4=capitalize_first(value.get("boc_4")))
                     self.deck.cards.append(card)
                     self.session.add(card)
                     self.session.commit()
@@ -71,10 +71,11 @@ class CardFactory:
     def create_formulas(self, content: str) -> None:
         for item in content:
             try:
-                key = item['A']
+                key = capitalize_first(item['A'])
                 if not self.check_card_exist(key):
                     value = item['B']
-                    card = Card(term=key, content=value.get("content"), category="Formulas", formula=value.get("formula"))
+                    card = Card(term=key, content=capitalize_first(value.get("content")),
+                                 category="Formulas", formula=value.get("formula"))
                     self.deck.cards.append(card)
                     self.session.add(card)
                     self.session.commit()
@@ -85,11 +86,11 @@ class CardFactory:
     def create_discuss(self, content: str) -> None:
         for item in content:
             try:
-                key = item['A']
+                key = capitalize_first(item['A'])
                 if not self.check_card_exist(key):
                     value = item['B']
 
-                    card = Card(term=key, content=value.get("content"), category="Discuss")
+                    card = Card(term=key, content=capitalize_first(value.get("content")), category="Discuss")
                     self.deck.cards.append(card)
                     self.session.add(card)
                     self.session.commit()
@@ -118,7 +119,7 @@ class CardFactory:
                 key = item['A']
                 if not await self.async_check_card_exist(key):  
                     value = item['B']
-                    card = Card(term=key, content=value, category=type)
+                    card = Card(term=capitalize_first(key), content=capitalize_first(value), category=type)
                     self.deck.cards.append(card)
                     self.session.add(card)
                     await self.session.commit()
@@ -130,12 +131,12 @@ class CardFactory:
     async def async_create_mcq(self, content: str) -> None:
         for item in content:
             try:
-                question = item['A']
+                question = capitalize_first(item['A'])
                 if not await self.async_check_card_exist(question):
-                    content = item['B']
-                    boc_2 = item['C']
-                    boc_3 = item['D']
-                    boc_4 = item['E']
+                    content = capitalize_first(item['B'])
+                    boc_2 = capitalize_first(item['C'])
+                    boc_3 = capitalize_first(item['D'])
+                    boc_4 = capitalize_first(item['E'])
                     card = Card(term=question, content=content, category="Mcq",
                                 boc_2=boc_2, boc_3=boc_3,
                                 boc_4=boc_4)
@@ -149,10 +150,11 @@ class CardFactory:
     async def async_create_formulas(self, content: str) -> None:
         for item in content:
             try:
-                key = item['A']
+                key = capitalize_first(item['A'])
                 if not await self.async_check_card_exist(key):
                     value = item['B']
-                    card = Card(term=key, content=value.get("content"), category="Formulas", formula=value.get("formula"))
+                    card = Card(term=key, content=capitalize_first(value.get("content")),
+                                 category="Formulas", formula=value.get("formula"))
                     self.deck.cards.append(card)
                     self.session.add(card)
                     await self.session.commit()
@@ -166,7 +168,8 @@ class CardFactory:
                 key = item['A']
                 if not await self.async_check_card_exist(key):
                     value = item['B']
-                    card = Card(term=key, content=value.get("content"), category="Discuss")
+                    card = Card(term=capitalize_first(key),
+                                 content=capitalize_first(value.get("content")), category="Discuss")
                     self.deck.cards.append(card)
                     self.session.add(card)
                 await self.session.commit()
@@ -195,3 +198,9 @@ def to_singular(word: str) -> str:
     elif word.endswith('s'):
         return word[:-1]
     return word
+## Capitalizes the first letter of a string
+def capitalize_first(s):
+    if not s:
+        return s
+    processing_logger.info(f"capitalize_first: {s}")
+    return s[0].upper() + s[1:]

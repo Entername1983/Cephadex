@@ -99,7 +99,7 @@ def setup_subrollover_logger():
 
 
 
-def setup_paymenet_logger():
+def setup_payment_logger():
     payment_logger = logging.getLogger('payment')
     payment_logger.setLevel(LOGGING_LEVEL_CONST)
     return payment_logger
