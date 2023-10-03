@@ -56,7 +56,7 @@
                         <strong>Your Personalized Education Solution</strong>
                     </h1>
                     <p class="lead text-cepha-105 mb-5">
-                        Whether you're a teacher, student, content creator, or parent, Cephadex is your platform for simplified, effective learning. Join us and experience the future of education.
+                        Whether you're a teacher, student, content creator, or parent, Cephadex is your platform for customized, effective learning. Join us and experience our innovative approach to education.
                     </p>
                     <a class="conversion-button" data-bs-toggle="modal" data-bs-target="#registerModal">Sign Up for Free</a>
                 </div>
@@ -125,15 +125,14 @@
         <h2 class="text-center mb-3">Explore the App</h2>
         <div class="row mb-3">
             <div class="col">
-                <a href="https://www.cephadex.com/quiz_bp/shared_quiz_view/780e0cb6-9a69-4e2e-9fdd-796c50a1a973" target="_blank" class="btn btn-generate mt-2 d-block">Take a Sample Test</a>
+                <a href="https://www.cephadex.com/quiz_bp/shared_quiz_view/780e0cb6-9a69-4e2e-9fdd-796c50a1a973" target="_blank" class="btn btn-generate mt-2 d-block" style="width:100%">Take a Sample Test</a>
             </div>
             <div class="col">
-                <a href="https://www.cephadex.com/deck_bp/shared_deck_view/89156190-f770-47c0-9058-2cbfdba6d134" target="_blank" class="btn btn-generate mt-2 d-block">See a Sample Deck</a>
+                <a href="https://www.cephadex.com/deck_bp/shared_deck_view/89156190-f770-47c0-9058-2cbfdba6d134" target="_blank" class="btn btn-generate mt-2 d-block" style="width:100%">See a Sample Deck</a>
             </div>
         </div>
 
-        <!-- Decks & Quizzes -->
-        <div class="card mb-3">
+        <!-- <div class="card mb-3">
             <div class="card-header text-center">
                 <a href="#deckAndQuizCollapse" class="d-block" data-bs-toggle="collapse">Decks & Quizzes</a>
             </div>
@@ -147,7 +146,6 @@
             </div>
         </div>
 
-        <!-- Study Tools -->
         <div class="card mb-3">
             <div class="card-header text-center">
                 <a href="#studyToolsCollapse" class="d-block" data-bs-toggle="collapse">Study Tools</a>
@@ -171,14 +169,13 @@
                         <img src="/static/demo_pics/cepha_demo_game_1.jpg" alt="Game Screenshot 1" class="img-fluid mb-2">
                         <img src="/static/demo_pics/cepha_demo_game_2.jpg" alt="Game Screenshot 2" class="img-fluid mb-2">
                         <img src="/static/demo_pics/cepha_demo_game_3.jpg" alt="Game Screenshot 3" class="img-fluid mb-2">
-            <!-- Play with Cepha-flex -->
         
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-  
+   -->
 </main>
 <!---
     <div class="col-md-12 d-flex justify-content-center align-items-center">
@@ -186,7 +183,7 @@
     </div>
 
 -->
-<aside class="cepha-container">
+<aside class="cepha-container mt-5">
     <h2>Who it's for</h2>
 
     <section class="cepha-section">
@@ -331,7 +328,7 @@
             const formData = new FormData(subscribeForm);
             const data = Object.fromEntries(formData.entries());
             console.log(data);
-            const response = await fetch("/subscribe2", {
+            const response = await fetch("/user_bp/subscribe2", {
                 method: "POST",
                 body: JSON.stringify(data),
                 headers: {
