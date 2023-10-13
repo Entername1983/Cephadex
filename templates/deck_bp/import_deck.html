@@ -15,7 +15,7 @@
       <div class="my-4">
           <h5 class="text-center">Import all decks:</h5>
           <form id="import-all-form" class="d-flex justify-content-center mt-3" method="POST">
-              <input class="btn btn-primary" type="submit" value="Import all decks" id="import-all" name="import-all">
+            <button type="button" id="import-all-btn" class="btn btn-primary">Import all decks</button>
           </form>
       </div>
 
@@ -30,12 +30,12 @@
                   <label for="deck-name">Deck name(s):</label>
                   <input type="text" name="deck-name" id="deck-name" placeholder="MyAnkiDeck1, MyAnkiDeck2,..." class="form-control" style="max-width: 300px">
               </div>
-              <input type="submit" value="Import" id="import-by-name" name="import-by-name" class="btn btn-primary mt-2">
-          </form>
+              <button type="button" id="import-by-name-btn" class="btn btn-primary mt-2">Import</button>
+            </form>
       </div>
 
       <div class="mt-4">
-          <h6 class="text-center text-muted">Note: to import or export decks into Anki you must be on a desktop, have Anki open and have the Anki Connect add on installed</h6>
+          <h6 class="text-center text-muted"><i>Note: to import or export decks into Anki you must be on a desktop, have Anki open and have the Anki Connect add on installed.  Currently we only support importing decks with standard fields (front, back).  We are working on implementing more import features.</i></h6>
       </div>
       
   </div>
@@ -44,7 +44,9 @@
 
 <script>
   function addImportFormEventListeners() {
-    document.getElementById('import-all-form').addEventListener('submit', async function(event) {
+    console.log("adding event listeners")
+    document.getElementById('import-all-btn').addEventListener('click', async function(event) {
+      console.log("import all")
       event.preventDefault();
       try {
         await importDecks();
@@ -52,7 +54,8 @@
         // Handle any errors
       }
     });
-      document.getElementById('import-by-name-form').addEventListener('submit', async function(event) {
+      document.getElementById('import-by-name-btn').addEventListener('click', async function(event) {
+        console.log("import by deck")
     event.preventDefault();
     try {
       const deckNames = document.getElementById('deck-name').value.split(',').map(name => name.trim());
@@ -63,35 +66,63 @@
   });
 
     
+    // async function importDecks(deckNames = []) {
+    //     await requestAnkiConnectPermission();
+    //     const decks = await getDecks(deckNames);
+    //     const cardsByDeck = await getCardsByDeck(decks);
+    //     const data = formatDataForBackend(cardsByDeck);
+    //     sendDataToBackend(data);
+    //     console.log(data)
+    //     // Send the data to the backend here
+    //   }
     async function importDecks(deckNames = []) {
-        await requestAnkiConnectPermission();
-        const decks = await getDecks(deckNames);
-        const cardsByDeck = await getCardsByDeck(decks);
-        const data = formatDataForBackend(cardsByDeck);
-        sendDataToBackend(data);
-        console.log(data)
-        // Send the data to the backend here
-      }
-      
-      async function getCardsByDeck(decks) {
-        const cardsByDeck = {};
-        for (const deck of decks) {
-          const cardIds = await invoke('findCards', 6, {query: `deck:"${deck}"`});
-          const cards = await invoke('cardsInfo', 6, { cards: cardIds });
-          cardsByDeck[deck] = cards.map(card => {
-            return {
-              id: card.noteId,
-              front: card.fields.Front,
-              back: card.fields.Back,
-              interval: card.interval
-            };
-          });
+    await requestAnkiConnectPermission();
+    const decks = await getDecks(deckNames);
+    const cardsByDeck = await getCardsByDeck(decks);
+    const data = formatDataForBackend(cardsByDeck);
+    sendDataToBackend(data);
+    console.log(data);
+}
+async function getCardsByDeck(decks) {
+    const cardsByDeck = {};
+    console.log("getting cards by deck...")
+    for (const deck of decks) {
+        const cardIds = await invoke('findCards', 6, {
+            query: `deck:"${deck}" -deck:"${deck}::*"`  // This will exclude all subdecks
+        });
+
+        // Skip the deck if there are no cards
+        if (cardIds.length === 0) {
+            continue;
         }
-        console.log(cardsByDeck)
-        return cardsByDeck;
-      }
+
+        const cards = await invoke('cardsInfo', 6, { cards: cardIds });
+        // cardsByDeck[deck] = cards.map(card => {
+        //     return {
+        //         id: card.noteId,
+        //         front: card.fields.Front,
+        //         back: card.fields.Back,
+        //         interval: card.interval
+        //     };
+        // });
+        cardsByDeck[deck] = cards.map(card => {
+            let fields = {};
+            for (let [key, value] of Object.entries(card.fields)) {
+                fields[key] = value.value;
+            }
+            return {
+                id: card.noteId,
+                fields: fields,
+                interval: card.interval
+            };
+        });
+    }
+    console.log(cardsByDeck)
+    return cardsByDeck;
+}
       
       function formatDataForBackend(cardsByDeck) {
+        console.log("formatting data...")
         const data = [];
         for (const deckName of Object.keys(cardsByDeck)) {
           const deckCards = cardsByDeck[deckName];
@@ -99,10 +130,7 @@
             data.push({
               deckName: deckName,
               modelName: "Basic",
-              fields: {
-                Front: card.front,
-                Back: card.back
-              },
+              fields: card.fields,
               options: {
                 allowDuplicate: false
               },
@@ -114,17 +142,50 @@
         }
         return data;
       }
-    async function getDecks(deckNames) {
-        const url = 'http://127.0.0.1:8765/';
-        const request = await invoke('deckNames', 6);  
-        // If no deckNames are provided, return all decks
-        if (!deckNames || !deckNames.length) {
-            return request;
+    // async function getDecks(deckNames) {
+    //   console.log("getting decks...")
+    //     const url = 'http://127.0.0.1:8765/';
+    //     const request = await invoke('deckNames', 6);  
+    //     // If no deckNames are provided, return all decks
+    //     if (!deckNames || !deckNames.length) {
+    //         console.log(request)
+    //         return request;
+    //     }
+    //     const decks = request.filter(deckName => deckNames.includes(deckName));
+    //     console.log("found decks", decks)
+    //     return decks;
+    // }
+    async function getDecks(deckNames = []) {
+    console.log("getting decks...");
+    const allDecks = await invoke('deckNames', 6);
+    
+    let resultDecks = [];
+
+    // Recursive function to get all subdecks
+    function getSubdecks(deckName) {
+        let subdeckPrefix = deckName + "::";
+        let subdecks = allDecks.filter(d => d.startsWith(subdeckPrefix));
+        for (let subdeck of subdecks) {
+            resultDecks.push(subdeck);
+            getSubdecks(subdeck);
         }
-        const decks = request.filter(deckName => deckNames.includes(deckName));
-        return decks;
     }
 
+    // If no specific deckNames are provided, return all decks
+    if (!deckNames || !deckNames.length) {
+        return allDecks;
+    }
+
+    for (let specifiedDeckName of deckNames) {
+        if (allDecks.includes(specifiedDeckName)) {
+            resultDecks.push(specifiedDeckName);
+            getSubdecks(specifiedDeckName); // Fetch the subdecks recursively
+        }
+    }
+
+    console.log("found decks", resultDecks);
+    return resultDecks;
+}
     async function sendDataToBackend(data) {
         console.log("entered send data to backend")
         const url = '/deck_bp/import_anki';
@@ -175,6 +236,7 @@
         });
     }
     async function requestAnkiConnectPermission() {
+      console.log("requesting anki connect permission")
         const url = 'http://127.0.0.1:8765/';
         const request = {
           action: 'requestPermission',
@@ -188,7 +250,9 @@
         return data;
       }
   }
+  document.addEventListener('DOMContentLoaded', function() {
   addImportFormEventListeners();
+  });
 </script>
 
 {% endblock %}

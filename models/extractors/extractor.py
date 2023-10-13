@@ -278,7 +278,7 @@ class Extractor:
     @log_decorator
     def notification_creator(self) -> None:
         job_notification = JobNotification(user_id=current_user.id,
-            slug = self.slug,  cost = self.tokens, date_created = dt.datetime.now(dt.timezone.utc),
+            slug = self.slug,  cost = self.tokens, time_created = dt.datetime.now(dt.timezone.utc),
               input_details=self.type)
         self.db_session.add(job_notification)
         self.db_session.commit()

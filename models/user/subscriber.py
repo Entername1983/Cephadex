@@ -7,7 +7,7 @@ class Subscriber(db.Model):
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
     email = db.Column(db.String(120), unique=True)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    time_created = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     def __repr__(self):
         return f'<Newsletter {self.email}>'
     

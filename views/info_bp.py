@@ -1,5 +1,7 @@
 import logging
 from flask import Blueprint, render_template
+from models.models_ import BlogPost
+from flask import jsonify
 
 logger = logging.getLogger("flask_app")
 
@@ -17,6 +19,8 @@ def legal():
 @info_bp.route('/pricing', methods=['GET', 'POST'])
 def pricing():
     return render_template('/info_bp/pricing.html')
+
+
 
 @info_bp.route("/terms_and_conditions")
 def terms_and_conditions():
@@ -43,3 +47,36 @@ def faq():
 ##@info_bp.route("/team", methods=['GET', 'POST'])
 ##def team():
     ##return render_template('team.html')
+
+
+
+@info_bp.route('/blog', methods=['GET'])
+@info_bp.route('/blog/<slug>', methods=['GET'])
+def blog(slug=None):
+    if slug:
+        return render_template('/info_bp/blog_post.html', slug=slug)
+    else:
+
+        return render_template('/info_bp/blog.html')
+
+def get_post_by_slug(slug):
+    post = BlogPost.query.filter_by(slug=slug).first()
+    return post
+
+@info_bp.route('/api_0/blog/<slug>', methods=['GET'])
+def blog_post_api(slug):
+    print("fetching individual blog post")
+    post = get_post_by_slug(slug)
+    if post:
+        return post.to_json(), 200
+    else:
+        return jsonify({"error": "Post not found"}), 404
+    
+@info_bp.route('/api_0/blog/fetch_list_all_posts', methods=['GET'])
+def fetch_list_all_posts():
+    print("fetching all blog posts")
+    post_titles_and_slugs = []
+    blog_posts = BlogPost.query.all()
+    for post in blog_posts:
+        post_titles_and_slugs.append({'title': post.title, 'slug': post.slug, 'summary': post.summary})
+    return jsonify(post_titles_and_slugs), 200

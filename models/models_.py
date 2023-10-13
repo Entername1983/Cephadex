@@ -46,7 +46,9 @@ from models.user.usage_record import UsageRecord
 from models.user.user_settings import UserSettings
 from models.user.user import User
 
+## Blog
 
+from models.blog.blog import BlogPost
 ##  Gamification --> Need to fix names and remove underscores :/
 from models.gamification import Skill, Skills_Category, User_Skill, Badge, Goal
 

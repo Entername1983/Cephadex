@@ -194,8 +194,8 @@ def delete_account():
 
             details = form.more.data or None
             deleted_entry = DeletedAccounts(user_id=current_user.id,
-                    email = current_user.email, date_created = current_user.time_created,
-                    date_deleted = dt.datetime.now(dt.timezone.utc), reason=reason,
+                    email = current_user.email, time_created = current_user.time_created,
+                    time_deleted = dt.datetime.now(dt.timezone.utc), reason=reason,
                     reason_details = details)
             db.session.add(deleted_entry)
             db.session.commit()
@@ -259,9 +259,9 @@ def register():
             if subscribe == "subscribe":
                 sub_exists = Subscriber.query.filter_by(email=email).first()
                 if not sub_exists:
-                    timestamp = dt.datetime.now(dt.timezone.utc)
+                    time_created = dt.datetime.now(dt.timezone.utc)
                     subscriber = Subscriber(email=email, first_name=given_name,
-                                             last_name=family_name, timestamp = timestamp)
+                                             last_name=family_name, time_created = time_created)
                     db.session.add(subscriber)
             event_tracker(user.id, "register", "google")
             db.session.commit()
@@ -308,7 +308,7 @@ def subscribe():
         subscriber = Subscriber(email=subscribe_form.email.data,
                                 first_name=subscribe_form.first_name.data,
                                 last_name=subscribe_form.last_name.data,
-                                timestamp = dt.datetime.now(dt.timezone.utc))
+                                time_created = dt.datetime.now(dt.timezone.utc))
         db.session.add(subscriber)
         db.session.commit()
         flash('You are now subscribed to our newsletter!')
@@ -327,7 +327,7 @@ def subscribe2():
         return jsonify({'status': 'failure', 'message': 'You are already subscribed!'})
     else:
         subscriber = Subscriber(email=email, first_name=first_name,
-                    last_name=last_name, timestamp = dt.datetime.now(dt.timezone.utc))
+                    last_name=last_name, time_created = dt.datetime.now(dt.timezone.utc))
         db.session.add(subscriber)
         db.session.commit()
         flash("Thanks for subscribing!")
@@ -390,7 +390,7 @@ def account():
             if form.subscribe.data:
                 if not subscriber:
                     subscriber = Subscriber(email=user.email, first_name=user.first_name, last_name=user.last_name,
-                            timestamp=dt.datetime.now(dt.timezone.utc))
+                            time_created=dt.datetime.now(dt.timezone.utc))
                     db.session.add(subscriber)
                     db.session.commit()
                     flash("You have been subscribed to our mailing list")

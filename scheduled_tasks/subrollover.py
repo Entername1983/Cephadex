@@ -58,7 +58,7 @@ def roll_over():
             else:
             # for premium members previous months credit rolls over to the next
                 current_credit = UsageRecord.query.filter_by(user_id=subscription.id).order_by(UsageRecord.id.desc()).first()
-                usage_limit = current_credit + subscription_plan.limit_count
+                usage_limit = current_credit.remaining_count + subscription_plan.limit_count
             new_record = UsageRecord(
                 user_id=subscription.id, operation_type="reset",
                 limit_count=usage_limit, operation_count=0, remaining_count=usage_limit,
@@ -141,7 +141,7 @@ def count_user_accounts_created():
 def count_deleted_accounts_by_reason():
     start_time = datetime.now(timezone.utc) - timedelta(hours=24)
     deleted_accounts = DeletedAccounts.query.filter(
-        DeletedAccounts.date_deleted >= start_time
+        DeletedAccounts.time_deleted >= start_time
     ).all()
 
     count_by_reason = {}
@@ -158,7 +158,7 @@ def count_stripe_events():
             StripeEvents.event_type,
             func.count(StripeEvents.event_type)
         )
-        .filter(StripeEvents.event_created >= start_time)
+        .filter(StripeEvents.time_created >= start_time)
         .group_by(StripeEvents.event_type)
         .all()
     )
@@ -207,7 +207,7 @@ def count_deck_files():
 def list_feedback():
     start_time = datetime.now(timezone.utc) - timedelta(hours=24)
     feedback = Feedback.query.filter(
-        Feedback.timestamp >= start_time
+        Feedback.time_created >= start_time
     ).all()
     return [message.message for message in feedback]
 
@@ -218,7 +218,7 @@ def count_tests_created():
 
 def count_events_by_type():
     start_time = datetime.now(timezone.utc) - timedelta(hours=24)
-    events = EventTracking.query.filter(EventTracking.created_at >= start_time).all()
+    events = EventTracking.query.filter(EventTracking.time_created >= start_time).all()
     event_counts = {}
     for event in events:
         event_type = event.event_type

@@ -93,7 +93,7 @@ def invite_group():
                     new_invite = GroupInvite(name = group.name,
                         invited_by_email=current_user.email,
                         invited_by_id=current_user.id, user_id=user.id,
-                        group_id=group_id, created_at = dt.datetime.now(dt.timezone.utc))
+                        group_id=group_id, time_created = dt.datetime.now(dt.timezone.utc))
                     db.session.add(new_invite)
                     db.session.commit()
                 if len(not_users) > 0:
@@ -108,7 +108,7 @@ def invite_group():
             new_invite = GroupInvite(name = group.name,
                         invited_by_email=current_user.email,
                         invited_by_id=current_user.id, user_id=user.id,
-                        group_id=group_id, created_at = dt.datetime.now(dt.timezone.utc))
+                        group_id=group_id, time_created=dt.datetime.now(dt.timezone.utc))
             db.session.add(new_invite)
             db.session.commit()
         if len(not_users) > 0:

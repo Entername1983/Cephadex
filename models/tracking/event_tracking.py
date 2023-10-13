@@ -8,6 +8,8 @@ class EventTracking(db.Model):
     event_type = db.Column(db.String(64), nullable=True)
     event_data = db.Column(db.Text, nullable=True)
     event_details = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=True)
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)
+    time_updated = db.Column(db.DateTime, nullable=True)
+    # created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # updated_at = db.Column(db.DateTime, nullable=True)
     

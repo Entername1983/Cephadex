@@ -1,0 +1,140 @@
+{% extends "layout.html" %}
+
+{% block title %} Blog {% endblock %}
+
+{% block head %}
+<style>
+    /* Your styles */
+    .blog-container {
+        background-color: #fcf9ff;
+        padding: 20px;
+    }
+    .blog-post {
+        background-color: #ffffff;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    .blog-title {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        color: #6019FF;
+        text-decoration: none;
+    }
+    .blog-metadata {
+        color: #777;
+        margin-bottom: 15px;
+    }
+    .blog-content {
+        text-align: justify;
+    }
+</style>
+{% endblock %}
+
+{% block main_0 %}
+<div class="container blog-container">
+    <h1>InkSights by Cephadex</h1>
+    <div class="mt-4">
+        <!-- Example Blog Post 1 -->
+        <div class="blog-post">
+            <a href="#" class="blog-title">10 Do's for using AI as an educator</a>
+            <div class="blog-metadata">
+                <span>Posted on Oct 11, 2023 by Kevin</span>
+            </div>
+            <div class="blog-content">
+                <p>Our top recommendations for taking advantage of AI as a teacher.</p>
+                <div class="collapse" id="post1Content">
+                    <h4 class="mb-2">1. Be Precise with Your Prompts:</h4>
+                    <p>The more specific you are, the more relevant and tailored the AI's response will be. For example:</p>
+                    <blockquote class="">
+                        <p><em>General:</em> Suggest activities for a lesson on supply and demand.</p>
+                        <p><em>Specific:</em> I'm an 11th grade teacher with a class of advanced students. This is their first exposure to the concepts of supply and demand. Can you suggest 3 activities that fit within a 40-minute period with minimal external materials? I aim to provide an introductory lesson to establish both the theoretical and practical foundations of supply and demand.</p>
+                    </blockquote>
+                
+                    <!-- Tip 2 -->
+                    <h4 class="mb-2">2. Leverage AI for Feedback:</h4>
+                    <ul class="mb-4">
+                        <li>Enhance phrasing when writing student feedback.</li>
+                        <li>Conduct an initial review of student essays to highlight problematic sections.</li>
+                        <li>Examine your lesson plans for potential weaknesses.</li>
+                    </ul>
+                
+                    <!-- Tip 3 -->
+                    <h4 class="mb-2">3. Brainstorming Partner:</h4>
+                    <p>Let AI aid you in generating ideas for:</p>
+                    <ul class="mb-4">
+                        <li>Engaging classroom activities.</li>
+                        <li>Unique assessment methods.</li>
+                        <li>Innovative student projects.</li>
+                    </ul>
+                    <h4 class="mb-2">4. Become the Gatekeeper:</h4>
+                    <p>Remember, the AI provides content, but you ensure it's suited to your audience. Act as both the curator and editor of the content, refining it to match your teaching style and your students' needs.</p>
+
+                    <!-- Tip 5 -->
+                    <h4 class="mb-2">5. Feed Contextual Information:</h4>
+                    <p>To minimize misinformation risks, provide AI with foundational text. Instead of asking AI to generate a quiz, furnish it with the lesson content and request a quiz based on that. Using this strategy with tools like Cephadex can yield remarkable outcomes.</p>
+
+                    <!-- Tip 6 -->
+                    <h4 class="mb-2">6. Understand how AI works:</h4>
+                    <p>Familiarize yourself with the basics of AI's inner workings. A rudimentary understanding will enable you to utilize it more effectively and explain its role and limits to students.</p>
+
+                    <!-- Tip 7 -->
+                    <h4 class="mb-2">7. Embrace AI in Student Lives:</h4>
+                    <p>Acknowledge and accept that students will inevitably use AI. Turn this into a learning opportunity. Facilitate discussions about the ethics, potentials, and pitfalls of AI. Encourage them to recognize both the strengths and weaknesses of AI tools, emphasizing critical thinking over blind reliance.</p>
+
+                    <!-- Tip 8 -->
+                    <h4 class="mb-2">8. Prioritize Privacy:</h4>
+                    <p>Refrain from entering personal or sensitive information into AI platforms. Educate yourself and your students about privacy concerns related to AI, ensuring they use these tools responsibly.</p>
+
+                    <!-- Tip 9 -->
+                    <h4 class="mb-2">9. Favor Project-Based Assessments:</h4>
+                    <p>When feasible, lean towards project-based evaluations. These not only assess knowledge but also the application, critical thinking, and collaboration skills. It also makes it harder for students to misuse AI as they have to present unique, in-depth work.</p>
+
+                    <!-- Tip 10 -->
+                    <h4 class="mb-2">10. Promote a Balanced Digital Diet:</h4>
+                    <p>While AI and digital tools have their advantages, it's crucial to strike a balance. Encourage students to sometimes step away from screens, seek offline resources, or engage in discussions and group activities without AI's assistance. This ensures they're getting a well-rounded education, not just a digital one.</p>
+                                    
+                                    
+                </div>
+                <a href="#post1Content" data-bs-toggle="collapse" class="toggle-content-btn">Read more...</a>
+            </div>
+        </div>
+
+        <!-- Example Blog Post 2 -->
+        <div class="blog-post">
+            <a href="#" class="blog-title">Behind the Scenes: How We Craft Quality</a>
+            <div class="blog-metadata">
+                <span>Posted on Sept 29, 2023 by Jane Smith</span>
+            </div>
+            <div class="blog-content">
+                <p>Ever wondered how we maintain the top-notch quality of our products?</p>
+                <div class="collapse" id="post2Content">
+                    Dive deep into our meticulous process, from conceptualization to final checks. Learn about our team's passion and dedication to ensuring that every product we deliver stands up to rigorous standards and brings value to our users. Witness firsthand how innovation drives our every step and how feedback shapes our roadmap.
+                </div>
+                <a href="#post2Content" data-bs-toggle="collapse">Read more...</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const buttons = document.querySelectorAll('.toggle-content-btn');
+
+        buttons.forEach(button => {
+            const targetContentId = button.getAttribute('data-target');
+            const targetContent = document.querySelector(targetContentId);
+
+            targetContent.addEventListener('shown.bs.collapse', () => {
+                button.textContent = 'Collapse';
+            });
+
+            targetContent.addEventListener('hidden.bs.collapse', () => {
+                button.textContent = 'Read more...';
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,5 +1,7 @@
 import uuid
 import datetime as dt
+import re
+import html
 
 from flask import (
     Blueprint, render_template, url_for,
@@ -699,27 +701,83 @@ def import_deck():
 
 
 
+# @deck_bp.route('/import_anki', methods=['POST'])
+# @login_required
+# @log_decorator
+# def import_anki():
+#     data = request.json
+#     for card in data:
+#         print(card)
+#         print(card['fields'])
+#         print(card['fields'])
+
+#         deck_name = clean(card['deckName'])
+#         card_front = clean(card['fields']['Front']['value'])
+#         card_back = clean(card['fields']['Back']['value'])
+#         deck = Deck.query.filter_by(name=deck_name, user_id=current_user.id).first()
+#         if not deck:
+#             deck = Deck(name=deck_name, description="anki", user_id=current_user.id)
+#             db.session.add(deck)
+#             db.session.commit()
+#         card_O = Card(term=card_front, content=card_back,
+#                        srs_interval=card['interval']*1440, category="anki")
+#         db.session.add(card_O)
+#         deck.cards.append(card_O)
+#         db.session.commit()
+#     flash('Anki deck imported', 'success')
+#     return jsonify({"success": True})
+
+
 @deck_bp.route('/import_anki', methods=['POST'])
 @login_required
 @log_decorator
 def import_anki():
     data = request.json
+
     for card in data:
         deck_name = clean(card['deckName'])
-        card_front = clean(card['fields']['Front']['value'])
-        card_back = clean(card['fields']['Back']['value'])
         deck = Deck.query.filter_by(name=deck_name, user_id=current_user.id).first()
         if not deck:
             deck = Deck(name=deck_name, description="anki", user_id=current_user.id)
             db.session.add(deck)
             db.session.commit()
-        card_O = Card(term=card_front, content=card_back,
-                       srs_interval=card['interval']*1440, category="anki")
+
+        # Extract the ordered field values and filter out images and sounds
+        ordered_fields = [html.unescape(clean(remove_media_tags(val))) for val in card['fields'].values()]
+
+        # Initialize card with defaults
+        card_data = {
+            'term': ordered_fields[0] if len(ordered_fields) > 0 else '',
+            'content': ordered_fields[1] if len(ordered_fields) > 1 else '',
+            'boc_2': ordered_fields[2] if len(ordered_fields) > 2 else '',
+            'boc_3': ordered_fields[3] if len(ordered_fields) > 3 else '',
+            'boc_4': ordered_fields[4] if len(ordered_fields) > 4 else '',
+            'srs_interval': card['interval'] * 1440,
+            'category': 'anki'
+        }
+
+        card_O = Card(**card_data)
         db.session.add(card_O)
         deck.cards.append(card_O)
         db.session.commit()
+
     flash('Anki deck imported', 'success')
     return jsonify({"success": True})
+
+def remove_media_tags(content):
+    # The regex pattern finds the <img ... > tags.
+    img_tag_pattern = r'<img[^>]+>'
+    content_without_images = re.sub(img_tag_pattern, '', content)
+    
+    # The regex pattern finds the [sound:... ] tags.
+    sound_tag_pattern = r'\[sound:[^\]]+\]'
+    content_without_media = re.sub(sound_tag_pattern, '', content_without_images)
+    
+    return content_without_media
+
+def remove_html_tags(text):
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', text)
 
 def quote_deck_name_if_needed(deck_name):
     if ' ' in deck_name:

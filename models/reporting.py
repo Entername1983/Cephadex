@@ -94,7 +94,7 @@ def count_user_accounts_created():
 def count_deleted_accounts_by_reason():
     start_time = datetime.utcnow() - timedelta(hours=24)
     deleted_accounts = DeletedAccounts.query.filter(
-        DeletedAccounts.date_deleted >= start_time
+        DeletedAccounts.time_deleted >= start_time
     ).all()
 
     count_by_reason = {}
@@ -111,7 +111,7 @@ def count_stripe_events():
             StripeEvents.event_type,
             func.count(StripeEvents.event_type)
         )
-        .filter(StripeEvents.event_created >= start_time)
+        .filter(StripeEvents.time_created >= start_time)
         .group_by(StripeEvents.event_type)
         .all()
     )
@@ -165,7 +165,7 @@ def count_deck_files():
 def list_feedback():
     start_time = datetime.utcnow() - timedelta(hours=24)
     feedback = Feedback.query.filter(
-        Feedback.timestamp >= start_time
+        Feedback.time_created >= start_time
     ).all()
     feedback_list = []
     for message in feedback:
@@ -180,7 +180,7 @@ def count_tests_created():
 
 def count_events_by_type():
     start_time = datetime.utcnow() - timedelta(hours=24)
-    events = EventTracking.query.filter(EventTracking.created_at >= start_time).all()
+    events = EventTracking.query.filter(EventTracking.time_created >= start_time).all()
 
     event_counts = {}
     for event in events:

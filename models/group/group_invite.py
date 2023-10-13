@@ -11,5 +11,5 @@ class GroupInvite(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"))
     invited_by_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="SET NULL"))
     invited_by_email = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)
+    time_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)

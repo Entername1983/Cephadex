@@ -146,8 +146,8 @@ class StripeEventHandler:
     def handle_subscription_trial_end(self, event):
         stripe_customer_id = event['data']['object']['customer']
         subscription = event['data']['object']
-        timestamp = subscription.get('trial_end')
-        dt_object = dt.datetime.fromtimestamp(timestamp)
+        trial_end_time = subscription.get('trial_end')
+        dt_object = dt.datetime.fromtimestamp(trial_end_time)
         user = User.query.filter_by(stripe_customer_id=stripe_customer_id).first()
         send_email(user.email, user.first_name, "trial_over")
         logger.info(f"trial ended at {dt_object}")
@@ -181,12 +181,12 @@ class StripeEventHandler:
         db.session.commit()
 
     def log_stripe_event(self, event, user_id= None):
-        created_at = dt.datetime.now(dt.timezone.utc)
+        time_created = dt.datetime.now(dt.timezone.utc)
         stripe_event = StripeEvents(
                 stripe_event_id=event['id'],
                 event_type=event['type'],
                 event_data=json.dumps(event),
-                event_created=created_at,
+                time_created=time_created,
                 user_id=user_id,
                 stripe_customer_id=event['data']['object']['customer'],
             )

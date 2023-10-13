@@ -7,7 +7,9 @@ class Feedback(db.Model):
     name = db.Column(db.String(50))
     email = db.Column(db.String(120))
     message = db.Column(db.String(500))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    # timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    time_created = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
     type_feedback = db.Column(db.String(50))
     def __repr__(self):
         return f'<Feedback {self.email}>'

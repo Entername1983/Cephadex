@@ -8,8 +8,8 @@ class Group(db.Model):
     name = db.Column(db.String(255))  # pylint: disable=no-member
     description = db.Column(db.String(255))  # pylint: disable=no-member
     group_type = db.Column(db.String(255))  # pylint: disable=no-member
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # pylint: disable=no-member
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)  # pylint: disable=no-member
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)  # pylint: disable=no-member
+    time_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)  # pylint: disable=no-member
     creator_id = db.Column(db.Integer, db.ForeignKey("user.id"))  # pylint: disable=no-member
     creator = db.relationship("User", foreign_keys=[creator_id])  # pylint: disable=no-member
     avatar = db.Column(db.String(255)) # pylint: disable=no-member

@@ -10,5 +10,7 @@ class QuestionResult(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
     answer = db.Column(db.String(2500))
     points = db.Column(db.Integer)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    time_created = db.Column(db.DateTime, default=datetime.utcnow)
+    # timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
     quiz_result_id = db.Column(db.Integer, db.ForeignKey('test_result.id', ondelete='SET NULL'))
