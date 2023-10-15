@@ -54,7 +54,7 @@ def faq():
 @info_bp.route('/blog/<slug>', methods=['GET'])
 def blog(slug=None):
     if slug:
-        return render_template('/info_bp/blog_post.html', slug=slug)
+        return render_template('/info_bp/blog.html', slug=slug)
     else:
 
         return render_template('/info_bp/blog.html')
@@ -65,8 +65,10 @@ def get_post_by_slug(slug):
 
 @info_bp.route('/api_0/blog/<slug>', methods=['GET'])
 def blog_post_api(slug):
-    print("fetching individual blog post")
-    post = get_post_by_slug(slug)
+    if slug == "latest" or slug == "blog":
+        post = get_latest_post()
+    else:
+        post = get_post_by_slug(slug)
     if post:
         return post.to_json(), 200
     else:
@@ -74,9 +76,12 @@ def blog_post_api(slug):
     
 @info_bp.route('/api_0/blog/fetch_list_all_posts', methods=['GET'])
 def fetch_list_all_posts():
-    print("fetching all blog posts")
     post_titles_and_slugs = []
     blog_posts = BlogPost.query.all()
     for post in blog_posts:
         post_titles_and_slugs.append({'title': post.title, 'slug': post.slug, 'summary': post.summary})
     return jsonify(post_titles_and_slugs), 200
+
+def get_latest_post():
+    post = BlogPost.query.order_by(BlogPost.time_created.desc()).first()
+    return post

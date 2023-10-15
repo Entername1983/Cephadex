@@ -16,6 +16,17 @@
         border-radius: 10px;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     }
+    .blog-post:hover {
+        transform: scale(1.02); 
+    }
+    .post-display {
+        background-color: #ffffff;
+        padding: 25px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
     .blog-title {
         font-size: 2.5rem;
         margin-bottom: 1.5rem;
@@ -29,95 +40,204 @@
     .blog-content {
         text-align: justify;
     }
+    .opened {
+        background-color: #efe8ff;
+    }
 </style>
 {% endblock %}
 
 {% block main_0 %}
-<div class="container blog-container">
-    <h1>InkSights by Cephadex</h1>
-    <div class="mt-4">
+
+
+
+<div class="container">
+    <h1 class="hcepha1">InkSights by Cephadex</h1>
+    <div class=" row mt-5">
         <!-- Example Blog Post 1 -->
-        <div class="blog-post">
-            <a href="#" class="blog-title">10 Do's for using AI as an educator</a>
-            <div class="blog-metadata">
-                <span>Posted on Oct 11, 2023 by Kevin</span>
+        <div class = "col-8-md col-12 post-display" id ="blog-post-container">
+            <div id = "blog-post ">
+                <div id = "blog-title" class ="blog-title"></div>
+                <div class = "row modal-footer">
+                    <div class = "col">
+                        <div class = " d-flex justify-content-center">
+                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('twitter')" role="button"
+                            target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
+                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit')" role="button"
+                            target="_blank"><i class="fab fa-reddit fa-lg"></i></a>
+                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('whatsapp')" role="button"
+                            target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
+                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('linkedin')" role="button"
+                            target="_blank"><i class="fab fa-linkedin fa-lg"></i></a>
+                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('facebook')" role="button"
+                            target="_blank"><i class="fab fa-facebook fa-lg"></i></a>
+                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('telegram')" role="button"
+                            target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
+                          </div>
+                        </div>
+                <div id = "blog-date" class = "col align-content-end"></div>
             </div>
-            <div class="blog-content">
-                <p>Our top recommendations for taking advantage of AI as a teacher.</p>
-                <div class="collapse" id="post1Content">
-                    <h4 class="mb-2">1. Be Precise with Your Prompts:</h4>
-                    <p>The more specific you are, the more relevant and tailored the AI's response will be. For example:</p>
-                    <blockquote class="">
-                        <p><em>General:</em> Suggest activities for a lesson on supply and demand.</p>
-                        <p><em>Specific:</em> I'm an 11th grade teacher with a class of advanced students. This is their first exposure to the concepts of supply and demand. Can you suggest 3 activities that fit within a 40-minute period with minimal external materials? I aim to provide an introductory lesson to establish both the theoretical and practical foundations of supply and demand.</p>
-                    </blockquote>
                 
-                    <!-- Tip 2 -->
-                    <h4 class="mb-2">2. Leverage AI for Feedback:</h4>
-                    <ul class="mb-4">
-                        <li>Enhance phrasing when writing student feedback.</li>
-                        <li>Conduct an initial review of student essays to highlight problematic sections.</li>
-                        <li>Examine your lesson plans for potential weaknesses.</li>
-                    </ul>
+
                 
-                    <!-- Tip 3 -->
-                    <h4 class="mb-2">3. Brainstorming Partner:</h4>
-                    <p>Let AI aid you in generating ideas for:</p>
-                    <ul class="mb-4">
-                        <li>Engaging classroom activities.</li>
-                        <li>Unique assessment methods.</li>
-                        <li>Innovative student projects.</li>
-                    </ul>
-                    <h4 class="mb-2">4. Become the Gatekeeper:</h4>
-                    <p>Remember, the AI provides content, but you ensure it's suited to your audience. Act as both the curator and editor of the content, refining it to match your teaching style and your students' needs.</p>
-
-                    <!-- Tip 5 -->
-                    <h4 class="mb-2">5. Feed Contextual Information:</h4>
-                    <p>To minimize misinformation risks, provide AI with foundational text. Instead of asking AI to generate a quiz, furnish it with the lesson content and request a quiz based on that. Using this strategy with tools like Cephadex can yield remarkable outcomes.</p>
-
-                    <!-- Tip 6 -->
-                    <h4 class="mb-2">6. Understand how AI works:</h4>
-                    <p>Familiarize yourself with the basics of AI's inner workings. A rudimentary understanding will enable you to utilize it more effectively and explain its role and limits to students.</p>
-
-                    <!-- Tip 7 -->
-                    <h4 class="mb-2">7. Embrace AI in Student Lives:</h4>
-                    <p>Acknowledge and accept that students will inevitably use AI. Turn this into a learning opportunity. Facilitate discussions about the ethics, potentials, and pitfalls of AI. Encourage them to recognize both the strengths and weaknesses of AI tools, emphasizing critical thinking over blind reliance.</p>
-
-                    <!-- Tip 8 -->
-                    <h4 class="mb-2">8. Prioritize Privacy:</h4>
-                    <p>Refrain from entering personal or sensitive information into AI platforms. Educate yourself and your students about privacy concerns related to AI, ensuring they use these tools responsibly.</p>
-
-                    <!-- Tip 9 -->
-                    <h4 class="mb-2">9. Favor Project-Based Assessments:</h4>
-                    <p>When feasible, lean towards project-based evaluations. These not only assess knowledge but also the application, critical thinking, and collaboration skills. It also makes it harder for students to misuse AI as they have to present unique, in-depth work.</p>
-
-                    <!-- Tip 10 -->
-                    <h4 class="mb-2">10. Promote a Balanced Digital Diet:</h4>
-                    <p>While AI and digital tools have their advantages, it's crucial to strike a balance. Encourage students to sometimes step away from screens, seek offline resources, or engage in discussions and group activities without AI's assistance. This ensures they're getting a well-rounded education, not just a digital one.</p>
-                                    
-                                    
-                </div>
-                <a href="#post1Content" data-bs-toggle="collapse" class="toggle-content-btn">Read more...</a>
+                <div id = "blog-image"></div>
+                <div id = "blog-content"></div>
             </div>
+
         </div>
-
-        <!-- Example Blog Post 2 -->
-        <div class="blog-post">
-            <a href="#" class="blog-title">Behind the Scenes: How We Craft Quality</a>
-            <div class="blog-metadata">
-                <span>Posted on Sept 29, 2023 by Jane Smith</span>
-            </div>
-            <div class="blog-content">
-                <p>Ever wondered how we maintain the top-notch quality of our products?</p>
-                <div class="collapse" id="post2Content">
-                    Dive deep into our meticulous process, from conceptualization to final checks. Learn about our team's passion and dedication to ensuring that every product we deliver stands up to rigorous standards and brings value to our users. Witness firsthand how innovation drives our every step and how feedback shapes our roadmap.
-                </div>
-                <a href="#post2Content" data-bs-toggle="collapse">Read more...</a>
-            </div>
+        <div class = "col-4-md col-12" id="blog-posts" class="">
+            
         </div>
     </div>
 </div>
 
+
+<script>
+
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    const path = window.location.pathname
+    const pathSegments = path.split('/');
+    const articleSlug = pathSegments.pop();
+
+    console.log("article slug is", articleSlug)
+    const apiUrl = '/info_bp/api_0/blog/fetch_list_all_posts';
+    blogContainer = document.getElementById('blog-posts')
+
+
+
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(blogs => {
+            console.log(blogs)
+            blogs.forEach(blog => {
+
+                const blogLink = document.createElement('a');
+                blogLink.id = blog.slug;
+                const blogPost = document.createElement('div');
+                blogPost.className = "blog-post"
+
+                blogLink.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    getSpecificBlog(blog.slug);
+                });
+                 blogLink.addEventListener('click', () => {
+                    // Scroll the page to the top smoothly
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+                const blogTitle = document.createElement('h5');
+                blogTitle.textContent = blog.title;
+                const blogSummary = document.createElement('p');
+                blogSummary.textContent = blog.summary;
+                blogSummary.id = `sum${blog.slug}`
+                blogContainer.appendChild(blogLink);
+                blogLink.appendChild(blogPost);
+                blogPost.appendChild(blogTitle);
+                blogPost.appendChild(blogSummary);
+
+                
+            }
+            )
+        })
+        .catch(error => {
+            console.error('There was a problem fetching the data:', error);
+        });
+
+    if (articleSlug!= null) {
+        getSpecificBlog(articleSlug);
+    }
+    else {
+        getSpecificBlog("latest");
+    }
+}
+)
+
+
+function getSpecificBlog(blog_slug) {
+    const blogTitleContainer = document.getElementById("blog-title");
+    const blogImageContainer = document.getElementById("blog-image");
+    const blogContentContainer = document.getElementById("blog-content");
+
+    const url = '/info_bp/api_0/blog/' + blog_slug;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                blogContentContainer.innerText = "We were unable to retrieve that blog post"
+            }
+            return response.json();
+        })
+        .then(blog => {
+            console.log(blog);
+            const selectedBlogs = document.getElementsByClassName("opened");
+            Array.from(selectedBlogs).forEach(element => {
+            element.classList.remove("opened");
+            });
+            const blogSummary = document.getElementById(blog.slug);
+            const blogDate = document.getElementById('blog-date');
+            const rawDate = new Date(blog.time_created);
+
+            // Extract the date components
+            const day = rawDate.getDate();
+            const month = rawDate.toLocaleString('en-US', { month: 'short' }); // 'Oct'
+            const year = rawDate.getFullYear();
+
+            // Format the date
+            const formattedDate = `${day}, ${month}. ${year}`;
+
+            blogDate.innerText = formattedDate;
+
+            const blogSummaryContainer = blogSummary.children;
+            console.log(blogSummary);
+            console.log(blogSummaryContainer);
+            blogSummaryContainer[0].classList.add("opened");
+            console.log(blog.title)
+            console.log(blog.content)
+            blogTitleContainer.innerText = blog.title;
+            blogContentContainer.innerHTML = blog.content;
+            const blogUrl = document.createElement('a');
+            blogUrl.id = 'blogPostUrl';
+            blogUrl.innerText = 'https://www.cephadex.com/info_bp/blog/'+ blog.slug;
+            blogContentContainer.appendChild(blogUrl);
+
+        })
+        .catch(error => {
+            console.error('There was a problem fetching the data:', error);
+        });
+}
+
+
+function shareToSocialMedia(platform) {
+    const urlExtension = document.getElementById('blogPostUrl')
+    const shareUrl = urlExtension.innerText;
+    const shareTitleElement = document.getElementById('blog-title');
+    const shareTitle = shareTitleElement.innerText;
+        if (platform === 'twitter') {
+          url = `https://twitter.com/intent/tweet?text=${shareTitle}&url=${encodeURIComponent(shareUrl)}`;
+        } else if (platform === 'facebook') {
+          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        } else if (platform === 'whatsapp') {
+          url = `https://wa.me/?text=${encodeURIComponent(shareUrl)}`;
+        } else if (platform === 'linkedin') {
+          url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+        } else if (platform === 'reddit') {
+          url = `https://reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${shareTitle}`;
+        } else if (platform === 'telegram') {
+          url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${shareTitle}`;
+        }
+    
+          window.open(url, '_blank').focus();
+        }
+
+
+</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {

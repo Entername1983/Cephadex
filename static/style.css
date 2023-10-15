@@ -1963,4 +1963,8 @@ a {
 .btn-outline-footer:hover {
   background-color: #a880fd !important;
   color: #fff !important;
+}
+
+.btn-outline-dark:hover {
+  background-color: #a880fd !important;
 }/*# sourceMappingURL=style.css.map */
