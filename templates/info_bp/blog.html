@@ -29,6 +29,7 @@
 
     .blog-title {
         font-size: 2.5rem;
+        padding: 20px;
         margin-bottom: 1.5rem;
         color: #6019FF;
         text-decoration: none;
@@ -42,6 +43,10 @@
     }
     .opened {
         background-color: #efe8ff;
+    }
+
+    .blog-post-link {
+        padding: 20px;
     }
 </style>
 {% endblock %}
@@ -57,31 +62,36 @@
         <div class = "col-md-8 col-12 post-display" id ="blog-post-container">
             <div id = "blog-post ">
                 <div id = "blog-title" class ="blog-title"></div>
-                <div class = "row modal-footer">
-                    <div class = "col">
-                        <div class = " d-flex justify-content-center">
-                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('twitter')" role="button"
-                            target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
-                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit')" role="button"
-                            target="_blank"><i class="fab fa-reddit fa-lg"></i></a>
-                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('whatsapp')" role="button"
-                            target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
-                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('linkedin')" role="button"
-                            target="_blank"><i class="fab fa-linkedin fa-lg"></i></a>
-                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('facebook')" role="button"
-                            target="_blank"><i class="fab fa-facebook fa-lg"></i></a>
-                            <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('telegram')" role="button"
-                            target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
-                          </div>
+                <div id = "post-info">
+                    <div class = "row modal-footer">
+                        <div  class = "row">
+                            <p><i id = "blog-post-summary"></i></p>
                         </div>
-                <div id = "blog-date" class = "col align-content-end"></div>
+                        <div class = "col">
+                            <div class = " d-flex justify-content-center">
+                                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('twitter')" role="button"
+                                target="_blank"><i class="fab fa-twitter fa-lg"></i></a>
+                                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('reddit')" role="button"
+                                target="_blank"><i class="fab fa-reddit fa-lg"></i></a>
+                                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('whatsapp')" role="button"
+                                target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
+                                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('linkedin')" role="button"
+                                target="_blank"><i class="fab fa-linkedin fa-lg"></i></a>
+                                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('facebook')" role="button"
+                                target="_blank"><i class="fab fa-facebook fa-lg"></i></a>
+                                <a class="btn btn-outline-dark btn-floating m-1" onclick="shareToSocialMedia('telegram')" role="button"
+                                target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
+                            </div>
+                            </div>
+                    <div id = "blog-date" class = "col align-content-end"></div>
+                    </div>
             </div>
-                
-
-                
                 <div id = "blog-image"></div>
                 <div id = "blog-content"></div>
             </div>
+            <a class = "blog-post-link" id = "blog-post-url"></a>
+
+
 
         </div>
         <div class = "col-md-4 col-12 " id="blog-posts" class="">
@@ -181,31 +191,30 @@ function getSpecificBlog(blog_slug) {
             element.classList.remove("opened");
             });
             const blogSummary = document.getElementById(blog.slug);
+            console.log(blogSummary)
             const blogDate = document.getElementById('blog-date');
             const rawDate = new Date(blog.time_created);
-
-            // Extract the date components
             const day = rawDate.getDate();
             const month = rawDate.toLocaleString('en-US', { month: 'short' }); // 'Oct'
             const year = rawDate.getFullYear();
-
-            // Format the date
             const formattedDate = `${day}, ${month}. ${year}`;
 
+            const blogPostSummary = document.getElementById('blog-post-summary');
+            console.log(blogPostSummary)
+            blogPostSummary.innerText = blog.summary;
             blogDate.innerText = formattedDate;
-
             const blogSummaryContainer = blogSummary.children;
-            console.log(blogSummary);
-            console.log(blogSummaryContainer);
             blogSummaryContainer[0].classList.add("opened");
-            console.log(blog.title)
-            console.log(blog.content)
             blogTitleContainer.innerText = blog.title;
             blogContentContainer.innerHTML = blog.content;
-            const blogUrl = document.createElement('a');
-            blogUrl.id = 'blogPostUrl';
+            const blogUrl = document.getElementById('blog-post-url');
+            console.log(blogUrl)
+           
+            console.log(blog.slug);
             blogUrl.innerText = 'https://www.cephadex.com/info_bp/blog/'+ blog.slug;
-            blogContentContainer.appendChild(blogUrl);
+
+        
+            
 
         })
         .catch(error => {

@@ -77,7 +77,7 @@ def blog_post_api(slug):
 @info_bp.route('/api_0/blog/fetch_list_all_posts', methods=['GET'])
 def fetch_list_all_posts():
     post_titles_and_slugs = []
-    blog_posts = BlogPost.query.all()
+    blog_posts = BlogPost.query.order_by(BlogPost.time_created.desc()).all()
     for post in blog_posts:
         post_titles_and_slugs.append({'title': post.title, 'slug': post.slug, 'summary': post.summary})
     return jsonify(post_titles_and_slugs), 200
