@@ -215,6 +215,8 @@ class StripeEventHandler:
             try:
                 stripe.Customer.modify(
                     str(user.stripe_customer_id), metadata={'user_id': str(user.id)})
+                time.sleep(2)
+
             except stripe.error.InvalidRequestError:
                 print("Unable associate meta data with user, stripe customer id does not exist")
             db.session.add(event)
@@ -231,6 +233,7 @@ class StripeEventHandler:
         try:
             stripe.Customer.modify(
                 str(self.customer_id), metadata={'user_id': self.user_id})
+            time.sleep(2)
         except stripe.error.InvalidRequestError:
             print("Unable associate meta data with user, stripe customer id does not exist")
 
