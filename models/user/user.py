@@ -27,7 +27,7 @@ class User(db.Model, UserMixin):
     time_accessed= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     test= db.relationship('Test', secondary=distribution, backref ="taker")
     account_type = db.Column(db.String(255), nullable=True, default="free")
-    account_status = db.Column(db.String(255), nullable=True, default="active")
+    account_status = db.Column(db.String(255), nullable=True, default="free")
     account_expiration = db.Column(db.DateTime, nullable=True)
     account_expiration_reason = db.Column(db.String(255), nullable=True)
     gender = db.Column(db.String(255), nullable=True)
@@ -37,11 +37,13 @@ class User(db.Model, UserMixin):
     timezone = db.Column(db.String(64))
     subscription_plan = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=False, default=1)
     subscription_start_date = db.Column(db.DateTime)
+    subscription_end_date = db.Column(db.DateTime)
     latest_roll_over = db.Column(db.DateTime)
     groups = db.relationship("Group", secondary=user_group_association, backref="users")
     role = db.Column(db.String(255), nullable = True)
     stripe_customer_id = db.Column(db.String(255), nullable=True)
     guest = db.Column(db.Boolean, default=False)
+    used_trial = db.Column(db.Boolean, default=False)
 
     def member_since(self) -> str:
         return self.time_created.strftime('%b %Y')

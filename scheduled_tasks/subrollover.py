@@ -1,11 +1,18 @@
 import csv
 import json
+import sys
+import os
+import logging
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from sqlalchemy import func
 from app import db, app
 from datetime import datetime, timedelta, timezone
+from dateutil.relativedelta import relativedelta
+
 from dotenv import load_dotenv
-import os
-import logging
+
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 result = load_dotenv(dotenv_path)
@@ -43,9 +50,11 @@ def roll_over():
                 subscription.subscription_start_date = datetime.now(timezone.utc)
             subscription.latest_roll_over = subscription.subscription_start_date
         aware_datetime = datetime.replace(subscription.latest_roll_over, tzinfo=timezone.utc)
-        if aware_datetime + timedelta(days=30) <= datetime.now(
-            timezone.utc
-        ):
+
+        # Calculate the same day of the following month
+        next_month_date = aware_datetime + relativedelta(months=1)
+
+        if next_month_date <= datetime.now(timezone.utc):
             logger.info(f"rolling over {subscription.username}")
             subscription.latest_roll_over = datetime.now(timezone.utc)
             # Reset the usage limit for this subscription type

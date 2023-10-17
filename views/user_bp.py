@@ -530,7 +530,7 @@ def stripe_webhook():
                     'customer.subscription.updated', 'customer.subscription.created',
                     'customer.subscription.trial_will_end', 'invoice.created',
                     'invoice.payment_failed', 'invoice.payment_succeeded','invoice.updated',
-                    'invoice.finalized', 'invoice_finalization_failed',
+                    'invoice.finalized', 'invoice_finalization_failed', 'customer_created'
                     ]
     payload = request.data.decode('utf-8')
     sig_header = request.headers.get('stripe-signature')
@@ -540,18 +540,17 @@ def stripe_webhook():
             payload, sig_header, endpoint_secret
         )
     except ValueError as e:
-        logger.exception("An exception occurred in stribe_webhook() route): %s", e)
+        logger.error("An exception occurred in stribe_webhook() route): %s", e)
         return 'Invalid payload', 401
     except stripe.error.SignatureVerificationError as e:
-        logger.debug(f"Signature verification error: {str(e)}")
-        logger.error("An exception occurred in stribe_webhook() route): %s", e)
+        logger.error(f"Signature verification error: {str(e)}")
         return 'Invalid signature', 402
     if event['type'] in valid_events:
-        try:
-            stripe_event_handler = StripeEventHandler()
-            stripe_event_handler.handle_event(event)
-        except Exception as e:
-            logger.critical(f"Unhandled stripe event error {e}: {json.dumps(event, indent=4)}")
+        # try:
+        stripe_event_handler = StripeEventHandler()
+        stripe_event_handler.handle_event(event)
+        # except Exception as e:
+        #     logger.critical(f"Unhandled stripe event error {e}: {json.dumps(event, indent=4)}")
     else:
         return 'Unused event type', 200
     return 'Success', 200

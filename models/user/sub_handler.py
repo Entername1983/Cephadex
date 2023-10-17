@@ -19,274 +19,259 @@ logger = logging.getLogger("payment")
 class StripeEventHandler:
     def __init__(self, api_key= None):
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+        self.plan_modifier = PlanModifier()
+        self.customer_id = None
+        self.user_id = None
+        self.price_id = None
+        self.account_status = None
+        self.event_type = None
+        self.customer_email = None
 
     def handle_event(self, event):
-        event_type = event['type']
         self.log_stripe_event(event)
-        if event_type == 'customer.created':
-            self.handle_customer_creation(event)
 
-        elif event_type == 'checkout.session.completed':
-            self.handle_checkout_session(event)
+        self.event_type = event['type']
+        print(dt.datetime.now(dt.timezone.utc), event['type'])
+        customer_data = event['data']['object']
+        if 'customer' in customer_data or customer_data['object'] == 'checkout.session':
+            self.customer_id = customer_data.get('customer')
+        else:
+            self.customer_id = customer_data['id']
+            self.customer_email = customer_data['email']
+        self.user_id = event['data']['object'].get('client_reference_id')
+        if self.user_id is None:
+            self.user_id = event['data']['object'].get('metadata', {}).get('user_id')
+        self.price_id = event['data']['object'].get('items', {}).get('data', [{}])[0].get('price', {}).get('id')
+        self.account_status = event['data']['object'].get('status')
+        if self.user_id is None:
+            user = User.query.filter_by(stripe_customer_id=self.customer_id).first()
+            self.user_id = user.id
+        print(f"customer_id: {self.customer_id}, user_id: {self.user_id}, price_id: {self.price_id}, account_status: {self.account_status}")
 
-        elif event_type == 'customer.subscription.deleted':
-            self.handle_subscription_deletion(event)
 
-        elif event_type == 'customer.subscription.updated':
-            self.handle_subscription_update(event)
 
-        elif event_type == 'customer.subscription.created':
-            self.handle_subscription_creation(event)
 
-        elif event_type == 'customer.subscription.trial_will_end':
-            self.handle_subscription_trial_end(event)
+        ## associate stripe customer id with my customer id
+        if self.event_type == 'customer.created':
+            self.handle_customer_creation()
+        ## Don't use?    
+        elif self.event_type == 'checkout.session.completed':
+            self.handle_checkout_session()
 
-        elif event_type == 'customer.deleted':
-            self.handle_customer_deletion(event)
+        ## create customer subscription
+        elif self.event_type == 'customer.subscription.created':
+            self.handle_subscription_creation()
 
-        elif event_type == 'customer.updated':
-            self.handle_customer_update(event)
+        ## Set customer subscription to free tier
+        elif self.event_type == 'customer.subscription.deleted':
+            self.handle_subscription_deletion()
 
-        elif event_type == 'invoice.created':
-            self.handle_invoice_created(event)
+        ## update customer subscription
+        elif self.event_type == 'customer.subscription.updated':
+            self.handle_subscription_update()
+
+        ## send email notification trial will end
+        elif self.event_type == 'customer.subscription.trial_will_end':
+            self.handle_subscription_trial_end()
+
+        ## set customer subscription to free tier
+        elif self.event_type == 'customer.deleted':
+            self.handle_customer_deletion()
+
+        ## update customer details
+        elif self.event_type == 'customer.updated':
+            self.handle_customer_update()
+
+
+
+        elif self.event_type == 'invoice.created':
+            self.handle_invoice_created()
         
-        elif event_type == 'invoice.payment_failed':
-            self.handle_invoice_payment_failed(event)
+        elif self.event_type == 'invoice.payment_failed':
+            self.handle_invoice_payment_failed()
 
-        elif event_type == 'invoice.payment_succeeded':
-            self.handle_invoice_payment_succeeded(event)
+        elif self.event_type == 'invoice.payment_succeeded':
+            self.handle_invoice_payment_succeeded()
 
-        elif event_type == 'invoice.paid':
-            self.handle_invoice_paid(event)
+        elif self.event_type == 'invoice.paid':
+            self.handle_invoice_paid()
         
-        elif event_type == 'invoice.updated':
-            self.handle_invoice_updated(event)
+        elif self.event_type == 'invoice.updated':
+            self.handle_invoice_updated()
 
-        elif event_type == 'invoice.finalized':
-            self.handle_invoice_finalized(event)
+        elif self.event_type == 'invoice.finalized':
+            self.handle_invoice_finalized()
         
-        elif event_type == 'invoice_finalization_failed':
-            self.handle_invoice_finalization_failed(event)
+        elif self.event_type == 'invoice_finalization_failed':
+            self.handle_invoice_finalization_failed()
 
 
-    def handle_invoice_paid(self, event):
-        price_id = event['data']['object']['lines']['data'][0]['price']['id']
-        customer_id = event['data']['object']['customer']
-        user = User.query.filter_by(stripe_customer_id=customer_id).first()
-        update_plan(user, price_id)
+    def handle_customer_creation(self):
+        logger.info("customer created")
+        self.associate_stripe_customer_with_user(self.user_id, self.customer_id)
+
+    def handle_subscription_creation(self):
+        logger.info("subscription created")
+        if self.account_status == "trialing":
+            self.plan_modifier.update_user_subscription(self.user_id, self.price_id, self.account_status)
+        if self.account_status == "active":
+            self.plan_modifier.update_user_subscription(self.user_id, self.price_id, self.account_status)
+        if self.account_status == "paid":
+            self.plan_modifier.update_user_subscription(self.user_id, self.price_id, self.account_status)
 
 
+    def handle_subscription_deletion(self):
+        logger.info("subscription deleted")
+        self.plan_modifier.update_user_subscription(self.user_id, self.price_id, self.account_status)
 
-    def handle_checkout_session(self, event):
-        user_id = event['data']['object']['client_reference_id']
-        self.associate_stripe_customer_with_user(event)
-        time.sleep(1) ## giving webhook time to return a response
-        stripe_event = self.log_stripe_event(event, user_id)
-        line_items = stripe.checkout.Session.list_line_items(event['data']['object']['id'])
-        logger.info(f"user id is {user_id}, line items are {line_items}")
-        if line_items.data:
-            try:
-                item = line_items.data[0]
-                # product_id = item['price']['product']        
-                price_id = item['price']['id']
-                logger.info(f"retrieved price id of {price_id}")
-                # Retrieve the product details from Stripe API
-                # product = stripe.Product.retrieve(product_id)
-                # product_name = product['name']
-                user = User.query.filter_by(id=user_id).first()
-                plan_modifier = PlanModifier()
-                plan_modifier.start_new_subscription(user, price_id)
-                stripe_event.processed = True
-                stripe_event.processed_at = dt.datetime.now(dt.timezone.utc)
-            except Exception as e:
-            # Update the StripeEvents table with the error message if processing fails
-                stripe_event.error_message = str(e)
-                logger.error('Exception in process_event_background'
-                                        'function):%s', e)
-                raise e
-            finally:
-                db.session.commit()
-
-    def handle_subscription_deletion(self, event):
-    
-        stripe_customer_id = event['data']['object']['customer']
-        logger.error(f"subscription deleted for {stripe_customer_id}")
-        user = User.query.filter_by(stripe_customer_id=stripe_customer_id).first()
-        plan_modifier = PlanModifier()
-        plan_modifier.cancel_subscription(user)
         
-    def handle_subscription_update(self, event):
+    def handle_subscription_update(self):
         logger.info("handle subscription update")
         ## ensure subscription is active
-        sub_is_active = event['data']['object']['status']
-        if sub_is_active == 'active':
-            stripe_customer_id = event['data']['object']['customer']
-
-            user = User.query.filter_by(stripe_customer_id=stripe_customer_id).first()
-            if event['items']['data']:
-                price_id = event['items']['data'][0]['price']['id']
-                plan_modifier = PlanModifier()
-                plan_modifier.change_subscription(user, price_id)
-            # line_items = stripe.checkout.Session.list_line_items(event['data']['object']['id'])
-            # if line_items.data:
-            #     item = line_items.data[0]
-            #     price_id = item['price']['id']
-            #     update_plan(user, price_id)
-
-    def handle_subscription_creation(self, event):
-        logger.info("subscription created")
-    def handle_customer_deletion(self, event):
-        logger.info("customer deleted")
-    def handle_customer_update(self, event):
-        logger.info("customer updated")
-    def handle_customer_creation(self, event):
-        logger.info("customer created")
+        if self.account_status == 'active':
+            self.plan_modifier.update_user_subscription(self.user_id, self.price_id, self.account_status)
+        if self.account_status == 'canceled':
+            self.plan_modifier.update_user_subscription(self.user_id, self.price_id, self.account_status)
 
 
-    def handle_subscription_trial_end(self, event):
-        stripe_customer_id = event['data']['object']['customer']
-        subscription = event['data']['object']
-        trial_end_time = subscription.get('trial_end')
-        dt_object = dt.datetime.fromtimestamp(trial_end_time)
-        user = User.query.filter_by(stripe_customer_id=stripe_customer_id).first()
+    def handle_subscription_trial_end(self):
+        logger.info(f"trial ending in 3 days for {self.user_id}")
+        user = User.query.filter_by(stripe_customer_id=self.customer_id).first()
         send_email(user.email, user.first_name, "trial_over")
-        logger.info(f"trial ended at {dt_object}")
 
-    def associate_stripe_customer_with_user(self, event):
-        logger.info(f"associating stripe customer id {event['data']['object']['customer']} with user id {event['data']['object']['client_reference_id']} in DB")
-        try:
-            idempo = str(uuid.uuid4())
-            user_id = event['data']['object']['client_reference_id']
-            stripe_customer_id = event['data']['object']['customer']
-            ## modify user entry in DB
-            user = User.query.filter_by(id=user_id).first()
-            if user.stripe_customer_id is not None:
-                logger.critical(f"User {user_id} already has a stripe customer id {user.stripe_customer_id}, which conflicts with:{stripe_customer_id}")
-                self.handle_new_subscription_with_existing_customer(user, stripe_customer_id)
-            else:
-                logger.info(f"associating user {user_id} with stripe customer id {stripe_customer_id}")
-                user.stripe_customer_id = stripe_customer_id
-            ## modify stripe customer entry
-            stripe.Customer.modify(
-                stripe_customer_id, metadata={'user_id': user_id}, idempotency_key=idempo,)
-            db.session.commit()
-            return user
-        except Exception as e:
-            logger.critical(f"Exception in associate_stripe_customer_with_user - stripe {e}, stripe customer id {stripe_customer_id},")
-            raise
 
     def handle_new_subscription_with_existing_customer(self, user, stripe_customer_id):
         logger.info(f"changing user {user.id} to have a new stripe customer id {stripe_customer_id}, previous stripe id was {user.stripe_customer_id}")
         user.stripe_customer_id = stripe_customer_id
         db.session.commit()
 
+    def handle_invoice_paid(self):
+        customer_id = self.customer_id
+        user = User.query.filter_by(stripe_customer_id=customer_id).first()
+        if not user:
+            ## Call stripe API and search for customer ID
+            ## Associate customer with user
+            logger.critical(f"user {customer_id} not found, cannot handle invoice_paid event")
+
+        if user.account_status == "active":
+            ## user is already subscribed, subrollover takes care of updating credit
+            pass
+        if user.account_status in ["free", "trialing"]:
+            user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+            user.account_status = "active"
+            user.account_type = "paid"
+            self.plan_modifier.update_user_subscription(self.user_id, self.price_id, self.account_status)
+            db.session.commit()
+
+    def handle_customer_deletion(self):
+        logger.info("customer deleted")
+        self.plan_modifier.update_user_subscription(self.user_id, self.price_id, 'canceled')
+        
+
+    def handle_customer_update(self):
+        logger.info("customer updated")
+
+    def handle_checkout_session(self):
+        print(f"user_id: {self.user_id}")
+        self.associate_stripe_customer_with_user()
+        self.add_user_id_metadata_to_stripe_customer()
+
+
     def log_stripe_event(self, event, user_id= None):
         time_created = dt.datetime.now(dt.timezone.utc)
-        stripe_event = StripeEvents(
-                stripe_event_id=event['id'],
-                event_type=event['type'],
-                event_data=json.dumps(event),
-                time_created=time_created,
-                user_id=user_id,
-                stripe_customer_id=event['data']['object']['customer'],
+        stripe_event = StripeEvents(stripe_event_id=event['id'], event_type=event['type'],
+                event_data=json.dumps(event), time_created=time_created, user_id=user_id,
+                stripe_customer_id=self.customer_id,
             )
         db.session.add(stripe_event)
         db.session.commit()
         return stripe_event
     
-    def handle_invoice_created(self, event):
-        logger.info(f"invoice created {event}")
 
-    def handle_invoice_payment_failed(self, event):
-        logger.error(f"invoice payment failed {event}")
+    def associate_stripe_customer_with_user(self):
+        print("calling associate_stripe_customer_with_user")
+        logger.info(f"associating stripe customer id {self.customer_id} with user {self.user_id}")
+        user = User.query.filter_by(id=self.user_id).first()
+        if user.stripe_customer_id is not None:
+            if user.stripe_customer_id == self.customer_id:
+                logger.info(f"User {self.user_id} already has a stripe customer id {user.stripe_customer_id}, which matches {self.customer_id}")
+                return
+            error_message = f"User {self.user_id} already has a stripe customer id {user.stripe_customer_id}, which conflicts with:{self.customer_id} - modifying to use original stripe customer id"
+            logger.critical(error_message)
+            event = StripeEvents(event_type = "customer_id_conflict", user_id = self.user_id, stripe_customer_id = user.stripe_customer_id, error_message = error_message)
+            stripe.Customer.modify(
+                str(user.stripe_customer_id), metadata={'user_id': str(user.id)})
+            db.session.add(event)
+        else:
+            user.stripe_customer_id = self.customer_id
+        db.session.commit()
+        return user.id
 
-    def handle_invoice_payment_succeeded(self, event):
-        logger.info(f"invoice payment succeeded {event}")
 
-    def handle_invoice_updated(self, event):
-        logger.info(f"invoice updated {event}")
+    def add_user_id_metadata_to_stripe_customer(self):
+        print("calling add_user_id_metadata_to_stripe_customer")
+        stripe.Customer.modify(
+            str(self.customer_id), metadata={'user_id': self.user_id})
 
-    def handle_invoice_finalized(self, event):
-        logger.info(f"invoice finalized {event}")
 
-    def handle_invoice_finalization_failed(self, event):
-        logger.info(f"invoice finalization failed {event}")
+    def handle_invoice_created(self):
+        logger.info(f"invoice created")
+
+    def handle_invoice_payment_failed(self):
+        logger.error(f"invoice payment failed")
+
+    def handle_invoice_payment_succeeded(self):
+        logger.info(f"invoice payment succeeded")
+
+    def handle_invoice_updated(self):
+        logger.info(f"invoice updated")
+
+    def handle_invoice_finalized(self):
+        logger.info(f"invoice finalized ")
+
+    def handle_invoice_finalization_failed(self):
+        logger.info(f"invoice finalization failed")
+
 
 
 
 
 class PlanModifier:
+    def __init__(self):
+        self.user = None
+        self.plan = None
+
+    def update_user_subscription(self, user_id, price_id, status):
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            logger.critical(f"Unable to update user subscription, user_id {user_id} not found")
+            return
+        if user.account_status == status:
+            logger.error(f"user {user.id} is already in {status} mode")
+            return f"user is already in {status} mode"
+        self.user = user
+        self.plan = PLAN_CONFIG.get(price_id)
+        user.subscription_plan = self.plan['subscription_plan']
+        user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
+        user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
+        if status == "trialing":
+            user.subscription_end_date =dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=7)
+        user.account_status = status
+        if status == "canceled":
+            send_email(user.email, user.first_name, 'sub_cancelled')
+        elif status in ["upgrade", "sub_changed"]:
+            send_email(user.email, user.first_name, status)
+        self.set_usage_limit(user, self.plan['usage_limit'])
+        db.session.commit()
 
     def set_usage_limit(self, user, n):
-        new_record = UsageRecord(user_id=user.id,
-        operation_type="Change plan", limit_count=n, operation_count=0, remaining_count=n,
-        date=dt.datetime.now(dt.timezone.utc), time_period = "month",
-    )
+        if self.plan in ['premium_yearly', 'premium_monthly']:
+            latest_record = UsageRecord.query.filter_by(user_id=user.id).order_by(UsageRecord.date.desc()).first()
+            n = latest_record.remaining_count + n
+        new_record = UsageRecord(user_id=user.id, operation_type="Update plan",
+            limit_count=n, operation_count=0, remaining_count=n, date=dt.datetime.now(dt.timezone.utc),
+            time_period="month",
+        )
         db.session.add(new_record)
         db.session.commit()
-
-    def start_new_subscription(self, user, price_id):
-        plan = PLAN_CONFIG.get(price_id)
-        user.subscription_plan = plan['subscription_plan']
-        user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-        user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-        self.set_usage_limit(user, plan['usage_limit'])
-        send_email(user.email, user.first_name, 'upgrade')
-        db.session.commit()
-
-    def cancel_subscription(self, user):
-        plan = PLAN_CONFIG.get('0')
-        user.subscription_plan = plan['subscription_plan']
-        user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-        user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-        self.set_usage_limit(user, plan['usage_limit'])
-        send_email(user.email, user.first_name, 'sub_cancelled')
-        db.session.commit()
-
-    def upgrade_subscription(self, user, new_price_id):
-        plan = PLAN_CONFIG.get(new_price_id)
-        user.subscription_plan = plan['subscription_plan']
-        user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-        user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-        self.set_usage_limit(user, plan['usage_limit'])
-        send_email(user.email, user.first_name, 'upgrade')
-        db.session.commit()
-
-    def change_subscription(self, user, new_price_id):
-        plan = PLAN_CONFIG.get(new_price_id)
-        user.subscription_plan = plan['subscription_plan']
-        user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-        user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-        self.set_usage_limit(user, plan['usage_limit'])
-        send_email(user.email, user.first_name, 'sub_changed')
-        db.session.commit()
-
-
-@log_decorator
-def update_plan(user, price_id):
-    plan = PLAN_CONFIG.get(price_id)
-    if not plan:
-        logger.error(f"Plan {price_id} not found.")
-        return
-    logger.info(f"plan is {plan} type {type(plan)}")
-    user.subscription_plan = plan['subscription_plan']
-    user.subscription_start_date = dt.datetime.now(dt.timezone.utc)
-    user.subscription_latest_roll_over = dt.datetime.now(dt.timezone.utc)
-    set_usage_limit(user, plan['usage_limit'])
-    db.session.commit()
-    
-@log_decorator
-def set_usage_limit(user, n):
-    new_record = UsageRecord(
-        user_id=user.id,
-        operation_type="Change plan",
-        limit_count=n,
-        operation_count=0,
-        remaining_count=n,
-        date=dt.datetime.now(dt.timezone.utc),
-        time_period = "month",
-    )
-    db.session.add(new_record)
-    db.session.commit()
-
 
