@@ -28,35 +28,44 @@ class StripeEventHandler:
         self.customer_email = None
 
     def handle_event(self, event):
+        print("----------------------------------------------------")
         self.log_stripe_event(event)
-
         self.event_type = event['type']
         print(dt.datetime.now(dt.timezone.utc), event['type'])
+
+
         customer_data = event['data']['object']
-        if 'customer' in customer_data or customer_data['object'] == 'checkout.session':
+        if 'customer' in customer_data:
+            print("customer in customer_data")
             self.customer_id = customer_data.get('customer')
+            print(self.customer_id)
         else:
             self.customer_id = customer_data['id']
-            self.customer_email = customer_data['email']
+    
+        self.customer_email = customer_data.get('email')
+
+        self.price_id = event['data']['object'].get('items', {}).get('data', [{}])[0].get('price', {}).get('id')
+        self.account_status = event['data']['object'].get('status')
+
         self.user_id = event['data']['object'].get('client_reference_id')
         if self.user_id is None:
             self.user_id = event['data']['object'].get('metadata', {}).get('user_id')
-        self.price_id = event['data']['object'].get('items', {}).get('data', [{}])[0].get('price', {}).get('id')
-        self.account_status = event['data']['object'].get('status')
         if self.user_id is None:
             user = User.query.filter_by(stripe_customer_id=self.customer_id).first()
-            self.user_id = user.id
-        print(f"customer_id: {self.customer_id}, user_id: {self.user_id}, price_id: {self.price_id}, account_status: {self.account_status}")
+            if user:
+                self.user_id = user.id
+        
+        print(f"customer_id: {self.customer_id}, user_id: {self.user_id}, price_id: {self.price_id}, account_status: {self.account_status}, customer_email: {self.customer_email}")
 
 
-
+        ## Use to associate user_id with stripe customer id
+        if self.event_type == 'checkout.session.completed':
+            self.handle_checkout_session()
 
         ## associate stripe customer id with my customer id
-        if self.event_type == 'customer.created':
+        elif self.event_type == 'customer.created':
             self.handle_customer_creation()
-        ## Don't use?    
-        elif self.event_type == 'checkout.session.completed':
-            self.handle_checkout_session()
+
 
         ## create customer subscription
         elif self.event_type == 'customer.subscription.created':
@@ -81,8 +90,6 @@ class StripeEventHandler:
         ## update customer details
         elif self.event_type == 'customer.updated':
             self.handle_customer_update()
-
-
 
         elif self.event_type == 'invoice.created':
             self.handle_invoice_created()
@@ -175,6 +182,12 @@ class StripeEventHandler:
         print(f"user_id: {self.user_id}")
         self.associate_stripe_customer_with_user()
         self.add_user_id_metadata_to_stripe_customer()
+        subscriptions = stripe.Subscription.list(customer=self.customer_id)
+        self.price_id = subscriptions['data'][0]['items']['data'][0]['price']['id']
+        self.account_status = subscriptions['data'][0]['status']
+        print(self.account_status)
+        print(self.price_id)
+        self.plan_modifier.update_user_subscription(self.user_id, self.price_id, self.account_status)
 
 
     def log_stripe_event(self, event, user_id= None):
@@ -199,9 +212,13 @@ class StripeEventHandler:
             error_message = f"User {self.user_id} already has a stripe customer id {user.stripe_customer_id}, which conflicts with:{self.customer_id} - modifying to use original stripe customer id"
             logger.critical(error_message)
             event = StripeEvents(event_type = "customer_id_conflict", user_id = self.user_id, stripe_customer_id = user.stripe_customer_id, error_message = error_message)
-            stripe.Customer.modify(
-                str(user.stripe_customer_id), metadata={'user_id': str(user.id)})
+            try:
+                stripe.Customer.modify(
+                    str(user.stripe_customer_id), metadata={'user_id': str(user.id)})
+            except stripe.error.InvalidRequestError:
+                print("Unable associate meta data with user, stripe customer id does not exist")
             db.session.add(event)
+            self.customer_id = user.stripe_customer_id
         else:
             user.stripe_customer_id = self.customer_id
         db.session.commit()
@@ -210,9 +227,12 @@ class StripeEventHandler:
 
     def add_user_id_metadata_to_stripe_customer(self):
         print("calling add_user_id_metadata_to_stripe_customer")
-        stripe.Customer.modify(
-            str(self.customer_id), metadata={'user_id': self.user_id})
-
+        print(self.user_id)
+        try:
+            stripe.Customer.modify(
+                str(self.customer_id), metadata={'user_id': self.user_id})
+        except stripe.error.InvalidRequestError:
+            print("Unable associate meta data with user, stripe customer id does not exist")
 
     def handle_invoice_created(self):
         logger.info(f"invoice created")
@@ -259,7 +279,7 @@ class PlanModifier:
         user.account_status = status
         if status == "canceled":
             send_email(user.email, user.first_name, 'sub_cancelled')
-        elif status in ["upgrade", "sub_changed"]:
+        elif status in ["upgrade", "sub_changed", "complete"]:
             send_email(user.email, user.first_name, status)
         self.set_usage_limit(user, self.plan['usage_limit'])
         db.session.commit()

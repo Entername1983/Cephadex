@@ -42,5 +42,10 @@ PLAN_CONFIG = {
         'name': 'basic_yearly',
         'subscription_plan': 3,
         'usage_limit': 480000
+    },
+    'price_1N6ywHGXWJkeH44y0GtBGant': {
+        'name': 'testing',
+        'subscription_plan': 5,
+        'usage_limit': 10101
     }
 }
