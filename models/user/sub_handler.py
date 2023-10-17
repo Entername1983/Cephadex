@@ -37,6 +37,7 @@ class StripeEventHandler:
         customer_data = event['data']['object']
         if 'customer' in customer_data:
             print("customer in customer_data")
+            print(customer_data)
             self.customer_id = customer_data.get('customer')
             print(self.customer_id)
         else:
@@ -182,6 +183,7 @@ class StripeEventHandler:
         print(f"user_id: {self.user_id}")
         self.associate_stripe_customer_with_user()
         self.add_user_id_metadata_to_stripe_customer()
+
         subscriptions = stripe.Subscription.list(customer=self.customer_id)
         self.price_id = subscriptions['data'][0]['items']['data'][0]['price']['id']
         self.account_status = subscriptions['data'][0]['status']
@@ -209,28 +211,21 @@ class StripeEventHandler:
             if user.stripe_customer_id == self.customer_id:
                 logger.info(f"User {self.user_id} already has a stripe customer id {user.stripe_customer_id}, which matches {self.customer_id}")
                 return
-            error_message = f"User {self.user_id} already has a stripe customer id {user.stripe_customer_id}, which conflicts with:{self.customer_id} - modifying to use original stripe customer id"
+            error_message = f"User {self.user_id} already has a stripe customer id {user.stripe_customer_id}, which conflicts with:{self.customer_id} - modifying to use new stripe id"
             logger.critical(error_message)
             event = StripeEvents(event_type = "customer_id_conflict", user_id = self.user_id, stripe_customer_id = user.stripe_customer_id, error_message = error_message)
-            try:
-                stripe.Customer.modify(
-                    str(user.stripe_customer_id), metadata={'user_id': str(user.id)})
-                time.sleep(2)
-
-            except stripe.error.InvalidRequestError:
-                print("Unable associate meta data with user, stripe customer id does not exist")
             db.session.add(event)
-            self.customer_id = user.stripe_customer_id
-        else:
-            user.stripe_customer_id = self.customer_id
+            
+        user.stripe_customer_id = self.customer_id
         db.session.commit()
-        return user.id
+        return
 
 
     def add_user_id_metadata_to_stripe_customer(self):
         print("calling add_user_id_metadata_to_stripe_customer")
         print(self.user_id)
         try:
+            print(self.customer_id)
             stripe.Customer.modify(
                 str(self.customer_id), metadata={'user_id': self.user_id})
             time.sleep(2)
